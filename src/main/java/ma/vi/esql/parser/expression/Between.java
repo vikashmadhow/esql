@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Vikash Madhow
+ * Copyright (c) 2020 Vikash Madhow
  */
 
 package ma.vi.esql.parser.expression;
@@ -56,6 +56,15 @@ public class Between extends Expression<Expression<?>> {
             from().translate(target) + " and " +
             to().translate(target);
     }
+  }
+
+  @Override
+  public void _toString(StringBuilder st, int level, int indent) {
+    compare()._toString(st, level, indent);
+    st.append(" between ");
+    from()._toString(st, level, indent);
+    st.append(" and ");
+    to()._toString(st, level, indent);
   }
 
   public Expression<?> compare() {

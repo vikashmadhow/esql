@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2020 Vikash Madhow
+ */
+
 package ma.vi.esql.database;
 
 import ma.vi.esql.parser.Translatable;

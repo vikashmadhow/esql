@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Vikash Madhow
+ * Copyright (c) 2020 Vikash Madhow
  */
 
 package ma.vi.esql.parser.expression;
@@ -15,6 +15,7 @@ import ma.vi.esql.database.Structure;
 
 import java.util.List;
 
+import static java.util.stream.Collectors.filtering;
 import static java.util.stream.Collectors.joining;
 import static ma.vi.base.tuple.T2.of;
 
@@ -122,6 +123,63 @@ public class FunctionCall extends Expression<String> implements Macro {
       translation += ')';
     }
     return translation;
+  }
+
+  @Override
+  public void _toString(StringBuilder st, int level, int indent) {
+    st.append(functionName()).append('(');
+    if (distinct() != null && distinct()) {
+      st.append("distinct ");
+      if (distinctOn() != null && !distinctOn().isEmpty()) {
+        boolean first = true;
+        st.append('(');
+        for (Expression<?> e: distinctOn()) {
+          if (first) { first = false; }
+          else       { st.append(", "); }
+          e._toString(st, level, indent);
+        }
+        st.append(") ");
+      }
+    }
+    boolean first = true;
+    for (Expression<?> e: arguments()) {
+      if (first) { first = false; }
+      else       { st.append(", "); }
+      e._toString(st, level, indent);
+    }
+    st.append(')');
+
+    List<Expression<?>> partitions = partitions();
+    List<Order> orderBy = orderBy();
+    if ((partitions != null && !partitions.isEmpty()) ||
+        (orderBy != null && !orderBy.isEmpty())) {
+      boolean overAdded = false;
+      if (partitions != null && !partitions.isEmpty()) {
+        st.append(" over (partition by ");
+        first = true;
+        for (Expression<?> e: partitions()) {
+          if (first) { first = false; }
+          else       { st.append(", "); }
+          e._toString(st, level, indent);
+        }
+        overAdded = true;
+      }
+      if (orderBy != null && !orderBy.isEmpty()) {
+        if (overAdded) {
+          st.append(' ');
+        } else {
+          st.append(" over (");
+        }
+        st.append("order by ");
+        first = true;
+        for (Order e: orderBy()) {
+          if (first) { first = false; }
+          else       { st.append(", "); }
+          e._toString(st, level, indent);
+        }
+      }
+      st.append(')');
+    }
   }
 
   public String functionName() {

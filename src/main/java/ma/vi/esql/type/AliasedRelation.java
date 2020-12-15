@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2020 Vikash Madhow
+ */
+
 package ma.vi.esql.type;
 
 import ma.vi.esql.parser.expression.ColumnRef;

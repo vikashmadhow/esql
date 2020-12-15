@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2020 Vikash Madhow
+ */
+
 package ma.vi.esql.parsing;
 
 import ma.vi.esql.Databases;

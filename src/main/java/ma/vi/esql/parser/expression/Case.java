@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Vikash Madhow
+ * Copyright (c) 2020 Vikash Madhow
  */
 
 package ma.vi.esql.parser.expression;
@@ -41,7 +41,7 @@ public class Case extends MultipleSubExpressions<String> {
   @Override
   public Type type() {
     for (Iterator<Expression<?>> i = expressions().iterator(); i.hasNext(); ) {
-      Expression e = i.next();
+      Expression<?> e = i.next();
       Type type = i.hasNext() ? i.next().type() : e.type();
       if (!type.equals(Types.NullType)) {
         return type;
@@ -53,9 +53,7 @@ public class Case extends MultipleSubExpressions<String> {
   @Override
   public String translate(Target target) {
     switch (target) {
-      case JSON:
-      case JAVASCRIPT:
-      case ESQL:
+      case JSON, JAVASCRIPT, ESQL -> {
         StringBuilder est = new StringBuilder();
         for (Iterator<Expression<?>> i = expressions().iterator(); i.hasNext(); ) {
           Expression<?> e = i.next();
@@ -78,8 +76,8 @@ public class Case extends MultipleSubExpressions<String> {
           ex = '"' + escapeJsonString(ex) + '"';
         }
         return ex;
-
-      default:
+      }
+      default -> {
         StringBuilder st = new StringBuilder("case");
         for (Iterator<Expression<?>> i = expressions().iterator(); i.hasNext(); ) {
           Expression<?> e = i.next();
@@ -92,6 +90,25 @@ public class Case extends MultipleSubExpressions<String> {
         }
         st.append(" end");
         return st.toString();
+      }
+    }
+  }
+
+  @Override
+  public void _toString(StringBuilder st, int level, int indent) {
+    boolean first = true;
+    for (Iterator<Expression<?>> i = expressions().iterator(); i.hasNext(); ) {
+      Expression<?> e = i.next();
+      if (first) { first = false; }
+      else       { st.append(" : "); }
+
+      if (i.hasNext()) {
+        e._toString(st, level, indent);
+        st.append(" -> ");
+        i.next()._toString(st, level, indent);
+      } else {
+        e._toString(st, level, indent);
+      }
     }
   }
 }

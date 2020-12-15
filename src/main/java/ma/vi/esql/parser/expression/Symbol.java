@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Vikash Madhow
+ * Copyright (c) 2020 Vikash Madhow
  */
 
 package ma.vi.esql.parser.expression;
@@ -31,16 +31,18 @@ public class Symbol extends Expression<String> {
 
   @Override
   public String translate(Target target) {
-    switch (target) {
-      case ESQL:
-        return '`' + name();
-
-      default:
-        /*
-         * In all other cases, treat a symbol as a string.
-         */
-        return '\'' + name() + '\'';
+    if (target == Target.ESQL) {
+      return '`' + name();
     }
+    /*
+     * In all other cases, treat a symbol as a string.
+     */
+    return '\'' + name() + '\'';
+  }
+
+  @Override
+  public void _toString(StringBuilder st, int level, int indent) {
+    st.append('`').append(name());
   }
 
   @Override

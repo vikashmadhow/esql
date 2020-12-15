@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Vikash Madhow
+ * Copyright (c) 2020 Vikash Madhow
  */
 
 package ma.vi.esql.parser.expression;
@@ -70,6 +70,18 @@ public class BaseArrayLiteral extends Literal<Type> {
                            .map(e -> ARRAY_ESCAPE.escape(e.translate(target)))
                            .collect(joining(",", "[", "]"));
     };
+  }
+
+  @Override
+  public void _toString(StringBuilder st, int level, int indent) {
+    st.append(componentType().name()).append('[');
+    boolean first = true;
+    for (BaseLiteral<?> e: items()) {
+      if (first) { first = false; }
+      else       { st.append(", "); }
+      e._toString(st, level, indent);
+    }
+    st.append(']');
   }
 
   @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Vikash Madhow
+ * Copyright (c) 2020 Vikash Madhow
  */
 
 package ma.vi.esql.parser.expression;
@@ -13,7 +13,7 @@ abstract class MultipleSubExpressions<V> extends Expression<V> {
     super(context, value, expressions);
   }
 
-  public MultipleSubExpressions(MultipleSubExpressions other) {
+  public MultipleSubExpressions(MultipleSubExpressions<V> other) {
     super(other);
   }
 

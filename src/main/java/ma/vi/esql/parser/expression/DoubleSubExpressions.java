@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Vikash Madhow
+ * Copyright (c) 2020 Vikash Madhow
  */
 
 package ma.vi.esql.parser.expression;
@@ -23,6 +23,13 @@ abstract class DoubleSubExpressions<V> extends Expression<V> {
   @Override
   public Type type() {
     return expr1().type();
+  }
+
+  @Override
+  public void _toString(StringBuilder st, int level, int indent) {
+    expr1()._toString(st, level, indent);
+    st.append(' ').append(value).append(' ');
+    expr2()._toString(st, level, indent);
   }
 
   public Expression<?> expr1() {

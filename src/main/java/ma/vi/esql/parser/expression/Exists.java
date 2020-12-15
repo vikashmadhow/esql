@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Vikash Madhow
+ * Copyright (c) 2020 Vikash Madhow
  */
 
 package ma.vi.esql.parser.expression;
@@ -40,6 +40,13 @@ public class Exists extends Expression<Select> {
   @Override
   public String translate(Target target) {
     return "exists(" + select().translate(target) + ")";
+  }
+
+  @Override
+  public void _toString(StringBuilder st, int level, int indent) {
+    st.append("exists(");
+    select()._toString(st, level, indent);
+    st.append(')');
   }
 
   public Select select() {

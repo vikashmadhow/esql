@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Vikash Madhow
+ * Copyright (c) 2020 Vikash Madhow
  */
 
 package ma.vi.esql.parser.expression;
@@ -46,9 +46,14 @@ public class IsNull extends SingleSubExpression {
       case JAVASCRIPT:
         String e = expr().translate(target) + " === null";
         return target == JSON ? '"' + escapeJsonString(e) + '"' : e;
-
       default:
         return expr().translate(target) + " is null";
     }
+  }
+
+  @Override
+  public void _toString(StringBuilder st, int level, int indent) {
+    expr()._toString(st, level, indent);
+    st.append(" is null");
   }
 }

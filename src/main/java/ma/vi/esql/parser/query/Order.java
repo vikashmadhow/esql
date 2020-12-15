@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Vikash Madhow
+ * Copyright (c) 2020 Vikash Madhow
  */
 
 package ma.vi.esql.parser.query;
@@ -48,6 +48,14 @@ public class Order extends Esql<Expression<?>, String> {
   public String translate(Target target) {
     String dir = dir();
     return order().translate(target) + (dir == null ? "" : ' ' + dir);
+  }
+
+  @Override
+  public void _toString(StringBuilder st, int level, int indent) {
+    order()._toString(st, level, indent);
+    if (dir() != null) {
+      st.append(' ').append(dir());
+    }
   }
 
   public Expression<?> order() {

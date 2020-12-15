@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Vikash Madhow
+ * Copyright (c) 2020 Vikash Madhow
  */
 
 package ma.vi.esql.parser.expression;
@@ -14,7 +14,8 @@ import static ma.vi.esql.parser.Translatable.Target.JSON;
 import static ma.vi.base.string.Escape.escapeJsonString;
 
 /**
- * e1 &lt; e &lt; e2, ...
+ * A range expression bounds an expression between two expression
+ * with relational operators. Example: e1 &lt; e &lt; e2, ...
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
@@ -73,6 +74,15 @@ public class Range extends Expression<Expression<?>> {
             rightExpression().translate(target) +
             ')';
     }
+  }
+
+  @Override
+  public void _toString(StringBuilder st, int level, int indent) {
+    leftExpression()._toString(st, level, indent);
+    st.append(' ').append(leftCompare()).append(' ');
+    compareExpression()._toString(st, level, indent);
+    st.append(' ').append(rightCompare()).append(' ');
+    rightExpression()._toString(st, level, indent);
   }
 
   public Expression<?> leftExpression() {

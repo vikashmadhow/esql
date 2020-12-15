@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2020 Vikash Madhow
+ */
+
 package ma.vi.esql.parser;
 
 import org.antlr.v4.runtime.BaseErrorListener;

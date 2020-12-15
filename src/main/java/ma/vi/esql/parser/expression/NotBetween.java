@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Vikash Madhow
+ * Copyright (c) 2020 Vikash Madhow
  */
 
 package ma.vi.esql.parser.expression;
@@ -42,11 +42,19 @@ public class NotBetween extends Between {
             compare().translate(target) + " > " + to().translate(target) +
             ')';
         return target == JSON ? '"' + escapeJsonString(e) + '"' : e;
-
       default:
         return compare().translate(target) + " not between " +
             from().translate(target) + " and " +
             to().translate(target);
     }
+  }
+
+  @Override
+  public void _toString(StringBuilder st, int level, int indent) {
+    compare()._toString(st, level, indent);
+    st.append(" not between ");
+    from()._toString(st, level, indent);
+    st.append(" and ");
+    to()._toString(st, level, indent);
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Vikash Madhow
+ * Copyright (c) 2020 Vikash Madhow
  */
 
 package ma.vi.esql.parser.expression;
@@ -55,6 +55,24 @@ public class In extends Expression<Expression<?>> {
                  .map(e -> e.translate(target))
                  .collect(joining(", "))
         ) + ')';
+  }
+
+  @Override
+  public void _toString(StringBuilder st, int level, int indent) {
+    expr()._toString(st, level, indent);
+    st.append(not() ? " not in (" : " in (");
+
+    if (select() != null) {
+      select()._toString(st, level, indent);
+    } else {
+      boolean first = true;
+      for (Expression<?> e: list()) {
+        if (first) { first = false; }
+        else       { st.append(", "); }
+        e._toString(st, level, indent);
+      }
+    }
+    st.append(')');
   }
 
   public Expression<?> expr() {

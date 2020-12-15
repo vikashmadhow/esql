@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Vikash Madhow
+ * Copyright (c) 2020 Vikash Madhow
  */
 
 package ma.vi.esql.parser.expression;
@@ -47,6 +47,11 @@ public class DefaultValue extends Expression<String> {
   @Override
   public String translate(Target target) {
     return "default";
+  }
+
+  @Override
+  public void _toString(StringBuilder st, int level, int indent) {
+    st.append("default");
   }
 
   @Override

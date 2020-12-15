@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2020 Vikash Madhow
+ */
+
 package ma.vi.esql.exec;
 
 import ma.vi.esql.type.Type;

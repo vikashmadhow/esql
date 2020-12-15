@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Vikash Madhow
+ * Copyright (c) 2020 Vikash Madhow
  */
 
 package ma.vi.esql.parser.expression;
@@ -215,6 +215,11 @@ public class ColumnRef extends Expression<String> { // implements Macro {
   @Override
   public String toString() {
     return qualifiedName();
+  }
+
+  @Override
+  public void _toString(StringBuilder st, int level, int indent) {
+    st.append(qualifiedName());
   }
 
   public String qualifier() {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Vikash Madhow
+ * Copyright (c) 2020 Vikash Madhow
  */
 
 package ma.vi.esql.parser.expression;
@@ -35,6 +35,11 @@ public abstract class BaseLiteral<V> extends Literal<V> {
 
   @Override
   public abstract BaseLiteral<V> copy();
+
+  @Override
+  public void _toString(StringBuilder st, int level, int indent) {
+    st.append(value);
+  }
 
   @Override
   public Object value(Target target) {

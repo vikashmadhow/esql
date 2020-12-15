@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Vikash Madhow
+ * Copyright (c) 2020 Vikash Madhow
  */
 
 package ma.vi.esql.parser.expression;
@@ -45,6 +45,12 @@ public class NamedArgument extends Expression<String> {
         // for databases drop name as it is not supported in most cases
         return arg().translate(target);
     }
+  }
+
+  @Override
+  public void _toString(StringBuilder st, int level, int indent) {
+    st.append(name()).append(":=");
+    arg()._toString(st, level, indent);
   }
 
   public String name() {

@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2020 Vikash Madhow
+ */
+
 package ma.vi.esql.type;
 
 import ma.vi.esql.parser.query.Column;
@@ -151,6 +155,17 @@ public abstract class Relation extends AbstractType {
       }
     }
     return cols;
+  }
+
+  @Override
+  public String toString() {
+    StringBuilder st = new StringBuilder(name()).append(" {\n");
+    for (Column c: columns()) {
+      c._toString(st, 2, 2);
+      st.append('\n');
+    }
+    st.append('}');
+    return st.toString();
   }
 }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Vikash Madhow
+ * Copyright (c) 2020 Vikash Madhow
  */
 
 package ma.vi.esql.parser.expression;
@@ -41,27 +41,20 @@ public class Cast extends Expression<Type> {
 
   @Override
   public String translate(Target target) {
-    switch (target) {
-      case ESQL:
-      case POSTGRESQL:
-        return expr().translate(target) + "::" +
-            toType().translate(target);
+    return switch (target) {
+      case ESQL       -> toType().translate(target) + '<' + expr().translate(target) + '>';
+      case POSTGRESQL -> expr().translate(target) + "::" + toType().translate(target);
+      case JSON,
+          JAVASCRIPT  -> expr().translate(target);    // ignore cast for Javascript
+      default         -> "cast(" + expr().translate(target) + " as " + toType().translate(target) + ')';
+    };
+  }
 
-//            case JSON:
-//                if (expr() instanceof Literal) {
-//                    return expr().translate(target);
-//                } else {
-//                    return '"' + expr().translate(target) + '"';
-//                }
-
-      case JSON:
-      case JAVASCRIPT:
-        return expr().translate(target);    // ignore cast for Javascript
-
-      default:
-        return "cast(" + expr().translate(target) + " as " +
-            toType().translate(target) + ')';
-    }
+  @Override
+  public void _toString(StringBuilder st, int level, int indent) {
+    st.append(toType().name()).append('<');
+    expr()._toString(st, level, indent);
+    st.append('>');
   }
 
   public Type toType() {

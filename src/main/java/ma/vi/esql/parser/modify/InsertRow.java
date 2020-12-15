@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Vikash Madhow
+ * Copyright (c) 2020 Vikash Madhow
  */
 
 package ma.vi.esql.parser.modify;
@@ -46,6 +46,18 @@ public class InsertRow extends Expression<List<Expression<?>>> {
     return values().stream()
                    .map(e -> e.translate(target))
                    .collect(joining(", ", "(", ")"));
+  }
+
+  @Override
+  public void _toString(StringBuilder st, int level, int indent) {
+    st.append('(');
+    boolean first = true;
+    for (Expression<?> e: values()) {
+      if (first) { first = false; }
+      else       { st.append(", "); }
+      e._toString(st, level, indent);
+    }
+    st.append(')');
   }
 
   public List<Expression<?>> values() {

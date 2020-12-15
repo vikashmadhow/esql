@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Vikash Madhow
+ * Copyright (c) 2020 Vikash Madhow
  */
 
 package ma.vi.esql.parser.expression;
@@ -47,6 +47,13 @@ public class QuantifiedComparison extends Expression<Expression<?>> {
   public String translate(Target target) {
     return expr().translate(target) + ' ' + compareOp() + ' ' + quantifier() +
         select().translate(target);
+  }
+
+  @Override
+  public void _toString(StringBuilder st, int level, int indent) {
+    expr()._toString(st, level, indent);
+    st.append(' ').append(compareOp()).append(' ').append(quantifier());
+    select()._toString(st, level, indent);
   }
 
   public Expression<?> expr() {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Vikash Madhow
+ * Copyright (c) 2020 Vikash Madhow
  */
 
 package ma.vi.esql.parser.expression;
@@ -13,6 +13,8 @@ import java.util.List;
 import java.util.Set;
 
 /**
+ * An ESQL expression.
+ *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 public class Expression<V> extends Esql<V, String> {

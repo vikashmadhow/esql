@@ -1,9 +1,10 @@
 /*
- * Copyright (c) 2018 Vikash Madhow
+ * Copyright (c) 2020 Vikash Madhow
  */
 
 package ma.vi.esql.type;
 
+import ma.vi.base.string.Strings;
 import ma.vi.base.trie.PathTrie;
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.parser.query.Column;
@@ -24,13 +25,7 @@ import static java.util.stream.Collectors.toList;
 public class Selection extends Relation {
 
   public Selection(List<Column> columns, TableExpr from) {
-    super((from == null ? "" : from.toString() + '.')
-        + "select("
-        + columns.stream()
-                 .map(Column::toString)
-                 .collect(joining())
-        + ")");
-
+    super((from == null ? "" : from.toString() + '.') + "select_" + Strings.random());
     this.columns = columns;
     this.from = from;
     for (Column c: columns) {

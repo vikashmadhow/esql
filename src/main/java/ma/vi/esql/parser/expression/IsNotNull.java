@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Vikash Madhow
+ * Copyright (c) 2020 Vikash Madhow
  */
 
 package ma.vi.esql.parser.expression;
@@ -12,7 +12,7 @@ import static ma.vi.esql.parser.Translatable.Target.JSON;
 import static ma.vi.base.string.Escape.escapeJsonString;
 
 public class IsNotNull extends SingleSubExpression {
-  public IsNotNull(Context context, Expression expr) {
+  public IsNotNull(Context context, Expression<?> expr) {
     super(context, expr);
   }
 
@@ -50,5 +50,11 @@ public class IsNotNull extends SingleSubExpression {
       default:
         return expr().translate(target) + " is not null";
     }
+  }
+
+  @Override
+  public void _toString(StringBuilder st, int level, int indent) {
+    expr()._toString(st, level, indent);
+    st.append(" is not null");
   }
 }
