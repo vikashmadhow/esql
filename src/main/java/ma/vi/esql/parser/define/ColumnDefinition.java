@@ -1,0 +1,100 @@
+/*
+ * Copyright (c) 2018 Vikash Madhow
+ */
+
+package ma.vi.esql.parser.define;
+
+import ma.vi.base.tuple.T2;
+import ma.vi.esql.parser.Context;
+import ma.vi.esql.parser.Esql;
+import ma.vi.esql.parser.expression.Expression;
+import ma.vi.esql.type.Type;
+
+import static ma.vi.esql.parser.Translatable.Target.ESQL;
+import static ma.vi.esql.parser.Translatable.Target.HSQLDB;
+
+public class ColumnDefinition extends TableDefinition {
+  public ColumnDefinition(Context context, String name, Type type, boolean notNull,
+                          Expression<?> defaultExpression, Metadata metadata) {
+    super(context, name,
+        T2.of("type", new Esql<>(context, type)),
+        T2.of("notNull", new Esql<>(context, notNull)),
+        T2.of("defaultExpression", defaultExpression),
+        T2.of("metadata", metadata));
+  }
+
+  public ColumnDefinition(ColumnDefinition other) {
+    super(other);
+  }
+
+  @Override
+  public ColumnDefinition copy() {
+    if (!copying()) {
+      try {
+        copying(true);
+        return new ColumnDefinition(this);
+      } finally {
+        copying(false);
+      }
+    } else {
+      return this;
+    }
+  }
+
+  @Override
+  public String translate(Target target) {
+    if (target == ESQL) {
+      StringBuilder st = new StringBuilder('"' + name() + "\" "
+                                               + type().translate(target)
+                                               + (notNull() ? " not null" : "")
+                                               + (defaultExpression() != null ? " default " + defaultExpression().translate(target) : ""));
+      addMetadata(st, target);
+      return st.toString();
+
+    } else if (target== HSQLDB) {
+      return '"' + name() + "\" "
+          + type().translate(target)
+          + (defaultExpression() != null ? " default " + defaultExpression().translate(target) : "")
+          + (notNull() ? " not null" : "");
+
+    } else {
+      return '"' + name() + "\" "
+           + type().translate(target)
+           + (notNull() ? " not null" : "")
+           + (defaultExpression() != null ? " default " + defaultExpression().translate(target) : "");
+    }
+  }
+
+  protected void addMetadata(StringBuilder st, Target target) {
+    Metadata metadata = metadata();
+    if (metadata != null && !metadata.attributes().isEmpty()) {
+      st.append(" {");
+      boolean first = true;
+      for (Attribute a: metadata.attributes().values()) {
+        if (first) {
+          first = false;
+        } else {
+          st.append(", ");
+        }
+        st.append(a.name()).append(": ").append(a.attributeValue().translate(target));
+      }
+      st.append("}");
+    }
+  }
+
+  public Type type() {
+    return childValue("type");
+  }
+
+  public Boolean notNull() {
+    return childValue("notNull");
+  }
+
+  public Expression<?> defaultExpression() {
+    return child("defaultExpression");
+  }
+
+  public Metadata metadata() {
+    return child("metadata");
+  }
+}

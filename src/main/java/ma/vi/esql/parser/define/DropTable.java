@@ -1,0 +1,83 @@
+/*
+ * Copyright (c) 2018 Vikash Madhow
+ */
+
+package ma.vi.esql.parser.define;
+
+import ma.vi.esql.parser.Context;
+import ma.vi.esql.exec.Result;
+import ma.vi.esql.type.BaseRelation;
+import ma.vi.esql.database.Structure;
+
+import java.sql.Connection;
+import java.sql.SQLException;
+
+import static ma.vi.esql.parser.Translatable.Target.ESQL;
+import static ma.vi.esql.type.Type.dbName;
+
+public class DropTable extends Define<String> {
+  public DropTable(Context context, String name) {
+    super(context, name);
+  }
+
+  public DropTable(DropTable other) {
+    super(other);
+  }
+
+  @Override
+  public DropTable copy() {
+    if (!copying()) {
+      try {
+        copying(true);
+        return new DropTable(this);
+      } finally {
+        copying(false);
+      }
+    } else {
+      return this;
+    }
+  }
+
+  @Override
+  public String translate(Target target) {
+    return "drop table " + (target == ESQL ? name() : dbName(name(), target));
+  }
+
+  /**
+   * Drops a table, removing dependent tables in cascade, if necessary.
+   */
+  @Override
+  public Result execute(Connection con, Structure structure, Target target) {
+    try {
+      // execute drop cascading to dependents and updating internal structures
+      cascadeDrop(this, con, structure, target);
+      return Result.Nothing;
+    } catch (SQLException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  private static void cascadeDrop(DropTable drop,
+                                  Connection con,
+                                  Structure structure,
+                                  Target target) throws SQLException {
+    BaseRelation table = structure.relation(drop.name());
+    if (table != null) {
+      for (ForeignKeyConstraint constraint: table.dependentConstraints()) {
+        cascadeDrop(new DropTable(drop.context, constraint.table()), con, structure, target);
+      }
+
+      // drop in database
+      String dropSql = drop.translate(target);
+      con.createStatement().executeUpdate(dropSql);
+
+      // remove from information tables and cached structure
+      structure.database.dropTable(con, table.id());
+      structure.remove(table);
+    }
+  }
+
+  public String name() {
+    return value;
+  }
+}

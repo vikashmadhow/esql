@@ -1,0 +1,49 @@
+/*
+ * Copyright (c) 2018 Vikash Madhow
+ */
+
+package ma.vi.esql.parser;
+
+import java.util.List;
+
+/**
+ * No-operation; can be used by macros to remove a statement in a program.
+ *
+ * @author Vikash Madhow (vikash.madhow@gmail.com)
+ */
+public class NoOp extends Esql<Void, Void> {
+  public NoOp(Context context) {
+    super(context, null);
+  }
+
+  public NoOp(Context context, Esql<?, ?>[] children) {
+    super(context, null, children);
+  }
+
+  public NoOp(Context context, List<? extends Esql<?, ?>> children) {
+    super(context, null, children);
+  }
+
+  public NoOp(NoOp other) {
+    super(other);
+  }
+
+  @Override
+  public NoOp copy() {
+    if (!copying()) {
+      try {
+        copying(true);
+        return new NoOp(this);
+      } finally {
+        copying(false);
+      }
+    } else {
+      return this;
+    }
+  }
+
+  @Override
+  public Void translate(Target target) {
+    return null;
+  }
+}

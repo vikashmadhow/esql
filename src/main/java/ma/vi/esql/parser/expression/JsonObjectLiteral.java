@@ -1,0 +1,72 @@
+/*
+ * Copyright (c) 2018 Vikash Madhow
+ */
+
+package ma.vi.esql.parser.expression;
+
+import ma.vi.esql.parser.Context;
+import ma.vi.esql.parser.define.Attribute;
+import ma.vi.esql.type.Type;
+import ma.vi.esql.type.Types;
+import org.json.JSONObject;
+
+import java.util.List;
+
+import static java.util.stream.Collectors.joining;
+
+/**
+ * Json object.
+ *
+ * @author Vikash Madhow (vikash.madhow@gmail.com)
+ */
+public class JsonObjectLiteral extends Literal<List<Attribute>> {
+  public JsonObjectLiteral(Context context, List<Attribute> members) {
+    super(context, members);
+  }
+
+  public JsonObjectLiteral(JsonObjectLiteral other) {
+    super(other);
+  }
+
+  @Override
+  public JsonObjectLiteral copy() {
+    if (!copying()) {
+      try {
+        copying(true);
+        return new JsonObjectLiteral(this);
+      } finally {
+        copying(false);
+      }
+    } else {
+      return this;
+    }
+  }
+
+  @Override
+  public Type type() {
+    /*
+     * The database should treat this as an opaque string.
+     */
+    return Types.StringType;
+  }
+
+  @Override
+  public String translate(Target target) {
+    return members().stream()
+                    .map(e -> e.translate(target))
+                    .collect(joining(",", "{", "}"));
+  }
+
+  @Override
+  public JSONObject value(Target target) {
+    JSONObject object = new JSONObject();
+    for (Attribute member: members()) {
+      object.put(member.name(), member.attributeValue().value(target));
+    }
+    return object;
+  }
+
+  public List<Attribute> members() {
+    return value;
+  }
+}

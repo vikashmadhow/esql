@@ -1,0 +1,38 @@
+/*
+ * Copyright (c) 2018 Vikash Madhow
+ */
+
+package ma.vi.esql.parser.define;
+
+import ma.vi.base.tuple.T2;
+import ma.vi.esql.parser.Context;
+import ma.vi.esql.parser.Esql;
+
+import java.util.List;
+
+import static java.util.stream.Collectors.joining;
+
+public abstract class TableDefinition extends Define<String> {
+  public TableDefinition(Context context,
+                         String name,
+                         T2<String, ? extends Esql<?, ?>>... children) {
+    super(context, name, children);
+  }
+
+  public TableDefinition(TableDefinition other) {
+    super(other);
+  }
+
+  @Override
+  public abstract TableDefinition copy();
+
+  public String name() {
+    return value;
+  }
+
+  protected static String quotedColumnsList(List<String> columns) {
+    return columns.stream()
+                  .map(f -> '"' + f + '"')
+                  .collect(joining(", "));
+  }
+}
