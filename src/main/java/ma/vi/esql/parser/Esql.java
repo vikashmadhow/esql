@@ -459,7 +459,7 @@ public class  Esql<V, R> implements Close, Copy<Esql<V, R>>, Translatable<R> {
       st.append(" {\n");
       for (Map.Entry<String, Esql<?, ?>> c: children.entrySet()) {
         Esql<?, ?> v = c.getValue();
-        if (v != null && v.value != null) {
+        if (v != null) {
           st.append(repeat(" ", level * indent))
             .append(c.getKey())
             .append(": ");

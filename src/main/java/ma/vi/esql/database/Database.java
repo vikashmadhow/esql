@@ -22,7 +22,7 @@ import java.util.UUID;
 /**
  * Represents a database containing tables and other persistent objects
  * which can be accessed through the {@link Structure} instance obtained
- * from the database. Connections to the database can be similar obtained
+ * from the database. Connections to the database can be similarly obtained
  * from its instance and used to query and modify it.
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)

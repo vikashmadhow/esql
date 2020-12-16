@@ -6,11 +6,13 @@ package ma.vi.esql.parsing;
 
 import ma.vi.esql.Databases;
 import ma.vi.esql.TestDatabase;
-import ma.vi.esql.parser.*;
 import ma.vi.esql.builder.Attr;
 import ma.vi.esql.builder.SelectBuilder;
+import ma.vi.esql.parser.Context;
+import ma.vi.esql.parser.Parser;
+import ma.vi.esql.parser.Program;
+import ma.vi.esql.parser.Statement;
 import ma.vi.esql.parser.query.Select;
-import ma.vi.esql.type.Selection;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -74,16 +76,16 @@ public class SelectTest {
                  select);
   }
 
-  @Test
-  void simpleSelectType() {
-    TestDatabase db = Databases.TestDatabase();
-    Parser parser = new Parser(db.structure());
-    Program program = parser.parse("select * from S");
-
-    List<Statement<?, ?>> st = program.statements();
-    Select select = (Select)st.get(0);
-
-    Selection type = select.type();
-    System.out.println(type);
-  }
+//  @Test
+//  void simpleSelectType() {
+//    TestDatabase db = Databases.TestDatabase();
+//    Parser parser = new Parser(db.structure());
+//    Program program = parser.parse("select * from S");
+//
+//    List<Statement<?, ?>> st = program.statements();
+//    Select select = (Select)st.get(0);
+//
+//    Selection type = select.type();
+//    System.out.println(type);
+//  }
 }

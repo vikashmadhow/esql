@@ -55,6 +55,18 @@ public class Metadata extends TableDefinition {
                        .collect(joining(", ", "{", "}"));
   }
 
+  @Override
+  public void _toString(StringBuilder st, int level, int indent) {
+    st.append('{');
+    boolean first = true;
+    for (Attribute a: attributes().values()) {
+      if (first) { first = false;   }
+      else       { st.append(", "); }
+      a._toString(st, level, indent);
+    }
+    st.append('}');
+  }
+
   public Map<String, Attribute> attributes() {
     return childValue("attributes");
   }

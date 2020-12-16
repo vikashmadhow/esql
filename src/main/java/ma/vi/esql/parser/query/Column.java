@@ -185,7 +185,7 @@ public class Column extends MetadataContainer<Expression<?>, String> {
   public Type type() {
     if (metadata() != null
         && metadata().attribute(TYPE) != null) {
-      return Types.typeOf(((StringLiteral)metadata().attribute(TYPE).attributeValue()).value);
+      return Types.typeOf((String)metadata().evaluateAttribute(TYPE));
     } else {
       return expr().type();
     }
@@ -205,17 +205,7 @@ public class Column extends MetadataContainer<Expression<?>, String> {
     }
     st.append(expr());
     if (metadata() != null && !metadata().attributes().isEmpty()) {
-      st.append(" {");
-      boolean first = true;
-      for (Attribute attr: metadata().attributes().values()) {
-        if (first) {
-          first = false;
-        } else {
-          st.append(", ");
-        }
-        st.append(attr.attributeValue());
-      }
-      st.append('}');
+      metadata()._toString(st, level, indent);
     }
   }
 

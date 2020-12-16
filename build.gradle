@@ -46,19 +46,19 @@ sourceSets {
 }
 
 dependencies {
-  antlr "org.antlr:antlr4:latest.release"
+  antlr("org.antlr:antlr4:latest.release")
 
-  compile "org.apache.commons:commons-lang3:3.9"
+  implementation("org.apache.commons:commons-lang3:3.9")
 
-  compile "org.postgresql:postgresql:42.2.18.jre7"
-  compile "com.microsoft.sqlserver:mssql-jdbc:8.4.0.jre14"
-  compile "org.hsqldb:hsqldb:2.5.1"
-  compile "com.zaxxer:HikariCP:latest.release"
+  implementation("org.postgresql:postgresql:42.2.18.jre7")
+  implementation("com.microsoft.sqlserver:mssql-jdbc:8.4.0.jre14")
+  implementation("org.hsqldb:hsqldb:2.5.1")
+  implementation("com.zaxxer:HikariCP:latest.release")
 
-  compile "org.json:json:latest.release"
-  compile "org.yaml:snakeyaml:latest.release"
+  implementation("org.json:json:latest.release")
+  implementation("org.yaml:snakeyaml:latest.release")
 
-  compile "com.vikmad:base:latest.release"
+  implementation("com.vikmad:base:latest.release")
 
   // Use JUnit test framework
   testImplementation(platform('org.junit:junit-bom:5.7.0'))

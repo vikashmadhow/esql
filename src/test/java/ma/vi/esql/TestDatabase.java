@@ -74,8 +74,8 @@ public class TestDatabase implements Database {
                       new ArrayList<>(Arrays.asList(
                           new Attribute(context, TYPE, parser.parseExpression("'int'")),
                           new Attribute(context, "m1", parser.parseExpression("b > 5")),
-                          new Attribute(context, "m1", parser.parseExpression("10")),
-                          new Attribute(context, "m1", parser.parseExpression("a != 0"))
+                          new Attribute(context, "m2", parser.parseExpression("10")),
+                          new Attribute(context, "m3", parser.parseExpression("a != 0"))
                       ))
                   )
               ),

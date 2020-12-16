@@ -39,6 +39,12 @@ public class Attribute extends Esql<String, String> {
     return name() + ": " + attributeValue().translate(target);
   }
 
+  @Override
+  public void _toString(StringBuilder st, int level, int indent) {
+    st.append(name()).append(": ");
+    attributeValue()._toString(st, level, indent);
+  }
+
   public String name() {
     return value;
   }

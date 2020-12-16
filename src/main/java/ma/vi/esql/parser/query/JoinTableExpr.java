@@ -58,7 +58,7 @@ public class JoinTableExpr extends AbstractJoinTableExpr {
   @Override
   public void _toString(StringBuilder st, int level, int indent) {
     left()._toString(st, level, indent);
-    st.append(joinType() == null ? " ": " " + joinType())
+    st.append(joinType() == null ? "" : " " + joinType())
       .append(" join ");
     right()._toString(st, level, indent);
     st.append(" on ");
