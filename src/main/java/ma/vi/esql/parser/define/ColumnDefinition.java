@@ -14,13 +14,17 @@ import static ma.vi.esql.parser.Translatable.Target.ESQL;
 import static ma.vi.esql.parser.Translatable.Target.HSQLDB;
 
 public class ColumnDefinition extends TableDefinition {
-  public ColumnDefinition(Context context, String name, Type type, boolean notNull,
-                          Expression<?> defaultExpression, Metadata metadata) {
+  public ColumnDefinition(Context context,
+                          String name,
+                          Type type,
+                          boolean notNull,
+                          Expression<?> expression,
+                          Metadata metadata) {
     super(context, name,
-        T2.of("type", new Esql<>(context, type)),
-        T2.of("notNull", new Esql<>(context, notNull)),
-        T2.of("defaultExpression", defaultExpression),
-        T2.of("metadata", metadata));
+        T2.of("type",       new Esql<>(context, type)),
+        T2.of("notNull",    new Esql<>(context, notNull)),
+        T2.of("expression", expression),
+        T2.of("metadata",   metadata));
   }
 
   public ColumnDefinition(ColumnDefinition other) {
@@ -47,21 +51,21 @@ public class ColumnDefinition extends TableDefinition {
       StringBuilder st = new StringBuilder('"' + name() + "\" "
                                                + type().translate(target)
                                                + (notNull() ? " not null" : "")
-                                               + (defaultExpression() != null ? " default " + defaultExpression().translate(target) : ""));
+                                               + (expression() != null ? " default " + expression().translate(target) : ""));
       addMetadata(st, target);
       return st.toString();
 
     } else if (target== HSQLDB) {
       return '"' + name() + "\" "
           + type().translate(target)
-          + (defaultExpression() != null ? " default " + defaultExpression().translate(target) : "")
+          + (expression() != null ? " default " + expression().translate(target) : "")
           + (notNull() ? " not null" : "");
 
     } else {
       return '"' + name() + "\" "
            + type().translate(target)
            + (notNull() ? " not null" : "")
-           + (defaultExpression() != null ? " default " + defaultExpression().translate(target) : "");
+           + (expression() != null ? " default " + expression().translate(target) : "");
     }
   }
 
@@ -90,8 +94,8 @@ public class ColumnDefinition extends TableDefinition {
     return childValue("notNull");
   }
 
-  public Expression<?> defaultExpression() {
-    return child("defaultExpression");
+  public Expression<?> expression() {
+    return child("expression");
   }
 
   public Metadata metadata() {

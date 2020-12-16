@@ -62,7 +62,7 @@ public class Column extends MetadataContainer<Expression<?>, String> {
 
     Type columnType = derived ? derivedDef.expression().type() : def.type();
     Boolean notNull = def.notNull();
-    Expression<?> defaultExpr = def.defaultExpression();
+    Expression<?> defaultExpr = def.expression();
 
     Column col = new Column(def.context,
                             def.name(),
@@ -70,14 +70,13 @@ public class Column extends MetadataContainer<Expression<?>, String> {
                             def.metadata());
     if (derived) {
       col.attribute(DERIVED, new BooleanLiteral(def.context, true));
-      col.attribute(DERIVED_EXPRESSION, derivedDef.expression());
+      col.attribute(EXPRESSION, derivedDef.expression());
+    } else if (defaultExpr != null) {
+      col.attribute(EXPRESSION, defaultExpr);
     }
     col.attribute(TYPE, new StringLiteral(def.context, columnType.translate(Target.ESQL)));
     if (notNull) {
       col.attribute(REQUIRED, new BooleanLiteral(def.context, true));
-    }
-    if (defaultExpr != null) {
-      col.attribute(DEFAULT_VALUE, defaultExpr);
     }
     return col;
   }
@@ -167,8 +166,8 @@ public class Column extends MetadataContainer<Expression<?>, String> {
 
   public Expression<?> defaultExpression() {
     if (metadata() != null
-     && metadata().attribute(DEFAULT_VALUE) != null) {
-      return metadata().attribute(DEFAULT_VALUE).attributeValue();
+     && metadata().attribute(EXPRESSION) != null) {
+      return metadata().attribute(EXPRESSION).attributeValue();
     } else {
       return null;
     }
@@ -178,7 +177,7 @@ public class Column extends MetadataContainer<Expression<?>, String> {
     if (metadata() == null) {
       metadata(new Metadata(context, new ArrayList<>()));
     }
-    metadata().attribute(DEFAULT_VALUE, expr);
+    metadata().attribute(EXPRESSION, expr);
   }
 
   @Override

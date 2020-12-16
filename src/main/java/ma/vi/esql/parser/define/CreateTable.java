@@ -196,10 +196,10 @@ public class CreateTable extends Define<String> {
                                  && existingColumn.notNull();
 
               Expression<?> setDefault = null;
-              if (column.defaultExpression() != null
+              if (column.expression() != null
                && (existingColumn.defaultExpression() == null
-                || !column.defaultExpression().equals(existingColumn.defaultExpression()))) {
-                setDefault = column.defaultExpression();
+                || !column.expression().equals(existingColumn.defaultExpression()))) {
+                setDefault = column.expression();
 //                dropDefault = existingColumn.defaultExpression() != null;
               }
 

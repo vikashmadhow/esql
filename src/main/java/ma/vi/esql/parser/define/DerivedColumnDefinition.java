@@ -44,8 +44,4 @@ public class DerivedColumnDefinition extends ColumnDefinition {
     // they are just inserted into the table definitions of the core schema.
     return null;
   }
-
-  public Expression<?> expression() {
-    return defaultExpression();
-  }
 }

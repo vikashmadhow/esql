@@ -152,7 +152,7 @@ public abstract class AbstractDatabase implements Database {
                   List<Attribute> attributes = new ArrayList<>();
                   attributes.add(new Attribute(context, TYPE, new StringLiteral(context, columnType)));
                   if (defaultValue != null) {
-                    attributes.add(new Attribute(context, DEFAULT_VALUE, parser.parseExpression(defaultValue)));
+                    attributes.add(new Attribute(context, EXPRESSION, parser.parseExpression(defaultValue)));
                   }
                   attributes.add(new Attribute(context, ID, new StringLiteral(context, columnId.toString())));
                   attributes.add(new Attribute(context, REQUIRED, new BooleanLiteral(context, notNull)));
@@ -347,21 +347,21 @@ public abstract class AbstractDatabase implements Database {
                            "constraint _core_relations_unq_name unique(name))"));
 
         c.exec(p.parse("create table _core.columns drop undefined(" +
-                           "_id uuid not null, " +
-                           "_can_delete bool, " +
-                           "_can_edit bool, " +
-                           "relation_id uuid not null, " +
-                           "name string not null, " +
-                           "column_num int not null, " +
-                           "derived_expression text," +
-                           "type string not null," +
-                           "not_null bool, " +
-                           "default_value text, " +
+                           "_id             uuid   not null, " +
+                           "_can_delete     bool, " +
+                           "_can_edit       bool, " +
+                           "relation_id     uuid   not null, " +
+                           "name            string not null, " +
+                           "derived_column  bool, " +
+                           "type            string not null, " +
+                           "not_null        bool, " +
+                           "expression      text, " +   // derived expression or default value
+                           "seq             int    not null, " +
 
-                           "constraint _core_columns_pk                      primary key(_id), " +
-                           "constraint _core_columns_relation_id_fk          foreign key(relation_id) references _core.relations(_id) on delete cascade on update cascade, " +
-                           "constraint _core_columns_unq_relation_name       unique(relation_id, name), " +
-                           "constraint _core_columns_unq_relation_column_num unique(relation_id, column_num))"));
+                           "constraint _core_columns_pk                primary key(_id), " +
+                           "constraint _core_columns_relation_id_fk    foreign key(relation_id) references _core.relations(_id) on delete cascade on update cascade, " +
+                           "constraint _core_columns_unq_relation_name unique(relation_id, name), " +
+                           "constraint _core_columns_unq_relation_seq  unique(relation_id, seq))"));
 
         // create table for holding additional type information on tables
         c.exec(p.parse("create table _core.relation_attributes drop undefined(" +
@@ -449,7 +449,7 @@ public abstract class AbstractDatabase implements Database {
 
         // add columns for all tables
         c.exec(p.parse(
-            "insert into _core.columns(_id, relation_id, name, column_num, type, not_null) values " +
+            "insert into _core.columns(_id, relation_id, name, seq, type, not_null) values " +
                 "('" + UUID.randomUUID() + "', '" + relationsId + "', '_id',             1, 'uuid',    true), " +
                 "('" + UUID.randomUUID() + "', '" + relationsId + "', '_can_delete',     2, 'bool',    false), " +
                 "('" + UUID.randomUUID() + "', '" + relationsId + "', '_can_edit',       3, 'bool',    false), " +
@@ -464,11 +464,11 @@ public abstract class AbstractDatabase implements Database {
                 "('" + UUID.randomUUID() + "', '" + columnsId + "', '_can_edit',          3, 'bool',   false), " +
                 "('" + UUID.randomUUID() + "', '" + columnsId + "', 'relation_id',        4, 'uuid',   true), " +
                 "('" + UUID.randomUUID() + "', '" + columnsId + "', 'name',               5, 'string', true), " +
-                "('" + UUID.randomUUID() + "', '" + columnsId + "', 'column_num',         6, 'int',    true), " +
-                "('" + UUID.randomUUID() + "', '" + columnsId + "', 'derived_expression', 7, 'text',   false), " +
-                "('" + UUID.randomUUID() + "', '" + columnsId + "', 'type',               8, 'string', true), " +
-                "('" + UUID.randomUUID() + "', '" + columnsId + "', 'not_null',           9, 'bool',   false), " +
-                "('" + UUID.randomUUID() + "', '" + columnsId + "', 'default_value',     10, 'text',   false), " +
+                "('" + UUID.randomUUID() + "', '" + columnsId + "', 'derived',            6, 'bool',   false), " +
+                "('" + UUID.randomUUID() + "', '" + columnsId + "', 'type',               7, 'string', true), " +
+                "('" + UUID.randomUUID() + "', '" + columnsId + "', 'not_null',           8, 'bool',   false), " +
+                "('" + UUID.randomUUID() + "', '" + columnsId + "', 'expression',         9, 'text',   false), " +
+                "('" + UUID.randomUUID() + "', '" + columnsId + "', 'seq',               10, 'int',    true), " +
 
                 "('" + UUID.randomUUID() + "', '" + relationAttributesId + "', '_id',         1, 'uuid',   true), " +
                 "('" + UUID.randomUUID() + "', '" + relationAttributesId + "', 'relation_id', 2, 'uuid',   true), " +
@@ -3770,11 +3770,11 @@ public abstract class AbstractDatabase implements Database {
                                      UUID relationId) {
     List<Column> columns = new ArrayList<>();
     try (ResultSet rs = con.createStatement().executeQuery(
-        "select _id, name, relation_id, field_num, type, " +
-            "       derived_expression, not_null, default_value " +
+        "select _id, name, relation_id, seq``, type, " +
+            "       derived, not_null, expression " +
             "  from _core.columns " +
             " where relation_id='" + relationId + "' " +
-            " order by field_num");
+            " order by seq");
          PreparedStatement attrStmt = con.prepareStatement(
              "select attribute, value " +
                  "  from _core.field_attributes " +
@@ -3784,20 +3784,24 @@ public abstract class AbstractDatabase implements Database {
       Map<String, Column> columnsByName = new HashMap<>();
       while (rs.next()) {
         UUID fieldId = UUID.fromString(rs.getString("_id"));
-        String fieldName = rs.getString("name");
-        int fieldNumber = rs.getInt("field_num");
+        String columnName = rs.getString("name");
+        int columnNumber = rs.getInt("seq");
         String fieldType = rs.getString("type");
         boolean notNull = rs.getBoolean("not_null");
-        String defaultValue = rs.getString("default_value");
-        String derivedExpression = rs.getString("derived_expression");
+        String expression = rs.getString("expression");
+        boolean derivedColumn = rs.getBoolean("derived_column");
 
         // load custom field attributes
         Metadata metadata = new Metadata(context, new ArrayList<>());
         metadata.attribute(TYPE, fieldType);
-        metadata.attribute(DEFAULT_VALUE, parser.parseExpression(defaultValue));
+        Expression<?> expr = null;
+        if (expression != null) {
+          expr = parser.parseExpression(expression);
+          metadata.attribute(EXPRESSION, expr);
+        }
         metadata.attribute(ID, fieldId.toString());
         metadata.attribute(REQUIRED, notNull);
-        metadata.attribute(SEQUENCE, fieldNumber);
+        metadata.attribute(SEQUENCE, columnNumber);
         attrStmt.setString(1, fieldId.toString());
         try (ResultSet ars = attrStmt.executeQuery()) {
           while (ars.next()) {
@@ -3807,32 +3811,30 @@ public abstract class AbstractDatabase implements Database {
           }
         }
 
-        if (derivedExpression != null) {
-          Expression<?> expr = parser.parseExpression(derivedExpression);
+        if (derivedColumn) {
           metadata.attribute(DERIVED, true);
-          metadata.attribute(DERIVED_EXPRESSION, expr);
-          Column col = new Column(context, fieldName, expr, metadata);
+          Column col = new Column(context, columnName, expr, metadata);
           columns.add(col);
-          columnsByName.put(fieldName, col);
-          derived.put(fieldName, col);
+          columnsByName.put(columnName, col);
+          derived.put(columnName, col);
 
           columns.add(new Column(
               context,
-              fieldName + "[e]",
+              columnName + "/e",
               new UncomputedExpression(context, expr),
               metadata
           ));
           columns.add(col);
-          columnsByName.put(fieldName, col);
+          columnsByName.put(columnName, col);
         } else {
           Column col = new Column(
               context,
-              fieldName,
-              new ColumnRef(context, null, fieldName),
+              columnName,
+              new ColumnRef(context, null, columnName),
               metadata
           );
           columns.add(col);
-          columnsByName.put(fieldName, col);
+          columnsByName.put(columnName, col);
         }
       }
 
@@ -3857,33 +3859,33 @@ public abstract class AbstractDatabase implements Database {
     try {
       seen.add(columnName);
       return (Expression<?>)derivedExpression.map(e -> {
-            if (e instanceof ColumnRef) {
-              ColumnRef ref = (ColumnRef)e;
-              String colName = ref.name();
-              if (!columns.containsKey(colName)) {
-                throw new TranslationException("Unknown column " + colName
-                    + " in derived expresion " + derivedExpression);
-              } else if (seen.contains(colName)) {
-                throw new TranslationException("A circular definition was detected "
-                    + "in the expression " + derivedExpression
-                    + " consisting of the column " + colName);
-              } else {
-                Column column = columns.get(colName);
-                Metadata metadata = column.metadata();
-                if (metadata != null) {
-                  Attribute attr = metadata.attribute(DERIVED);
-                  if ((Boolean)attr.value(ESQL)) {
-                    return expandDerived(columns,
-                        colName,
-                        column.expr(),
-                        seen);
-                  }
+          if (e instanceof ColumnRef) {
+            ColumnRef ref = (ColumnRef)e;
+            String colName = ref.name();
+            if (!columns.containsKey(colName)) {
+              throw new TranslationException("Unknown column " + colName
+                  + " in derived expresion " + derivedExpression);
+            } else if (seen.contains(colName)) {
+              throw new TranslationException("A circular definition was detected "
+                  + "in the expression " + derivedExpression
+                  + " consisting of the column " + colName);
+            } else {
+              Column column = columns.get(colName);
+              Metadata metadata = column.metadata();
+              if (metadata != null) {
+                Attribute attr = metadata.attribute(DERIVED);
+                if ((Boolean)attr.value(ESQL)) {
+                  return expandDerived(columns,
+                      colName,
+                      column.expr(),
+                      seen);
                 }
               }
             }
-            return e;
-          },
-          e -> !(e instanceof Select));
+          }
+          return e;
+        },
+        e -> !(e instanceof Select));
     } finally {
       seen.remove(columnName);
     }
@@ -4464,7 +4466,7 @@ public abstract class AbstractDatabase implements Database {
   private static final String INSERT_COLUMN =
       "INSERT INTO _core.columns("
       + "_id, _can_delete, relation_id, name, "
-      + "derived_expression, type, not_null, default_value, seq) "
+      + "derived_column, type, not_null, expression, seq) "
       + "VALUES(?, ?, ?, ?, ?, ?, ?, ?, "
       +        "coalesce(select max(seq) from _core.columns where relation_id=?), 0) + 1) ";
 

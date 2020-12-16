@@ -76,7 +76,12 @@ public class Attributes {
 
   public static final String TYPE = "type";
 
-  public static final String DEFAULT_VALUE = "default_value";
+  /**
+   * The expression to compute as the default value for a column when
+   * no value is specified in an insert statement, and the expression
+   * to compute the value for a derived column.
+   */
+  public static final String EXPRESSION = "expression";
 
   /**
    * The name of a column containing a sequence number to order a set
@@ -94,10 +99,11 @@ public class Attributes {
    */
   public static final String DERIVED = "derived";
 
-  /*
-   * The expression for derived fields
-   */
-  public static final String DERIVED_EXPRESSION = "derived_expression";
+// DEFAULT_VALUE is now used for this purpose
+//  /*
+//   * The expression for derived fields
+//   */
+//  public static final String DERIVED_EXPRESSION = "derived_expression";
 
   /*
    * The expression for computing value of non-derived fields when they are being
