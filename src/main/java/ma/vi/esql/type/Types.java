@@ -4,9 +4,12 @@
 
 package ma.vi.esql.type;
 
+import ma.vi.esql.parser.Translatable;
+
 import java.sql.Date;
 import java.sql.Time;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -78,16 +81,25 @@ public class Types {
     return cls;
   }
 
+  public static String esqlType(String dbType, Translatable.Target db) {
+    return switch(db) {
+      case POSTGRESQL -> postgresqlToEsqlType(dbType);
+      case SQLSERVER  -> sqlServerToEsqlType(dbType);
+      case HSQLDB     -> hsqldbToEsqlType(dbType);
+      default         -> throw new IllegalArgumentException("Type conversion from " + db + " to ESQL is unsupported");
+    };
+  }
+
   public static String sqlServerToEsqlType(String sqlServerType) {
-    return sqlServerTypeMapping.get(sqlServerType);
+    return sqlServerTypeMapping.get(sqlServerType.toLowerCase());
   }
 
   public static String postgresqlToEsqlType(String postgresqlType) {
-    return postgresqlTypeMapping.get(postgresqlType);
+    return postgresqlTypeMapping.get(postgresqlType.toLowerCase());
   }
 
   public static String hsqldbToEsqlType(String hsqldbType) {
-    return hsqldbTypeMapping.get(hsqldbType);
+    return hsqldbTypeMapping.get(hsqldbType.toLowerCase());
   }
 
   /*

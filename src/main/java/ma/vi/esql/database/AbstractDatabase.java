@@ -137,7 +137,12 @@ public abstract class AbstractDatabase implements Database {
                   UUID columnId = UUID.randomUUID();
                   String columnName = crs.getString("column_name");
                   // int fieldNumber = frs.getInt("ordinal_position");
-                  String columnType = crs.getString("data_type");
+                  String colType = crs.getString("data_type");
+                  String columnType = Types.esqlType(colType, target());
+                  if (columnType == null) {
+                    throw new IllegalArgumentException("ESQL type equivalent for " + target() + " type "
+                                                        + colType + " is not known");
+                  }
                   boolean notNull = crs.getString("is_nullable").equals("NO");
                   String defaultValue = crs.getString("column_default");
 

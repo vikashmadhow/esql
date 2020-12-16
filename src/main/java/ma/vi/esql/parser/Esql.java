@@ -317,6 +317,42 @@ public class  Esql<V, R> implements Close, Copy<Esql<V, R>>, Translatable<R> {
     }
   }
 
+  public Esql<?, ?> mapChildren(Function<Esql<?, ?>, Esql<?, ?>> mapper) {
+    return mapChildren(mapper, null);
+  }
+
+  public Esql<?, ?> mapChildren(Function<Esql<?, ?>, Esql<?, ?>> mapper,
+                                Predicate<Esql<?, ?>> explore) {
+    return _mapChildren(copy(), mapper, explore, new HashSet<>());
+  }
+
+  private static Esql<?, ?> _mapChildren(Esql esql,
+                                         Function<Esql<?, ?>, Esql<?, ?>> mapper,
+                                         Predicate<Esql<?, ?>> explore,
+                                         Set<Esql<?, ?>> explored) {
+    if (explore == null || explore.test(esql)) {
+      explored.add(esql);
+      if (esql.value instanceof Esql && !explored.contains(esql.value)) {
+        esql.value = _map((Esql)esql.value, mapper, explore, explored);
+
+      } else if (esql.value instanceof List) {
+        esql.value = ((List)esql.value).stream()
+                                       .map(e -> e instanceof Esql && !explored.contains(e)
+                                                 ? _map((Esql<?, ?>)e, mapper, explore, explored)
+                                                 : e).collect(toList());
+      }
+      esql.children = ((Map<String, Esql<?, ?>>)esql.children)
+          .entrySet().stream()
+          .collect(toMap(Map.Entry::getKey,
+              e -> !explored.contains(e)
+                   ? _map(e.getValue(), mapper, explore, explored)
+                   : e.getValue()));
+      return esql;
+    } else {
+      return esql;
+    }
+  }
+
   @Override
   public R translate(Target target) {
     return null;

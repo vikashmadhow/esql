@@ -159,7 +159,7 @@ public class BaseRelation extends Relation {
       // sel.select().type();
       return expression;
     } else {
-      return (Expression<?>)expression.map(e -> {
+      return (Expression<?>)expression.mapChildren(e -> {
         if (e instanceof ColumnRef) {
           String colName = ((ColumnRef)e).name();
           if (columnsByAlias.get(colName) == null) {
