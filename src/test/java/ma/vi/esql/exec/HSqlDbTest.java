@@ -14,7 +14,6 @@ public class HSqlDbTest {
   void create() {
     HSqlDb db = Databases.HSqlDb();
     Parser p = new Parser(db.structure());
-
     try (EsqlConnection con = db.esql(db.pooledConnection())) {
       Program s = p.parse("create table S (" +
                            "  {" +
