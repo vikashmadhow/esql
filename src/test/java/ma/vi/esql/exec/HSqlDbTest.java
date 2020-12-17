@@ -85,7 +85,7 @@ public class HSqlDbTest {
   }
 
   @Test
-  void multuallyCircularDerivedColumn() {
+  void mutuallyCircularDerivedColumn() {
     HSqlDb db = Databases.HSqlDb();
     Parser p = new Parser(db.structure());
     try (EsqlConnection con = db.esql(db.pooledConnection())) {
