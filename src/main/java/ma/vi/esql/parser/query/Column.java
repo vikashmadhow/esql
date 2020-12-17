@@ -66,11 +66,11 @@ public class Column extends MetadataContainer<Expression<?>, String> {
 
     Column col = new Column(def.context,
                             def.name(),
-                            new ColumnRef(def.context, null, def.name()),
+                            derived ? derivedDef.expression() : new ColumnRef(def.context, null, def.name()),
                             def.metadata());
     if (derived) {
       col.attribute(DERIVED, new BooleanLiteral(def.context, true));
-      col.attribute(EXPRESSION, derivedDef.expression());
+//      col.attribute(EXPRESSION, derivedDef.expression());
     } else if (defaultExpr != null) {
       col.attribute(EXPRESSION, defaultExpr);
     }

@@ -9,11 +9,14 @@ import ma.vi.base.trie.PathTrie;
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.parser.Context;
 import ma.vi.esql.parser.CircularReferenceException;
+import ma.vi.esql.parser.TranslationException;
 import ma.vi.esql.parser.define.Attribute;
 import ma.vi.esql.parser.define.ConstraintDefinition;
 import ma.vi.esql.parser.define.ForeignKeyConstraint;
+import ma.vi.esql.parser.define.Metadata;
 import ma.vi.esql.parser.expression.*;
 import ma.vi.esql.parser.query.Column;
+import ma.vi.esql.parser.query.Select;
 
 import java.util.*;
 
@@ -77,16 +80,12 @@ public class BaseRelation extends Relation {
      * base columns. E.g., {a:a, b:a+5, c:a+b, d:c+b}
      *      is expanded to {a:a, b:a+5, c:a+a+5, d:a+a+5+a+5}
      */
-    Set<String> expanding = new HashSet<>();
     for (Column column: this.columns) {
-      if (column.derived()) {
-        try {
-          expanding.add(column.alias());
-          Expression<?> e = expandColumnExpression(column.expr(), expanding);
-          column.expr(e);
-        } finally {
-          expanding.remove(column.alias());
-        }
+      if (!(column.expr() instanceof ColumnRef)) {
+        column.expr(expandDerived(column.expr(),
+                                  columnsByAlias,
+                                  column.alias(),
+                                  new HashSet<>()));
       }
     }
   }
@@ -152,38 +151,33 @@ public class BaseRelation extends Relation {
     return cols.stream().map(T2::b).collect(toList());
   }
 
-  private Expression<?> expandColumnExpression(Expression<?> expression,
-                                               Set<String> expanding) {
-    if (expression instanceof SelectExpression) {
-      // SelectExpression sel = (SelectExpression)expression;
-      // sel.select().type();
-      return expression;
-    } else {
-      return (Expression<?>)expression.mapChildren(e -> {
-        if (e instanceof ColumnRef) {
-          String colName = ((ColumnRef)e).name();
-          if (columnsByAlias.get(colName) == null) {
-            throw new NotFoundException("No column named " + colName + " found in relation " + name());
-          }
-          Column c = columnsByAlias.get(colName);
-          if (c.derived()) {
-            if (expanding.contains(colName)) {
-              throw new CircularReferenceException("Circular reference involving column " + colName
-                  + " detected while expanding derived columns of relation " + name());
+  public static Expression<?> expandDerived(Expression<?> derivedExpression,
+                                            PathTrie<Column> columns,
+                                            String columnName,
+                                            Set<String> seen) {
+    try {
+      seen.add(columnName);
+      return (Expression<?>)derivedExpression.map(e -> {
+          if (e instanceof ColumnRef) {
+            ColumnRef ref = (ColumnRef)e;
+            String colName = ref.name();
+            Column column = columns.get(colName);
+            if (column == null) {
+              throw new TranslationException("Unknown column " + colName
+                                           + " in derived expresion " + derivedExpression);
+            } else if (seen.contains(colName)) {
+              throw new TranslationException("A circular definition was detected "
+                                           + "in the expression " + derivedExpression
+                                           + " consisting of the column " + colName);
+            } else if (column.derived()) {
+              return expandDerived(column.expr(), columns, colName, seen);
             }
-            try {
-              expanding.add(colName);
-              return expandColumnExpression(columnsByAlias.get(colName).expr(), expanding);
-            } finally {
-              expanding.remove(colName);
-            }
-          } else {
-            return c.expr();
           }
-        } else {
           return e;
-        }
-      });
+        },
+        e -> !(e instanceof Select));
+    } finally {
+      seen.remove(columnName);
     }
   }
 

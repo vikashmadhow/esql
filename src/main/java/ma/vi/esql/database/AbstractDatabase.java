@@ -5,16 +5,14 @@
 package ma.vi.esql.database;
 
 import ma.vi.base.tuple.T2;
-import ma.vi.esql.parser.Context;
-import ma.vi.esql.parser.Parser;
-import ma.vi.esql.parser.TranslationException;
-import ma.vi.esql.parser.define.*;
-import ma.vi.esql.parser.expression.*;
-import ma.vi.esql.parser.query.Column;
-import ma.vi.esql.parser.query.Select;
 import ma.vi.esql.exec.EsqlConnection;
 import ma.vi.esql.exec.Param;
 import ma.vi.esql.exec.Result;
+import ma.vi.esql.parser.Context;
+import ma.vi.esql.parser.Parser;
+import ma.vi.esql.parser.define.*;
+import ma.vi.esql.parser.expression.*;
+import ma.vi.esql.parser.query.Column;
 import ma.vi.esql.type.BaseRelation;
 import ma.vi.esql.type.Relation;
 import ma.vi.esql.type.Types;
@@ -27,8 +25,8 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static ma.vi.base.string.Escape.escapeEsqlQuote;
 import static ma.vi.base.string.Escape.escapeSqlString;
-import static ma.vi.esql.parser.Translatable.Target.ESQL;
 import static ma.vi.esql.builder.Attributes.*;
+import static ma.vi.esql.parser.Translatable.Target.ESQL;
 import static ma.vi.esql.parser.define.ConstraintDefinition.ForeignKeyChangeAction.NO_ACTION;
 import static ma.vi.esql.parser.define.ConstraintDefinition.Type.fromMarker;
 
@@ -3839,58 +3837,55 @@ public abstract class AbstractDatabase implements Database {
         }
       }
 
-      for (Map.Entry<String, Column> e: derived.entrySet()) {
-        String columnName = e.getKey();
-        Column column = e.getValue();
-        column.expr(expandDerived(columnsByName,
-            columnName,
-            column.expr(),
-            new HashSet<>()));
-      }
+//      for (Map.Entry<String, Column> e: derived.entrySet()) {
+//        String columnName = e.getKey();
+//        Column column = e.getValue();
+//        column.expr(expandDerived(columnsByName,
+//                                  columnName,
+//                                  column.expr(),
+//                                  new HashSet<>()));
+//      }
       return columns;
     } catch (SQLException sqle) {
       throw new RuntimeException(sqle);
     }
   }
 
-  private Expression<?> expandDerived(Map<String, Column> columns,
-                                      String columnName,
-                                      Expression<?> derivedExpression,
-                                      Set<String> seen) {
-    try {
-      seen.add(columnName);
-      return (Expression<?>)derivedExpression.map(e -> {
-          if (e instanceof ColumnRef) {
-            ColumnRef ref = (ColumnRef)e;
-            String colName = ref.name();
-            if (!columns.containsKey(colName)) {
-              throw new TranslationException("Unknown column " + colName
-                  + " in derived expresion " + derivedExpression);
-            } else if (seen.contains(colName)) {
-              throw new TranslationException("A circular definition was detected "
-                  + "in the expression " + derivedExpression
-                  + " consisting of the column " + colName);
-            } else {
-              Column column = columns.get(colName);
-              Metadata metadata = column.metadata();
-              if (metadata != null) {
-                Attribute attr = metadata.attribute(DERIVED);
-                if ((Boolean)attr.value(ESQL)) {
-                  return expandDerived(columns,
-                      colName,
-                      column.expr(),
-                      seen);
-                }
-              }
-            }
-          }
-          return e;
-        },
-        e -> !(e instanceof Select));
-    } finally {
-      seen.remove(columnName);
-    }
-  }
+//  public static Expression<?> expandDerived(Map<String, Column> columns,
+//                                            String columnName,
+//                                            Expression<?> derivedExpression,
+//                                            Set<String> seen) {
+//    try {
+//      seen.add(columnName);
+//      return (Expression<?>)derivedExpression.map(e -> {
+//          if (e instanceof ColumnRef) {
+//            ColumnRef ref = (ColumnRef)e;
+//            String colName = ref.name();
+//            if (!columns.containsKey(colName)) {
+//              throw new TranslationException("Unknown column " + colName
+//                  + " in derived expresion " + derivedExpression);
+//            } else if (seen.contains(colName)) {
+//              throw new TranslationException("A circular definition was detected "
+//                  + "in the expression " + derivedExpression
+//                  + " consisting of the column " + colName);
+//            } else {
+//              Column column = columns.get(colName);
+//              Metadata metadata = column.metadata();
+//              if (metadata != null) {
+//                Boolean derived = metadata.evaluateAttribute(DERIVED);
+//                if (derived != null && derived) {
+//                  return expandDerived(columns, colName, column.expr(), seen);
+//                }
+//              }
+//            }
+//          }
+//          return e;
+//        },
+//        e -> !(e instanceof Select));
+//    } finally {
+//      seen.remove(columnName);
+//    }
+//  }
 
   protected void loadConstraints(Context context,
                                  Structure structure,
