@@ -73,8 +73,9 @@ public abstract class AbstractDatabase implements Database {
           // constraints can be properly linked to their target tables.
           try (ResultSet rs = con.createStatement().executeQuery(
               "select _id, name, relation_id, type, check_expr, source_columns, " +
-                  "target_relation_id, target_columns, forward_cost, reverse_cost, on_update, on_delete " +
-                  "from _core.constraints")) {
+                  "       target_relation_id, target_columns, forward_cost, reverse_cost, " +
+                  "       on_update, on_delete " +
+                  "  from _core.constraints")) {
             while (rs.next()) {
               loadConstraints(context, structure, parser, rs);
             }
@@ -186,10 +187,10 @@ public abstract class AbstractDatabase implements Database {
          * Load constraints.
          */
         try (ResultSet crs = con.createStatement().executeQuery(
-            "select table_schema, table_name, " +
-                "        constraint_schema, constraint_name, constraint_type " +
-                "   from information_schema.table_constraints" +
-                "  order by table_schema, table_name")) {
+            "select table_schema, table_name, constraint_schema, " +
+                "       constraint_name, constraint_type " +
+                "  from information_schema.table_constraints" +
+                " order by table_schema, table_name")) {
 
           while (crs.next()) {
             String schema = crs.getString("table_schema");
@@ -334,16 +335,16 @@ public abstract class AbstractDatabase implements Database {
       ///////////////////////////////////////////
       try(EsqlConnection c = esql(pooledConnection())) {
         c.exec(p.parse("create table _core.relations drop undefined(" +
-                           "_id uuid not null, " +
-                           "_can_delete bool, " +
-                           "_can_edit bool, " +
-                           "name string not null, " +
-                           "display_name string, " +
-                           "description string, " +
-                           "type char not null," +
+                           "_id             uuid    not null, " +
+                           "_can_delete     bool, " +
+                           "_can_edit       bool, " +
+                           "name            string  not null, " +
+                           "display_name    string, " +
+                           "description     string, " +
+                           "type            char    not null," +
                            "view_definition text," +
 
-                           "constraint _core_relations_pk primary key (_id)," +
+                           "constraint _core_relations_pk       primary key (_id)," +
                            "constraint _core_relations_unq_name unique(name))"));
 
         c.exec(p.parse("create table _core.columns drop undefined(" +
@@ -365,10 +366,10 @@ public abstract class AbstractDatabase implements Database {
 
         // create table for holding additional type information on tables
         c.exec(p.parse("create table _core.relation_attributes drop undefined(" +
-                           "_id uuid not null, " +
-                           "relation_id uuid not null," +
-                           "attribute string not null," +
-                           "value text, " +
+                           "_id         uuid    not null, " +
+                           "relation_id uuid    not null," +
+                           "attribute   string  not null," +
+                           "value       text, " +
 
                            "constraint _core_rel_attr_pk           primary key(_id), " +
                            "constraint _core_rel_attr_rel_fk       foreign key(relation_id) references _core.relations(_id) on delete cascade on update cascade, " +
@@ -376,49 +377,49 @@ public abstract class AbstractDatabase implements Database {
 
         // create table for holding additional type information on columns
         c.exec(p.parse("create table _core.column_attributes drop undefined(" +
-                           "_id uuid not null, " +
-                           "column_id uuid not null, " +
-                           "attribute string not null, " +
-                           "value text, " +
+                           "_id       uuid    not null, " +
+                           "column_id uuid    not null, " +
+                           "attribute string  not null, " +
+                           "value     text, " +
 
                            "constraint _core_column_attr_pk              primary key(_id), " +
                            "constraint _core_column_attr_column_fk       foreign key(column_id) references _core.columns(_id) on delete cascade on update cascade, " +
                            "constraint _core_column_attr_unq_column_attr unique(column_id, attribute))"));
 
         c.exec(p.parse("create table _core.constraints drop undefined(" +
-                           "_id uuid not null, " +
-                           "name string not null, " +
-                           "relation_id uuid not null, " +
-                           "type char not null, " +
-                           "check_expr text, " +
-                           "source_columns int[]," +
-                           "target_relation_id uuid," +
-                           "target_columns int[]," +
-                           "forward_cost int not null default 1," +
-                           "reverse_cost int not null default 2," +
-                           "on_update char," +
-                           "on_delete char," +
+                           "_id                 uuid    not null, " +
+                           "name                string  not null, " +
+                           "relation_id         uuid    not null, " +
+                           "type                char    not null, " +
+                           "check_expr          text, " +
+                           "source_columns      int[]," +
+                           "target_relation_id  uuid," +
+                           "target_columns      int[]," +
+                           "forward_cost        int     not null default 1," +
+                           "reverse_cost        int     not null default 2," +
+                           "on_update           char," +
+                           "on_delete           char," +
 
                            "constraint _core_constraints_pk        primary key(_id), " +
                            "constraint _core_constraints_rel_id_fk foreign key(relation_id) references _core.relations(_id) on delete cascade on update cascade)"));
 
         c.exec(p.parse("create table _core.sequences drop undefined(" +
-                           "_id uuid not null, " +
-                           "name string not null, " +
-                           "start long not null default 1, " +
-                           "increment long not null default 1," +
-                           "maximum long not null default 9223372036854775807," +
-                           "cycles bool not null default true," +
+                           "_id         uuid    not null, " +
+                           "name        string  not null, " +
+                           "start       long    not null default 1, " +
+                           "increment   long    not null default 1," +
+                           "maximum     long    not null default 9223372036854775807," +
+                           "cycles      bool    not null default true," +
 
                            "constraint _core_seq_pk primary key(_id))"));
 
         c.exec(p.parse("create table _core.indices drop undefined(" +
-                           "_id uuid not null, " +
-                           "name string not null, " +
-                           "relation_id uuid not null, " +
-                           "unique_index bool, " +
-                           "columns int[]," +
-                           "expressions text[]," +
+                           "_id                     uuid    not null, " +
+                           "name                    string  not null, " +
+                           "relation_id             uuid    not null, " +
+                           "unique_index            bool, " +
+                           "columns                 int[]," +
+                           "expressions             text[]," +
                            "partial_index_condition text," +
 
                            "constraint _core_indices_pk        primary key(_id), " +
@@ -3770,7 +3771,7 @@ public abstract class AbstractDatabase implements Database {
                                      UUID relationId) {
     List<Column> columns = new ArrayList<>();
     try (ResultSet rs = con.createStatement().executeQuery(
-        "select _id, name, relation_id, seq``, type, " +
+        "select _id, name, relation_id, seq, type, " +
             "       derived, not_null, expression " +
             "  from _core.columns " +
             " where relation_id='" + relationId + "' " +
