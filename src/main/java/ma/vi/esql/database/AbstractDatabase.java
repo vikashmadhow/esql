@@ -253,16 +253,15 @@ public abstract class AbstractDatabase implements Database {
                   targetRelation = structure.relation(target.a);
                   targetColumns = target.b;
 
-                  c = new ForeignKeyConstraint(
-                      context,
-                      constraintName,
-                      sourceColumns,
-                      target.a,
-                      targetColumns,
-                      forwardCost,
-                      reverseCost,
-                      ConstraintDefinition.ForeignKeyChangeAction.fromInformationSchema(updateRule),
-                      ConstraintDefinition.ForeignKeyChangeAction.fromInformationSchema(deleteRule));
+                  c = new ForeignKeyConstraint(context,
+                                               constraintName,
+                                               sourceColumns,
+                                               target.a,
+                                               targetColumns,
+                                               forwardCost,
+                                               reverseCost,
+                                               ConstraintDefinition.ForeignKeyChangeAction.fromInformationSchema(updateRule),
+                                               ConstraintDefinition.ForeignKeyChangeAction.fromInformationSchema(deleteRule));
                 }
             }
 
@@ -4404,7 +4403,7 @@ public abstract class AbstractDatabase implements Database {
   public void clearTableMetadata(Connection con, UUID tableId) {
     try {
       con.createStatement().executeUpdate("DELETE FROM _core.relation_attributes " +
-                                              "WHERE relation_id='" + tableId + '\'');
+                                              " WHERE relation_id='" + tableId + '\'');
     } catch(SQLException e) {
       throw new RuntimeException(e);
     }

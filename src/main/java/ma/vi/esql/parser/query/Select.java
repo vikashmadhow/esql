@@ -55,6 +55,25 @@ public class Select extends QueryUpdate {
         of("orderBy", new Esql<>(context, "orderBy", orderBy)),
         of("offset", offset),
         of("limit", limit));
+
+    /*
+     * Rename column names to be unique without random characters.
+     */
+    Set<String> names = new HashSet<>();
+    for (Column column: columns) {
+      String alias = column.alias();
+      if (alias.startsWith("__auto_col")) {
+        if (column.expr() instanceof FunctionCall) {
+          alias = makeUnique(names, ((FunctionCall)column.expr()).functionName());
+        } else {
+          alias = makeUnique(names, "column");
+        }
+      } else {
+        alias = makeUnique(names, alias);
+      }
+      column.alias(alias);
+      names.add(alias);
+    }
   }
 
   public Select(Select other) {
@@ -73,6 +92,15 @@ public class Select extends QueryUpdate {
     } else {
       return this;
     }
+  }
+
+  private static String makeUnique(Set<String> names, String alias) {
+    int unique = 1;
+    String name = alias;
+    while (names.contains(name)) {
+      name = alias + "_" + (unique++);
+    }
+    return name;
   }
 
   @Override

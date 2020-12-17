@@ -4,16 +4,14 @@
 
 package ma.vi.esql.type;
 
-import ma.vi.base.lang.NotFoundException;
 import ma.vi.base.trie.PathTrie;
 import ma.vi.base.tuple.T2;
-import ma.vi.esql.parser.Context;
 import ma.vi.esql.parser.CircularReferenceException;
+import ma.vi.esql.parser.Context;
 import ma.vi.esql.parser.TranslationException;
 import ma.vi.esql.parser.define.Attribute;
 import ma.vi.esql.parser.define.ConstraintDefinition;
 import ma.vi.esql.parser.define.ForeignKeyConstraint;
-import ma.vi.esql.parser.define.Metadata;
 import ma.vi.esql.parser.expression.*;
 import ma.vi.esql.parser.query.Column;
 import ma.vi.esql.parser.query.Select;
@@ -166,11 +164,13 @@ public class BaseRelation extends Relation {
               throw new TranslationException("Unknown column " + colName
                                            + " in derived expresion " + derivedExpression);
             } else if (seen.contains(colName)) {
-              throw new TranslationException("A circular definition was detected "
-                                           + "in the expression " + derivedExpression
-                                           + " consisting of the column " + colName);
+              throw new CircularReferenceException(
+                "A circular definition was detected in the expression "
+                + derivedExpression + " consisting of the column " + colName);
             } else if (column.derived()) {
-              return expandDerived(column.expr(), columns, colName, seen);
+              return new GroupedExpression(
+                  e.context,
+                  expandDerived(column.expr(), columns, colName, seen));
             }
           }
           return e;

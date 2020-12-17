@@ -21,6 +21,7 @@ import ma.vi.esql.type.Type;
 import ma.vi.esql.type.Types;
 
 import java.util.ArrayList;
+import java.util.Set;
 
 import static ma.vi.esql.builder.Attributes.*;
 
@@ -47,7 +48,7 @@ public class Column extends MetadataContainer<Expression<?>, String> {
       if (expr instanceof ColumnRef) {
         alias(((ColumnRef)expr).name());
       } else {
-        alias("col_" + Strings.random(10));
+        alias("__auto_col_" + Strings.random(10));
       }
     }
   }

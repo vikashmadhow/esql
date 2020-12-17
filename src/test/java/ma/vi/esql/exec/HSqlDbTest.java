@@ -2,8 +2,10 @@ package ma.vi.esql.exec;
 
 import ma.vi.esql.Databases;
 import ma.vi.esql.database.HSqlDb;
+import ma.vi.esql.parser.CircularReferenceException;
 import ma.vi.esql.parser.Parser;
 import ma.vi.esql.parser.Program;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -58,6 +60,60 @@ public class HSqlDbTest {
                            "                    where lv.code=i)" +
                            "  }," +
                            "  primary key(_id)" +
+                           ")");
+      System.out.println(s);
+      con.exec(s);
+    }
+  }
+
+  @Test
+  void circularDerivedColumn() {
+    HSqlDb db = Databases.HSqlDb();
+    Parser p = new Parser(db.structure());
+    try (EsqlConnection con = db.esql(db.pooledConnection())) {
+      Program s = p.parse("create table X (" +
+                           "  _id int, " +
+                           "  derived a a" +
+                           ")");
+      System.out.println(s);
+
+      Assertions.assertThrows(
+          CircularReferenceException.class,
+          () -> con.exec(s)
+      );
+    }
+  }
+
+  @Test
+  void multuallyCircularDerivedColumn() {
+    HSqlDb db = Databases.HSqlDb();
+    Parser p = new Parser(db.structure());
+    try (EsqlConnection con = db.esql(db.pooledConnection())) {
+      Program s = p.parse("create table X (" +
+                           "  _id int, " +
+                           "  derived a b, " +
+                           "  derived b a" +
+                           ")");
+      System.out.println(s);
+
+      Assertions.assertThrows(
+          CircularReferenceException.class,
+          () -> con.exec(s)
+      );
+    }
+  }
+
+  @Test
+  void nonCircularDerivedColumn() {
+    HSqlDb db = Databases.HSqlDb();
+    Parser p = new Parser(db.structure());
+    try (EsqlConnection con = db.esql(db.pooledConnection())) {
+      Program s = p.parse("create table X (" +
+                           "  _id int, " +
+                           "  a int, " +
+                           "  derived b a + a, " +
+                           "  derived c b + a, " +
+                           "  derived d c + c + b, " +
                            ")");
       System.out.println(s);
       con.exec(s);
