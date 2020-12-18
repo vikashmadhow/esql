@@ -4,6 +4,7 @@
 
 package ma.vi.esql.parser;
 
+import ma.vi.esql.grammar.EsqlBaseListener;
 import ma.vi.esql.parser.define.*;
 import ma.vi.esql.parser.expression.BooleanLiteral;
 import ma.vi.esql.parser.expression.DateLiteral;
@@ -21,7 +22,6 @@ import ma.vi.esql.parser.modify.Insert;
 import ma.vi.esql.parser.modify.InsertRow;
 import ma.vi.esql.parser.modify.Update;
 import ma.vi.esql.parser.query.*;
-import ma.vi.esql.grammar.EsqlBaseListener;
 import ma.vi.esql.type.Types;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.RuleContext;
@@ -35,10 +35,10 @@ import static java.lang.Boolean.parseBoolean;
 import static java.lang.Long.parseLong;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
+import static ma.vi.esql.grammar.EsqlParser.*;
 import static ma.vi.esql.parser.define.ConstraintDefinition.ForeignKeyChangeAction;
 import static ma.vi.esql.parser.define.ConstraintDefinition.ForeignKeyChangeAction.*;
 import static ma.vi.esql.parser.define.GroupBy.Type.*;
-import static ma.vi.esql.grammar.EsqlParser.*;
 
 /**
  * The analyser interprets the syntactic tree produced by the parser for an ESQL
