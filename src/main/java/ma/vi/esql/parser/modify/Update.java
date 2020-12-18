@@ -89,7 +89,7 @@ public class Update extends QueryUpdate {
       } else {
         st.append(", ");
       }
-      st.append(set.name()).append('=')
+      st.append('"').append(set.name()).append("\"=")
         .append(set.attributeValue().translate(target));
     }
 

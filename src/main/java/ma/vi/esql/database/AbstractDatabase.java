@@ -613,7 +613,7 @@ public abstract class AbstractDatabase implements Database {
     }
 
     if (createPlatformTables) {
-      try (EsqlConnection c = esql(pooledConnection(true, -1))) {
+      try (EsqlConnection c = esql(pooledConnection())) {
 
         ////////////////////////////////////////
         // Users
@@ -3902,7 +3902,7 @@ public abstract class AbstractDatabase implements Database {
     /*
      * Load constraints.
      */
-    UUID id = UUID.fromString(rs.getString("_id"));
+    // UUID id = UUID.fromString(rs.getString("_id"));
     String name = rs.getString("name");
     BaseRelation relation = structure.relation(UUID.fromString(rs.getString("relation_id")));
     ConstraintDefinition.Type type = fromMarker(rs.getString("type").charAt(0));
@@ -4038,7 +4038,8 @@ public abstract class AbstractDatabase implements Database {
   public void table(Connection con, BaseRelation table) {
     if (hasCoreTables(con)) {
       Parser p = new Parser(structure());
-      try (EsqlConnection econ = esql(con)) {
+      try {
+        EsqlConnection econ = esql(con);
         econ.exec(p.parse(
             "insert into _core.relations(_id, name, display_name, description, type) values(" +
                 "'" + table.id().toString() + "', " +
@@ -4061,11 +4062,19 @@ public abstract class AbstractDatabase implements Database {
         }
 
         // add columns
-        try (PreparedStatement fs = con.prepareStatement(INSERT_COLUMN);
-             PreparedStatement as = con.prepareStatement(INSERT_COLUMN_ATTRIBUTE)) {
-          for (Column column: table.columns()) {
-            addColumn(table.id(), column, fs, as);
-          }
+        Insert insertCol = p.parse(
+            "insert into _core.columns("
+                 + "  _id, _can_delete, relation_id, name, "
+                 + "  derived_column, type, not_null, expression, seq) "
+                 + "values(:id, :canDelete, :relation, :name, "
+                 + "       :derivedColumn, :type, :nonNull, :expression, "
+                 + "       coalesce((max(seq) from _core.columns where relation_id=:relation), 0) + 1)", "insert");
+        Insert insertColAttr = p.parse(
+           "insert into _core.column_attributes(" +
+               "  _id, column_id, attribute, value) " +
+               "values(newid(), :columnId, :name, :value)", "insert");
+        for (Column column: table.columns()) {
+          addColumn(econ, table.id(), column, insertCol, insertColAttr);
         }
 
         // add constraints
@@ -4083,20 +4092,18 @@ public abstract class AbstractDatabase implements Database {
   @Override
   public void tableName(Connection con, UUID tableId, String name) {
     if (hasCoreTables(con)) {
-      try {
-        con.createStatement().executeUpdate(
-            "UPDATE _core.relations SET name='" + name +
-                "' WHERE _id='" + tableId + "'");
-      } catch (SQLException sqle) {
-        throw new RuntimeException(sqle);
-      }
+      EsqlConnection econ = esql(con);
+      Parser p = new Parser(structure());
+      econ.exec(p.parse(
+          "update _core.relations SET name='" + name +
+              "' where _id='" + tableId + "'"));
     }
   }
 
   @Override
   public void dropTable(Connection con, UUID tableId) {
     if (hasCoreTables(con)) {
-      try {
+      EsqlConnection econ = esql(con);
 //      // delete constraints
 //      con.createStatement().executeUpdate("DELETE FROM _core.constraints WHERE relation_id='" + tableId + "'");
 //
@@ -4112,80 +4119,82 @@ public abstract class AbstractDatabase implements Database {
 //      // delete relation attributes
 //      con.createStatement().executeUpdate("DELETE FROM _core.relation_attributes WHERE relation_id='" + tableId + "'");
 
-        // delete from in _core.relations
-        con.createStatement().executeUpdate("DELETE FROM _core.relations WHERE _id='" + tableId + "'");
-      } catch (SQLException sqle) {
-        throw new RuntimeException(sqle);
-      }
+      // delete from in _core.relations
+      Parser p = new Parser(structure());
+      econ.exec(p.parse("delete from _core.relations where _id='" + tableId + "'"));
     }
   }
 
   @Override
   public void column(Connection con, UUID tableId, Column column) {
     if (hasCoreTables(con)) {
-      try (PreparedStatement colAdd = con.prepareStatement(INSERT_COLUMN);
-           PreparedStatement attrAdd = con.prepareStatement(INSERT_COLUMN_ATTRIBUTE)) {
-        addColumn(tableId, column, colAdd, attrAdd);
-      } catch (SQLException e) {
-        throw new RuntimeException(e);
-      }
+      EsqlConnection econ = esql(con);
+      Parser p = new Parser(structure());
+      Insert insertCol = p.parse(
+          "insert into _core.columns("
+              + "  _id, _can_delete, relation_id, name, "
+              + "  derived_column, type, not_null, expression, seq) "
+              + "values(:id, :canDelete, :relation, :name, "
+              + "       :derivedColumn, :type, :nonNull, :expression, "
+              + "       coalesce(select max(seq) from _core.columns where relation_id=:relation), 0) + 1)", "insert");
+      Insert insertColAttr = p.parse(
+          "insert into _core.column_attributes(" +
+              "  _id, column_id, attribute, value) " +
+              "values(newid(), :columnId, :name, :value)", "insert");
+      addColumn(econ, tableId, column, insertCol, insertColAttr);
     }
   }
 
-  private void addColumn(UUID tableId,
+  private void addColumn(EsqlConnection econ,
+                         UUID tableId,
                          Column column,
-                         PreparedStatement colAdd,
-                         PreparedStatement attrAdd) {
-    try {
-      /*
-       * Check if the CAN_DELETE attribute is set on this field and save
-       * its value, which controls whether this field can later be dropped.
-       */
-      Boolean canDelete = column.metadata().evaluateAttribute(CAN_DELETE);
+                         Insert insertCol,
+                         Insert insertColAttr) {
+    /*
+     * Check if the CAN_DELETE attribute is set on this field and save
+     * its value, which controls whether this field can later be dropped.
+     */
+    Boolean canDelete = column.metadata() == null ? null : column.metadata().evaluateAttribute(CAN_DELETE);
+    String columnId = UUID.randomUUID().toString();
+    column.id(columnId);
+    econ.exec(insertCol,
+              Param.of("id",            columnId),
+              Param.of("canDelete",     canDelete),
+              Param.of("relation",      tableId),
+              Param.of("name",          column.alias()),
+              Param.of("derivedColumn", column.derived()),
+              Param.of("type",          column.type().translate(ESQL)),
+              Param.of("nonNull",       column.notNull()),
+              Param.of("expression",
+                       column.derived()                   ? column.expr().translate(ESQL) :
+                       column.defaultExpression() != null ? column.defaultExpression().translate(ESQL) : null));
 
-      String columnId = UUID.randomUUID().toString();
-      column.id(columnId);
-      colAdd.setString(1, columnId);
-      colAdd.setObject(2, canDelete);
-      colAdd.setObject(3, tableId);
-      colAdd.setString(4, column.alias());
-
-      String derivedExpr = column.expr().translate(ESQL);
-      colAdd.setString(5, column.derived() ? derivedExpr : null);
-
-      String type = column.type().translate(ESQL);
-
-      colAdd.setString(6, type);
-      colAdd.setBoolean(7, column.notNull());
-
-      String defaultExpr = column.defaultExpression() == null
-          ? null
-          : column.defaultExpression().translate(ESQL);
-      colAdd.setString(8, defaultExpr);
-      colAdd.setObject(9, tableId);
-      colAdd.executeUpdate();
-
-      addColumnMetadata(column, attrAdd);
-    } catch (SQLException e) {
-      throw new RuntimeException(e);
-    }
+    addColumnMetadata(econ, column, insertColAttr);
   }
 
-  private void addColumnMetadata(Connection con, Column column) throws SQLException {
-    try (PreparedStatement attrAdd = con.prepareStatement(INSERT_COLUMN_ATTRIBUTE)) {
-      addColumnMetadata(column, attrAdd);
-    }
-  }
 
-  private void addColumnMetadata(Column column, PreparedStatement attrAdd) throws SQLException {
+
+
+
+
+
+
+
+
+
+
+  
+
+  private void addColumnMetadata(EsqlConnection econ,
+                                 Column column,
+                                 Insert insertColAttr) {
     if (column.metadata() != null && column.metadata().attributes() != null) {
       for (Attribute attr: column.metadata().attributes().values()) {
-        attrAdd.setObject(1, UUID.randomUUID());
-        attrAdd.setObject(2, column.id());
-        attrAdd.setString(3, attr.name());
         Expression<?> value = attr.attributeValue();
-        attrAdd.setString(4, value == null ? null : value.translate(ESQL));
-        attrAdd.executeUpdate();
+        econ.exec(insertColAttr,
+                  Param.of("columnId", UUID.fromString(column.id())),
+                  Param.of("name", attr.name()),
+                  Param.of("value", value == null ? null : value.translate(ESQL)));
       }
     }
   }
@@ -4398,66 +4407,63 @@ public abstract class AbstractDatabase implements Database {
                              UUID tableId,
                              String constraintName) {
     if (hasCoreTables(con)) {
-      try (EsqlConnection econ = esql(con)) {
-        Parser p = new Parser(structure());
-        econ.exec(p.parse(
-            "delete from _core.constraints " +
-                " where relation_id='" + tableId + "' " +
-                "   and name='" + constraintName + "'"));
-      }
+      EsqlConnection econ = esql(con);
+      Parser p = new Parser(structure());
+      econ.exec(p.parse(
+          "delete from _core.constraints " +
+              " where relation_id='" + tableId + "' " +
+              "   and name='" + constraintName + "'"));
     }
   }
 
   @Override
   public void clearTableMetadata(Connection con, UUID tableId) {
     if (hasCoreTables(con)) {
-      try (EsqlConnection econ = esql(con)) {
-        Parser p = new Parser(structure());
-        econ.exec(p.parse("delete from _core.relation_attributes "
-                              + " where relation_id='" + tableId + '\''));
-      }
+      EsqlConnection econ = esql(con);
+      Parser p = new Parser(structure());
+      econ.exec(p.parse("delete from _core.relation_attributes "
+                            + " where relation_id='" + tableId + '\''));
     }
   }
 
   @Override
   public void tableMetadata(Connection con, UUID tableId, Metadata metadata) {
     if (hasCoreTables(con)) {
-      try (EsqlConnection econ = esql(con)) {
-        if (metadata != null && metadata.attributes() != null) {
-          Parser p = new Parser(structure());
-          Insert insert = p.parse("insert into _core.relation_attributes" +
-                                      "(_id, relation_id, attribute, value) values" +
-                                      "(newid(), :table, :name, :value)", "insert");
-          for (Attribute attr: metadata.attributes().values()) {
-            Expression<?> value = attr.attributeValue();
-            econ.exec(insert,
-                      Param.of("table", tableId),
-                      Param.of("name", attr.name()),
-                      Param.of("value", value.translate(ESQL)));
-          }
+      EsqlConnection econ = esql(con);
+      if (metadata != null && metadata.attributes() != null) {
+        Parser p = new Parser(structure());
+        Insert insert = p.parse("insert into _core.relation_attributes" +
+                                    "(_id, relation_id, attribute, value) values" +
+                                    "(newid(), :relation, :name, :value)", "insert");
+        for (Attribute attr: metadata.attributes().values()) {
+          Expression<?> value = attr.attributeValue();
+          econ.exec(insert,
+                    Param.of("relation", tableId),
+                    Param.of("name", attr.name()),
+                    Param.of("value", value.translate(ESQL)));
+        }
 
-          /*
-           * Update table display name and description if specified.
-           */
-          String tableDisplayName = metadata.evaluateAttribute(NAME);
-          String tableDescription = metadata.evaluateAttribute(DESCRIPTION);
-          if (tableDisplayName != null && tableDescription != null) {
-            econ.exec(p.parse(
-                "update _core.relations " +
-                    "   set display_name='" + escapeSqlString(tableDisplayName) + "', " +
-                    "        description='" + escapeSqlString(tableDescription) + "'" +
-                    " where _id='" + tableId + "'"));
-          } else if (tableDisplayName != null) {
-            econ.exec(p.parse(
-                "update _core.relations " +
-                    "   set display_name='" + escapeSqlString(tableDisplayName) + "'" +
-                    " where _id='" + tableId + "'"));
-          } else if (tableDescription != null) {
-            econ.exec(p.parse(
-                "update _core.relations " +
-                    "   set description='" + escapeSqlString(tableDescription) + "'" +
-                    " where _id='" + tableId + "'"));
-          }
+        /*
+         * Update table display name and description if specified.
+         */
+        String tableDisplayName = metadata.evaluateAttribute(NAME);
+        String tableDescription = metadata.evaluateAttribute(DESCRIPTION);
+        if (tableDisplayName != null && tableDescription != null) {
+          econ.exec(p.parse(
+              "update _core.relations " +
+                  "   set display_name='" + escapeSqlString(tableDisplayName) + "', " +
+                  "        description='" + escapeSqlString(tableDescription) + "'" +
+                  " where _id='" + tableId + "'"));
+        } else if (tableDisplayName != null) {
+          econ.exec(p.parse(
+              "update _core.relations " +
+                  "   set display_name='" + escapeSqlString(tableDisplayName) + "'" +
+                  " where _id='" + tableId + "'"));
+        } else if (tableDescription != null) {
+          econ.exec(p.parse(
+              "update _core.relations " +
+                  "   set description='" + escapeSqlString(tableDescription) + "'" +
+                  " where _id='" + tableId + "'"));
         }
       }
     }

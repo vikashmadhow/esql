@@ -442,6 +442,7 @@ public class Types {
     hsqldbTypeMapping.put("timestamp", "datetime");
     hsqldbTypeMapping.put("interval", "interval");
     hsqldbTypeMapping.put("uuid", "uuid");
+    hsqldbTypeMapping.put("array", "text[]");
 
     typeSynonyms.put("varchar", "text");
     typeSynonyms.put("boolean", "bool");
