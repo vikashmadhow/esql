@@ -138,6 +138,30 @@ public class Result implements AutoCloseable {
     return get(columnNameToIndex.get(field) + 1);
   }
 
+  public <T> T value(String field) {
+    if (!columnNameToIndex.containsKey(field)) {
+      throw new RuntimeException("No such field: " + field);
+    }
+    return value(columnNameToIndex.get(field) + 1);
+
+  }
+
+  public <T> T value(int index) {
+    return (T)get(index).value;
+  }
+
+  public boolean booleanValue(String field) {
+    if (!columnNameToIndex.containsKey(field)) {
+      throw new RuntimeException("No such field: " + field);
+    }
+    return booleanValue(columnNameToIndex.get(field) + 1);
+  }
+
+  public boolean booleanValue(int index) {
+    Boolean value = (Boolean)get(index).value;
+    return value != null && value;
+  }
+
   public Map<String, ResultColumn<?>> getRow() {
     Map<String, ResultColumn<?>> row = new HashMap<>();
     for (int i = 1; i <= columns(); i++) {

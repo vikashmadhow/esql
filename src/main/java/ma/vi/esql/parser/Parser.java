@@ -4,6 +4,8 @@
 
 package ma.vi.esql.parser;
 
+import ma.vi.base.lang.Errors;
+import ma.vi.base.reflect.Dissector;
 import ma.vi.esql.parser.expression.Expression;
 import ma.vi.esql.database.Structure;
 import ma.vi.esql.grammar.EsqlLexer;
@@ -31,6 +33,15 @@ public class Parser {
 
   public Program parse(String esql) {
     return parse(structure, esql);
+  }
+
+  public <T extends Esql<?, ?>> T parse(String esql, String as) {
+    try {
+      EsqlParser p = parser(esql);
+      return (T)parse(structure, (ParserRuleContext)Dissector.method(p.getClass(), as).get().invoke(p));
+    } catch (Exception e) {
+      throw e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e);
+    }
   }
 
   public Expression<?> parseExpression(String expression) {

@@ -75,7 +75,7 @@ public class Column extends MetadataContainer<Expression<?>, String> {
     } else if (defaultExpr != null) {
       col.attribute(EXPRESSION, defaultExpr);
     }
-    col.attribute(TYPE, new StringLiteral(def.context, columnType.translate(Target.ESQL)));
+    col.attribute(TYPE, new StringLiteral(def.context, "'" + columnType.translate(Target.ESQL) + "'"));
     if (notNull) {
       col.attribute(REQUIRED, new BooleanLiteral(def.context, true));
     }
@@ -140,7 +140,11 @@ public class Column extends MetadataContainer<Expression<?>, String> {
   }
 
   public boolean notNull() {
-    return metadata() != null && (Boolean)metadata().evaluateAttribute(REQUIRED);
+    if (metadata() != null) {
+      Boolean notNull = metadata().evaluateAttribute(REQUIRED);
+      return notNull != null && notNull;
+    }
+    return false;
   }
 
   public void notNull(boolean notNull) {

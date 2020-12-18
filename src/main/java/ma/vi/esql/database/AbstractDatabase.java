@@ -12,6 +12,7 @@ import ma.vi.esql.parser.Context;
 import ma.vi.esql.parser.Parser;
 import ma.vi.esql.parser.define.*;
 import ma.vi.esql.parser.expression.*;
+import ma.vi.esql.parser.modify.Insert;
 import ma.vi.esql.parser.query.Column;
 import ma.vi.esql.type.BaseRelation;
 import ma.vi.esql.type.Relation;
@@ -56,12 +57,13 @@ public abstract class AbstractDatabase implements Database {
           // to other relations which are not loaded yet. After loading the relations
           // their columns, constraints, indices, and so on are loaded and they can
           // refer freely to other relations.
-          try (ResultSet rs = stmt.executeQuery("select _id, name, display_name, description, type, view_definition " +
-                                                    "  from _core.relations");
+          try (ResultSet rs = stmt.executeQuery("select \"_id\", \"name\", \"display_name\", \"description\", " +
+                                                    "       \"type\", \"view_definition\" " +
+                                                    "  from \"_core\".\"relations\"");
                PreparedStatement attrStmt = con.prepareStatement(
-                   "select attribute, value " +
-                       "  from _core.relation_attributes " +
-                       " where relation_id=?")) {
+                   "select \"attribute\", \"value\" " +
+                       "  from \"_core\".\"relation_attributes\" " +
+                       " where \"relation_id\"=?")) {
             while (rs.next()) {
               loadRelation(con, context, structure, parser, attrStmt, rs);
             }
@@ -70,10 +72,10 @@ public abstract class AbstractDatabase implements Database {
           // load constraints after all tables are loaded so that foreign key
           // constraints can be properly linked to their target tables.
           try (ResultSet rs = con.createStatement().executeQuery(
-              "select _id, name, relation_id, type, check_expr, source_columns, " +
-                  "       target_relation_id, target_columns, forward_cost, reverse_cost, " +
-                  "       on_update, on_delete " +
-                  "  from _core.constraints")) {
+              "select \"_id\", \"name\", \"relation_id\", \"type\", \"check_expr\", " +
+                  "       \"source_columns\", \"target_relation_id\", \"target_columns\", " +
+                  "       \"forward_cost\", \"reverse_cost\", \"on_update\", \"on_delete\" " +
+                  "  from \"_core\".\"constraints\"")) {
             while (rs.next()) {
               loadConstraints(context, structure, parser, rs);
             }
@@ -140,7 +142,7 @@ public abstract class AbstractDatabase implements Database {
                   String columnType = Types.esqlType(colType, target());
                   if (columnType == null) {
                     throw new IllegalArgumentException("ESQL type equivalent for " + target() + " type "
-                                                        + colType + " is not known");
+                                                           + colType + " is not known");
                   }
                   boolean notNull = crs.getString("is_nullable").equals("NO");
                   String defaultValue = crs.getString("column_default");
@@ -151,6 +153,18 @@ public abstract class AbstractDatabase implements Database {
                   List<Attribute> attributes = new ArrayList<>();
                   attributes.add(new Attribute(context, TYPE, new StringLiteral(context, columnType)));
                   if (defaultValue != null) {
+                    /*
+                     * Hack to ensure that all boolean value capitalisations
+                     * are mapped to the lowercase esql form. A proper solution
+                     * to this would require a parser for each target database
+                     * as the default expressions read from the information
+                     * schemas are expressed in those.
+                     */
+                    if (defaultValue.equalsIgnoreCase("true")) {
+                      defaultValue = "true";
+                    } else if (defaultValue.equalsIgnoreCase("false")) {
+                      defaultValue = "false";
+                    }
                     attributes.add(new Attribute(context, EXPRESSION, parser.parseExpression(defaultValue)));
                   }
                   attributes.add(new Attribute(context, ID, new StringLiteral(context, columnId.toString())));
@@ -230,8 +244,6 @@ public abstract class AbstractDatabase implements Database {
                 try (ResultSet r = con.createStatement().executeQuery(
                     "select unique_constraint_schema," +
                         "       unique_constraint_name," +
-                        "       forward_cost, " +
-                        "       reverse_cost, " +
                         "       update_rule, " +
                         "       delete_rule " +
                         "  from information_schema.referential_constraints " +
@@ -240,10 +252,6 @@ public abstract class AbstractDatabase implements Database {
                   r.next();
                   String uniqueConstraintSchema = r.getString("unique_constraint_schema");
                   String uniqueConstraintName = r.getString("unique_constraint_name");
-
-                  int forwardCost = r.getInt("forward_cost");
-                  int reverseCost = r.getInt("reverse_cost");
-
                   String updateRule = r.getString("update_rule");
                   String deleteRule = r.getString("delete_rule");
 
@@ -258,10 +266,11 @@ public abstract class AbstractDatabase implements Database {
                                                sourceColumns,
                                                target.a,
                                                targetColumns,
-                                               forwardCost,
-                                               reverseCost,
-                                               ConstraintDefinition.ForeignKeyChangeAction.fromInformationSchema(updateRule),
-                                               ConstraintDefinition.ForeignKeyChangeAction.fromInformationSchema(deleteRule));
+                                               0, 0,
+                                               ConstraintDefinition.ForeignKeyChangeAction.fromInformationSchema(
+                                                   updateRule),
+                                               ConstraintDefinition.ForeignKeyChangeAction.fromInformationSchema(
+                                                   deleteRule));
                 }
             }
 
@@ -330,7 +339,7 @@ public abstract class AbstractDatabase implements Database {
     if (createCoreTables && !hasCoreTables(con)) {
       // CREATE _core tables
       ///////////////////////////////////////////
-      try(EsqlConnection c = esql(pooledConnection())) {
+      try (EsqlConnection c = esql(pooledConnection())) {
         c.exec(p.parse("create table _core.relations drop undefined(" +
                            "_id             uuid    not null, " +
                            "_can_delete     bool, " +
@@ -598,6 +607,8 @@ public abstract class AbstractDatabase implements Database {
                 "      columnsOrder: [''_id'', ''column_id'', ''attribute'', ''value'']" +
                 "    }" +
                 "}')"));
+      } finally {
+        hasCoreTables = true;
       }
     }
 
@@ -609,321 +620,321 @@ public abstract class AbstractDatabase implements Database {
         ////////////////////////////////////////
 
         c.exec(p.parse("create table _platform.user.User drop undefined(" +
-                         "{" +
-                         "   name: 'User', " +
-                         "   description: 'Users having access to the system', " +
-                         "   children: {" +
-                         "     user_roles: {" +
-                         "       $m: {" +
-                         "         type: '_platform.user.UserRole'," +
-                         "         parent_link_column: 'user_id'," +
-                         "         label: 'User roles'" +
-                         "       }," +
-                         "       columns: {" +
-                         "         _id: {" +
-                         "           $m: {" +
-                         "             type: 'uuid'," +
-                         "             show: false" +
-                         "           }" +
-                         "         }," +
-                         "         role_id: {" +
-                         "           $m: {" +
-                         "             type: 'uuid'," +
-                         "             label: 'Role'," +
-                         "             link_table: '_platform.user.Role'," +
-                         "             link_table_code_label: 'name'," +
-                         "             link_table_code_value: '_id'" +
-                         "           }" +
-                         "         }" +
-                         "       }," +
-                         "       columnsOrder: ['_id', 'role_id']" +
-                         "     }" +
-                         "   }" +
-                         "}," +
-                         "_id uuid not null, " +
-                         "_version long not null default 0, " +
-                         "_can_delete bool not null default true, " +
-                         "_can_edit bool not null default true, " +
-                         "_last_user_update string, " +
-                         "_last_update_time datetime, " +
+                           "{" +
+                           "   name: 'User', " +
+                           "   description: 'Users having access to the system', " +
+                           "   children: {" +
+                           "     user_roles: {" +
+                           "       $m: {" +
+                           "         type: '_platform.user.UserRole'," +
+                           "         parent_link_column: 'user_id'," +
+                           "         label: 'User roles'" +
+                           "       }," +
+                           "       columns: {" +
+                           "         _id: {" +
+                           "           $m: {" +
+                           "             type: 'uuid'," +
+                           "             show: false" +
+                           "           }" +
+                           "         }," +
+                           "         role_id: {" +
+                           "           $m: {" +
+                           "             type: 'uuid'," +
+                           "             label: 'Role'," +
+                           "             link_table: '_platform.user.Role'," +
+                           "             link_table_code_label: 'name'," +
+                           "             link_table_code_value: '_id'" +
+                           "           }" +
+                           "         }" +
+                           "       }," +
+                           "       columnsOrder: ['_id', 'role_id']" +
+                           "     }" +
+                           "   }" +
+                           "}," +
+                           "_id uuid not null, " +
+                           "_version long not null default 0, " +
+                           "_can_delete bool not null default true, " +
+                           "_can_edit bool not null default true, " +
+                           "_last_user_update string, " +
+                           "_last_update_time datetime, " +
 
-                         "username string not null {" +
-                         "   validate_unique: true " +
-                         "}, " +
-                         "realname string not null, " +
-                         "password string not null {" +
-                         "   password: true " +
-                         "}, " +
-                         "email string {" +
-                         "   required: two_factor='Y'" +
-                         "}, " +
-                         "phone string { " +
-                         "   required: two_factor='Y'" +
-                         "}, " +
+                           "username string not null {" +
+                           "   validate_unique: true " +
+                           "}, " +
+                           "realname string not null, " +
+                           "password string not null {" +
+                           "   password: true " +
+                           "}, " +
+                           "email string {" +
+                           "   required: two_factor='Y'" +
+                           "}, " +
+                           "phone string { " +
+                           "   required: two_factor='Y'" +
+                           "}, " +
 
-                         "two_factor string not null default 'N' {" +
-                         "   link_table:'_util_yes_no'" +
-                         "}, " +
-                         "otp string {" +
-                         "   show: false " +
-                         "}, " +
-                         "otp_expires_at datetime {" +
-                         "   show: false " +
-                         "}," +
-                         "send_otp_to string not null default 'phone' {" +
-                         "   link_table: '_otp_channel'" +
-                         "}, " +
-                         "two_factor_auth_valid_until datetime {" +
-                         "   show: false " +
-                         "}, " +
-                         "client_id string {" +
-                         "   show: false " +
-                         "}, " +
+                           "two_factor string not null default 'N' {" +
+                           "   link_table:'_util_yes_no'" +
+                           "}, " +
+                           "otp string {" +
+                           "   show: false " +
+                           "}, " +
+                           "otp_expires_at datetime {" +
+                           "   show: false " +
+                           "}," +
+                           "send_otp_to string not null default 'phone' {" +
+                           "   link_table: '_otp_channel'" +
+                           "}, " +
+                           "two_factor_auth_valid_until datetime {" +
+                           "   show: false " +
+                           "}, " +
+                           "client_id string {" +
+                           "   show: false " +
+                           "}, " +
 
-                         "primary key(_id), " +
-                         "unique(username))"));
+                           "primary key(_id), " +
+                           "unique(username))"));
 
         c.exec(p.parse("create table _platform.user.Role drop undefined(" +
-                         "{" +
-                         "   name: 'Role', " +
-                         "   description: 'A role is a set of access rights which can be assigned to a user', " +
-                         "   children: {" +
-                         "     rights: {" +
-                         "       $m: {" +
-                         "         type: '_platform.user.AccessRight'," +
-                         "         inline: false, " +
-                         "         parent_link_column: 'role_id'," +
-                         "         label: 'Rights'" +
-                         "       }," +
-                         "       columns: {" +
-                         "         _id: {" +
-                         "           $m: {" +
-                         "             type: 'uuid'," +
-                         "             show: false" +
-                         "           }" +
-                         "         }," +
-                         "         access_right: {" +
-                         "           $m: {" +
-                         "             type: 'string'," +
-                         "             label: 'Access right', " +
-                         "             span: 24, " +
-                         "             required: true" +
-                         "           }" +
-                         "         }" +
-                         "       }," +
-                         "       columnsOrder: ['_id', 'access_right']" +
-                         "     }" +
-                         "   }" +
-                         "}, " +
-                         "_id uuid not null, " +
-                         "_version long not null default 0, " +
-                         "_can_delete bool not null default true, " +
-                         "_can_edit bool not null default true, " +
-                         "_last_user_update string, " +
-                         "_last_update_time datetime, " +
+                           "{" +
+                           "   name: 'Role', " +
+                           "   description: 'A role is a set of access rights which can be assigned to a user', " +
+                           "   children: {" +
+                           "     rights: {" +
+                           "       $m: {" +
+                           "         type: '_platform.user.AccessRight'," +
+                           "         inline: false, " +
+                           "         parent_link_column: 'role_id'," +
+                           "         label: 'Rights'" +
+                           "       }," +
+                           "       columns: {" +
+                           "         _id: {" +
+                           "           $m: {" +
+                           "             type: 'uuid'," +
+                           "             show: false" +
+                           "           }" +
+                           "         }," +
+                           "         access_right: {" +
+                           "           $m: {" +
+                           "             type: 'string'," +
+                           "             label: 'Access right', " +
+                           "             span: 24, " +
+                           "             required: true" +
+                           "           }" +
+                           "         }" +
+                           "       }," +
+                           "       columnsOrder: ['_id', 'access_right']" +
+                           "     }" +
+                           "   }" +
+                           "}, " +
+                           "_id uuid not null, " +
+                           "_version long not null default 0, " +
+                           "_can_delete bool not null default true, " +
+                           "_can_edit bool not null default true, " +
+                           "_last_user_update string, " +
+                           "_last_update_time datetime, " +
 
-                         "name string not null {" +
-                         "   validate_unique: true " +
-                         "}, " +
-                         "description text not null {" +
-                         "   lines: 5," +
-                         "   span: 16 " +
-                         "}, " +
+                           "name string not null {" +
+                           "   validate_unique: true " +
+                           "}, " +
+                           "description text not null {" +
+                           "   lines: 5," +
+                           "   span: 16 " +
+                           "}, " +
 
-                         "primary key(_id), " +
-                         "unique(name))"));
+                           "primary key(_id), " +
+                           "unique(name))"));
 
         c.exec(p.parse("create table _platform.user.UserRole drop undefined(" +
-                         "{" +
-                         "   name: 'User Role', " +
-                         "   description: 'A role associated to a user' " +
-                         "}, " +
-                         "_id uuid not null, " +
-                         "_version long not null default 0, " +
-                         "_can_delete bool not null default true, " +
-                         "_can_edit bool not null default true, " +
-                         "_last_user_update string, " +
-                         "_last_update_time datetime, " +
+                           "{" +
+                           "   name: 'User Role', " +
+                           "   description: 'A role associated to a user' " +
+                           "}, " +
+                           "_id uuid not null, " +
+                           "_version long not null default 0, " +
+                           "_can_delete bool not null default true, " +
+                           "_can_edit bool not null default true, " +
+                           "_last_user_update string, " +
+                           "_last_update_time datetime, " +
 
-                         "user_id uuid not null {" +
-                         "   show: false, " +
-                         "   link_table: '_platform.user.User'," +
-                         "   link_table_code_label: 'username'," +
-                         "   link_table_code_value: '_id'" +
-                         "}, " +
-                         "role_id uuid not null {" +
-                         "   link_table: '_platform.user.Role'," +
-                         "   link_table_code_label: 'name'," +
-                         "   link_table_code_value: '_id'" +
-                         "}, " +
+                           "user_id uuid not null {" +
+                           "   show: false, " +
+                           "   link_table: '_platform.user.User'," +
+                           "   link_table_code_label: 'username'," +
+                           "   link_table_code_value: '_id'" +
+                           "}, " +
+                           "role_id uuid not null {" +
+                           "   link_table: '_platform.user.Role'," +
+                           "   link_table_code_label: 'name'," +
+                           "   link_table_code_value: '_id'" +
+                           "}, " +
 
-                         "primary key(_id), " +
-                         "foreign key(user_id) references _platform.user.User(_id) on update cascade on delete cascade," +
-                         "foreign key(role_id) references _platform.user.Role(_id) on update cascade on delete cascade)"));
+                           "primary key(_id), " +
+                           "foreign key(user_id) references _platform.user.User(_id) on update cascade on delete cascade," +
+                           "foreign key(role_id) references _platform.user.Role(_id) on update cascade on delete cascade)"));
 
         /*
          * A right is the base permission object granting a user access to a resource/function of the system
          */
         c.exec(p.parse("create table _platform.user.AccessRight drop undefined(" +
-                         "{" +
-                         "   name: 'Access Right', " +
-                         "   description: 'An access right is associated to a user through a role to give her access to an area or function of the system'" +
-                         "}, " +
-                         "_id uuid not null, " +
-                         "_version long not null default 0, " +
-                         "_can_delete bool not null default true, " +
-                         "_can_edit bool not null default true, " +
-                         "_last_user_update string, " +
-                         "_last_update_time datetime, " +
+                           "{" +
+                           "   name: 'Access Right', " +
+                           "   description: 'An access right is associated to a user through a role to give her access to an area or function of the system'" +
+                           "}, " +
+                           "_id uuid not null, " +
+                           "_version long not null default 0, " +
+                           "_can_delete bool not null default true, " +
+                           "_can_edit bool not null default true, " +
+                           "_last_user_update string, " +
+                           "_last_update_time datetime, " +
 
-                         "role_id uuid not null {" +
-                         "   show: false " +
-                         "}, " +
-                         "access_right text not null {" +
-                         "   description: 'A right has 3 names separated by / (e.g. ''abc/def/delete'') with each name " +
-                         "representing an access to a function or area of the system. Rights are " +
-                         "hierarchical with each name representing a sub-function or sub-area of " +
-                         "the name before it (E.g. in ''a/b/c'' b is a part of a and c is a part of b). " +
-                         "A set of names or the * universe can also be specified in place of a single name. " +
-                         "Some examples of rights are ''a/b/c'', ''a/{b,c,d}/c'', ''a/{b,c}/{c,e}'', ''a/*/*'' " +
-                         "and ''*/*/*''', " +
-                         "   mask: 'jjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjj', " +
-                         "   span: 24" +
-                         "}," +
+                           "role_id uuid not null {" +
+                           "   show: false " +
+                           "}, " +
+                           "access_right text not null {" +
+                           "   description: 'A right has 3 names separated by / (e.g. ''abc/def/delete'') with each name " +
+                           "representing an access to a function or area of the system. Rights are " +
+                           "hierarchical with each name representing a sub-function or sub-area of " +
+                           "the name before it (E.g. in ''a/b/c'' b is a part of a and c is a part of b). " +
+                           "A set of names or the * universe can also be specified in place of a single name. " +
+                           "Some examples of rights are ''a/b/c'', ''a/{b,c,d}/c'', ''a/{b,c}/{c,e}'', ''a/*/*'' " +
+                           "and ''*/*/*''', " +
+                           "   mask: 'jjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjj', " +
+                           "   span: 24" +
+                           "}," +
 
-                         "primary key(_id), " +
-                         "foreign key(role_id) references _platform.user.Role(_id) on update cascade on delete cascade)"));
+                           "primary key(_id), " +
+                           "foreign key(role_id) references _platform.user.Role(_id) on update cascade on delete cascade)"));
 
         /*
          * Audit trail
          */
         c.exec(p.parse("create table _platform.user.Audit drop undefined(" +
-                         "{" +
-                         "  name: 'Audit Trail', " +
-                         "  description: 'An audit trail records a user action in the system', " +
-                         "  children: {" +
-                         "    columns: {" +
-                         "      $m: {" +
-                         "        type: '_platform.user.AuditField'," +
-                         "        parent_link_column: 'audit_id'," +
-                         "        label: 'Modified fields'" +
-                         "      }," +
-                         "      columns: {" +
-                         "        _id: {" +
-                         "          $m: {" +
-                         "            type: 'uuid'," +
-                         "            show: false" +
-                         "          }" +
-                         "        }," +
-                         "        field: {" +
-                         "          $m: {" +
-                         "            type: 'string'," +
-                         "            required: true" +
-                         "          }" +
-                         "        }," +
-                         "        from_value: {" +
-                         "          $m: {" +
-                         "            type: 'text'" +
-                         "          }" +
-                         "        }," +
-                         "        to_value: {" +
-                         "          $m: {" +
-                         "            type: 'text'" +
-                         "          }" +
-                         "        }" +
-                         "      }," +
-                         "      columnsOrder: ['_id', 'field', 'from_value', 'to_value']" +
-                         "    }" +
-                         "  }" +
-                         "}, " +
-                         "_id uuid not null, " +
-                         "_version long not null default 0, " +
-                         "_can_delete bool not null default true, " +
-                         "_can_edit bool not null default true, " +
-                         "_last_user_update string, " +
-                         "_last_update_time datetime, " +
+                           "{" +
+                           "  name: 'Audit Trail', " +
+                           "  description: 'An audit trail records a user action in the system', " +
+                           "  children: {" +
+                           "    columns: {" +
+                           "      $m: {" +
+                           "        type: '_platform.user.AuditField'," +
+                           "        parent_link_column: 'audit_id'," +
+                           "        label: 'Modified fields'" +
+                           "      }," +
+                           "      columns: {" +
+                           "        _id: {" +
+                           "          $m: {" +
+                           "            type: 'uuid'," +
+                           "            show: false" +
+                           "          }" +
+                           "        }," +
+                           "        field: {" +
+                           "          $m: {" +
+                           "            type: 'string'," +
+                           "            required: true" +
+                           "          }" +
+                           "        }," +
+                           "        from_value: {" +
+                           "          $m: {" +
+                           "            type: 'text'" +
+                           "          }" +
+                           "        }," +
+                           "        to_value: {" +
+                           "          $m: {" +
+                           "            type: 'text'" +
+                           "          }" +
+                           "        }" +
+                           "      }," +
+                           "      columnsOrder: ['_id', 'field', 'from_value', 'to_value']" +
+                           "    }" +
+                           "  }" +
+                           "}, " +
+                           "_id uuid not null, " +
+                           "_version long not null default 0, " +
+                           "_can_delete bool not null default true, " +
+                           "_can_edit bool not null default true, " +
+                           "_last_user_update string, " +
+                           "_last_update_time datetime, " +
 
-                         "username string not null {" +
-                         "   can_insert: false, " +
-                         "   can_edit: false, " +
-                         "   can_remove: false, " +
-                         "   link_table: `_platform.user.User, " +
-                         "   link_table_code_value: 'username', " +
-                         "   link_table_code_label: 'realname', " +
-                         "   value_label: joinlabel(username, `username, `realname, `_platform.user.User)" +
-                         "}, " +
-                         "action string not null {" +
-                         "   can_insert: false, " +
-                         "   can_edit: false, " +
-                         "   can_remove: false, " +
-                         "   link_table: '_audit_action' " +
-                         "}, " +
-                         "at datetime not null, " +
-                         "on_table string not null {" +
-                         "   can_insert: false, " +
-                         "   can_edit: false, " +
-                         "   can_remove: false, " +
-                         "   link_table: `_core.relations, " +
-                         "   link_table_code_value: 'name', " +
-                         "   link_table_code_label: 'display_name', " +
-                         "   value_label: joinlabel(on_table, `name, `display_name, `_core.relations)" +
-                         "}, " +
-                         "record_id uuid, " +
-                         "identifier text, " +
+                           "username string not null {" +
+                           "   can_insert: false, " +
+                           "   can_edit: false, " +
+                           "   can_remove: false, " +
+                           "   link_table: `_platform.user.User, " +
+                           "   link_table_code_value: 'username', " +
+                           "   link_table_code_label: 'realname', " +
+                           "   value_label: joinlabel(username, `username, `realname, `_platform.user.User)" +
+                           "}, " +
+                           "action string not null {" +
+                           "   can_insert: false, " +
+                           "   can_edit: false, " +
+                           "   can_remove: false, " +
+                           "   link_table: '_audit_action' " +
+                           "}, " +
+                           "at datetime not null, " +
+                           "on_table string not null {" +
+                           "   can_insert: false, " +
+                           "   can_edit: false, " +
+                           "   can_remove: false, " +
+                           "   link_table: `_core.relations, " +
+                           "   link_table_code_value: 'name', " +
+                           "   link_table_code_label: 'display_name', " +
+                           "   value_label: joinlabel(on_table, `name, `display_name, `_core.relations)" +
+                           "}, " +
+                           "record_id uuid, " +
+                           "identifier text, " +
 
-                         "description text not null {" +
-                         "   lines: 5," +
-                         "   span: 24" +
-                         "}," +
+                           "description text not null {" +
+                           "   lines: 5," +
+                           "   span: 24" +
+                           "}," +
 
-                         "file_location string {" +
-                         "   external_file: true" +
-                         "}, " +
+                           "file_location string {" +
+                           "   external_file: true" +
+                           "}, " +
 
-                         "primary key(_id)" +
-                         ")"));
+                           "primary key(_id)" +
+                           ")"));
 
         c.exec(p.parse("create table _platform.user.AuditField drop undefined(" +
-                         "{" +
-                         "   name: 'Audit Trail Modified Field', " +
-                         "   description: 'Information on a field modified as part of an audit trail record'" +
-                         "}, " +
-                         "_id uuid not null, " +
-                         "_version long not null default 0, " +
-                         "_can_delete bool not null default true, " +
-                         "_can_edit bool not null default true, " +
-                         "_last_user_update string, " +
-                         "_last_update_time datetime, " +
+                           "{" +
+                           "   name: 'Audit Trail Modified Field', " +
+                           "   description: 'Information on a field modified as part of an audit trail record'" +
+                           "}, " +
+                           "_id uuid not null, " +
+                           "_version long not null default 0, " +
+                           "_can_delete bool not null default true, " +
+                           "_can_edit bool not null default true, " +
+                           "_last_user_update string, " +
+                           "_last_update_time datetime, " +
 
-                         "audit_id uuid not null, " +
-                         "field string not null, " +
-                         "from_value text, " +
-                         "to_value text, " +
+                           "audit_id uuid not null, " +
+                           "field string not null, " +
+                           "from_value text, " +
+                           "to_value text, " +
 
-                         "primary key(_id), " +
-                         "foreign key(audit_id) references _platform.user.Audit(_id) on update cascade on delete cascade" +
-                         ")"));
+                           "primary key(_id), " +
+                           "foreign key(audit_id) references _platform.user.Audit(_id) on update cascade on delete cascade" +
+                           ")"));
 
 
         // A category is a name that can be used to tag various entity
         c.exec(p.parse("create table _platform.util.Category drop undefined(" +
-                         "{" +
-                         "   name: 'Category', " +
-                         "   description: 'A category is used to group related items such as reports and filters'" +
-                         "}, " +
-                         "_id uuid not null, " +
-                         "_version long not null default 0, " +
-                         "_can_delete bool not null default true, " +
-                         "_can_edit bool not null default true, " +
-                         "_last_user_update string, " +
-                         "_last_update_time datetime, " +
+                           "{" +
+                           "   name: 'Category', " +
+                           "   description: 'A category is used to group related items such as reports and filters'" +
+                           "}, " +
+                           "_id uuid not null, " +
+                           "_version long not null default 0, " +
+                           "_can_delete bool not null default true, " +
+                           "_can_edit bool not null default true, " +
+                           "_last_user_update string, " +
+                           "_last_update_time datetime, " +
 
-                         "name string not null {" +
-                         "   validate_unique: true " +
-                         "}, " +
+                           "name string not null {" +
+                           "   validate_unique: true " +
+                           "}, " +
 
-                         "primary key(_id), " +
-                         "unique(name))"));
+                           "primary key(_id), " +
+                           "unique(name))"));
 
 
         ///////////////////////////////////////////////////////////////////////////
@@ -931,289 +942,289 @@ public abstract class AbstractDatabase implements Database {
         ///////////////////////////////////////////////////////////////////////////
 
         c.exec(p.parse("create table _platform.lookup.Lookup drop undefined(" +
-                         "{" +
-                         "  name: 'Lookup', " +
-                         "  description: 'A named table of values used in various part of the system', " +
-                         "  children: {" +
-                         "    links: {" +
-                         "      $m: {" +
-                         "        type: '_platform.lookup.LookupLink'," +
-                         "        parent_link_column: 'source_lookup_id'," +
-                         "        label: 'Lookup links'" +
-                         "      }," +
-                         "      columns: {" +
-                         "        _id: {" +
-                         "          $m: {" +
-                         "            type: 'uuid'," +
-                         "            show: false" +
-                         "          }" +
-                         "        }," +
-                         "        name: {" +
-                         "          $m: {" +
-                         "            type: 'string'," +
-                         "            label: 'Link name'," +
-                         "            mask: 'Iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii'," +
-                         "            required: true," +
-                         "            validate_unique: true" +
-                         "          }" +
-                         "        }," +
-                         "        name: {" +
-                         "          $m: {" +
-                         "            type: 'string'," +
-                         "            label: 'Link display name'," +
-                         "            required: true" +
-                         "          }" +
-                         "        }," +
-                         "        source_lookup_id: {" +
-                         "          $m: {" +
-                         "            type: 'uuid'," +
-                         "            label: 'Source'," +
-                         "            link_table: '_platform.lookup.Lookup'," +
-                         "            link_table_code_label: 'name'," +
-                         "            link_table_code_value: '_id'," +
-                         "            show: false" +
-                         "          }" +
-                         "        }," +
-                         "        target_lookup_id: {" +
-                         "          $m: {" +
-                         "            type: 'uuid'," +
-                         "            label: 'Target'," +
-                         "            required: true," +
-                         "            link_table: '_platform.lookup.Lookup'," +
-                         "            link_table_code_label: 'name'," +
-                         "            link_table_code_value: '_id'," +
-                         "            value_label: '${joinlabel(this.row.target_lookup_id.$v, \"_id\", \"name\", \"_platform.lookup.Lookup\")}'" +
-                         "          }" +
-                         "        }" +
-                         "      }," +
-                         "      columnsOrder: ['_id', 'name', 'display_name', 'target_lookup_id']" +
-                         "    }" +
-                         "  }" +
-                         "}," +
+                           "{" +
+                           "  name: 'Lookup', " +
+                           "  description: 'A named table of values used in various part of the system', " +
+                           "  children: {" +
+                           "    links: {" +
+                           "      $m: {" +
+                           "        type: '_platform.lookup.LookupLink'," +
+                           "        parent_link_column: 'source_lookup_id'," +
+                           "        label: 'Lookup links'" +
+                           "      }," +
+                           "      columns: {" +
+                           "        _id: {" +
+                           "          $m: {" +
+                           "            type: 'uuid'," +
+                           "            show: false" +
+                           "          }" +
+                           "        }," +
+                           "        name: {" +
+                           "          $m: {" +
+                           "            type: 'string'," +
+                           "            label: 'Link name'," +
+                           "            mask: 'Iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii'," +
+                           "            required: true," +
+                           "            validate_unique: true" +
+                           "          }" +
+                           "        }," +
+                           "        name: {" +
+                           "          $m: {" +
+                           "            type: 'string'," +
+                           "            label: 'Link display name'," +
+                           "            required: true" +
+                           "          }" +
+                           "        }," +
+                           "        source_lookup_id: {" +
+                           "          $m: {" +
+                           "            type: 'uuid'," +
+                           "            label: 'Source'," +
+                           "            link_table: '_platform.lookup.Lookup'," +
+                           "            link_table_code_label: 'name'," +
+                           "            link_table_code_value: '_id'," +
+                           "            show: false" +
+                           "          }" +
+                           "        }," +
+                           "        target_lookup_id: {" +
+                           "          $m: {" +
+                           "            type: 'uuid'," +
+                           "            label: 'Target'," +
+                           "            required: true," +
+                           "            link_table: '_platform.lookup.Lookup'," +
+                           "            link_table_code_label: 'name'," +
+                           "            link_table_code_value: '_id'," +
+                           "            value_label: '${joinlabel(this.row.target_lookup_id.$v, \"_id\", \"name\", \"_platform.lookup.Lookup\")}'" +
+                           "          }" +
+                           "        }" +
+                           "      }," +
+                           "      columnsOrder: ['_id', 'name', 'display_name', 'target_lookup_id']" +
+                           "    }" +
+                           "  }" +
+                           "}," +
 
-                         "_id uuid not null, " +
-                         "_version long not null default 0, " +
-                         "_can_delete bool not null default true, " +
-                         "_can_edit bool not null default true, " +
-                         "_last_user_update string, " +
-                         "_last_update_time datetime, " +
+                           "_id uuid not null, " +
+                           "_version long not null default 0, " +
+                           "_can_delete bool not null default true, " +
+                           "_can_edit bool not null default true, " +
+                           "_last_user_update string, " +
+                           "_last_update_time datetime, " +
 
-                         "name string not null {" +
-                         "   validate_unique: true, " +
-                         "   mask: 'Iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii'" +
-                         "}, " +
+                           "name string not null {" +
+                           "   validate_unique: true, " +
+                           "   mask: 'Iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii'" +
+                           "}, " +
 
-                         // @todo Who/which_department owns this lookup
+                           // @todo Who/which_department owns this lookup
 
-                         "description string, " +
-                         "primary key(_id), " +
-                         "unique(name))"));
+                           "description string, " +
+                           "primary key(_id), " +
+                           "unique(name))"));
 
         c.exec(p.parse("create table _platform.lookup.LookupLink drop undefined(" +
-                         "{" +
-                         "   name: 'Lookup Link', " +
-                         "   description: 'The definition of links between values of lookup tables which are used for searching data by associations and for aggregating data in reports'" +
-                         "}, " +
-                         "_id uuid not null, " +
-                         "_version long not null default 0, " +
-                         "_can_delete bool not null default true, " +
-                         "_can_edit bool not null default true, " +
-                         "_last_user_update string, " +
-                         "_last_update_time datetime, " +
+                           "{" +
+                           "   name: 'Lookup Link', " +
+                           "   description: 'The definition of links between values of lookup tables which are used for searching data by associations and for aggregating data in reports'" +
+                           "}, " +
+                           "_id uuid not null, " +
+                           "_version long not null default 0, " +
+                           "_can_delete bool not null default true, " +
+                           "_can_edit bool not null default true, " +
+                           "_last_user_update string, " +
+                           "_last_update_time datetime, " +
 
-                         "name string not null {" +
-                         "   validate_unique: true, " +
-                         "   mask: 'Iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii', " +
-                         "   description: 'Start with a letter, follow by letters or digits' " +
-                         "}, " +
+                           "name string not null {" +
+                           "   validate_unique: true, " +
+                           "   mask: 'Iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii', " +
+                           "   description: 'Start with a letter, follow by letters or digits' " +
+                           "}, " +
 
-                         "display_name string not null, " +
+                           "display_name string not null, " +
 
-                         "source_lookup_id uuid not null {" +
-                         "   show: false" +
-                         "}, " +
+                           "source_lookup_id uuid not null {" +
+                           "   show: false" +
+                           "}, " +
 
-                         "target_lookup_id uuid not null {" +
-                         "   label: 'Target', " +
-                         "   required: true, " +
-                         "   link_table: `_platform.lookup.Lookup, " +
-                         "   link_table_code_value: `_id, " +
-                         "   link_table_code_label: 'name', " +
-                         "   value_label: joinlabel(`target_lookup_id, `_id, `name, `_platform.lookup.Lookup)" +
-                         "}, " +
+                           "target_lookup_id uuid not null {" +
+                           "   label: 'Target', " +
+                           "   required: true, " +
+                           "   link_table: `_platform.lookup.Lookup, " +
+                           "   link_table_code_value: `_id, " +
+                           "   link_table_code_label: 'name', " +
+                           "   value_label: joinlabel(`target_lookup_id, `_id, `name, `_platform.lookup.Lookup)" +
+                           "}, " +
 
-                         "primary key(_id), " +
-                         "unique(name), " +
-                         "foreign key(source_lookup_id) references _platform.lookup.Lookup(_id), " +
-                         "foreign key(target_lookup_id) references _platform.lookup.Lookup(_id))"));
+                           "primary key(_id), " +
+                           "unique(name), " +
+                           "foreign key(source_lookup_id) references _platform.lookup.Lookup(_id), " +
+                           "foreign key(target_lookup_id) references _platform.lookup.Lookup(_id))"));
 
         c.exec(p.parse("create table _platform.lookup.LookupValue drop undefined(" +
-                         "{" +
-                         "   name: 'Lookup Value', " +
-                         "   description: 'The values in a lookup table'," +
-                         "   validate_unique: [['lookup_id', 'code', 'lang']] " +
-                         "}, " +
-                         "_id uuid not null, " +
-                         "_version long not null default 0, " +
-                         "_can_delete bool not null default true, " +
-                         "_can_edit bool not null default true, " +
-                         "_last_user_update string, " +
-                         "_last_update_time datetime, " +
+                           "{" +
+                           "   name: 'Lookup Value', " +
+                           "   description: 'The values in a lookup table'," +
+                           "   validate_unique: [['lookup_id', 'code', 'lang']] " +
+                           "}, " +
+                           "_id uuid not null, " +
+                           "_version long not null default 0, " +
+                           "_can_delete bool not null default true, " +
+                           "_can_edit bool not null default true, " +
+                           "_last_user_update string, " +
+                           "_last_update_time datetime, " +
 
-                         "lookup_id uuid not null {" +
-                         "   show:false " +
-                         "}, " +
-                         "code string not null, " +
-                         "alt_code1 string, " +
-                         "alt_code2 string, " +
-                         "label string not null, " +
-                         "lang string not null default 'en' {" +
-                         "   label: 'Language', " +
-                         "   initial_value: 'en' " +
-                         "}, " +
+                           "lookup_id uuid not null {" +
+                           "   show:false " +
+                           "}, " +
+                           "code string not null, " +
+                           "alt_code1 string, " +
+                           "alt_code2 string, " +
+                           "label string not null, " +
+                           "lang string not null default 'en' {" +
+                           "   label: 'Language', " +
+                           "   initial_value: 'en' " +
+                           "}, " +
 
-                         "primary key(_id), " +
-                         "unique(lookup_id, code, lang), " +
-                         "foreign key(lookup_id) references _platform.lookup.Lookup(_id) on delete cascade on update cascade)"));
+                           "primary key(_id), " +
+                           "unique(lookup_id, code, lang), " +
+                           "foreign key(lookup_id) references _platform.lookup.Lookup(_id) on delete cascade on update cascade)"));
 
         c.exec(p.parse("create table _platform.lookup.LookupValueLink drop undefined(" +
-                         "{" +
-                         "   name: 'Lookup Value Link', " +
-                         "   description: 'Links between values of lookup tables, used primarily for searching data by associations and for aggregating data in reports'" +
-                         "}, " +
-                         "_id uuid not null, " +
-                         "_version long not null default 0, " +
-                         "_can_delete bool not null default true, " +
-                         "_can_edit bool not null default true, " +
-                         "_last_user_update string, " +
-                         "_last_update_time datetime, " +
+                           "{" +
+                           "   name: 'Lookup Value Link', " +
+                           "   description: 'Links between values of lookup tables, used primarily for searching data by associations and for aggregating data in reports'" +
+                           "}, " +
+                           "_id uuid not null, " +
+                           "_version long not null default 0, " +
+                           "_can_delete bool not null default true, " +
+                           "_can_edit bool not null default true, " +
+                           "_last_user_update string, " +
+                           "_last_update_time datetime, " +
 
-                         "lookup_link string not null, " +
-                         "source_lookup_value_id uuid not null, " +
-                         "target_lookup_value_id uuid not null, " +
+                           "lookup_link string not null, " +
+                           "source_lookup_value_id uuid not null, " +
+                           "target_lookup_value_id uuid not null, " +
 
-                         "primary key(_id), " +
-                         "foreign key(source_lookup_value_id) references _platform.lookup.LookupValue(_id), " +
-                         "foreign key(target_lookup_value_id) references _platform.lookup.LookupValue(_id))"));
+                           "primary key(_id), " +
+                           "foreign key(source_lookup_value_id) references _platform.lookup.LookupValue(_id), " +
+                           "foreign key(target_lookup_value_id) references _platform.lookup.LookupValue(_id))"));
 
         // Saved filters
         ////////////////////////////////////
 
         // filters
         c.exec(p.parse("create table _platform.filter.Filter drop undefined(" +
-                         "{" +
-                         "   name: 'Filter', " +
-                         "   description: 'Filters are used to search for data in tables', " +
-                         "   validate_unique: [['for_table', 'name']] " +
-                         "}, " +
-                         "_id uuid not null, " +
-                         "_version long not null default 0, " +
-                         "_can_delete bool not null default true, " +
-                         "_can_edit bool not null default true, " +
-                         "_last_user_update string, " +
-                         "_last_update_time datetime, " +
+                           "{" +
+                           "   name: 'Filter', " +
+                           "   description: 'Filters are used to search for data in tables', " +
+                           "   validate_unique: [['for_table', 'name']] " +
+                           "}, " +
+                           "_id uuid not null, " +
+                           "_version long not null default 0, " +
+                           "_can_delete bool not null default true, " +
+                           "_can_edit bool not null default true, " +
+                           "_last_user_update string, " +
+                           "_last_update_time datetime, " +
 
-                         "name string not null, " +
+                           "name string not null, " +
 
-                         "for_table string not null {" +
-                         "   can_insert: false, " +
-                         "   can_edit: false, " +
-                         "   can_remove: false, " +
-                         "   link_table: `_core.relations, " +
-                         "   link_table_code_value: 'name', " +
-                         "   link_table_code_label: 'display_name', " +
-                         "   filter_by: 'leftstr(name, 1) != ''_''', " +
-                         "   value_label: joinlabel(for_table, `name, `display_name, `_core.relations)" +
-                         "}," +
+                           "for_table string not null {" +
+                           "   can_insert: false, " +
+                           "   can_edit: false, " +
+                           "   can_remove: false, " +
+                           "   link_table: `_core.relations, " +
+                           "   link_table_code_value: 'name', " +
+                           "   link_table_code_label: 'display_name', " +
+                           "   filter_by: 'leftstr(name, 1) != ''_''', " +
+                           "   value_label: joinlabel(for_table, `name, `display_name, `_core.relations)" +
+                           "}," +
 
-                         "unique(for_table, name), " +
-                         "primary key(_id))"));
+                           "unique(for_table, name), " +
+                           "primary key(_id))"));
 
         // filters conditions
         c.exec(p.parse("create table _platform.filter.FilterCondition drop undefined(" +
-                         "{" +
-                         "  name: 'Filter Condition'," +
-                         "  description: 'A condition one part of a filter and can be combined with other conditions through boolean operators'," +
-                         "  sequence_column: 'seq'" +
-                         "}, " +
-                         "_id uuid not null, " +
-                         "_version long not null default 0, " +
-                         "_can_delete bool not null default true, " +
-                         "_can_edit bool not null default true, " +
-                         "_last_user_update string, " +
-                         "_last_update_time datetime, " +
+                           "{" +
+                           "  name: 'Filter Condition'," +
+                           "  description: 'A condition one part of a filter and can be combined with other conditions through boolean operators'," +
+                           "  sequence_column: 'seq'" +
+                           "}, " +
+                           "_id uuid not null, " +
+                           "_version long not null default 0, " +
+                           "_can_delete bool not null default true, " +
+                           "_can_edit bool not null default true, " +
+                           "_last_user_update string, " +
+                           "_last_update_time datetime, " +
 
-                         "filter_id uuid not null {" +
-                         "   link_table: `_platform.filter.Filter, " +
-                         "   link_table_code_value: `_id, " +
-                         "   link_table_code_label: 'name', " +
-                         "   value_label: joinlabel(`filter_id, `_id, `name, `_platform.filter.Filter)" +
-                         "}, " +
-                         "link_op string not null default 'and', " +
-                         "expression text not null, " +
-                         "operation string not null {" +
-                         "   link_table: `_platform.filter.FilterOperation, " +
-                         "   link_table_code_value: `op_code, " +
-                         "   link_table_code_label: `name, " +
-                         "   value_label: joinlabel(operation, `op_code, `name, `_platform.filter.FilterOperation)" +
-                         "}, " +
-                         "value text, " +
-                         "exclude bool default true, " +
-                         "seq int not null default 1, " +
+                           "filter_id uuid not null {" +
+                           "   link_table: `_platform.filter.Filter, " +
+                           "   link_table_code_value: `_id, " +
+                           "   link_table_code_label: 'name', " +
+                           "   value_label: joinlabel(`filter_id, `_id, `name, `_platform.filter.Filter)" +
+                           "}, " +
+                           "link_op string not null default 'and', " +
+                           "expression text not null, " +
+                           "operation string not null {" +
+                           "   link_table: `_platform.filter.FilterOperation, " +
+                           "   link_table_code_value: `op_code, " +
+                           "   link_table_code_label: `name, " +
+                           "   value_label: joinlabel(operation, `op_code, `name, `_platform.filter.FilterOperation)" +
+                           "}, " +
+                           "value text, " +
+                           "exclude bool default true, " +
+                           "seq int not null default 1, " +
 
-                         "primary key(_id)," +
-                         "foreign key(filter_id) references _platform.filter.Filter(_id) on delete cascade on update cascade)"));
+                           "primary key(_id)," +
+                           "foreign key(filter_id) references _platform.filter.Filter(_id) on delete cascade on update cascade)"));
 
         // filters operations
         c.exec(p.parse("create table _platform.filter.FilterOperation drop undefined(" +
-                         "{" +
-                         "  name: 'Filter Operation'," +
-                         "  description: 'Operations which can be used in filters'," +
-                         "  sequence_column: 'seq'" +
-                         "}, " +
-                         "_id uuid not null, " +
-                         "_version long not null default 0, " +
-                         "_can_delete bool not null default true, " +
-                         "_can_edit bool not null default true, " +
-                         "_last_user_update string, " +
-                         "_last_update_time datetime, " +
+                           "{" +
+                           "  name: 'Filter Operation'," +
+                           "  description: 'Operations which can be used in filters'," +
+                           "  sequence_column: 'seq'" +
+                           "}, " +
+                           "_id uuid not null, " +
+                           "_version long not null default 0, " +
+                           "_can_delete bool not null default true, " +
+                           "_can_edit bool not null default true, " +
+                           "_last_user_update string, " +
+                           "_last_update_time datetime, " +
 
-                         "op_code string not null, " +
-                         "name string not null, " +
-                         "operator string not null, " +
-                         "for_all_types bool not null default false, " +
-                         "require_value bool not null default true, " +
-                         "value_type string, " +
-                         "parse_function text, " +
-                         "seq int not null default 1, " +
+                           "op_code string not null, " +
+                           "name string not null, " +
+                           "operator string not null, " +
+                           "for_all_types bool not null default false, " +
+                           "require_value bool not null default true, " +
+                           "value_type string, " +
+                           "parse_function text, " +
+                           "seq int not null default 1, " +
 
-                         "primary key(_id), " +
-                         "unique(op_code), " +
-                         "unique(name))"));
+                           "primary key(_id), " +
+                           "unique(op_code), " +
+                           "unique(name))"));
 
         // filters operation supported types
         c.exec(p.parse("create table _platform.filter.FilterOperationType drop undefined(" +
-                         "{" +
-                         "   name: 'Filter Operation Type', " +
-                         "   description: 'The types of data (text, number, etc.) that an operation accepts'" +
-                         "}, " +
-                         "_id uuid not null, " +
-                         "_version long not null default 0, " +
-                         "_can_delete bool not null default true, " +
-                         "_can_edit bool not null default true, " +
-                         "_last_user_update string, " +
-                         "_last_update_time datetime, " +
+                           "{" +
+                           "   name: 'Filter Operation Type', " +
+                           "   description: 'The types of data (text, number, etc.) that an operation accepts'" +
+                           "}, " +
+                           "_id uuid not null, " +
+                           "_version long not null default 0, " +
+                           "_can_delete bool not null default true, " +
+                           "_can_edit bool not null default true, " +
+                           "_last_user_update string, " +
+                           "_last_update_time datetime, " +
 
-                         "filter_operation_id uuid not null {" +
-                         "   link_table: `_platform.filter.FilterOperation, " +
-                         "   link_table_code_value: `_id, " +
-                         "   link_table_code_label: 'name', " +
-                         "   value_label: joinlabel(`filter_operation_id, `_id, `name, `_platform.filter.FilterOperation)" +
-                         "}, " +
-                         "type string not null, " +
+                           "filter_operation_id uuid not null {" +
+                           "   link_table: `_platform.filter.FilterOperation, " +
+                           "   link_table_code_value: `_id, " +
+                           "   link_table_code_label: 'name', " +
+                           "   value_label: joinlabel(`filter_operation_id, `_id, `name, `_platform.filter.FilterOperation)" +
+                           "}, " +
+                           "type string not null, " +
 
-                         "primary key(_id)," +
-                         "foreign key(filter_operation_id) references _platform.filter.FilterOperation(_id) on delete cascade on update cascade)"));
+                           "primary key(_id)," +
+                           "foreign key(filter_operation_id) references _platform.filter.FilterOperation(_id) on delete cascade on update cascade)"));
 
         // filters column references (for faster search of conforming filters)
 //            c.exec(parse("create table _platform.filter.FilterColumn drop undefined(" +
@@ -1249,189 +1260,189 @@ public abstract class AbstractDatabase implements Database {
          * are applied to the underlying data to produce one split of the report.
          ********************************************************************************/
         c.exec(p.parse("create table _platform.report.Splitter drop undefined(" +
-                         "{" +
-                         "   name: 'Report Splitter Function', " +
-                         "   description: 'A function returning a list of filters to split a report'" +
-                         "}, " +
-                         "_id uuid not null, " +
-                         "_version long not null default 0, " +
-                         "_can_delete bool not null default true, " +
-                         "_can_edit bool not null default true, " +
-                         "_last_user_update string, " +
-                         "_last_update_time datetime, " +
+                           "{" +
+                           "   name: 'Report Splitter Function', " +
+                           "   description: 'A function returning a list of filters to split a report'" +
+                           "}, " +
+                           "_id uuid not null, " +
+                           "_version long not null default 0, " +
+                           "_can_delete bool not null default true, " +
+                           "_can_edit bool not null default true, " +
+                           "_last_user_update string, " +
+                           "_last_update_time datetime, " +
 
-                         "name string not null {" +
-                         "   validate_unique: true," +
-                         "   span: 8 " +
-                         "}, " +
+                           "name string not null {" +
+                           "   validate_unique: true," +
+                           "   span: 8 " +
+                           "}, " +
 
-                         "func text not null {" +
-                         "   description: 'Function returning a list of filters to split a report', " +
-                         "   browse: false, " +
-                         "   required: true, " +
-                         "   lines: 30, " +
-                         "   span: 24, " +
-                         "   code_language:'javascript' " +
-                         "}, " +
+                           "func text not null {" +
+                           "   description: 'Function returning a list of filters to split a report', " +
+                           "   browse: false, " +
+                           "   required: true, " +
+                           "   lines: 30, " +
+                           "   span: 24, " +
+                           "   code_language:'javascript' " +
+                           "}, " +
 
-                         "unique(name), " +
-                         "primary key(_id))"));
+                           "unique(name), " +
+                           "primary key(_id))"));
 
         // Report visualisation functions
         c.exec(p.parse("create table _platform.report.Visualisation drop undefined(" +
-                         "{" +
-                         "   name: 'Report Visualisation Function', " +
-                         "   description: 'The visualisation function transforms loaded data and produces the output of reports' " +
-                         "}, " +
-                         "_id uuid not null, " +
-                         "_version long not null default 0, " +
-                         "_can_delete bool not null default true, " +
-                         "_can_edit bool not null default true, " +
-                         "_last_user_update string, " +
-                         "_last_update_time datetime, " +
+                           "{" +
+                           "   name: 'Report Visualisation Function', " +
+                           "   description: 'The visualisation function transforms loaded data and produces the output of reports' " +
+                           "}, " +
+                           "_id uuid not null, " +
+                           "_version long not null default 0, " +
+                           "_can_delete bool not null default true, " +
+                           "_can_edit bool not null default true, " +
+                           "_last_user_update string, " +
+                           "_last_update_time datetime, " +
 
-                         "name string not null {" +
-                         "   validate_unique: true," +
-                         "   span: 8 " +
-                         "}, " +
-                         "description string {" +
-                         "   span: 16" +
-                         "}, " +
+                           "name string not null {" +
+                           "   validate_unique: true," +
+                           "   span: 8 " +
+                           "}, " +
+                           "description string {" +
+                           "   span: 16" +
+                           "}, " +
 
-                         "group_type string not null default 'normal' { " +
-                         "   description: 'Group type used for the query. Normal grouping, rollup or cube are supported.'," +
-                         "   span: 8, " +
-                         "   link_table: '_group_type' " +
-                         "}, " +
-                         "output_type string not null default 'excel' {" +
-                         "   description: 'Output type: excel, pdf or text'," +
-                         "   span: 8, " +
-                         "   link_table: '_output_type' " +
-                         "}," +
+                           "group_type string not null default 'normal' { " +
+                           "   description: 'Group type used for the query. Normal grouping, rollup or cube are supported.'," +
+                           "   span: 8, " +
+                           "   link_table: '_group_type' " +
+                           "}, " +
+                           "output_type string not null default 'excel' {" +
+                           "   description: 'Output type: excel, pdf or text'," +
+                           "   span: 8, " +
+                           "   link_table: '_output_type' " +
+                           "}," +
 
-                         "requires_scrollable_format bool not null default false, " +
+                           "requires_scrollable_format bool not null default false, " +
 
-                         "layout text not null {" +
-                         "   description: 'Function to layout the data loaded by the report query', " +
-                         "   browse: false, " +
-                         "   required: true, " +
-                         "   lines: 30, " +
-                         "   span: 24, " +
-                         "   code_language:'javascript' " +
-                         "}, " +
+                           "layout text not null {" +
+                           "   description: 'Function to layout the data loaded by the report query', " +
+                           "   browse: false, " +
+                           "   required: true, " +
+                           "   lines: 30, " +
+                           "   span: 24, " +
+                           "   code_language:'javascript' " +
+                           "}, " +
 
-                         "unique(name), " +
-                         "primary key(_id))"));
+                           "unique(name), " +
+                           "primary key(_id))"));
 
         // report
         c.exec(p.parse("create table _platform.report.Report drop undefined(" +
-                         "{" +
-                         "   name: 'Report', " +
-                         "   description: 'Definition of a report in the system', " +
-                         "   children: {" +
-                         "     columns: {" +
-                         "       $m: {" +
-                         "         type: '_platform.report.ReportColumn', " +
-                         "         parent_link_column: 'report_id', " +
-                         "         sequence_column: 'seq', " +
-                         "         inline: false, " +
-                         "         section: 'Columns', " +
-                         "         label: 'Column' " +
-                         "       }," +
-                         "       columns: {" +
-                         "         _id: {" +
-                         "           $m: {" +
-                         "             type: 'uuid'," +
-                         "             show: false" +
-                         "           }" +
-                         "         }," +
-                         "         expression: {" +
-                         "           $m: {" +
-                         "             type: 'text', " +
-                         "             label: 'Expression', " +
-                         "             required: true, " +
-                         "             span: 24," +
-                         "             lines: 5 " +
-                         "           }" +
-                         "         }, " +
-                         "         name: {" +
-                         "           $m: {" +
-                         "             type: 'string', " +
-                         "             label: 'Name', " +
-                         "             mask: 'Iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii'" +
-                         "           }" +
-                         "         }, " +
-                         "         grouped: { " +
-                         "           $m: {" +
-                         "             type: 'bool', " +
-                         "             label: 'Grouped' " +
-                         "           }" +
-                         "         }, " +
-                         "         separate_column: {" +
-                         "           $m: {" +
-                         "             type: 'bool', " +
-                         "             label: 'Show in separate column', " +
-                         "             initial_value: true" +
-                         "           }" +
-                         "         }, " +
-                         "         no_repeat: {" +
-                         "           $m: {" +
-                         "             type: 'bool', " +
-                         "             label: 'Hide consecutive repeated values', " +
-                         "             initial_value: false" +
-                         "           }" +
-                         "         }, " +
-                         "         show_aggregate_only: {" +
-                         "           $m: {" +
-                         "             type: 'bool', " +
-                         "             label: 'Show aggregates only', " +
-                         "             initial_value: false" +
-                         "           }" +
-                         "         }, " +
-                         "         subtotal: {" +
-                         "           $m: {" +
-                         "             type: 'bool', " +
-                         "             label: 'Show subtotals', " +
-                         "             initial_value: true" +
-                         "           }" +
-                         "         }, " +
-                         "         seq: {" +
-                         "           $m: {" +
-                         "             type: 'int'," +
-                         "             label: 'Sequence', " +
-                         "             show: false" +
-                         "           }" +
-                         "         } " +
-                         "       }," +
-                         "       columnsOrder: ['_id', 'expression', 'name', 'grouped', 'separate_column', 'no_repeat', 'show_aggregate_only', 'subtotal', 'seq']" +
-                         "     }," +
-                         "     joins: {" +
-                         "       $m: {" +
-                         "         type: '_platform.report.ReportJoin', " +
-                         "         parent_link_column: 'report_id', " +
-                         "         inline: false, " +
-                         "         sequence_column: 'seq', " +
-                         "         section: 'Tables', " +
-                         "         label: 'Tables' " +
-                         "       }," +
-                         "       columns: {" +
-                         "         _id: {" +
-                         "           $m: {" +
-                         "             type: 'uuid'," +
-                         "             show: false" +
-                         "           }" +
-                         "         }," +
-                         "         join_type: {" +
-                         "           $m: {" +
-                         "             type: 'string', " +
-                         "             label: 'Join type', " +
-                         "             can_insert: false, " +
-                         "             can_edit: false, " +
-                         "             can_remove: false, " +
-                         "             required: true, " +
-                         "             link_table: '_join_type' " +
-                         "           }" +
-                         "         }, " +
+                           "{" +
+                           "   name: 'Report', " +
+                           "   description: 'Definition of a report in the system', " +
+                           "   children: {" +
+                           "     columns: {" +
+                           "       $m: {" +
+                           "         type: '_platform.report.ReportColumn', " +
+                           "         parent_link_column: 'report_id', " +
+                           "         sequence_column: 'seq', " +
+                           "         inline: false, " +
+                           "         section: 'Columns', " +
+                           "         label: 'Column' " +
+                           "       }," +
+                           "       columns: {" +
+                           "         _id: {" +
+                           "           $m: {" +
+                           "             type: 'uuid'," +
+                           "             show: false" +
+                           "           }" +
+                           "         }," +
+                           "         expression: {" +
+                           "           $m: {" +
+                           "             type: 'text', " +
+                           "             label: 'Expression', " +
+                           "             required: true, " +
+                           "             span: 24," +
+                           "             lines: 5 " +
+                           "           }" +
+                           "         }, " +
+                           "         name: {" +
+                           "           $m: {" +
+                           "             type: 'string', " +
+                           "             label: 'Name', " +
+                           "             mask: 'Iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii'" +
+                           "           }" +
+                           "         }, " +
+                           "         grouped: { " +
+                           "           $m: {" +
+                           "             type: 'bool', " +
+                           "             label: 'Grouped' " +
+                           "           }" +
+                           "         }, " +
+                           "         separate_column: {" +
+                           "           $m: {" +
+                           "             type: 'bool', " +
+                           "             label: 'Show in separate column', " +
+                           "             initial_value: true" +
+                           "           }" +
+                           "         }, " +
+                           "         no_repeat: {" +
+                           "           $m: {" +
+                           "             type: 'bool', " +
+                           "             label: 'Hide consecutive repeated values', " +
+                           "             initial_value: false" +
+                           "           }" +
+                           "         }, " +
+                           "         show_aggregate_only: {" +
+                           "           $m: {" +
+                           "             type: 'bool', " +
+                           "             label: 'Show aggregates only', " +
+                           "             initial_value: false" +
+                           "           }" +
+                           "         }, " +
+                           "         subtotal: {" +
+                           "           $m: {" +
+                           "             type: 'bool', " +
+                           "             label: 'Show subtotals', " +
+                           "             initial_value: true" +
+                           "           }" +
+                           "         }, " +
+                           "         seq: {" +
+                           "           $m: {" +
+                           "             type: 'int'," +
+                           "             label: 'Sequence', " +
+                           "             show: false" +
+                           "           }" +
+                           "         } " +
+                           "       }," +
+                           "       columnsOrder: ['_id', 'expression', 'name', 'grouped', 'separate_column', 'no_repeat', 'show_aggregate_only', 'subtotal', 'seq']" +
+                           "     }," +
+                           "     joins: {" +
+                           "       $m: {" +
+                           "         type: '_platform.report.ReportJoin', " +
+                           "         parent_link_column: 'report_id', " +
+                           "         inline: false, " +
+                           "         sequence_column: 'seq', " +
+                           "         section: 'Tables', " +
+                           "         label: 'Tables' " +
+                           "       }," +
+                           "       columns: {" +
+                           "         _id: {" +
+                           "           $m: {" +
+                           "             type: 'uuid'," +
+                           "             show: false" +
+                           "           }" +
+                           "         }," +
+                           "         join_type: {" +
+                           "           $m: {" +
+                           "             type: 'string', " +
+                           "             label: 'Join type', " +
+                           "             can_insert: false, " +
+                           "             can_edit: false, " +
+                           "             can_remove: false, " +
+                           "             required: true, " +
+                           "             link_table: '_join_type' " +
+                           "           }" +
+                           "         }, " +
 //                    "         join_table: {" +
 //                    "           $m: {" +
 //                    "             type: 'text', " +
@@ -1445,344 +1456,344 @@ public abstract class AbstractDatabase implements Database {
 //                    "             filter_by: 'leftstr(name, 1) != ''_''', " +
 //                    "             value_label: '${joinlabel(this.row.join_table.$v, \"name\", \"display_name\", \"_core.relations\")}'" +
 //                    "           }" +
-                         "         join_table: {" +
-                         "           $m: {" +
-                         "             type: 'text', " +
-                         "             label: 'Join table', " +
-                         "             required: true, " +
-                         "             span: 24, " +
-                         "             lines: 10" +
-                         "           }" +
-                         "         }, " +
-                         "         table_alias: { " +
-                         "           $m: {" +
-                         "             type: 'string', " +
-                         "             label: 'Table alias', " +
-                         "             required: true, " +
-                         "             mask: 'Iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii'" +
-                         "           }" +
-                         "         }, " +
-                         "         join_on: {" +
-                         "           $m: {" +
-                         "             type: 'text', " +
-                         "             label: 'Join on' " +
-                         "           }" +
-                         "         }, " +
-                         "         seq: {" +
-                         "           $m: {" +
-                         "             type: 'int', " +
-                         "             label: 'Sequence', " +
-                         "             show: false" +
-                         "           }" +
-                         "         } " +
-                         "       }," +
-                         "       columnsOrder: ['_id', 'join_type', 'join_table', 'table_alias', 'join_on', 'seq']" +
-                         "     }," +
-                         "     user_data: {" +
-                         "       $m: {" +
-                         "         type: '_platform.report.ReportUserData', " +
-                         "         parent_link_column: 'report_id', " +
-                         "         sequence_column: 'seq', " +
-                         "         inline: false," +
-                         "         label: 'User data'," +
-                         "         section: 'User data' " +
-                         "       }," +
-                         "       columns: {" +
-                         "         _id: {" +
-                         "           $m: {" +
-                         "             type: 'uuid', " +
-                         "             show: false" +
-                         "           }" +
-                         "         }," +
-                         "         report_id: {" +
-                         "           $m: {" +
-                         "             type: 'uuid', " +
-                         "             show: false" +
-                         "           }" +
-                         "         }," +
-                         "         name: {" +
-                         "           $m: {" +
-                         "             type: 'string', " +
-                         "             label: 'Field name'," +
-                         "             mask: 'Iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii'," +
-                         "             required: true" +
-                         "           }" +
-                         "         }," +
-                         "         type: {" +
-                         "           $m: {" +
-                         "             type: 'string', " +
-                         "             label: 'Type', " +
-                         "             required: true, " +
-                         "             link_table: '_basetype'," +
-                         "             value_label: '${lookuplabel(this.row.type.$v, \"_basetype\")}'" +
-                         "           }" +
-                         "         }," +
-                         "         seq: {" +
-                         "           $m: {" +
-                         "             type: 'int'," +
-                         "             label: 'Sequence', " +
-                         "             show: false " +
-                         "           }" +
-                         "         } " +
-                         "       }," +
-                         "       columnsOrder: ['_id', 'report_id', 'name', 'type', 'seq']" +
-                         "     }" +
-                         "   }" +
-                         "}, " +
-                         "_id uuid not null, " +
-                         "_version long not null default 0, " +
-                         "_can_delete bool not null default true, " +
-                         "_can_edit bool not null default true, " +
-                         "_last_user_update string, " +
-                         "_last_update_time datetime, " +
+                           "         join_table: {" +
+                           "           $m: {" +
+                           "             type: 'text', " +
+                           "             label: 'Join table', " +
+                           "             required: true, " +
+                           "             span: 24, " +
+                           "             lines: 10" +
+                           "           }" +
+                           "         }, " +
+                           "         table_alias: { " +
+                           "           $m: {" +
+                           "             type: 'string', " +
+                           "             label: 'Table alias', " +
+                           "             required: true, " +
+                           "             mask: 'Iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii'" +
+                           "           }" +
+                           "         }, " +
+                           "         join_on: {" +
+                           "           $m: {" +
+                           "             type: 'text', " +
+                           "             label: 'Join on' " +
+                           "           }" +
+                           "         }, " +
+                           "         seq: {" +
+                           "           $m: {" +
+                           "             type: 'int', " +
+                           "             label: 'Sequence', " +
+                           "             show: false" +
+                           "           }" +
+                           "         } " +
+                           "       }," +
+                           "       columnsOrder: ['_id', 'join_type', 'join_table', 'table_alias', 'join_on', 'seq']" +
+                           "     }," +
+                           "     user_data: {" +
+                           "       $m: {" +
+                           "         type: '_platform.report.ReportUserData', " +
+                           "         parent_link_column: 'report_id', " +
+                           "         sequence_column: 'seq', " +
+                           "         inline: false," +
+                           "         label: 'User data'," +
+                           "         section: 'User data' " +
+                           "       }," +
+                           "       columns: {" +
+                           "         _id: {" +
+                           "           $m: {" +
+                           "             type: 'uuid', " +
+                           "             show: false" +
+                           "           }" +
+                           "         }," +
+                           "         report_id: {" +
+                           "           $m: {" +
+                           "             type: 'uuid', " +
+                           "             show: false" +
+                           "           }" +
+                           "         }," +
+                           "         name: {" +
+                           "           $m: {" +
+                           "             type: 'string', " +
+                           "             label: 'Field name'," +
+                           "             mask: 'Iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii'," +
+                           "             required: true" +
+                           "           }" +
+                           "         }," +
+                           "         type: {" +
+                           "           $m: {" +
+                           "             type: 'string', " +
+                           "             label: 'Type', " +
+                           "             required: true, " +
+                           "             link_table: '_basetype'," +
+                           "             value_label: '${lookuplabel(this.row.type.$v, \"_basetype\")}'" +
+                           "           }" +
+                           "         }," +
+                           "         seq: {" +
+                           "           $m: {" +
+                           "             type: 'int'," +
+                           "             label: 'Sequence', " +
+                           "             show: false " +
+                           "           }" +
+                           "         } " +
+                           "       }," +
+                           "       columnsOrder: ['_id', 'report_id', 'name', 'type', 'seq']" +
+                           "     }" +
+                           "   }" +
+                           "}, " +
+                           "_id uuid not null, " +
+                           "_version long not null default 0, " +
+                           "_can_delete bool not null default true, " +
+                           "_can_edit bool not null default true, " +
+                           "_last_user_update string, " +
+                           "_last_update_time datetime, " +
 
-                         "name string not null {" +
-                         "   section: 'Report', " +
-                         "   span: 24, " +
-                         "   validate_unique: true " +
-                         "}, " +
-                         "description string {" +
-                         "   section: 'Report', " +
-                         "   browse: false, " +
-                         "   lines: 5, " +
-                         "   span: 24 " +
-                         "}, " +
-                         "category string not null {" +
-                         "   section: 'Report', " +
-                         "   browse: false, " +
-                         "   link_table: '_platform.util.Category', " +
-                         "   link_table_code_value: 'name', " +
-                         "   link_table_code_label: 'name' " +
-                         "}, " +
+                           "name string not null {" +
+                           "   section: 'Report', " +
+                           "   span: 24, " +
+                           "   validate_unique: true " +
+                           "}, " +
+                           "description string {" +
+                           "   section: 'Report', " +
+                           "   browse: false, " +
+                           "   lines: 5, " +
+                           "   span: 24 " +
+                           "}, " +
+                           "category string not null {" +
+                           "   section: 'Report', " +
+                           "   browse: false, " +
+                           "   link_table: '_platform.util.Category', " +
+                           "   link_table_code_value: 'name', " +
+                           "   link_table_code_label: 'name' " +
+                           "}, " +
 
-                         "hide bool {" +
-                         "   section: 'Report', " +
-                         "   browse: false" +
-                         "}, " +
+                           "hide bool {" +
+                           "   section: 'Report', " +
+                           "   browse: false" +
+                           "}, " +
 
-                         "title string {" +
-                         "   section: 'Report', " +
-                         "   span: 24, " +
-                         "   browse: false, " +
-                         "   value_expression: '${this.row._id.$v || this.row.title.$m._changed " +
-                         "                                       ? this.row.title.$v " +
-                         "                                       : this.row.display_name.$v}'" +
-                         "}, " +
-                         "subtitle string {" +
-                         "   section: 'Report', " +
-                         "   span: 24, " +
-                         "   browse: false, " +
-                         "   value_expression: '${this.row this.row.description.$v}'" +
-                         "}, " +
+                           "title string {" +
+                           "   section: 'Report', " +
+                           "   span: 24, " +
+                           "   browse: false, " +
+                           "   value_expression: '${this.row._id.$v || this.row.title.$m._changed " +
+                           "                                       ? this.row.title.$v " +
+                           "                                       : this.row.display_name.$v}'" +
+                           "}, " +
+                           "subtitle string {" +
+                           "   section: 'Report', " +
+                           "   span: 24, " +
+                           "   browse: false, " +
+                           "   value_expression: '${this.row this.row.description.$v}'" +
+                           "}, " +
 
-                         "visualisation_id uuid not null {" +
-                         "   section: 'Report', " +
-                         "   browse: false, " +
-                         "   link_table: '_platform.report.Visualisation', " +
-                         "   link_table_code_value: '_id', " +
-                         "   link_table_code_label: 'name', " +
-                         "   value_label: joinlabel(visualisation_id, '_id', 'name', '_platform.report.Visualisation')" +
-                         "}, " +
+                           "visualisation_id uuid not null {" +
+                           "   section: 'Report', " +
+                           "   browse: false, " +
+                           "   link_table: '_platform.report.Visualisation', " +
+                           "   link_table_code_value: '_id', " +
+                           "   link_table_code_label: 'name', " +
+                           "   value_label: joinlabel(visualisation_id, '_id', 'name', '_platform.report.Visualisation')" +
+                           "}, " +
 
-                         "splitter_id uuid {" +
-                         "   section: 'Report', " +
-                         "   browse: false, " +
-                         "   link_table: '_platform.report.Splitter', " +
-                         "   link_table_code_value: '_id', " +
-                         "   link_table_code_label: 'name', " +
-                         "   value_label: joinlabel(splitter_id, '_id', 'name', '_platform.report.Splitter')" +
-                         "}, " +
+                           "splitter_id uuid {" +
+                           "   section: 'Report', " +
+                           "   browse: false, " +
+                           "   link_table: '_platform.report.Splitter', " +
+                           "   link_table_code_value: '_id', " +
+                           "   link_table_code_label: 'name', " +
+                           "   value_label: joinlabel(splitter_id, '_id', 'name', '_platform.report.Splitter')" +
+                           "}, " +
 
-                         "for_table string not null {" +
-                         "   section: 'Report', " +
-                         "   browse: false, " +
-                         "   can_insert: false, " +
-                         "   can_edit: false, " +
-                         "   can_remove: false, " +
-                         "   link_table: `_core.relations, " +
-                         "   link_table_code_value: 'name', " +
-                         "   link_table_code_label: 'display_name', " +
-                         "   filter_by: 'leftstr(name, 1) != ''_''', " +
-                         "   value_label: joinlabel(for_table, `name, `display_name, `_core.relations)" +
-                         "}," +
+                           "for_table string not null {" +
+                           "   section: 'Report', " +
+                           "   browse: false, " +
+                           "   can_insert: false, " +
+                           "   can_edit: false, " +
+                           "   can_remove: false, " +
+                           "   link_table: `_core.relations, " +
+                           "   link_table_code_value: 'name', " +
+                           "   link_table_code_label: 'display_name', " +
+                           "   filter_by: 'leftstr(name, 1) != ''_''', " +
+                           "   value_label: joinlabel(for_table, `name, `display_name, `_core.relations)" +
+                           "}," +
 
-                         "show_aggregates_first bool default false {" +
-                         "   section: 'Report', " +
-                         "   browse: false " +
-                         "}, " +
+                           "show_aggregates_first bool default false {" +
+                           "   section: 'Report', " +
+                           "   browse: false " +
+                           "}, " +
 
-                         "filter_by string { " +
-                         "   section: 'Query', " +
-                         "   browse: false, " +
-                         "   lines: 4, " +
-                         "   span: 24 " +
-                         "}, " +
-                         "group_filter string { " +
-                         "   section: 'Query', " +
-                         "   browse: false, " +
-                         "   lines: 4, " +
-                         "   span: 24 " +
-                         "}, " +
-                         "order_by string { " +
-                         "   section: 'Query', " +
-                         "   browse: false, " +
-                         "   lines: 4, " +
-                         "   span: 24 " +
-                         "}, " +
-                         "group_type string { " +
-                         "   section: 'Query', " +
-                         "   description: 'Group type used for the query, overriding visualisation group type'," +
-                         "   browse: false, " +
-                         "   link_table: '_group_type' " +
-                         "}, " +
+                           "filter_by string { " +
+                           "   section: 'Query', " +
+                           "   browse: false, " +
+                           "   lines: 4, " +
+                           "   span: 24 " +
+                           "}, " +
+                           "group_filter string { " +
+                           "   section: 'Query', " +
+                           "   browse: false, " +
+                           "   lines: 4, " +
+                           "   span: 24 " +
+                           "}, " +
+                           "order_by string { " +
+                           "   section: 'Query', " +
+                           "   browse: false, " +
+                           "   lines: 4, " +
+                           "   span: 24 " +
+                           "}, " +
+                           "group_type string { " +
+                           "   section: 'Query', " +
+                           "   description: 'Group type used for the query, overriding visualisation group type'," +
+                           "   browse: false, " +
+                           "   link_table: '_group_type' " +
+                           "}, " +
 
-                         "query_transform text {" +
-                         "   description: 'Function to transform the query', " +
-                         "   section: 'Query', " +
-                         "   browse: false, " +
-                         "   lines: 20, " +
-                         "   span: 24, " +
-                         "   code_language:'javascript' " +
-                         "}, " +
+                           "query_transform text {" +
+                           "   description: 'Function to transform the query', " +
+                           "   section: 'Query', " +
+                           "   browse: false, " +
+                           "   lines: 20, " +
+                           "   span: 24, " +
+                           "   code_language:'javascript' " +
+                           "}, " +
 
-                         "title_style text {" +
-                         "   browse: false, " +
-                         "   section: 'Styles', " +
-                         "   span: 24, " +
-                         "   lines: 8" +
-                         "}, " +
-                         "subtitle_style text {" +
-                         "   browse: false, " +
-                         "   section: 'Styles', " +
-                         "   span: 24, " +
-                         "   lines: 8" +
-                         "}, " +
-                         "header_style text {" +
-                         "   browse: false, " +
-                         "   section: 'Styles', " +
-                         "   span: 24, " +
-                         "   lines: 8" +
-                         "}, " +
-                         "aggregate_row_style text {" +
-                         "   browse: false, " +
-                         "   section: 'Styles', " +
-                         "   span: 24, " +
-                         "   lines: 8" +
-                         "}, " +
+                           "title_style text {" +
+                           "   browse: false, " +
+                           "   section: 'Styles', " +
+                           "   span: 24, " +
+                           "   lines: 8" +
+                           "}, " +
+                           "subtitle_style text {" +
+                           "   browse: false, " +
+                           "   section: 'Styles', " +
+                           "   span: 24, " +
+                           "   lines: 8" +
+                           "}, " +
+                           "header_style text {" +
+                           "   browse: false, " +
+                           "   section: 'Styles', " +
+                           "   span: 24, " +
+                           "   lines: 8" +
+                           "}, " +
+                           "aggregate_row_style text {" +
+                           "   browse: false, " +
+                           "   section: 'Styles', " +
+                           "   span: 24, " +
+                           "   lines: 8" +
+                           "}, " +
 
-                         "unique(name), " +
-                         "primary key(_id)," +
-                         "foreign key(visualisation_id) references _platform.report.Visualisation(_id) on delete cascade on update cascade)"));
+                           "unique(name), " +
+                           "primary key(_id)," +
+                           "foreign key(visualisation_id) references _platform.report.Visualisation(_id) on delete cascade on update cascade)"));
 
         c.exec(p.parse("create table _platform.report.ReportColumn drop undefined(" +
-                         "{" +
-                         "  name: 'Report Column'," +
-                         "  description: 'A column selected for display in a report'," +
-                         "  sequence_column: 'seq', " +
-                         "  children: {" +
-                         "    attributes: {" +
-                         "      $m: {" +
-                         "        type: '_platform.report.ReportColumnAttribute', " +
-                         "        parent_link_column: 'report_column_id', " +
-                         "        label: 'Attributes'" +
-                         "      }," +
-                         "      columns: {" +
-                         "        _id: {" +
-                         "          $m: {" +
-                         "            type: 'uuid', " +
-                         "            show: false" +
-                         "          }" +
-                         "        }," +
-                         "        report_column_id: {" +
-                         "          $m: {" +
-                         "            type: 'uuid', " +
-                         "            show: false" +
-                         "          }" +
-                         "        }," +
-                         "        attribute: {" +
-                         "          $m: {" +
-                         "            type: 'string', " +
-                         "            label: 'Attribute'," +
-                         "            mask: 'Iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii'," +
-                         "            required: true, " +
-                         "            link_table: '_report_field_attribute'," +
-                         "            value_label: '${lookuplabel(this.row.attribute.$v, \"_report_field_attribute\")}'" +
-                         "          }" +
-                         "        }," +
-                         "        value: {" +
-                         "          $m: {" +
-                         "            type: 'string'," +
-                         "            label: 'Value'" +
-                         "          }" +
-                         "        }" +
-                         "      }," +
-                         "      columnsOrder: ['_id', 'report_column_id', 'attribute', 'value']" +
-                         "    }" +
-                         "  }" +
-                         "}, " +
-                         "_id uuid not null, " +
-                         "_version long not null default 0, " +
-                         "_can_delete bool not null default true, " +
-                         "_can_edit bool not null default true, " +
-                         "_last_user_update string, " +
-                         "_last_update_time datetime, " +
+                           "{" +
+                           "  name: 'Report Column'," +
+                           "  description: 'A column selected for display in a report'," +
+                           "  sequence_column: 'seq', " +
+                           "  children: {" +
+                           "    attributes: {" +
+                           "      $m: {" +
+                           "        type: '_platform.report.ReportColumnAttribute', " +
+                           "        parent_link_column: 'report_column_id', " +
+                           "        label: 'Attributes'" +
+                           "      }," +
+                           "      columns: {" +
+                           "        _id: {" +
+                           "          $m: {" +
+                           "            type: 'uuid', " +
+                           "            show: false" +
+                           "          }" +
+                           "        }," +
+                           "        report_column_id: {" +
+                           "          $m: {" +
+                           "            type: 'uuid', " +
+                           "            show: false" +
+                           "          }" +
+                           "        }," +
+                           "        attribute: {" +
+                           "          $m: {" +
+                           "            type: 'string', " +
+                           "            label: 'Attribute'," +
+                           "            mask: 'Iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii'," +
+                           "            required: true, " +
+                           "            link_table: '_report_field_attribute'," +
+                           "            value_label: '${lookuplabel(this.row.attribute.$v, \"_report_field_attribute\")}'" +
+                           "          }" +
+                           "        }," +
+                           "        value: {" +
+                           "          $m: {" +
+                           "            type: 'string'," +
+                           "            label: 'Value'" +
+                           "          }" +
+                           "        }" +
+                           "      }," +
+                           "      columnsOrder: ['_id', 'report_column_id', 'attribute', 'value']" +
+                           "    }" +
+                           "  }" +
+                           "}, " +
+                           "_id uuid not null, " +
+                           "_version long not null default 0, " +
+                           "_can_delete bool not null default true, " +
+                           "_can_edit bool not null default true, " +
+                           "_last_user_update string, " +
+                           "_last_update_time datetime, " +
 
-                         "report_id uuid not null {" +
-                         "   show: false" +
-                         "}, " +
-                         "expression text not null {" +
-                         "   span: 24," +
-                         "   lines: 5 " +
-                         "}, " +
-                         "name string {" +
-                         "   mask: 'Iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii'" +
-                         "}, " +
-                         "grouped bool default true, " +
-                         "separate_column bool default true, " +
-                         "displayed_as_row bool default true {" +
-                         "   read_only: grouped!=true, " +
-                         "   active_text: 'Row', " +
-                         "   inactive_text: 'Column' " +
-                         "}, " +
-                         "no_repeat bool default false {" +
-                         "   read_only: grouped!=true " +
-                         "}," +
-                         "subtotal bool default true {" +
-                         "   read_only: grouped!=true, " +
-                         "   initial_value: true" +
-                         "}," +
-                         "show_aggregate_only bool default true {" +
-                         "   read_only: grouped=true, " +
-                         "   initial_value: true" +
-                         "}," +
-                         "seq int not null default 1 {" +
-                         "   show: false" +
-                         "}, " +
+                           "report_id uuid not null {" +
+                           "   show: false" +
+                           "}, " +
+                           "expression text not null {" +
+                           "   span: 24," +
+                           "   lines: 5 " +
+                           "}, " +
+                           "name string {" +
+                           "   mask: 'Iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii'" +
+                           "}, " +
+                           "grouped bool default true, " +
+                           "separate_column bool default true, " +
+                           "displayed_as_row bool default true {" +
+                           "   read_only: grouped!=true, " +
+                           "   active_text: 'Row', " +
+                           "   inactive_text: 'Column' " +
+                           "}, " +
+                           "no_repeat bool default false {" +
+                           "   read_only: grouped!=true " +
+                           "}," +
+                           "subtotal bool default true {" +
+                           "   read_only: grouped!=true, " +
+                           "   initial_value: true" +
+                           "}," +
+                           "show_aggregate_only bool default true {" +
+                           "   read_only: grouped=true, " +
+                           "   initial_value: true" +
+                           "}," +
+                           "seq int not null default 1 {" +
+                           "   show: false" +
+                           "}, " +
 
-                         "primary key(_id), " +
-                         "foreign key(report_id) references _platform.report.Report(_id) on delete cascade)"));
+                           "primary key(_id), " +
+                           "foreign key(report_id) references _platform.report.Report(_id) on delete cascade)"));
 
         c.exec(p.parse("create table _platform.report.ReportJoin drop undefined(" +
-                         "{" +
-                         "  name: 'Report Join Table'," +
-                         "  description: 'A table joined to the primary table to select data for a report'" +
-                         "}, " +
+                           "{" +
+                           "  name: 'Report Join Table'," +
+                           "  description: 'A table joined to the primary table to select data for a report'" +
+                           "}, " +
 
-                         "_id uuid not null, " +
-                         "_version long not null default 0, " +
-                         "_can_delete bool not null default true, " +
-                         "_can_edit bool not null default true, " +
-                         "_last_user_update string, " +
-                         "_last_update_time datetime, " +
+                           "_id uuid not null, " +
+                           "_version long not null default 0, " +
+                           "_can_delete bool not null default true, " +
+                           "_can_edit bool not null default true, " +
+                           "_last_user_update string, " +
+                           "_last_update_time datetime, " +
 
-                         "report_id uuid not null {" +
-                         "   show: false" +
-                         "}, " +
+                           "report_id uuid not null {" +
+                           "   show: false" +
+                           "}, " +
 
-                         "join_type string not null default 'join' {" +
-                         "   link_table: '_join_type', " +
-                         "   initial_value: 'join' " +
-                         "}, " +
+                           "join_type string not null default 'join' {" +
+                           "   link_table: '_join_type', " +
+                           "   initial_value: 'join' " +
+                           "}, " +
 //          "join_table string not null {" +
 //          "   link_table: `_core.relations, " +
 //          "   link_table_code_value: 'name', " +
@@ -1790,531 +1801,529 @@ public abstract class AbstractDatabase implements Database {
 //          "   filter_by: 'leftstr(name, 1) != ''_''', " +
 //          "   value_label: joinlabel(join_table, `name, `display_name, `_core.relations)" +
 //          "}, " +
-                         "join_table text not null {" +
-                         "   span: 24, " +
-                         "   lines: 10, " +
-                         "   code_language:'sql' " +
+                           "join_table text not null {" +
+                           "   span: 24, " +
+                           "   lines: 10, " +
+                           "   code_language:'sql' " +
 
-                         "}, " +
-                         "table_alias string not null {" +
-                         "   mask: 'Iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii'" +
-                         "}, " +
-                         "join_on text {" +
-                         "   span: 24, " +
-                         "   lines: 5, " +
-                         "   code_language:'sql' " +
-                         "}, " +
-                         "seq int not null default 1, " +
+                           "}, " +
+                           "table_alias string not null {" +
+                           "   mask: 'Iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii'" +
+                           "}, " +
+                           "join_on text {" +
+                           "   span: 24, " +
+                           "   lines: 5, " +
+                           "   code_language:'sql' " +
+                           "}, " +
+                           "seq int not null default 1, " +
 
-                         "primary key(_id), " +
-                         "foreign key(report_id) references _platform.report.Report(_id) on delete cascade)"));
+                           "primary key(_id), " +
+                           "foreign key(report_id) references _platform.report.Report(_id) on delete cascade)"));
 
 
         c.exec(p.parse("create table _platform.report.ReportColumnAttribute drop undefined(" +
-                         "{" +
-                         "  name: 'Report Column Attribute'," +
-                         "  description: 'Attributes of selected columns in reports controlling their display'" +
-                         "}, " +
-                         "_id uuid not null, " +
-                         "_version long not null default 0, " +
-                         "_can_delete bool not null default true, " +
-                         "_can_edit bool not null default true, " +
-                         "_last_user_update string, " +
-                         "_last_update_time datetime, " +
+                           "{" +
+                           "  name: 'Report Column Attribute'," +
+                           "  description: 'Attributes of selected columns in reports controlling their display'" +
+                           "}, " +
+                           "_id uuid not null, " +
+                           "_version long not null default 0, " +
+                           "_can_delete bool not null default true, " +
+                           "_can_edit bool not null default true, " +
+                           "_last_user_update string, " +
+                           "_last_update_time datetime, " +
 
-                         "report_column_id uuid not null {" +
-                         "   show: false" +
-                         "}, " +
-                         "attribute string not null { " +
-                         "   mask: 'Iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii'," +
-                         "   link_table: `_report_field_attribute, " +
-                         "   value_label: lookuplabel(attribute, `_report_field_attribute)" +
-                         "}," +
-                         "value text, " +
+                           "report_column_id uuid not null {" +
+                           "   show: false" +
+                           "}, " +
+                           "attribute string not null { " +
+                           "   mask: 'Iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii'," +
+                           "   link_table: `_report_field_attribute, " +
+                           "   value_label: lookuplabel(attribute, `_report_field_attribute)" +
+                           "}," +
+                           "value text, " +
 
-                         "primary key(_id), " +
-                         "unique(report_column_id, attribute), " +
-                         "foreign key(report_column_id) references _platform.report.ReportColumn(_id) on delete cascade on update cascade)"));
+                           "primary key(_id), " +
+                           "unique(report_column_id, attribute), " +
+                           "foreign key(report_column_id) references _platform.report.ReportColumn(_id) on delete cascade on update cascade)"));
 
         c.exec(p.parse("create table _platform.report.ReportUserData drop undefined(" +
-                         "{" +
-                         "  name: 'Report User Data'," +
-                         "  description: 'User provided data to merge with report definition and query', " +
-                         "  sequence_column: 'seq', " +
-                         "  children: {" +
-                         "    attributes: {" +
-                         "      $m: {" +
-                         "        type: '_platform.report.ReportUserDataAttribute', " +
-                         "        parent_link_column: 'report_user_data_id', " +
-                         "        label: 'Attributes'" +
-                         "      }," +
-                         "      columns: {" +
-                         "        _id: {" +
-                         "          $m: {" +
-                         "            type: 'uuid', " +
-                         "            show: false" +
-                         "          }" +
-                         "        }," +
-                         "        report_user_data_id: {" +
-                         "          $m: {" +
-                         "            type: 'uuid', " +
-                         "            show: false" +
-                         "          }" +
-                         "        }," +
-                         "        attribute: {" +
-                         "          $m: {" +
-                         "            type: 'string', " +
-                         "            label: 'Attribute'," +
-                         "            mask: 'Iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii'," +
-                         "            required: true, " +
-                         "            link_table: '_field_attribute'," +
-                         "            value_label: '${lookuplabel(this.row.attribute.$v, \"_field_attribute\")}'" +
-                         "          }" +
-                         "        }," +
-                         "        value: {" +
-                         "          $m: {" +
-                         "            type: 'string'," +
-                         "            label: 'Value'," +
-                         "            required: true" +
-                         "          }" +
-                         "        }" +
-                         "      }," +
-                         "      columnsOrder: ['_id', 'report_user_data_id', 'attribute', 'value']" +
-                         "    }" +
-                         "  }" +
-                         "}, " +
-                         "_id uuid not null, " +
-                         "_version long not null default 0, " +
-                         "_can_delete bool not null default true, " +
-                         "_can_edit bool not null default true, " +
-                         "_last_user_update string, " +
-                         "_last_update_time datetime, " +
+                           "{" +
+                           "  name: 'Report User Data'," +
+                           "  description: 'User provided data to merge with report definition and query', " +
+                           "  sequence_column: 'seq', " +
+                           "  children: {" +
+                           "    attributes: {" +
+                           "      $m: {" +
+                           "        type: '_platform.report.ReportUserDataAttribute', " +
+                           "        parent_link_column: 'report_user_data_id', " +
+                           "        label: 'Attributes'" +
+                           "      }," +
+                           "      columns: {" +
+                           "        _id: {" +
+                           "          $m: {" +
+                           "            type: 'uuid', " +
+                           "            show: false" +
+                           "          }" +
+                           "        }," +
+                           "        report_user_data_id: {" +
+                           "          $m: {" +
+                           "            type: 'uuid', " +
+                           "            show: false" +
+                           "          }" +
+                           "        }," +
+                           "        attribute: {" +
+                           "          $m: {" +
+                           "            type: 'string', " +
+                           "            label: 'Attribute'," +
+                           "            mask: 'Iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii'," +
+                           "            required: true, " +
+                           "            link_table: '_field_attribute'," +
+                           "            value_label: '${lookuplabel(this.row.attribute.$v, \"_field_attribute\")}'" +
+                           "          }" +
+                           "        }," +
+                           "        value: {" +
+                           "          $m: {" +
+                           "            type: 'string'," +
+                           "            label: 'Value'," +
+                           "            required: true" +
+                           "          }" +
+                           "        }" +
+                           "      }," +
+                           "      columnsOrder: ['_id', 'report_user_data_id', 'attribute', 'value']" +
+                           "    }" +
+                           "  }" +
+                           "}, " +
+                           "_id uuid not null, " +
+                           "_version long not null default 0, " +
+                           "_can_delete bool not null default true, " +
+                           "_can_edit bool not null default true, " +
+                           "_last_user_update string, " +
+                           "_last_update_time datetime, " +
 
-                         "report_id uuid not null {" +
-                         "   show: false" +
-                         "}," +
-                         "name string not null {" +
-                         "   mask: 'Iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii' " +
-                         "}," +
-                         "type string not null {" +
-                         "   link_table: `_basetype, " +
-                         "   value_label: lookuplabel(type, `_basetype)" +
-                         "}," +
-                         "seq int default 1 {" +
-                         "   show: false" +
-                         "}," +
+                           "report_id uuid not null {" +
+                           "   show: false" +
+                           "}," +
+                           "name string not null {" +
+                           "   mask: 'Iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii' " +
+                           "}," +
+                           "type string not null {" +
+                           "   link_table: `_basetype, " +
+                           "   value_label: lookuplabel(type, `_basetype)" +
+                           "}," +
+                           "seq int default 1 {" +
+                           "   show: false" +
+                           "}," +
 
-                         "primary key(_id)," +
-                         "unique(report_id, name)," +
-                         "foreign key(report_id) references _platform.report.Report(_id) on update cascade on delete cascade)"));
+                           "primary key(_id)," +
+                           "unique(report_id, name)," +
+                           "foreign key(report_id) references _platform.report.Report(_id) on update cascade on delete cascade)"));
 
         c.exec(p.parse("create table _platform.report.ReportUserDataAttribute drop undefined(" +
-                         "{" +
-                         "  name: 'Report User Data Field Attribute'," +
-                         "  description: 'Attributes of fields in user data of report selections'" +
-                         "}, " +
-                         "_id uuid not null, " +
-                         "_version long not null default 0, " +
-                         "_can_delete bool not null default true, " +
-                         "_can_edit bool not null default true, " +
-                         "_last_user_update string, " +
-                         "_last_update_time datetime, " +
+                           "{" +
+                           "  name: 'Report User Data Field Attribute'," +
+                           "  description: 'Attributes of fields in user data of report selections'" +
+                           "}, " +
+                           "_id uuid not null, " +
+                           "_version long not null default 0, " +
+                           "_can_delete bool not null default true, " +
+                           "_can_edit bool not null default true, " +
+                           "_last_user_update string, " +
+                           "_last_update_time datetime, " +
 
-                         "report_user_data_id uuid not null {" +
-                         "   show: false" +
-                         "}, " +
-                         "attribute string not null { " +
-                         "   mask: 'Iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii'," +
-                         "   link_table: `_field_attribute, " +
-                         "   value_label: lookuplabel(attribute, `_field_attribute)" +
-                         "}," +
-                         "value text, " +
+                           "report_user_data_id uuid not null {" +
+                           "   show: false" +
+                           "}, " +
+                           "attribute string not null { " +
+                           "   mask: 'Iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii'," +
+                           "   link_table: `_field_attribute, " +
+                           "   value_label: lookuplabel(attribute, `_field_attribute)" +
+                           "}," +
+                           "value text, " +
 
-                         "primary key(_id), " +
-                         "unique(report_user_data_id, attribute), " +
-                         "foreign key(report_user_data_id) references _platform.report.ReportUserData(_id) on delete cascade on update cascade)"));
+                           "primary key(_id), " +
+                           "unique(report_user_data_id, attribute), " +
+                           "foreign key(report_user_data_id) references _platform.report.ReportUserData(_id) on delete cascade on update cascade)"));
 
         /* ****************************
          *  Report distribution
          * ****************************/
         // Function producing the list of recipients to send the report to
         c.exec(p.parse("create table _platform.report.DistributionListFunction drop undefined(" +
-                         "{" +
-                         "   name: 'Distribution List Function', " +
-                         "   description: 'A function producing the list of recipients to send a report to'" +
-                         "}, " +
-                         "_id uuid not null, " +
-                         "_version long not null default 0, " +
-                         "_can_delete bool not null default true, " +
-                         "_can_edit bool not null default true, " +
-                         "_last_user_update string, " +
-                         "_last_update_time datetime, " +
+                           "{" +
+                           "   name: 'Distribution List Function', " +
+                           "   description: 'A function producing the list of recipients to send a report to'" +
+                           "}, " +
+                           "_id uuid not null, " +
+                           "_version long not null default 0, " +
+                           "_can_delete bool not null default true, " +
+                           "_can_edit bool not null default true, " +
+                           "_last_user_update string, " +
+                           "_last_update_time datetime, " +
 
-                         "name string not null {" +
-                         "   validate_unique: true," +
-                         "   span: 8 " +
-                         "}, " +
+                           "name string not null {" +
+                           "   validate_unique: true," +
+                           "   span: 8 " +
+                           "}, " +
 
-                         "func text not null {" +
-                         "   description: 'Function returning list of recipients, and associated information, to send report to', " +
-                         "   browse: false, " +
-                         "   required: true, " +
-                         "   lines: 30, " +
-                         "   span: 24, " +
-                         "   code_language:'javascript' " +
-                         "}, " +
+                           "func text not null {" +
+                           "   description: 'Function returning list of recipients, and associated information, to send report to', " +
+                           "   browse: false, " +
+                           "   required: true, " +
+                           "   lines: 30, " +
+                           "   span: 24, " +
+                           "   code_language:'javascript' " +
+                           "}, " +
 
-                         "unique(name), " +
-                         "primary key(_id))"));
+                           "unique(name), " +
+                           "primary key(_id))"));
 
         // Distribution list
         c.exec(p.parse("create table _platform.report.DistributionList drop undefined(" +
-                         "{" +
-                         "  name: 'Distribution List', " +
-                         "  description: 'A named static list of recipients to send a report to', " +
-                         "  children: {" +
-                         "    attributes: {" +
-                         "      $m: {" +
-                         "        type: '_platform.report.DistributionListEntry', " +
-                         "        parent_link_column: 'distribution_list_id', " +
-                         "        inline: false," +
-                         "        label: 'Entries'" +
-                         "      }," +
-                         "      columns: {" +
-                         "        _id: {" +
-                         "          $m: {" +
-                         "            type: 'uuid', " +
-                         "            show: false" +
-                         "          }" +
-                         "        }," +
-                         "        distribution_list_id: {" +
-                         "          $m: {" +
-                         "            type: 'uuid', " +
-                         "            show: false" +
-                         "          }" +
-                         "        }," +
-                         "        filter_by: {" +
-                         "          $m: {" +
-                         "            type: 'text', " +
-                         "            label: 'Filter by', " +
-                         "            span: 24, " +
-                         "            lines: 4, " +
-                         "            required: true " +
-                         "          }" +
-                         "        }," +
-                         "        email_to: {" +
-                         "          $m: {" +
-                         "            type: 'text', " +
-                         "            label: 'Email to', " +
-                         "            span: 24, " +
-                         "            lines: 4, " +
-                         "            required: true" +
-                         "          }" +
-                         "        }, " +
-                         "        label: {" +
-                         "          $m: {" +
-                         "            type: 'string', " +
-                         "            label: 'Label', " +
-                         "            span: 12 " +
-                         "          }" +
-                         "        }, " +
-                         "        password: {" +
-                         "          $m: {" +
-                         "            type: 'string'," +
-                         "            label: 'Password'" +
-                         "          }" +
-                         "        } " +
-                         "      }," +
-                         "      columnsOrder: ['_id', 'distribution_list_id', 'filter_by', 'email_to', 'label', 'password']" +
-                         "    }" +
-                         "  }" +
-                         "}, " +
-                         "_id uuid not null, " +
-                         "_version long not null default 0, " +
-                         "_can_delete bool not null default true, " +
-                         "_can_edit bool not null default true, " +
-                         "_last_user_update string, " +
-                         "_last_update_time datetime, " +
+                           "{" +
+                           "  name: 'Distribution List', " +
+                           "  description: 'A named static list of recipients to send a report to', " +
+                           "  children: {" +
+                           "    attributes: {" +
+                           "      $m: {" +
+                           "        type: '_platform.report.DistributionListEntry', " +
+                           "        parent_link_column: 'distribution_list_id', " +
+                           "        inline: false," +
+                           "        label: 'Entries'" +
+                           "      }," +
+                           "      columns: {" +
+                           "        _id: {" +
+                           "          $m: {" +
+                           "            type: 'uuid', " +
+                           "            show: false" +
+                           "          }" +
+                           "        }," +
+                           "        distribution_list_id: {" +
+                           "          $m: {" +
+                           "            type: 'uuid', " +
+                           "            show: false" +
+                           "          }" +
+                           "        }," +
+                           "        filter_by: {" +
+                           "          $m: {" +
+                           "            type: 'text', " +
+                           "            label: 'Filter by', " +
+                           "            span: 24, " +
+                           "            lines: 4, " +
+                           "            required: true " +
+                           "          }" +
+                           "        }," +
+                           "        email_to: {" +
+                           "          $m: {" +
+                           "            type: 'text', " +
+                           "            label: 'Email to', " +
+                           "            span: 24, " +
+                           "            lines: 4, " +
+                           "            required: true" +
+                           "          }" +
+                           "        }, " +
+                           "        label: {" +
+                           "          $m: {" +
+                           "            type: 'string', " +
+                           "            label: 'Label', " +
+                           "            span: 12 " +
+                           "          }" +
+                           "        }, " +
+                           "        password: {" +
+                           "          $m: {" +
+                           "            type: 'string'," +
+                           "            label: 'Password'" +
+                           "          }" +
+                           "        } " +
+                           "      }," +
+                           "      columnsOrder: ['_id', 'distribution_list_id', 'filter_by', 'email_to', 'label', 'password']" +
+                           "    }" +
+                           "  }" +
+                           "}, " +
+                           "_id uuid not null, " +
+                           "_version long not null default 0, " +
+                           "_can_delete bool not null default true, " +
+                           "_can_edit bool not null default true, " +
+                           "_last_user_update string, " +
+                           "_last_update_time datetime, " +
 
-                         "name string not null {" +
-                         "   validate_unique: true," +
-                         "   span: 8 " +
-                         "}, " +
+                           "name string not null {" +
+                           "   validate_unique: true," +
+                           "   span: 8 " +
+                           "}, " +
 
-                         "unique(name), " +
-                         "primary key(_id))"));
+                           "unique(name), " +
+                           "primary key(_id))"));
 
         // Entry in a distribution list
         c.exec(p.parse("create table _platform.report.DistributionListEntry drop undefined(" +
-                         "{" +
-                         "   name: 'Distribution List Entry', " +
-                         "   description: 'An entry in a distribution list'" +
-                         "}, " +
-                         "_id uuid not null, " +
-                         "_version long not null default 0, " +
-                         "_can_delete bool not null default true, " +
-                         "_can_edit bool not null default true, " +
-                         "_last_user_update string, " +
-                         "_last_update_time datetime, " +
+                           "{" +
+                           "   name: 'Distribution List Entry', " +
+                           "   description: 'An entry in a distribution list'" +
+                           "}, " +
+                           "_id uuid not null, " +
+                           "_version long not null default 0, " +
+                           "_can_delete bool not null default true, " +
+                           "_can_edit bool not null default true, " +
+                           "_last_user_update string, " +
+                           "_last_update_time datetime, " +
 
-                         "distribution_list_id uuid not null {" +
-                         "   browse: false, " +
-                         "   link_table: '_platform.report.DistributionList', " +
-                         "   link_table_code_value: '_id', " +
-                         "   link_table_code_label: 'name', " +
-                         "   value_label: joinlabel(distribution_list_id, '_id', 'name', '_platform.report.DistributionList')" +
-                         "}, " +
+                           "distribution_list_id uuid not null {" +
+                           "   browse: false, " +
+                           "   link_table: '_platform.report.DistributionList', " +
+                           "   link_table_code_value: '_id', " +
+                           "   link_table_code_label: 'name', " +
+                           "   value_label: joinlabel(distribution_list_id, '_id', 'name', '_platform.report.DistributionList')" +
+                           "}, " +
 
-                         "filter_by text not null {" +
-                         "   span: 24, " +
-                         "   lines: 4 " +
-                         "}, " +
-                         "email_to text not null { " +
-                         "   span: 24, " +
-                         "   lines: 4 " +
-                         "}, " +
-                         "label string {" +
-                         "   span: 12" +
-                         "}, " +
-                         "password string, " +
+                           "filter_by text not null {" +
+                           "   span: 24, " +
+                           "   lines: 4 " +
+                           "}, " +
+                           "email_to text not null { " +
+                           "   span: 24, " +
+                           "   lines: 4 " +
+                           "}, " +
+                           "label string {" +
+                           "   span: 12" +
+                           "}, " +
+                           "password string, " +
 
-                         "primary key(_id))"));
+                           "primary key(_id))"));
 
         c.exec(p.parse("create table _platform.report.Distribution drop undefined(" +
-                         "{" +
-                         "  name: 'Report Distribution'," +
-                         "  description: 'Definition of how to distribute a report'" +
-                         "}, " +
-                         "_id uuid not null, " +
-                         "_version long not null default 0, " +
-                         "_can_delete bool not null default true, " +
-                         "_can_edit bool not null default true, " +
-                         "_last_user_update string, " +
-                         "_last_update_time datetime, " +
+                           "{" +
+                           "  name: 'Report Distribution'," +
+                           "  description: 'Definition of how to distribute a report'" +
+                           "}, " +
+                           "_id uuid not null, " +
+                           "_version long not null default 0, " +
+                           "_can_delete bool not null default true, " +
+                           "_can_edit bool not null default true, " +
+                           "_last_user_update string, " +
+                           "_last_update_time datetime, " +
 
-                         "name string not null {" +
-                         "   validate_unique: true," +
-                         "   span: 8 " +
-                         "}, " +
+                           "name string not null {" +
+                           "   validate_unique: true," +
+                           "   span: 8 " +
+                           "}, " +
 
-                         "report_id uuid not null {" +
-                         "   browse: false, " +
-                         "   link_table: '_platform.report.Report', " +
-                         "   link_table_code_value: '_id', " +
-                         "   link_table_code_label: 'name', " +
-                         "   value_label: joinlabel(report_id, '_id', 'name', '_platform.report.Report')" +
-                         "}, " +
+                           "report_id uuid not null {" +
+                           "   browse: false, " +
+                           "   link_table: '_platform.report.Report', " +
+                           "   link_table_code_value: '_id', " +
+                           "   link_table_code_label: 'name', " +
+                           "   value_label: joinlabel(report_id, '_id', 'name', '_platform.report.Report')" +
+                           "}, " +
 
-                         "email_from string not null, " +
+                           "email_from string not null, " +
 
-                         "subject string not null {" +
-                         "   description: 'Function to produce the subject of mail to send to recipient', " +
-                         "   lines: 3," +
-                         "   span: 24" +
-                         "}, " +
+                           "subject string not null {" +
+                           "   description: 'Function to produce the subject of mail to send to recipient', " +
+                           "   lines: 3," +
+                           "   span: 24" +
+                           "}, " +
 
-                         "message text not null {" +
-                         "   description: 'Function to produce the body of message of mail to send to recipient', " +
-                         "   browse: false, " +
-                         "   lines: 4," +
-                         "   span: 24" +
-                         "}, " +
+                           "message text not null {" +
+                           "   description: 'Function to produce the body of message of mail to send to recipient', " +
+                           "   browse: false, " +
+                           "   lines: 4," +
+                           "   span: 24" +
+                           "}, " +
 
-                         "filename string {" +
-                         "   description: 'Function to produce the name of the report to send to recipient', " +
-                         "   lines: 3," +
-                         "   span: 24" +
-                         "}, " +
+                           "filename string {" +
+                           "   description: 'Function to produce the name of the report to send to recipient', " +
+                           "   lines: 3," +
+                           "   span: 24" +
+                           "}, " +
 
-                         "list_function_id uuid not null {" +
-                         "   browse: false, " +
-                         "   link_table: '_platform.report.DistributionListFunction', " +
-                         "   link_table_code_value: '_id', " +
-                         "   link_table_code_label: 'name', " +
-                         "   value_label: joinlabel(list_function_id, '_id', 'name', '_platform.report.DistributionListFunction')" +
-                         "}, " +
+                           "list_function_id uuid not null {" +
+                           "   browse: false, " +
+                           "   link_table: '_platform.report.DistributionListFunction', " +
+                           "   link_table_code_value: '_id', " +
+                           "   link_table_code_label: 'name', " +
+                           "   value_label: joinlabel(list_function_id, '_id', 'name', '_platform.report.DistributionListFunction')" +
+                           "}, " +
 
-                         "list_function_parameters text {" +
-                         "   description: 'Parameters to the list function', " +
-                         "   browse: false, " +
-                         "   lines: 4," +
-                         "   span: 24" +
-                         "}, " +
+                           "list_function_parameters text {" +
+                           "   description: 'Parameters to the list function', " +
+                           "   browse: false, " +
+                           "   lines: 4," +
+                           "   span: 24" +
+                           "}, " +
 
-                         "primary key(_id), " +
-                         "unique(name), " +
-                         "foreign key(report_id) references _platform.report.Report(_id) on update cascade on delete cascade, " +
-                         "foreign key(list_function_id) references _platform.report.DistributionListFunction(_id) on update cascade on delete cascade)"));
+                           "primary key(_id), " +
+                           "unique(name), " +
+                           "foreign key(report_id) references _platform.report.Report(_id) on update cascade on delete cascade, " +
+                           "foreign key(list_function_id) references _platform.report.DistributionListFunction(_id) on update cascade on delete cascade)"));
 
 
         c.exec(p.parse("create table _platform.report.SendLog drop undefined(" +
-                         "{" +
-                         "  name: 'Report Distribution Log'," +
-                         "  description: 'Log of distributed reports'" +
-                         "}, " +
-                         "_id uuid not null, " +
-                         "_version long not null default 0, " +
-                         "_can_delete bool not null default true, " +
-                         "_can_edit bool not null default true, " +
-                         "_last_user_update string, " +
-                         "_last_update_time datetime, " +
+                           "{" +
+                           "  name: 'Report Distribution Log'," +
+                           "  description: 'Log of distributed reports'" +
+                           "}, " +
+                           "_id uuid not null, " +
+                           "_version long not null default 0, " +
+                           "_can_delete bool not null default true, " +
+                           "_can_edit bool not null default true, " +
+                           "_last_user_update string, " +
+                           "_last_update_time datetime, " +
 
-                         "report_id uuid {" +
-                         "   link_table: '_platform.report.Report', " +
-                         "   link_table_code_value: '<>._id', " +
-                         "   link_table_code_label: '<>.name', " +
-                         "   value_label: joinlabel(report_id, `_id, `name, `_platform.report.Report) " +
-                         "}," +
+                           "report_id uuid {" +
+                           "   link_table: '_platform.report.Report', " +
+                           "   link_table_code_value: '<>._id', " +
+                           "   link_table_code_label: '<>.name', " +
+                           "   value_label: joinlabel(report_id, `_id, `name, `_platform.report.Report) " +
+                           "}," +
 
-                         "sent_at datetime not null, " +
-                         "sent_by string not null, " +
-                         "sent_to text not null, " +
+                           "sent_at datetime not null, " +
+                           "sent_by string not null, " +
+                           "sent_to text not null, " +
 
-                         "label string, " +
+                           "label string, " +
 
-                         "subject text not null, " +
-                         "message text not null, " +
+                           "subject text not null, " +
+                           "message text not null, " +
 
-                         "filename string, " +
+                           "filename string, " +
 
-                         "file_location string {" +
-                         "   external_file: true" +
-                         "}, " +
+                           "file_location string {" +
+                           "   external_file: true" +
+                           "}, " +
 
-                         "password string, " +
+                           "password string, " +
 
-                         "primary key(_id), " +
-                         "foreign key(report_id) references _platform.report.Report(_id) on update cascade on delete cascade)"));
-
+                           "primary key(_id), " +
+                           "foreign key(report_id) references _platform.report.Report(_id) on update cascade on delete cascade)"));
 
 
         // Third-party systems interfacing
         ////////////////////////////////////////////
         c.exec(p.parse("create table _platform.external.Connector drop undefined(" +
-                         "{" +
-                         "   name: 'External System Connector', " +
-                         "   description: 'Defines the connection to an external system'" +
-                         "}, " +
-                         "_id uuid not null, " +
-                         "_version long not null default 0, " +
-                         "_can_delete bool not null default true, " +
-                         "_can_edit bool not null default true, " +
-                         "_last_user_update string, " +
-                         "_last_update_time datetime, " +
+                           "{" +
+                           "   name: 'External System Connector', " +
+                           "   description: 'Defines the connection to an external system'" +
+                           "}, " +
+                           "_id uuid not null, " +
+                           "_version long not null default 0, " +
+                           "_can_delete bool not null default true, " +
+                           "_can_edit bool not null default true, " +
+                           "_last_user_update string, " +
+                           "_last_update_time datetime, " +
 
-                         "name string not null {" +
-                         "   validate_unique: true," +
-                         "   span: 8 " +
-                         "}, " +
-                         "description string {" +
-                         "   span: 16" +
-                         "}, " +
+                           "name string not null {" +
+                           "   validate_unique: true," +
+                           "   span: 8 " +
+                           "}, " +
+                           "description string {" +
+                           "   span: 16" +
+                           "}, " +
 
-                         "product string not null {" +
-                         "   link_table: '_external_product'," +
-                         "   link_table_show_code: false " +
-                         "}, " +
-                         "host string not null, " +
-                         "port int not null, " +
-                         "instance string not null, " +
-                         "username string not null, " +
-                         "password string not null, " +
+                           "product string not null {" +
+                           "   link_table: '_external_product'," +
+                           "   link_table_show_code: false " +
+                           "}, " +
+                           "host string not null, " +
+                           "port int not null, " +
+                           "instance string not null, " +
+                           "username string not null, " +
+                           "password string not null, " +
 
-                         "unique(name), " +
-                         "primary key(_id))"));
+                           "unique(name), " +
+                           "primary key(_id))"));
 
         c.exec(p.parse("create table _platform.external.Function drop undefined(" +
-                         "{" +
-                         "   name: 'External Interface Function', " +
-                         "   description: 'A function interfacing with external systems' " +
-                         "}, " +
-                         "_id uuid not null, " +
-                         "_version long not null default 0, " +
-                         "_can_delete bool not null default true, " +
-                         "_can_edit bool not null default true, " +
-                         "_last_user_update string, " +
-                         "_last_update_time datetime, " +
+                           "{" +
+                           "   name: 'External Interface Function', " +
+                           "   description: 'A function interfacing with external systems' " +
+                           "}, " +
+                           "_id uuid not null, " +
+                           "_version long not null default 0, " +
+                           "_can_delete bool not null default true, " +
+                           "_can_edit bool not null default true, " +
+                           "_last_user_update string, " +
+                           "_last_update_time datetime, " +
 
-                         "name string not null {" +
-                         "   validate_unique: true," +
-                         "   span: 8 " +
-                         "}, " +
-                         "description string {" +
-                         "   span: 16" +
-                         "}, " +
+                           "name string not null {" +
+                           "   validate_unique: true," +
+                           "   span: 8 " +
+                           "}, " +
+                           "description string {" +
+                           "   span: 16" +
+                           "}, " +
 
-                         "func text not null {" +
-                         "   description: 'Function defining the external system interfacing logic', " +
-                         "   browse: false, " +
-                         "   required: true, " +
-                         "   lines: 30, " +
-                         "   span: 24, " +
-                         "   code_language:'javascript' " +
-                         "}, " +
+                           "func text not null {" +
+                           "   description: 'Function defining the external system interfacing logic', " +
+                           "   browse: false, " +
+                           "   required: true, " +
+                           "   lines: 30, " +
+                           "   span: 24, " +
+                           "   code_language:'javascript' " +
+                           "}, " +
 
-                         "unique(name), " +
-                         "primary key(_id))"));
+                           "unique(name), " +
+                           "primary key(_id))"));
 
         c.exec(p.parse("create table _platform.external.Interface drop undefined(" +
-                         "{" +
-                         "   name: 'External Interface', " +
-                         "   description: 'Interface with external systems defining the source data, connector and interface function'" +
-                         "}, " +
-                         "_id uuid not null, " +
-                         "_version long not null default 0, " +
-                         "_can_delete bool not null default true, " +
-                         "_can_edit bool not null default true, " +
-                         "_last_user_update string, " +
-                         "_last_update_time datetime, " +
+                           "{" +
+                           "   name: 'External Interface', " +
+                           "   description: 'Interface with external systems defining the source data, connector and interface function'" +
+                           "}, " +
+                           "_id uuid not null, " +
+                           "_version long not null default 0, " +
+                           "_can_delete bool not null default true, " +
+                           "_can_edit bool not null default true, " +
+                           "_last_user_update string, " +
+                           "_last_update_time datetime, " +
 
-                         "name string not null {" +
-                         "   validate_unique: true," +
-                         "   span: 8 " +
-                         "}, " +
-                         "description string {" +
-                         "   browse: false, " +
-                         "   span: 16" +
-                         "}, " +
+                           "name string not null {" +
+                           "   validate_unique: true," +
+                           "   span: 8 " +
+                           "}, " +
+                           "description string {" +
+                           "   browse: false, " +
+                           "   span: 16" +
+                           "}, " +
 
-                         "source_data_id uuid not null {" +
-                         "   browse: false, " +
-                         "   link_table: '_platform.report.Report', " +
-                         "   link_table_code_value: '_id', " +
-                         "   link_table_code_label: 'name', " +
-                         "   value_label: joinlabel(source_data_id, '_id', 'name', '_platform.report.Report')" +
-                         "}, " +
-                         "connector_id uuid not null {" +
-                         "   browse: false, " +
-                         "   link_table: '_platform.external.Connector', " +
-                         "   link_table_code_value: '_id', " +
-                         "   link_table_code_label: 'name', " +
-                         "   value_label: joinlabel(connector_id, '_id', 'name', '_platform.external.Connector')" +
-                         "}, " +
+                           "source_data_id uuid not null {" +
+                           "   browse: false, " +
+                           "   link_table: '_platform.report.Report', " +
+                           "   link_table_code_value: '_id', " +
+                           "   link_table_code_label: 'name', " +
+                           "   value_label: joinlabel(source_data_id, '_id', 'name', '_platform.report.Report')" +
+                           "}, " +
+                           "connector_id uuid not null {" +
+                           "   browse: false, " +
+                           "   link_table: '_platform.external.Connector', " +
+                           "   link_table_code_value: '_id', " +
+                           "   link_table_code_label: 'name', " +
+                           "   value_label: joinlabel(connector_id, '_id', 'name', '_platform.external.Connector')" +
+                           "}, " +
 
-                         "require_confirmation bool not null default true {" +
-                         "   browse: false, " +
-                         "   initial_value: true" +
-                         "}, " +
-                         "confirmation text { " +
-                         "   browse: false, " +
-                         "   span: 16" +
-                         "}, " +
+                           "require_confirmation bool not null default true {" +
+                           "   browse: false, " +
+                           "   initial_value: true" +
+                           "}, " +
+                           "confirmation text { " +
+                           "   browse: false, " +
+                           "   span: 16" +
+                           "}, " +
 
-                         "function_id uuid not null {" +
-                         "   browse: false, " +
-                         "   required: true, " +
-                         "   link_table: '_platform.external.Function', " +
-                         "   link_table_code_value: '_id', " +
-                         "   link_table_code_label: 'name', " +
-                         "   value_label: joinlabel(function_id, '_id', 'name', '_platform.external.Function')" +
-                         "}, " +
+                           "function_id uuid not null {" +
+                           "   browse: false, " +
+                           "   required: true, " +
+                           "   link_table: '_platform.external.Function', " +
+                           "   link_table_code_value: '_id', " +
+                           "   link_table_code_label: 'name', " +
+                           "   value_label: joinlabel(function_id, '_id', 'name', '_platform.external.Function')" +
+                           "}, " +
 
-                         "unique(name), " +
-                         "primary key(_id), " +
-                         "foreign key(source_data_id) references _platform.report .Report(_id) on update cascade on delete cascade," +
-                         "foreign key(connector_id) references _platform.external.Connector(_id) on update cascade on delete cascade," +
-                         "foreign key(function_id) references _platform.external.Function(_id) on update cascade on delete cascade)"));
-
+                           "unique(name), " +
+                           "primary key(_id), " +
+                           "foreign key(source_data_id) references _platform.report .Report(_id) on update cascade on delete cascade," +
+                           "foreign key(connector_id) references _platform.external.Connector(_id) on update cascade on delete cascade," +
+                           "foreign key(function_id) references _platform.external.Function(_id) on update cascade on delete cascade)"));
 
 
         // Table for imports
@@ -2348,547 +2357,547 @@ public abstract class AbstractDatabase implements Database {
          */
 
         c.exec(p.parse("create table _platform.import.Import drop undefined(" +
-                         "{" +
-                         "  name: 'Import', " +
-                         "  description: 'Data import definition', " +
-                         "  children: {" +
-                         "    fields: {" +
-                         "      $m: {" +
-                         "        type: '_platform.import.ImportField', " +
-                         "        parent_link_column: 'import_id', " +
-                         "        sequence_column: 'seq', " +
-                         "        inline: false," +
-                         "        label: 'Fields'," +
-                         "        section: 'File structure', " +
-                         "        sequence: 1" +
-                         "      }," +
-                         "      columns: {" +
-                         "        _id: {" +
-                         "          $m: {" +
-                         "            type: 'uuid', " +
-                         "            show: false" +
-                         "          }" +
-                         "        }," +
-                         "        import_id: {" +
-                         "          $m: {" +
-                         "            type: 'uuid', " +
-                         "            show: false" +
-                         "          }" +
-                         "        }," +
-                         "        name: {" +
-                         "          $m: {" +
-                         "            type: 'string', " +
-                         "            label: 'Field name'," +
-                         "            mask: 'Iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii'," +
-                         "            required: true" +
-                         "          }" +
-                         "        }," +
-                         "        type: {" +
-                         "          $m: {" +
-                         "            type: 'string', " +
-                         "            label: 'Type', " +
-                         "            required: true, " +
-                         "            link_table: '_basetype'," +
-                         "            value_label: '${lookuplabel(this.row.type.$v, \"_basetype\")}'" +
-                         "          }" +
-                         "        }," +
-                         "        column_index: {" +
-                         "          $m: {" +
-                         "            type: 'int'," +
-                         "            label: 'Column index'," +
-                         "            required: true" +
-                         "          }" +
-                         "        }," +
-                         "        default_value: {" +
-                         "          $m: {" +
-                         "            type: 'string', " +
-                         "            label: 'Default value'" +
-                         "          }" +
-                         "        }," +
-                         "        seq: {" +
-                         "          $m: {" +
-                         "            type: 'int'," +
-                         "            label: 'Sequence', " +
-                         "            show: false " +
-                         "          }" +
-                         "        } " +
-                         "      }," +
-                         "      columnsOrder: ['_id', 'import_id', 'name', 'column_index', 'default_value', 'seq']" +
-                         "    }, " +
-                         "    process_functions: {" +
-                         "      $m: {" +
-                         "        type: '_platform.import.ProcessFunction', " +
-                         "        parent_link_column: 'import_id', " +
-                         "        sequence_column: 'seq', " +
-                         "        inline: false," +
-                         "        label: 'Processing functions', " +
-                         "        section: 'Processing', " +
-                         "        sequence: 2" +
-                         "      }," +
-                         "      columns: {" +
-                         "        _id: {" +
-                         "          $m: {" +
-                         "            type: 'uuid', " +
-                         "            show: false" +
-                         "          }" +
-                         "        }," +
-                         "        import_id: {" +
-                         "          $m: {" +
-                         "            type: 'uuid', " +
-                         "            show: false" +
-                         "          }" +
-                         "        }," +
-                         "        function_id: {" +
-                         "          $m: {" +
-                         "            type: 'uuid', " +
-                         "            label: 'Function', " +
-                         "            required: true, " +
-                         "            link_table: '_platform.import.Function'," +
-                         "            link_table_code_label: 'name'," +
-                         "            link_table_code_value: '_id'," +
-                         "            value_label: '${joinlabel(this.row.function_id.$v, \"_id\", \"name\", \"_platform.import.Function\")}'" +
-                         "          }" +
-                         "        }," +
-                         "        pass: {" +
-                         "          $m: {" +
-                         "            type: 'int', " +
-                         "            label: 'Pass', " +
-                         "            description: 'Complex data can be imported in several passes', " +
-                         "            minimum: 1, " +
-                         "            initial_value: 1 " +
-                         "          }" +
-                         "        }," +
-                         "        seq: {" +
-                         "          $m: {" +
-                         "            type: 'int'," +
-                         "            label: 'Sequence'," +
-                         "            required: true" +
-                         "          }" +
-                         "        }" +
-                         "      }," +
-                         "      columnsOrder: ['_id', 'import_id', 'function_id', 'seq']" +
-                         "    }" +
-                         "  }" +
-                         "}, " +
-                         "_id uuid not null, " +
-                         "_version long not null default 0, " +
-                         "_can_delete bool not null default true, " +
-                         "_can_edit bool not null default true, " +
-                         "_last_user_update string, " +
-                         "_last_update_time datetime, " +
+                           "{" +
+                           "  name: 'Import', " +
+                           "  description: 'Data import definition', " +
+                           "  children: {" +
+                           "    fields: {" +
+                           "      $m: {" +
+                           "        type: '_platform.import.ImportField', " +
+                           "        parent_link_column: 'import_id', " +
+                           "        sequence_column: 'seq', " +
+                           "        inline: false," +
+                           "        label: 'Fields'," +
+                           "        section: 'File structure', " +
+                           "        sequence: 1" +
+                           "      }," +
+                           "      columns: {" +
+                           "        _id: {" +
+                           "          $m: {" +
+                           "            type: 'uuid', " +
+                           "            show: false" +
+                           "          }" +
+                           "        }," +
+                           "        import_id: {" +
+                           "          $m: {" +
+                           "            type: 'uuid', " +
+                           "            show: false" +
+                           "          }" +
+                           "        }," +
+                           "        name: {" +
+                           "          $m: {" +
+                           "            type: 'string', " +
+                           "            label: 'Field name'," +
+                           "            mask: 'Iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii'," +
+                           "            required: true" +
+                           "          }" +
+                           "        }," +
+                           "        type: {" +
+                           "          $m: {" +
+                           "            type: 'string', " +
+                           "            label: 'Type', " +
+                           "            required: true, " +
+                           "            link_table: '_basetype'," +
+                           "            value_label: '${lookuplabel(this.row.type.$v, \"_basetype\")}'" +
+                           "          }" +
+                           "        }," +
+                           "        column_index: {" +
+                           "          $m: {" +
+                           "            type: 'int'," +
+                           "            label: 'Column index'," +
+                           "            required: true" +
+                           "          }" +
+                           "        }," +
+                           "        default_value: {" +
+                           "          $m: {" +
+                           "            type: 'string', " +
+                           "            label: 'Default value'" +
+                           "          }" +
+                           "        }," +
+                           "        seq: {" +
+                           "          $m: {" +
+                           "            type: 'int'," +
+                           "            label: 'Sequence', " +
+                           "            show: false " +
+                           "          }" +
+                           "        } " +
+                           "      }," +
+                           "      columnsOrder: ['_id', 'import_id', 'name', 'column_index', 'default_value', 'seq']" +
+                           "    }, " +
+                           "    process_functions: {" +
+                           "      $m: {" +
+                           "        type: '_platform.import.ProcessFunction', " +
+                           "        parent_link_column: 'import_id', " +
+                           "        sequence_column: 'seq', " +
+                           "        inline: false," +
+                           "        label: 'Processing functions', " +
+                           "        section: 'Processing', " +
+                           "        sequence: 2" +
+                           "      }," +
+                           "      columns: {" +
+                           "        _id: {" +
+                           "          $m: {" +
+                           "            type: 'uuid', " +
+                           "            show: false" +
+                           "          }" +
+                           "        }," +
+                           "        import_id: {" +
+                           "          $m: {" +
+                           "            type: 'uuid', " +
+                           "            show: false" +
+                           "          }" +
+                           "        }," +
+                           "        function_id: {" +
+                           "          $m: {" +
+                           "            type: 'uuid', " +
+                           "            label: 'Function', " +
+                           "            required: true, " +
+                           "            link_table: '_platform.import.Function'," +
+                           "            link_table_code_label: 'name'," +
+                           "            link_table_code_value: '_id'," +
+                           "            value_label: '${joinlabel(this.row.function_id.$v, \"_id\", \"name\", \"_platform.import.Function\")}'" +
+                           "          }" +
+                           "        }," +
+                           "        pass: {" +
+                           "          $m: {" +
+                           "            type: 'int', " +
+                           "            label: 'Pass', " +
+                           "            description: 'Complex data can be imported in several passes', " +
+                           "            minimum: 1, " +
+                           "            initial_value: 1 " +
+                           "          }" +
+                           "        }," +
+                           "        seq: {" +
+                           "          $m: {" +
+                           "            type: 'int'," +
+                           "            label: 'Sequence'," +
+                           "            required: true" +
+                           "          }" +
+                           "        }" +
+                           "      }," +
+                           "      columnsOrder: ['_id', 'import_id', 'function_id', 'seq']" +
+                           "    }" +
+                           "  }" +
+                           "}, " +
+                           "_id uuid not null, " +
+                           "_version long not null default 0, " +
+                           "_can_delete bool not null default true, " +
+                           "_can_edit bool not null default true, " +
+                           "_last_user_update string, " +
+                           "_last_update_time datetime, " +
 
-                         "name string not null {" +
-                         "   section: 'Import definition', " +
-                         "   mask: 'Aiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii' " +
-                         "}," +
-                         "display_name string not null {" +
-                         "   section: 'Import definition'" +
-                         "}," +
-                         "description string {" +
-                         "   section: 'Import definition'," +
-                         "   lines: 5" +
-                         "}, " +
-                         "target_table string {" +
-                         "   section: 'Import definition', " +
-                         "   can_insert: false, " +
-                         "   can_edit: false, " +
-                         "   can_remove: false, " +
-                         "   link_table: '_core.relations', " +
-                         "   link_table_code_value: 'name', " +
-                         "   link_table_code_label: 'display_name?name', " +
-                         "   filter_by: 'name=''_platform.lookup.Lookup'' or leftstr(name, 1) != ''_''', " +
-                         "   value_label: joinlabel(target_table, 'name', 'display_name', '_core.relations')" +
-                         "}," +
-                         "start_of_columns text {" +
-                         "   section: 'Import definition'," +
-                         "   description: 'Comma-separated start positions of each column for fixed-length text files (first character at 0)', " +
-                         "   lines: 5" +
-                         "}, " +
-                         "column_separator char default ',' {" +
-                         "   section: 'Import definition'," +
-                         "   initial_value: ',', " +
-                         "   description: 'Character separating columns, default is comma', " +
-                         "   max_length: 1" +
-                         "}, " +
-                         "header_lines int not null default 1 {" +
-                         "   section: 'Import definition'," +
-                         "   initial_value: 1" +
-                         "}, " +
-                         "footer_lines int default 0 {" +
-                         "   section: 'Import definition'," +
-                         "   initial_value: 0" +
-                         "}, " +
-                         "skip_blank_lines bool default false {" +
-                         "   description: 'Skip or stop on blank lines', " +
-                         "   section: 'Import definition'," +
-                         "   initial_value: false" +
-                         "}, " +
-                         "load_all_sheets bool default false {" +
-                         "   description: 'Import from all sheets or only first sheet (default) for Excel files', " +
-                         "   section: 'Import definition'," +
-                         "   initial_value: false" +
-                         "}, " +
+                           "name string not null {" +
+                           "   section: 'Import definition', " +
+                           "   mask: 'Aiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii' " +
+                           "}," +
+                           "display_name string not null {" +
+                           "   section: 'Import definition'" +
+                           "}," +
+                           "description string {" +
+                           "   section: 'Import definition'," +
+                           "   lines: 5" +
+                           "}, " +
+                           "target_table string {" +
+                           "   section: 'Import definition', " +
+                           "   can_insert: false, " +
+                           "   can_edit: false, " +
+                           "   can_remove: false, " +
+                           "   link_table: '_core.relations', " +
+                           "   link_table_code_value: 'name', " +
+                           "   link_table_code_label: 'display_name?name', " +
+                           "   filter_by: 'name=''_platform.lookup.Lookup'' or leftstr(name, 1) != ''_''', " +
+                           "   value_label: joinlabel(target_table, 'name', 'display_name', '_core.relations')" +
+                           "}," +
+                           "start_of_columns text {" +
+                           "   section: 'Import definition'," +
+                           "   description: 'Comma-separated start positions of each column for fixed-length text files (first character at 0)', " +
+                           "   lines: 5" +
+                           "}, " +
+                           "column_separator char default ',' {" +
+                           "   section: 'Import definition'," +
+                           "   initial_value: ',', " +
+                           "   description: 'Character separating columns, default is comma', " +
+                           "   max_length: 1" +
+                           "}, " +
+                           "header_lines int not null default 1 {" +
+                           "   section: 'Import definition'," +
+                           "   initial_value: 1" +
+                           "}, " +
+                           "footer_lines int default 0 {" +
+                           "   section: 'Import definition'," +
+                           "   initial_value: 0" +
+                           "}, " +
+                           "skip_blank_lines bool default false {" +
+                           "   description: 'Skip or stop on blank lines', " +
+                           "   section: 'Import definition'," +
+                           "   initial_value: false" +
+                           "}, " +
+                           "load_all_sheets bool default false {" +
+                           "   description: 'Import from all sheets or only first sheet (default) for Excel files', " +
+                           "   section: 'Import definition'," +
+                           "   initial_value: false" +
+                           "}, " +
 
-                         "primary key(_id)," +
-                         "unique(name)," +
-                         "foreign key(target_table) references _core.relations(name))"));
+                           "primary key(_id)," +
+                           "unique(name)," +
+                           "foreign key(target_table) references _core.relations(name))"));
 
         c.exec(p.parse("create table _platform.import.ImportField drop undefined(" +
-                         "{" +
-                         "  name: 'Import field'," +
-                         "  description: 'An imported field from a source file or derived from such'," +
-                         "  sequence_column: 'seq', " +
-                         "  children: {" +
-                         "    attributes: {" +
-                         "      $m: {" +
-                         "        type: '_platform.import.ImportFieldAttribute', " +
-                         "        parent_link_column: 'import_field_id', " +
-                         "        label: 'Attributes'" +
-                         "      }," +
-                         "      columns: {" +
-                         "        _id: {" +
-                         "          $m: {" +
-                         "            type: 'uuid', " +
-                         "            show: false" +
-                         "          }" +
-                         "        }," +
-                         "        import_field_id: {" +
-                         "          $m: {" +
-                         "            type: 'uuid', " +
-                         "            show: false" +
-                         "          }" +
-                         "        }," +
-                         "        attribute: {" +
-                         "          $m: {" +
-                         "            type: 'string', " +
-                         "            label: 'Attribute'," +
-                         "            mask: 'Iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii'," +
-                         "            required: true, " +
-                         "            link_table: '_field_attribute'," +
-                         "            value_label: '${lookuplabel(this.row.attribute.$v, \"_field_attribute\")}'" +
-                         "          }" +
-                         "        }," +
-                         "        value: {" +
-                         "          $m: {" +
-                         "            type: 'string'," +
-                         "            label: 'Value'," +
-                         "            required: true" +
-                         "          }" +
-                         "        }" +
-                         "      }," +
-                         "      columnsOrder: ['_id', 'import_field_id', 'attribute', 'value']" +
-                         "    }" +
-                         "  }" +
-                         "}, " +
-                         "_id uuid not null, " +
-                         "_version long not null default 0, " +
-                         "_can_delete bool not null default true, " +
-                         "_can_edit bool not null default true, " +
-                         "_last_user_update string, " +
-                         "_last_update_time datetime, " +
+                           "{" +
+                           "  name: 'Import field'," +
+                           "  description: 'An imported field from a source file or derived from such'," +
+                           "  sequence_column: 'seq', " +
+                           "  children: {" +
+                           "    attributes: {" +
+                           "      $m: {" +
+                           "        type: '_platform.import.ImportFieldAttribute', " +
+                           "        parent_link_column: 'import_field_id', " +
+                           "        label: 'Attributes'" +
+                           "      }," +
+                           "      columns: {" +
+                           "        _id: {" +
+                           "          $m: {" +
+                           "            type: 'uuid', " +
+                           "            show: false" +
+                           "          }" +
+                           "        }," +
+                           "        import_field_id: {" +
+                           "          $m: {" +
+                           "            type: 'uuid', " +
+                           "            show: false" +
+                           "          }" +
+                           "        }," +
+                           "        attribute: {" +
+                           "          $m: {" +
+                           "            type: 'string', " +
+                           "            label: 'Attribute'," +
+                           "            mask: 'Iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii'," +
+                           "            required: true, " +
+                           "            link_table: '_field_attribute'," +
+                           "            value_label: '${lookuplabel(this.row.attribute.$v, \"_field_attribute\")}'" +
+                           "          }" +
+                           "        }," +
+                           "        value: {" +
+                           "          $m: {" +
+                           "            type: 'string'," +
+                           "            label: 'Value'," +
+                           "            required: true" +
+                           "          }" +
+                           "        }" +
+                           "      }," +
+                           "      columnsOrder: ['_id', 'import_field_id', 'attribute', 'value']" +
+                           "    }" +
+                           "  }" +
+                           "}, " +
+                           "_id uuid not null, " +
+                           "_version long not null default 0, " +
+                           "_can_delete bool not null default true, " +
+                           "_can_edit bool not null default true, " +
+                           "_last_user_update string, " +
+                           "_last_update_time datetime, " +
 
-                         "import_id uuid not null {" +
-                         "   show: false" +
-                         "}," +
-                         "name string not null {" +
-                         "   mask: 'Iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii' " +
-                         "}," +
-                         "type string not null {" +
-                         "   link_table: `_basetype, " +
-                         "   value_label: lookuplabel(type, `_basetype)" +
-                         "}," +
-                         "column_index int not null {" +
-                         "   description: 'The index of the column in the source file to import into this field'" +
-                         "}," +
-                         "default_value text," +
-                         "seq int default 1," +
+                           "import_id uuid not null {" +
+                           "   show: false" +
+                           "}," +
+                           "name string not null {" +
+                           "   mask: 'Iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii' " +
+                           "}," +
+                           "type string not null {" +
+                           "   link_table: `_basetype, " +
+                           "   value_label: lookuplabel(type, `_basetype)" +
+                           "}," +
+                           "column_index int not null {" +
+                           "   description: 'The index of the column in the source file to import into this field'" +
+                           "}," +
+                           "default_value text," +
+                           "seq int default 1," +
 
-                         "primary key(_id)," +
-                         "unique(import_id, name)," +
-                         "foreign key(import_id) references _platform.import.Import(_id) on update cascade on delete cascade)"));
+                           "primary key(_id)," +
+                           "unique(import_id, name)," +
+                           "foreign key(import_id) references _platform.import.Import(_id) on update cascade on delete cascade)"));
 
         // create table for holding additional type information on fields
         c.exec(p.parse("create table _platform.import.ImportFieldAttribute drop undefined(" +
-                         "{" +
-                         "  name: 'Import field attribute'," +
-                         "  description: 'Attributes of imported fields constrain their values'," +
-                         "  sequence_column: 'seq'" +
-                         "}, " +
-                         "_id uuid not null, " +
-                         "_version long not null default 0, " +
-                         "_can_delete bool not null default true, " +
-                         "_can_edit bool not null default true, " +
-                         "_last_user_update string, " +
-                         "_last_update_time datetime, " +
+                           "{" +
+                           "  name: 'Import field attribute'," +
+                           "  description: 'Attributes of imported fields constrain their values'," +
+                           "  sequence_column: 'seq'" +
+                           "}, " +
+                           "_id uuid not null, " +
+                           "_version long not null default 0, " +
+                           "_can_delete bool not null default true, " +
+                           "_can_edit bool not null default true, " +
+                           "_last_user_update string, " +
+                           "_last_update_time datetime, " +
 
-                         "import_field_id uuid not null {" +
-                         "   show: false" +
-                         "}, " +
-                         "attribute string not null { " +
-                         "   mask: 'Iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii'," +
-                         "   link_table: `_field_attribute, " +
-                         "   value_label: lookuplabel(attribute, `_field_attribute)" +
-                         "}," +
-                         "value text, " +
+                           "import_field_id uuid not null {" +
+                           "   show: false" +
+                           "}, " +
+                           "attribute string not null { " +
+                           "   mask: 'Iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii'," +
+                           "   link_table: `_field_attribute, " +
+                           "   value_label: lookuplabel(attribute, `_field_attribute)" +
+                           "}," +
+                           "value text, " +
 
-                         "primary key(_id), " +
-                         "unique(import_field_id, attribute), " +
-                         "foreign key(import_field_id) references _platform.import.ImportField(_id) on delete cascade on update cascade)"));
+                           "primary key(_id), " +
+                           "unique(import_field_id, attribute), " +
+                           "foreign key(import_field_id) references _platform.import.ImportField(_id) on delete cascade on update cascade)"));
 
         c.exec(p.parse("create table _platform.import.File drop undefined(" +
-                         "{" +
-                         "   name: 'Import file', " +
-                         "   description: 'Information on a specific file imported in the system'" +
-                         "}, " +
-                         "_id uuid not null, " +
-                         "_version long not null default 0, " +
-                         "_can_delete bool not null default true, " +
-                         "_can_edit bool not null default true, " +
-                         "_last_user_update string, " +
-                         "_last_update_time datetime, " +
+                           "{" +
+                           "   name: 'Import file', " +
+                           "   description: 'Information on a specific file imported in the system'" +
+                           "}, " +
+                           "_id uuid not null, " +
+                           "_version long not null default 0, " +
+                           "_can_delete bool not null default true, " +
+                           "_can_edit bool not null default true, " +
+                           "_last_user_update string, " +
+                           "_last_update_time datetime, " +
 
-                         "import_id uuid not null," +
-                         "received_on datetime not null," +
-                         "description string {" +
-                         "   lines: 5" +
-                         "}, " +
-                         "error text, " +
-                         "records_have_errors bool default false, " +
-                         "client_file_name string," +
-                         "user_data text, " +
+                           "import_id uuid not null," +
+                           "received_on datetime not null," +
+                           "description string {" +
+                           "   lines: 5" +
+                           "}, " +
+                           "error text, " +
+                           "records_have_errors bool default false, " +
+                           "client_file_name string," +
+                           "user_data text, " +
 
-                         "primary key(_id)," +
-                         "foreign key(import_id) references _platform.import.Import(_id) on update cascade on delete cascade)"));
+                           "primary key(_id)," +
+                           "foreign key(import_id) references _platform.import.Import(_id) on update cascade on delete cascade)"));
 
         c.exec(p.parse("create table _platform.import.Function drop undefined(" +
-                         "{" +
-                         "   name: 'Import function', " +
-                         "   description: 'Import functions transforms imported data prior to saving into the database'" +
-                         "}, " +
-                         "_id uuid not null, " +
-                         "_version long not null default 0, " +
-                         "_can_delete bool not null default true {" +
-                         "    initial_value: true" +
-                         "}, " +
-                         "_can_edit bool not null default true {" +
-                         "    initial_value: true" +
-                         "}, " +
-                         "_last_user_update string, " +
-                         "_last_update_time datetime, " +
+                           "{" +
+                           "   name: 'Import function', " +
+                           "   description: 'Import functions transforms imported data prior to saving into the database'" +
+                           "}, " +
+                           "_id uuid not null, " +
+                           "_version long not null default 0, " +
+                           "_can_delete bool not null default true {" +
+                           "    initial_value: true" +
+                           "}, " +
+                           "_can_edit bool not null default true {" +
+                           "    initial_value: true" +
+                           "}, " +
+                           "_last_user_update string, " +
+                           "_last_update_time datetime, " +
 
-                         "name string not null {" +
-                         "   span: 12, " +
-                         "   mask: 'Iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii', " +
-                         "   description: 'Start with a letter or underscore, follow by letters, digits or underscore' " +
-                         "}, " +
+                           "name string not null {" +
+                           "   span: 12, " +
+                           "   mask: 'Iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii', " +
+                           "   description: 'Start with a letter or underscore, follow by letters, digits or underscore' " +
+                           "}, " +
 
-                         "iterative bool not null default true {" +
-                         "   span: 12, " +
-                         "   description: 'An iterative function (default) will be executed on each row, " +
-                         "while a non-iterative one will be executed once on all rows'" +
-                         "}, " +
+                           "iterative bool not null default true {" +
+                           "   span: 12, " +
+                           "   description: 'An iterative function (default) will be executed on each row, " +
+                           "while a non-iterative one will be executed once on all rows'" +
+                           "}, " +
 
-                         "func text not null {" +
-                         "   label: 'Function', " +
-                         "   browse: false, " +
-                         "   span: 24, " +
-                         "   lines: 20," +
-                         "   code_language:'javascript' " +
-                         "}, " +
+                           "func text not null {" +
+                           "   label: 'Function', " +
+                           "   browse: false, " +
+                           "   span: 24, " +
+                           "   lines: 20," +
+                           "   code_language:'javascript' " +
+                           "}, " +
 
-                         "primary key(_id)," +
-                         "unique(name))"));
+                           "primary key(_id)," +
+                           "unique(name))"));
 
         c.exec(p.parse("create table _platform.import.ProcessFunction drop undefined(" +
-                         "{" +
-                         "  name: 'Process function'," +
-                         "  description: 'Associates import functions to a specific import as part its processing'," +
-                         "  sequence_column: 'seq', " +
-                         "  children: {" +
-                         "    parameters: {" +
-                         "      $m: {" +
-                         "        type: '_platform.import.ProcessFunctionParameter', " +
-                         "        parent_link_column: 'process_function_id', " +
-                         "        label: 'Parameters'" +
-                         "      }," +
-                         "      columns: {" +
-                         "        _id: {" +
-                         "          $m: {" +
-                         "            type: 'uuid', " +
-                         "            show: false" +
-                         "          }" +
-                         "        }," +
-                         "        process_function_id: {" +
-                         "          $m: {" +
-                         "            type: 'uuid', " +
-                         "            show: false" +
-                         "          }" +
-                         "        }," +
-                         "        name: {" +
-                         "          $m: {" +
-                         "            type: 'string', " +
-                         "            label: 'Name'," +
-                         "            mask: 'Iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii'," +
-                         "            required: true" +
-                         "          }" +
-                         "        }," +
-                         "        value1: {" +
-                         "          $m: {" +
-                         "            type: 'text'," +
-                         "            label: 'Value 1'" +
-                         "          }" +
-                         "        }," +
-                         "        value2: {" +
-                         "          $m: {" +
-                         "            type: 'text', " +
-                         "            label: 'Value 2'" +
-                         "          }" +
-                         "        }," +
-                         "        value3: {" +
-                         "          $m: {" +
-                         "            type: 'text', " +
-                         "            label: 'Value 3'" +
-                         "          }" +
-                         "        }" +
-                         "      }," +
-                         "      columnsOrder: ['_id', 'process_function_id', 'name', 'value1', 'value2', 'value3']" +
-                         "    }" +
-                         "  }" +
-                         "}, " +
-                         "_id uuid not null, " +
-                         "_version long not null default 0, " +
-                         "_can_delete bool not null default true {" +
-                         "    initial_value: true" +
-                         "}, " +
-                         "_can_edit bool not null default true {" +
-                         "    initial_value: true" +
-                         "}, " +
-                         "_last_user_update string, " +
-                         "_last_update_time datetime, " +
+                           "{" +
+                           "  name: 'Process function'," +
+                           "  description: 'Associates import functions to a specific import as part its processing'," +
+                           "  sequence_column: 'seq', " +
+                           "  children: {" +
+                           "    parameters: {" +
+                           "      $m: {" +
+                           "        type: '_platform.import.ProcessFunctionParameter', " +
+                           "        parent_link_column: 'process_function_id', " +
+                           "        label: 'Parameters'" +
+                           "      }," +
+                           "      columns: {" +
+                           "        _id: {" +
+                           "          $m: {" +
+                           "            type: 'uuid', " +
+                           "            show: false" +
+                           "          }" +
+                           "        }," +
+                           "        process_function_id: {" +
+                           "          $m: {" +
+                           "            type: 'uuid', " +
+                           "            show: false" +
+                           "          }" +
+                           "        }," +
+                           "        name: {" +
+                           "          $m: {" +
+                           "            type: 'string', " +
+                           "            label: 'Name'," +
+                           "            mask: 'Iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii'," +
+                           "            required: true" +
+                           "          }" +
+                           "        }," +
+                           "        value1: {" +
+                           "          $m: {" +
+                           "            type: 'text'," +
+                           "            label: 'Value 1'" +
+                           "          }" +
+                           "        }," +
+                           "        value2: {" +
+                           "          $m: {" +
+                           "            type: 'text', " +
+                           "            label: 'Value 2'" +
+                           "          }" +
+                           "        }," +
+                           "        value3: {" +
+                           "          $m: {" +
+                           "            type: 'text', " +
+                           "            label: 'Value 3'" +
+                           "          }" +
+                           "        }" +
+                           "      }," +
+                           "      columnsOrder: ['_id', 'process_function_id', 'name', 'value1', 'value2', 'value3']" +
+                           "    }" +
+                           "  }" +
+                           "}, " +
+                           "_id uuid not null, " +
+                           "_version long not null default 0, " +
+                           "_can_delete bool not null default true {" +
+                           "    initial_value: true" +
+                           "}, " +
+                           "_can_edit bool not null default true {" +
+                           "    initial_value: true" +
+                           "}, " +
+                           "_last_user_update string, " +
+                           "_last_update_time datetime, " +
 
-                         "import_id uuid not null {" +
-                         "   show: false" +
-                         "}, " +
-                         "description string {" +
-                         "   description: 'A description of this process step'" +
-                         "}, " +
-                         "function_id uuid not null {" +
-                         "   link_table: '_platform.import.Function'," +
-                         "   link_table_code_label: 'name'," +
-                         "   link_table_code_value: '_id'," +
-                         "   value_label: joinlabel(function_id, '_id', 'name', '_platform.import.Function')" +
-                         "}, " +
-                         "condition text {" +
-                         "   description: 'Process step is only executed if this condition is true', " +
-                         "   browse: false, " +
-                         "   span: 24, " +
-                         "   lines: 10," +
-                         "   code_language:'javascript' " +
-                         "}," +
-                         "pass int not null default 1 {" +
-                         "   description: 'Complex data are imported in several passes', " +
-                         "   minimum: 1, " +
-                         "   initial_value: 1 " +
-                         "}," +
-                         "seq int not null default 1 {" +
-                         "   description: 'Execution order of function, in the pass' " +
-                         "}, " +
+                           "import_id uuid not null {" +
+                           "   show: false" +
+                           "}, " +
+                           "description string {" +
+                           "   description: 'A description of this process step'" +
+                           "}, " +
+                           "function_id uuid not null {" +
+                           "   link_table: '_platform.import.Function'," +
+                           "   link_table_code_label: 'name'," +
+                           "   link_table_code_value: '_id'," +
+                           "   value_label: joinlabel(function_id, '_id', 'name', '_platform.import.Function')" +
+                           "}, " +
+                           "condition text {" +
+                           "   description: 'Process step is only executed if this condition is true', " +
+                           "   browse: false, " +
+                           "   span: 24, " +
+                           "   lines: 10," +
+                           "   code_language:'javascript' " +
+                           "}," +
+                           "pass int not null default 1 {" +
+                           "   description: 'Complex data are imported in several passes', " +
+                           "   minimum: 1, " +
+                           "   initial_value: 1 " +
+                           "}," +
+                           "seq int not null default 1 {" +
+                           "   description: 'Execution order of function, in the pass' " +
+                           "}, " +
 //                    "seq int not null default 1 {" +
 //                    "   sequencer: true, " +
 //                    "   description: 'Execution order of function, in the pass' " +
 //                    "}, " +
 
-                         "primary key(_id)," +
-                         "foreign key(import_id) references _platform.import.Import(_id) on update cascade on delete cascade," +
-                         "foreign key(function_id) references _platform.import.Function(_id) on update cascade on delete cascade)"));
+                           "primary key(_id)," +
+                           "foreign key(import_id) references _platform.import.Import(_id) on update cascade on delete cascade," +
+                           "foreign key(function_id) references _platform.import.Function(_id) on update cascade on delete cascade)"));
 
         c.exec(p.parse("create table _platform.import.ProcessFunctionParameter drop undefined(" +
-                         "{" +
-                         "   name: 'Process function parameter', " +
-                         "   description: 'Parameter values for functions used in the processing of data for a specific import'" +
-                         "}, " +
-                         "_id uuid not null, " +
-                         "_version long not null default 0, " +
-                         "_can_delete bool not null default true {" +
-                         "    initial_value: true" +
-                         "}, " +
-                         "_can_edit bool not null default true {" +
-                         "    initial_value: true" +
-                         "}, " +
-                         "_last_user_update string, " +
-                         "_last_update_time datetime, " +
+                           "{" +
+                           "   name: 'Process function parameter', " +
+                           "   description: 'Parameter values for functions used in the processing of data for a specific import'" +
+                           "}, " +
+                           "_id uuid not null, " +
+                           "_version long not null default 0, " +
+                           "_can_delete bool not null default true {" +
+                           "    initial_value: true" +
+                           "}, " +
+                           "_can_edit bool not null default true {" +
+                           "    initial_value: true" +
+                           "}, " +
+                           "_last_user_update string, " +
+                           "_last_update_time datetime, " +
 
-                         "process_function_id uuid not null, " +
-                         "name string not null {" +
-                         "    mask: 'Iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii'" +
-                         "}, " +
+                           "process_function_id uuid not null, " +
+                           "name string not null {" +
+                           "    mask: 'Iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii'" +
+                           "}, " +
 
-                         "value1 text, " +
-                         "value2 text, " +
-                         "value3 text, " +
+                           "value1 text, " +
+                           "value2 text, " +
+                           "value3 text, " +
 
-                         "primary key(_id)," +
-                         "foreign key(process_function_id) references _platform.import.ProcessFunction(_id) on update cascade on delete cascade)"));
+                           "primary key(_id)," +
+                           "foreign key(process_function_id) references _platform.import.ProcessFunction(_id) on update cascade on delete cascade)"));
 
         c.exec(p.parse("create table _platform.import.TargetField drop undefined(" +
-                         "{" +
-                         "   name: 'Import target field', " +
-                         "   description: 'Import information such as precedence rules list on fields of target tables', " +
-                         "   children: {" +
-                         "     precedence: {" +
-                         "       $m: {" +
-                         "         type: '_platform.import.PrecedenceList', " +
-                         "         parent_link_column: 'target_field_id', " +
-                         "         sequence_column: 'seq', " +
-                         "         label: 'Precedence'" +
-                         "       }," +
-                         "       columns: {" +
-                         "         _id: {" +
-                         "           $m: {" +
-                         "             type: 'uuid', " +
-                         "             show: false" +
-                         "           }" +
-                         "         }," +
-                         "         target_field_id: {" +
-                         "           $m: {" +
-                         "             type: 'uuid', " +
-                         "             show: false" +
-                         "           }" +
-                         "         }," +
-                         "         import_id: {" +
-                         "           $m: {" +
-                         "             type: 'uuid', " +
-                         "             label: 'Import'," +
-                         "             can_insert: false," +
-                         "             can_remove: false," +
-                         "             can_edit: false," +
-                         "             required: true, " +
-                         "             link_table: '_platform.import.Import'," +
-                         "             link_table_code_label: 'display_name?name'," +
-                         "             link_table_code_value: '_id'" +
-                         "           }" +
-                         "         }," +
-                         "         seq: {" +
-                         "           $m: {" +
-                         "             type: 'int', " +
-                         "             label: 'Sequence' " +
-                         "           }" +
-                         "         } " +
-                         "       }," +
-                         "       columnsOrder: ['_id', 'target_field_id', 'import_id', 'seq']" +
-                         "     }" +
-                         "  }" +
-                         "}, " +
-                         "_id uuid not null, " +
-                         "_version long not null default 0, " +
-                         "_can_delete bool not null default true {" +
-                         "    initial_value: true" +
-                         "}, " +
-                         "_can_edit bool not null default true {" +
-                         "    initial_value: true" +
-                         "}, " +
-                         "_last_user_update string, " +
-                         "_last_update_time datetime, " +
+                           "{" +
+                           "   name: 'Import target field', " +
+                           "   description: 'Import information such as precedence rules list on fields of target tables', " +
+                           "   children: {" +
+                           "     precedence: {" +
+                           "       $m: {" +
+                           "         type: '_platform.import.PrecedenceList', " +
+                           "         parent_link_column: 'target_field_id', " +
+                           "         sequence_column: 'seq', " +
+                           "         label: 'Precedence'" +
+                           "       }," +
+                           "       columns: {" +
+                           "         _id: {" +
+                           "           $m: {" +
+                           "             type: 'uuid', " +
+                           "             show: false" +
+                           "           }" +
+                           "         }," +
+                           "         target_field_id: {" +
+                           "           $m: {" +
+                           "             type: 'uuid', " +
+                           "             show: false" +
+                           "           }" +
+                           "         }," +
+                           "         import_id: {" +
+                           "           $m: {" +
+                           "             type: 'uuid', " +
+                           "             label: 'Import'," +
+                           "             can_insert: false," +
+                           "             can_remove: false," +
+                           "             can_edit: false," +
+                           "             required: true, " +
+                           "             link_table: '_platform.import.Import'," +
+                           "             link_table_code_label: 'display_name?name'," +
+                           "             link_table_code_value: '_id'" +
+                           "           }" +
+                           "         }," +
+                           "         seq: {" +
+                           "           $m: {" +
+                           "             type: 'int', " +
+                           "             label: 'Sequence' " +
+                           "           }" +
+                           "         } " +
+                           "       }," +
+                           "       columnsOrder: ['_id', 'target_field_id', 'import_id', 'seq']" +
+                           "     }" +
+                           "  }" +
+                           "}, " +
+                           "_id uuid not null, " +
+                           "_version long not null default 0, " +
+                           "_can_delete bool not null default true {" +
+                           "    initial_value: true" +
+                           "}, " +
+                           "_can_edit bool not null default true {" +
+                           "    initial_value: true" +
+                           "}, " +
+                           "_last_user_update string, " +
+                           "_last_update_time datetime, " +
 
 //          "target_table string not null {" +
 //          "   can_insert: false, " +
@@ -2901,163 +2910,163 @@ public abstract class AbstractDatabase implements Database {
 //          "   value_label: joinlabel(target_table, 'name', 'display_name', '_core.relations')" +
 //          "}, " +
 
-                         "field_id uuid not null {" +
-                         "   span: 24, " +
-                         "   adaptive: true," +
-                         "   can_insert: false," +
-                         "   can_remove: false," +
-                         "   can_edit: false," +
-                         "   link_table: '_core.columns'," +
-                         "   link_table_code_value: `_id, " +
-                         "   link_table_code_label: 'joinlabel(`relation_id, `_id, `display_name, `_core.relations) || '' / '' || name', " +
-                         "   filter_by: 'leftstr(name, 1) != ''_''', " +
-                         "   value_label: joinlabel(`field_id, `_id, `name, `_core.columns, " +
-                         "                                  `relation_id, `_id, `display_name, `_core.relations)" +
-                         "}, " +
+                           "field_id uuid not null {" +
+                           "   span: 24, " +
+                           "   adaptive: true," +
+                           "   can_insert: false," +
+                           "   can_remove: false," +
+                           "   can_edit: false," +
+                           "   link_table: '_core.columns'," +
+                           "   link_table_code_value: `_id, " +
+                           "   link_table_code_label: 'joinlabel(`relation_id, `_id, `display_name, `_core.relations) || '' / '' || name', " +
+                           "   filter_by: 'leftstr(name, 1) != ''_''', " +
+                           "   value_label: joinlabel(`field_id, `_id, `name, `_core.columns, " +
+                           "                                  `relation_id, `_id, `display_name, `_core.relations)" +
+                           "}, " +
 
-                         "primary key(_id)," +
-                         "unique(field_id), " +
-                         "foreign key(field_id) references _core.columns(_id) on update cascade on delete cascade)"));
+                           "primary key(_id)," +
+                           "unique(field_id), " +
+                           "foreign key(field_id) references _core.columns(_id) on update cascade on delete cascade)"));
 
         c.exec(p.parse("create table _platform.import.PrecedenceList drop undefined(" +
-                         "{" +
-                         "   name: 'Import precedence', " +
-                         "   description: 'The list of imports in order of precedence for updating fields'" +
-                         "}, " +
-                         "_id uuid not null, " +
-                         "_version long not null default 0, " +
-                         "_can_delete bool not null default true {" +
-                         "    initial_value: true" +
-                         "}, " +
-                         "_can_edit bool not null default true {" +
-                         "    initial_value: true" +
-                         "}, " +
-                         "_last_user_update string, " +
-                         "_last_update_time datetime, " +
+                           "{" +
+                           "   name: 'Import precedence', " +
+                           "   description: 'The list of imports in order of precedence for updating fields'" +
+                           "}, " +
+                           "_id uuid not null, " +
+                           "_version long not null default 0, " +
+                           "_can_delete bool not null default true {" +
+                           "    initial_value: true" +
+                           "}, " +
+                           "_can_edit bool not null default true {" +
+                           "    initial_value: true" +
+                           "}, " +
+                           "_last_user_update string, " +
+                           "_last_update_time datetime, " +
 
-                         "target_field_id uuid not null, " +
-                         "import_id uuid not null {" +
-                         "   link_table: '_platform.import.Import'," +
-                         "   link_table_code_label: 'display_name?name'," +
-                         "   link_table_code_value: '_id'," +
-                         "   can_insert: false," +
-                         "   can_remove: false," +
-                         "   can_edit: false," +
-                         "   value_label: joinlabel(import_id, '_id', 'display_name', '_platform.import.Import')" +
-                         "}, " +
-                         "seq int not null default 0," +
+                           "target_field_id uuid not null, " +
+                           "import_id uuid not null {" +
+                           "   link_table: '_platform.import.Import'," +
+                           "   link_table_code_label: 'display_name?name'," +
+                           "   link_table_code_value: '_id'," +
+                           "   can_insert: false," +
+                           "   can_remove: false," +
+                           "   can_edit: false," +
+                           "   value_label: joinlabel(import_id, '_id', 'display_name', '_platform.import.Import')" +
+                           "}, " +
+                           "seq int not null default 0," +
 
-                         "primary key(_id)," +
-                         "foreign key(target_field_id) references _platform.import.TargetField(_id) on update cascade on delete cascade, " +
-                         "foreign key(import_id) references _platform.import.Import(_id) on update cascade on delete cascade)"));
+                           "primary key(_id)," +
+                           "foreign key(target_field_id) references _platform.import.TargetField(_id) on update cascade on delete cascade, " +
+                           "foreign key(import_id) references _platform.import.Import(_id) on update cascade on delete cascade)"));
 
 
         // Stratified sampling
         ///////////////////////////////
 
         c.exec(p.parse("create table _platform.sampling.Stratified drop undefined(" +
-                         "{" +
-                         "  name: 'Stratified sampling', " +
-                         "  description: 'Stratified sampling definition', " +
-                         "  children: {" +
-                         "    dimensions: {" +
-                         "      $m: {" +
-                         "        type: '_platform.sampling.StratifiedDimension', " +
-                         "        parent_link_column: 'stratified_id', " +
-                         "        sequence_column: 'seq', " +
+                           "{" +
+                           "  name: 'Stratified sampling', " +
+                           "  description: 'Stratified sampling definition', " +
+                           "  children: {" +
+                           "    dimensions: {" +
+                           "      $m: {" +
+                           "        type: '_platform.sampling.StratifiedDimension', " +
+                           "        parent_link_column: 'stratified_id', " +
+                           "        sequence_column: 'seq', " +
 //                    "        inline: false, " +
-                         "        label: 'Dimension' " +
-                         "      }," +
-                         "      columns: {" +
-                         "        _id: {" +
-                         "          $m: {" +
-                         "            type: 'uuid'," +
-                         "            show: false" +
-                         "          }" +
-                         "        }," +
-                         "        expression: {" +
-                         "          $m: {" +
-                         "            type: 'text', " +
-                         "            label: 'Expression', " +
-                         "            required: true" +
-                         "          }" +
-                         "        }, " +
-                         "        seq: {" +
-                         "          $m: {" +
-                         "            type: 'int', " +
-                         "            label: 'Sequence', " +
-                         "            show: false" +
-                         "          }" +
-                         "        } " +
-                         "      }," +
-                         "      columnsOrder: ['_id', 'expression', 'seq']" +
-                         "    }" +
-                         "  }" +
-                         "}," +
+                           "        label: 'Dimension' " +
+                           "      }," +
+                           "      columns: {" +
+                           "        _id: {" +
+                           "          $m: {" +
+                           "            type: 'uuid'," +
+                           "            show: false" +
+                           "          }" +
+                           "        }," +
+                           "        expression: {" +
+                           "          $m: {" +
+                           "            type: 'text', " +
+                           "            label: 'Expression', " +
+                           "            required: true" +
+                           "          }" +
+                           "        }, " +
+                           "        seq: {" +
+                           "          $m: {" +
+                           "            type: 'int', " +
+                           "            label: 'Sequence', " +
+                           "            show: false" +
+                           "          }" +
+                           "        } " +
+                           "      }," +
+                           "      columnsOrder: ['_id', 'expression', 'seq']" +
+                           "    }" +
+                           "  }" +
+                           "}," +
 
-                         "_id uuid not null, " +
-                         "_version long not null default 0, " +
-                         "_can_delete bool not null default true, " +
-                         "_can_edit bool not null default true, " +
-                         "_last_user_update string, " +
-                         "_last_update_time datetime, " +
+                           "_id uuid not null, " +
+                           "_version long not null default 0, " +
+                           "_can_delete bool not null default true, " +
+                           "_can_edit bool not null default true, " +
+                           "_last_user_update string, " +
+                           "_last_update_time datetime, " +
 
-                         "name string not null {" +
-                         "   span: 12, " +
-                         "   validate_unique: true " +
-                         "}, " +
-                         "description text {" +
-                         "   span: 12 " +
-                         "}, " +
-                         "on_table string not null {" +
-                         "   description: 'The table containing the data to be stratified', " +
-                         "   browse: false, " +
-                         "   can_insert: false, " +
-                         "   can_edit: false, " +
-                         "   can_remove: false, " +
-                         "   link_table: `_core.relations, " +
-                         "   link_table_code_value: 'name', " +
-                         "   link_table_code_label: 'display_name', " +
-                         "   filter_by: 'leftstr(name, 1) != ''_''', " +
-                         "   value_label: joinlabel(on_table, `name, `display_name, `_core.relations)" +
-                         "}," +
-                         "weight_expression string not null default 'count(*)' {" +
-                         "   description: 'Expression to use for weighing a group in the population. " +
-                         "E.g. count(*) uses the number of records in the group as its weight (proportional selection) " +
-                         "while sum(revenue) to use the total revenue of the group (disproportional selection).', " +
-                         "   browse: false, " +
-                         "   span: 24, " +
-                         "   required: true, " +
-                         "   initial_Value: 'count(*)'" +
-                         "}," +
+                           "name string not null {" +
+                           "   span: 12, " +
+                           "   validate_unique: true " +
+                           "}, " +
+                           "description text {" +
+                           "   span: 12 " +
+                           "}, " +
+                           "on_table string not null {" +
+                           "   description: 'The table containing the data to be stratified', " +
+                           "   browse: false, " +
+                           "   can_insert: false, " +
+                           "   can_edit: false, " +
+                           "   can_remove: false, " +
+                           "   link_table: `_core.relations, " +
+                           "   link_table_code_value: 'name', " +
+                           "   link_table_code_label: 'display_name', " +
+                           "   filter_by: 'leftstr(name, 1) != ''_''', " +
+                           "   value_label: joinlabel(on_table, `name, `display_name, `_core.relations)" +
+                           "}," +
+                           "weight_expression string not null default 'count(*)' {" +
+                           "   description: 'Expression to use for weighing a group in the population. " +
+                           "E.g. count(*) uses the number of records in the group as its weight (proportional selection) " +
+                           "while sum(revenue) to use the total revenue of the group (disproportional selection).', " +
+                           "   browse: false, " +
+                           "   span: 24, " +
+                           "   required: true, " +
+                           "   initial_Value: 'count(*)'" +
+                           "}," +
 
-                         "unique(name), " +
-                         "primary key(_id))"));
+                           "unique(name), " +
+                           "primary key(_id))"));
 
 
         c.exec(p.parse("create table _platform.sampling.StratifiedDimension drop undefined(" +
-                         "{" +
-                         "  name: 'Stratified sampling dimension'," +
-                         "  description: 'A dimension in a stratified sampling defined as a value to extracted from the database'," +
-                         "  sequence_column: 'seq' " +
-                         "}, " +
-                         "_id uuid not null, " +
-                         "_version long not null default 0, " +
-                         "_can_delete bool not null default true, " +
-                         "_can_edit bool not null default true, " +
-                         "_last_user_update string, " +
-                         "_last_update_time datetime, " +
+                           "{" +
+                           "  name: 'Stratified sampling dimension'," +
+                           "  description: 'A dimension in a stratified sampling defined as a value to extracted from the database'," +
+                           "  sequence_column: 'seq' " +
+                           "}, " +
+                           "_id uuid not null, " +
+                           "_version long not null default 0, " +
+                           "_can_delete bool not null default true, " +
+                           "_can_edit bool not null default true, " +
+                           "_last_user_update string, " +
+                           "_last_update_time datetime, " +
 
-                         "stratified_id uuid not null {" +
-                         "   show: false" +
-                         "}, " +
-                         "expression text not null, " +
-                         "seq int not null default 1 {" +
-                         "   show: false" +
-                         "}, " +
+                           "stratified_id uuid not null {" +
+                           "   show: false" +
+                           "}, " +
+                           "expression text not null, " +
+                           "seq int not null default 1 {" +
+                           "   show: false" +
+                           "}, " +
 
-                         "primary key(_id), " +
-                         "foreign key(stratified_id) references _platform.sampling.Stratified(_id) on delete cascade)"));
+                           "primary key(_id), " +
+                           "foreign key(stratified_id) references _platform.sampling.Stratified(_id) on delete cascade)"));
 
         // filter operations
         try (Result rs = c.exec(p.parse("select _id from _platform.filter.FilterOperation"))) {
@@ -3159,7 +3168,7 @@ public abstract class AbstractDatabase implements Database {
                                       ".map(i => convert.toEsqlLiteral(convert.toType(i.trim(), column.type)))" +
                                       ".join(', '));\n" +
                                       "return (alias ? alias + '.' : '') + expression + ' in (' + items + ')';"
-                              ), 75,
+                                             ), 75,
                               new String[]{"byte", "short", "int", "long", "float", "double",
                                   "money", "char", "string", "text", "date", "time",
                                   "datetime",}),
@@ -3181,7 +3190,7 @@ public abstract class AbstractDatabase implements Database {
                               escapeEsqlQuote(
                                   "const keywords = value.split(/\\W+/).filter(w => w.length > 0);\n" +
                                       "return (alias ? alias + '.' : '') + expression + \" ilike '%\" + keywords.join('%') + \"%'\";"
-                              ),
+                                             ),
 
                               100, new String[]{"string", "text"}),
 
@@ -3196,17 +3205,17 @@ public abstract class AbstractDatabase implements Database {
 
             for (Operation op: operations) {
               c.exec(p.parse("insert into _platform.filter.FilterOperation" +
-                               "(_id, _can_delete, op_code, name, operator, for_all_types, " +
-                               " require_value, value_type, parse_function, seq) values" +
-                               "   (u'" + op.id + "', false, '" + op.opCode + "', '" + op.name + "', '" + op.operator + "', " +
-                               op.forAllTypes + ", " + op.requireValue + ", '" + op.valueType + "', " +
-                               (op.parseFunction == null ? "null" : "'" + op.parseFunction + "'") +
-                               ", " + op.seq + ")"));
+                                 "(_id, _can_delete, op_code, name, operator, for_all_types, " +
+                                 " require_value, value_type, parse_function, seq) values" +
+                                 "   (u'" + op.id + "', false, '" + op.opCode + "', '" + op.name + "', '" + op.operator + "', " +
+                                 op.forAllTypes + ", " + op.requireValue + ", '" + op.valueType + "', " +
+                                 (op.parseFunction == null ? "null" : "'" + op.parseFunction + "'") +
+                                 ", " + op.seq + ")"));
 
               for (String type: op.types) {
                 c.exec(p.parse("insert into _platform.filter.FilterOperationType" +
-                                 "     (_id, _can_delete, filter_operation_id, type) values" +
-                                 "     (newid(), false, '" + op.id + "', '" + type + "')"));
+                                   "     (_id, _can_delete, filter_operation_id, type) values" +
+                                   "     (newid(), false, '" + op.id + "', '" + type + "')"));
               }
             }
           }
@@ -3258,7 +3267,7 @@ public abstract class AbstractDatabase implements Database {
 
             String id = UUID.randomUUID().toString();
             c.exec(p.parse("insert into _platform.lookup.Lookup(_id, _can_delete, name, description) " +
-                             "values(:id, false, :name, :description)"),
+                               "values(:id, false, :name, :description)"),
                    Param.of("id", id),
                    Param.of("name", "_join_type"),
                    Param.of("description", "Internal lookup containing table join types used in filters and reports"));
@@ -3281,7 +3290,7 @@ public abstract class AbstractDatabase implements Database {
 
             UUID id = UUID.randomUUID();
             c.exec(p.parse("insert into _platform.lookup.Lookup(_id, _can_delete, name, description) " +
-                             "values(:id, false, :name, :description)"),
+                               "values(:id, false, :name, :description)"),
                    Param.of("id", id.toString()),
                    Param.of("name", "_group_type"),
                    Param.of("description",
@@ -3302,7 +3311,7 @@ public abstract class AbstractDatabase implements Database {
 
             UUID id = UUID.randomUUID();
             c.exec(p.parse("insert into _platform.lookup.Lookup(_id, _can_delete, name, description) " +
-                             "values(:id, false, :name, :description)"),
+                               "values(:id, false, :name, :description)"),
                    Param.of("id", id.toString()),
                    Param.of("name", "_audit_action"),
                    Param.of("description",
@@ -3327,7 +3336,7 @@ public abstract class AbstractDatabase implements Database {
 
             UUID id = UUID.randomUUID();
             c.exec(p.parse("insert into _platform.lookup.Lookup(_id, _can_delete, name, description) " +
-                             "values(:id, false, :name, :description)"),
+                               "values(:id, false, :name, :description)"),
                    Param.of("id", id.toString()),
                    Param.of("name", "_output_type"),
                    Param.of("description", "Internal lookup defining the output types of reports"));
@@ -3344,7 +3353,7 @@ public abstract class AbstractDatabase implements Database {
           if (!rs.next()) {
             log.log(INFO, "Adding Main category");
             c.exec(p.parse("insert into _platform.util.Category(_id, _can_delete, name) " +
-                             "values(newid(), false, 'Main')"));
+                               "values(newid(), false, 'Main')"));
           }
         }
 
@@ -3420,7 +3429,7 @@ public abstract class AbstractDatabase implements Database {
 
             UUID id = UUID.randomUUID();
             c.exec(p.parse("insert into _platform.lookup.Lookup(_id, _can_delete, name, description) " +
-                             "values(:id, false, :name, :description)"),
+                               "values(:id, false, :name, :description)"),
                    Param.of("id", id.toString()),
                    Param.of("name", "_basetype"),
                    Param.of("description", "Internal lookup containing information on base types"));
@@ -3449,7 +3458,7 @@ public abstract class AbstractDatabase implements Database {
 
             UUID id = UUID.randomUUID();
             c.exec(p.parse("insert into _platform.lookup.Lookup(_id, _can_delete, name, description) " +
-                             "values(:id, false, :name, :description)"),
+                               "values(:id, false, :name, :description)"),
                    Param.of("id", id.toString()),
                    Param.of("name", "_otp_channel"),
                    Param.of("description", "OTP channel lookup"));
@@ -3468,7 +3477,7 @@ public abstract class AbstractDatabase implements Database {
 
             UUID id = UUID.randomUUID();
             c.exec(p.parse("insert into _platform.lookup.Lookup(_id, _can_delete, name, description) " +
-                             "values(:id, false, :name, :description)"),
+                               "values(:id, false, :name, :description)"),
                    Param.of("id", id.toString()),
                    Param.of("name", "_util_month"),
                    Param.of("description", "Month utility lookup"));
@@ -3497,7 +3506,7 @@ public abstract class AbstractDatabase implements Database {
 
             UUID id = UUID.randomUUID();
             c.exec(p.parse("insert into _platform.lookup.Lookup(_id, _can_delete, name, description) " +
-                             "values(:id, false, :name, :description)"),
+                               "values(:id, false, :name, :description)"),
                    Param.of("id", id.toString()),
                    Param.of("name", "_util_yes_no"),
                    Param.of("description", "Yes/No utility lookup"));
@@ -3516,7 +3525,7 @@ public abstract class AbstractDatabase implements Database {
 
             UUID id = UUID.randomUUID();
             c.exec(p.parse("insert into _platform.lookup.Lookup(_id, _can_delete, name, description) " +
-                             "values(:id, false, :name, :description)"),
+                               "values(:id, false, :name, :description)"),
                    Param.of("id", id.toString()),
                    Param.of("name", "_util_year"),
                    Param.of("description", "Year utility lookup"));
@@ -3546,7 +3555,7 @@ public abstract class AbstractDatabase implements Database {
 
             UUID id = UUID.randomUUID();
             c.exec(p.parse("insert into _platform.lookup.Lookup(_id, _can_delete, name, description) " +
-                             "values(:id, false, :name, :description)"),
+                               "values(:id, false, :name, :description)"),
                    Param.of("id", id.toString()),
                    Param.of("name", "_external_product"),
                    Param.of("description", "External products"));
@@ -3565,7 +3574,7 @@ public abstract class AbstractDatabase implements Database {
 
             UUID id = UUID.randomUUID();
             c.exec(p.parse("insert into _platform.lookup.Lookup(_id, _can_delete, name, description) " +
-                             "values(:id, false, :name, :description)"),
+                               "values(:id, false, :name, :description)"),
                    Param.of("id", id.toString()),
                    Param.of("name", "_field_attribute"),
                    Param.of("description", "Internal lookup containing information on default attributes for fields"));
@@ -3629,7 +3638,7 @@ public abstract class AbstractDatabase implements Database {
 
             UUID id = UUID.randomUUID();
             c.exec(p.parse("insert into _platform.lookup.Lookup(_id, _can_delete, name, description) " +
-                             "values(:id, false, :name, :description)"),
+                               "values(:id, false, :name, :description)"),
                    Param.of("id", id.toString()),
                    Param.of("name", "_report_type"),
                    Param.of("description", "Internal lookup of types of report"));
@@ -3638,7 +3647,7 @@ public abstract class AbstractDatabase implements Database {
                 "insert into _platform.lookup.LookupValue(_id, _can_delete, lookup_id, code, lang, label) values" +
                     "(newid(), false, '" + id + "', 'Tabular',  'en', 'Tabular'), " +
                     "(newid(), false, '" + id + "', 'Crosstab', 'en', 'Crosstab')"
-            ));
+                          ));
 //                    c.exec(parse("insert into _platform.lookup.LookupValue(_id, _can_delete, lookup_id, code, lang, label) values" +
 //                            "(newid(), false, '" + id + "', 'Tabular',  'en', 'Tabular'), " +
 //                            "(newid(), false, '" + id + "', 'Crosstab', 'en', 'Crosstab'), " +
@@ -3654,7 +3663,7 @@ public abstract class AbstractDatabase implements Database {
 
             UUID id = UUID.randomUUID();
             c.exec(p.parse("insert into _platform.lookup.Lookup(_id, _can_delete, name, description) " +
-                             "values(:id, false, :name, :description)"),
+                               "values(:id, false, :name, :description)"),
                    Param.of("id", id.toString()),
                    Param.of("name", "_report_field_attribute"),
                    Param.of("description", "Internal lookup containing information on attributes for report fields"));
@@ -3681,7 +3690,7 @@ public abstract class AbstractDatabase implements Database {
                     "(newid(), false, '" + id + "', 'excel_fill',      'en', 'Fill'), " +
 
                     "(newid(), false, '" + id + "', 'dynamic',         'en', 'Dynamic attributes')"
-            ));
+                          ));
           }
         }
       }
@@ -3743,8 +3752,8 @@ public abstract class AbstractDatabase implements Database {
       while (ars.next()) {
         attributes.add(
             new Attribute(context,
-                ars.getString("attribute"),
-                parser.parseExpression(ars.getString("value"))));
+                          ars.getString("attribute"),
+                          parser.parseExpression(ars.getString("value"))));
       }
     }
     return attributes;
@@ -3768,39 +3777,39 @@ public abstract class AbstractDatabase implements Database {
                                      UUID relationId) {
     List<Column> columns = new ArrayList<>();
     try (ResultSet rs = con.createStatement().executeQuery(
-        "select _id, name, relation_id, seq, type, " +
-            "       derived, not_null, expression " +
-            "  from _core.columns " +
-            " where relation_id='" + relationId + "' " +
-            " order by seq");
+        "select \"_id\", \"name\", \"relation_id\", \"seq\", \"type\", " +
+            "       \"derived_column\", \"not_null\", \"expression\" " +
+            "  from \"_core\".\"columns\" " +
+            " where \"relation_id\"='" + relationId + "' " +
+            " order by \"seq\"");
          PreparedStatement attrStmt = con.prepareStatement(
-             "select attribute, value " +
-                 "  from _core.field_attributes " +
-                 " where field_id=?")) {
+             "select \"attribute\", \"value\" " +
+                 "  from \"_core\".\"column_attributes\" " +
+                 " where \"column_id\"=?")) {
 
       Map<String, Column> derived = new HashMap<>();
       Map<String, Column> columnsByName = new HashMap<>();
       while (rs.next()) {
-        UUID fieldId = UUID.fromString(rs.getString("_id"));
+        UUID columnId = UUID.fromString(rs.getString("_id"));
         String columnName = rs.getString("name");
         int columnNumber = rs.getInt("seq");
-        String fieldType = rs.getString("type");
+        String columnType = rs.getString("type");
         boolean notNull = rs.getBoolean("not_null");
         String expression = rs.getString("expression");
         boolean derivedColumn = rs.getBoolean("derived_column");
 
-        // load custom field attributes
+        // load custom column attributes
         Metadata metadata = new Metadata(context, new ArrayList<>());
-        metadata.attribute(TYPE, fieldType);
+        metadata.attribute(TYPE, columnType);
         Expression<?> expr = null;
         if (expression != null) {
           expr = parser.parseExpression(expression);
           metadata.attribute(EXPRESSION, expr);
         }
-        metadata.attribute(ID, fieldId.toString());
+        metadata.attribute(ID, columnId.toString());
         metadata.attribute(REQUIRED, notNull);
         metadata.attribute(SEQUENCE, columnNumber);
-        attrStmt.setString(1, fieldId.toString());
+        attrStmt.setString(1, columnId.toString());
         try (ResultSet ars = attrStmt.executeQuery()) {
           while (ars.next()) {
             metadata.attribute(
@@ -3905,13 +3914,13 @@ public abstract class AbstractDatabase implements Database {
     }
     String sourceCols = rs.getString("source_columns");
     List<String> sourceColumns = sourceCols == null
-                                 ? emptyList()
-                                 : asList(sourceCols.split(","));
+        ? emptyList()
+        : asList(sourceCols.split(","));
 
     String targetCols = rs.getString("target_columns");
     List<String> targetColumns = targetCols == null
-                                 ? emptyList()
-                                 : asList(sourceCols.split(","));
+        ? emptyList()
+        : asList(sourceCols.split(","));
 
     String check = rs.getString("check_expr");
 
@@ -3948,22 +3957,22 @@ public abstract class AbstractDatabase implements Database {
       targetRelation.dependentConstraint((ForeignKeyConstraint)c);
     }
 
-//                        // link referenced field to constraint
-//                        // if the field is dropped, so should the constraint
-//                        if (fields != null && !fields.isEmpty()) {
-//                            for (Field f: fields) {
-//                                f.dependentConstraint(c);
-//                            }
-//                        }
+//    // link referenced field to constraint
+//    // if the field is dropped, so should the constraint
+//    if (fields != null && !fields.isEmpty()) {
+//      for (Field f: fields) {
+//        f.dependentConstraint(c);
+//      }
+//    }
 //
-//                        // link referring table for foreign keys to field;
-//                        // if this field is dropped, so should the referring table.
-//                        //      E.g., r1[a] -> r2[b]: r1 is the dependent relation for field b
-//                        if (targetFields != null && !targetFields.isEmpty()) {
-//                            for (Field f: targetFields) {
-//                                f.dependentForeignKey(relation);
-//                            }
-//                        }
+//    // link referring table for foreign keys to field;
+//    // if this field is dropped, so should the referring table.
+//    //      E.g., r1[a] -> r2[b]: r1 is the dependent relation for field b
+//    if (targetFields != null && !targetFields.isEmpty()) {
+//      for (Field f: targetFields) {
+//        f.dependentForeignKey(relation);
+//      }
+//    }
   }
 
 //    private int[] intArrayFrom(String array) {
@@ -4028,14 +4037,15 @@ public abstract class AbstractDatabase implements Database {
   @Override
   public void table(Connection con, BaseRelation table) {
     if (hasCoreTables(con)) {
-      try {
-        con.createStatement().executeUpdate(
+      Parser p = new Parser(structure());
+      try (EsqlConnection econ = esql(con)) {
+        econ.exec(p.parse(
             "insert into _core.relations(_id, name, display_name, description, type) values(" +
                 "'" + table.id().toString() + "', " +
                 "'" + table.name() + "', " +
                 (table.displayName == null ? table.name() : "'" + escapeSqlString(table.displayName) + "'") + ", " +
                 (table.description == null ? "null" : "'" + escapeSqlString(table.description) + "'") + ", " +
-                "'" + Relation.RelationType.TABLE.marker + "')");
+                "'" + Relation.RelationType.TABLE.marker + "')"));
 
         if (table.attributes() != null) {
           try (PreparedStatement as = con.prepareStatement(INSERT_TABLE_ATTRIBUTE)) {
@@ -4149,20 +4159,20 @@ public abstract class AbstractDatabase implements Database {
       colAdd.setBoolean(7, column.notNull());
 
       String defaultExpr = column.defaultExpression() == null
-                            ? null
-                            : column.defaultExpression().translate(ESQL);
+          ? null
+          : column.defaultExpression().translate(ESQL);
       colAdd.setString(8, defaultExpr);
       colAdd.setObject(9, tableId);
       colAdd.executeUpdate();
 
       addColumnMetadata(column, attrAdd);
-    } catch(SQLException e) {
+    } catch (SQLException e) {
       throw new RuntimeException(e);
     }
   }
 
   private void addColumnMetadata(Connection con, Column column) throws SQLException {
-    try(PreparedStatement attrAdd = con.prepareStatement(INSERT_COLUMN_ATTRIBUTE)) {
+    try (PreparedStatement attrAdd = con.prepareStatement(INSERT_COLUMN_ATTRIBUTE)) {
       addColumnMetadata(column, attrAdd);
     }
   }
@@ -4321,7 +4331,7 @@ public abstract class AbstractDatabase implements Database {
       constraintAdd.setObject(5, null);
 
       // get the column number of each unique field into an integer array
-      PrimaryKeyConstraint primary = (PrimaryKeyConstraint) constraint;
+      PrimaryKeyConstraint primary = (PrimaryKeyConstraint)constraint;
       setArray(constraintAdd, 6, primary.columns().toArray());
       constraintAdd.setObject(7, null);
       constraintAdd.setObject(8, null);
@@ -4341,7 +4351,7 @@ public abstract class AbstractDatabase implements Database {
       constraintAdd.setObject(5, null);
 
       // get the column number of each unique field into a integer array
-      ForeignKeyConstraint foreign = (ForeignKeyConstraint) constraint;
+      ForeignKeyConstraint foreign = (ForeignKeyConstraint)constraint;
       setArray(constraintAdd, 6, foreign.sourceColumns().toArray());
 
       BaseRelation target = s.relation(foreign.targetTable());
@@ -4364,7 +4374,7 @@ public abstract class AbstractDatabase implements Database {
       constraintAdd.setObject(3, tableId);
       constraintAdd.setString(4, String.valueOf(ConstraintDefinition.Type.CHECK.marker));
 
-      CheckConstraint check = (CheckConstraint) constraint;
+      CheckConstraint check = (CheckConstraint)constraint;
       String checkExpression = check.expr().translate(ESQL);
       constraintAdd.setString(5, checkExpression);
 
@@ -4388,64 +4398,67 @@ public abstract class AbstractDatabase implements Database {
                              UUID tableId,
                              String constraintName) {
     if (hasCoreTables(con)) {
-      try {
-        con.createStatement().executeUpdate(
-            "DELETE FROM _core.constraints " +
-                " WHERE relation_id='" + tableId + "' " +
-                "   AND name='" + constraintName + "'");
-      } catch (SQLException e) {
-        throw new RuntimeException(e);
+      try (EsqlConnection econ = esql(con)) {
+        Parser p = new Parser(structure());
+        econ.exec(p.parse(
+            "delete from _core.constraints " +
+                " where relation_id='" + tableId + "' " +
+                "   and name='" + constraintName + "'"));
       }
     }
   }
 
   @Override
   public void clearTableMetadata(Connection con, UUID tableId) {
-    try {
-      con.createStatement().executeUpdate("DELETE FROM _core.relation_attributes " +
-                                              " WHERE relation_id='" + tableId + '\'');
-    } catch(SQLException e) {
-      throw new RuntimeException(e);
+    if (hasCoreTables(con)) {
+      try (EsqlConnection econ = esql(con)) {
+        Parser p = new Parser(structure());
+        econ.exec(p.parse("delete from _core.relation_attributes "
+                              + " where relation_id='" + tableId + '\''));
+      }
     }
   }
 
   @Override
   public void tableMetadata(Connection con, UUID tableId, Metadata metadata) {
-    if (metadata != null && metadata.attributes() != null) {
-      try (PreparedStatement as = con.prepareStatement(INSERT_TABLE_ATTRIBUTE)) {
-        for (Attribute attr : metadata.attributes().values()) {
-          as.setObject(1, UUID.randomUUID());
-          as.setObject(2, tableId);
-          as.setString(3, attr.name());
-          Expression<?> value = attr.attributeValue();
-          as.setString(4, value.translate(ESQL));
-          as.executeUpdate();
-        }
+    if (hasCoreTables(con)) {
+      try (EsqlConnection econ = esql(con)) {
+        if (metadata != null && metadata.attributes() != null) {
+          Parser p = new Parser(structure());
+          Insert insert = p.parse("insert into _core.relation_attributes" +
+                                      "(_id, relation_id, attribute, value) values" +
+                                      "(newid(), :table, :name, :value)", "insert");
+          for (Attribute attr: metadata.attributes().values()) {
+            Expression<?> value = attr.attributeValue();
+            econ.exec(insert,
+                      Param.of("table", tableId),
+                      Param.of("name", attr.name()),
+                      Param.of("value", value.translate(ESQL)));
+          }
 
-        /*
-         * Update table display name and description if specified.
-         */
-        String tableDisplayName = metadata.evaluateAttribute(NAME);
-        String tableDescription = metadata.evaluateAttribute(DESCRIPTION);
-        if (tableDisplayName != null && tableDescription != null) {
-          con.createStatement().executeUpdate(
-              "UPDATE _core.relations " +
-                  "   SET display_name='" + escapeSqlString(tableDisplayName) + "', " +
-                  "        description='" + escapeSqlString(tableDescription) + "'" +
-                  " WHERE _id='" + tableId + "'");
-        } else if (tableDisplayName != null) {
-          con.createStatement().executeUpdate(
-              "UPDATE _core.relations " +
-                  "   SET display_name='" + escapeSqlString(tableDisplayName) + "'" +
-                  " WHERE _id='" + tableId + "'");
-        } else if (tableDescription != null) {
-          con.createStatement().executeUpdate(
-              "UPDATE _core.relations " +
-                  "   SET description='" + escapeSqlString(tableDescription) + "'" +
-                  " WHERE _id='" + tableId + "'");
+          /*
+           * Update table display name and description if specified.
+           */
+          String tableDisplayName = metadata.evaluateAttribute(NAME);
+          String tableDescription = metadata.evaluateAttribute(DESCRIPTION);
+          if (tableDisplayName != null && tableDescription != null) {
+            econ.exec(p.parse(
+                "update _core.relations " +
+                    "   set display_name='" + escapeSqlString(tableDisplayName) + "', " +
+                    "        description='" + escapeSqlString(tableDescription) + "'" +
+                    " where _id='" + tableId + "'"));
+          } else if (tableDisplayName != null) {
+            econ.exec(p.parse(
+                "update _core.relations " +
+                    "   set display_name='" + escapeSqlString(tableDisplayName) + "'" +
+                    " where _id='" + tableId + "'"));
+          } else if (tableDescription != null) {
+            econ.exec(p.parse(
+                "update _core.relations " +
+                    "   set description='" + escapeSqlString(tableDescription) + "'" +
+                    " where _id='" + tableId + "'"));
+          }
         }
-      } catch(SQLException e) {
-        throw new RuntimeException(e);
       }
     }
   }
@@ -4459,27 +4472,27 @@ public abstract class AbstractDatabase implements Database {
   private Boolean hasCoreTables = null;
 
   private static final String INSERT_COLUMN =
-      "INSERT INTO _core.columns("
-      + "_id, _can_delete, relation_id, name, "
-      + "derived_column, type, not_null, expression, seq) "
-      + "VALUES(?, ?, ?, ?, ?, ?, ?, ?, "
-      +        "coalesce(select max(seq) from _core.columns where relation_id=?), 0) + 1) ";
+      "insert into _core.columns("
+          + "_id, _can_delete, relation_id, name, "
+          + "derived_column, type, not_null, expression, seq) "
+          + "values(?, ?, ?, ?, ?, ?, ?, ?, "
+          + "coalesce(select max(seq) from _core.columns where relation_id=?), 0) + 1) ";
 
   private static final String INSERT_COLUMN_ATTRIBUTE =
-      "INSERT INTO _core.column_attributes(_id, field_id,"
-      + "attribute, value) VALUES(?, ?, ?, ?)";
+      "insert into _core.column_attributes(_id, column_id,"
+          + "attribute, value) values(?, ?, ?, ?)";
 
   private static final String INSERT_TABLE_ATTRIBUTE =
-      "INSERT INTO _core.relation_attributes(_id, relation_id,"
-      + "attribute, value) VALUES(?, ?, ?, ?)";
+      "insert into \"_core\".\"relation_attributes\"(\"_id\", \"relation_id\","
+          + "\"attribute\", \"value\") values(?, ?, ?, ?)";
 
   private static final String INSERT_CONSTRAINT =
-      "INSERT INTO _core.constraints(_id, name, relation_id, "
-      + "type, check_expr, source_columns, "
-      + "target_relation_id, target_columns, "
-      + "forward_cost, reverse_cost, "
-      + "on_update, on_delete) "
-      + "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+      "insert into _core.constraints(_id, name, relation_id, "
+          + "type, check_expr, source_columns, "
+          + "target_relation_id, target_columns, "
+          + "forward_cost, reverse_cost, "
+          + "on_update, on_delete) "
+          + "values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
   private static final System.Logger log = System.getLogger(AbstractDatabase.class.getName());
 }

@@ -6,12 +6,18 @@ import ma.vi.esql.parser.CircularReferenceException;
 import ma.vi.esql.parser.Parser;
 import ma.vi.esql.parser.Program;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 /**
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 public class HSqlDbTest {
+  @BeforeAll
+  static void setup() {
+    Databases.HSqlDb();
+  }
+
   @Test
   void create() {
     HSqlDb db = Databases.HSqlDb();
@@ -77,6 +83,7 @@ public class HSqlDbTest {
                            ")");
       System.out.println(s);
 
+//      con.exec(s);
       Assertions.assertThrows(
           CircularReferenceException.class,
           () -> con.exec(s)
@@ -108,15 +115,15 @@ public class HSqlDbTest {
     HSqlDb db = Databases.HSqlDb();
     Parser p = new Parser(db.structure());
     try (EsqlConnection con = db.esql(db.pooledConnection())) {
-      Program s = p.parse("create table X (" +
+      Program s = p.parse("create table Y (" +
                            "  _id int, " +
                            "  a int, " +
                            "  derived b a + a, " +
                            "  derived c b + a, " +
-                           "  derived d c + c + b, " +
+                           "  derived d c + c + b " +
                            ")");
-      System.out.println(s);
       con.exec(s);
+      System.out.println(s);
     }
   }
 }

@@ -91,15 +91,29 @@ public class Types {
   }
 
   public static String sqlServerToEsqlType(String sqlServerType) {
-    return sqlServerTypeMapping.get(sqlServerType.toLowerCase());
+    return sqlServerTypeMapping.get(normaliseType(sqlServerType));
   }
 
   public static String postgresqlToEsqlType(String postgresqlType) {
-    return postgresqlTypeMapping.get(postgresqlType.toLowerCase());
+    return postgresqlTypeMapping.get(normaliseType(postgresqlType));
   }
 
   public static String hsqldbToEsqlType(String hsqldbType) {
-    return hsqldbTypeMapping.get(hsqldbType.toLowerCase());
+    return hsqldbTypeMapping.get(normaliseType(hsqldbType));
+  }
+
+  private static String normaliseType(String typeName) {
+    typeName = typeName.toLowerCase();
+    if (typeName.startsWith("character")) {
+      typeName = "text";
+    }
+    if (typeName.startsWith("double")) {
+      typeName = "double";
+    }
+    if (typeSynonyms.containsKey(typeName)) {
+      typeName = typeSynonyms.get(typeName);
+    }
+    return typeName;
   }
 
   /*
@@ -372,6 +386,7 @@ public class Types {
     postgresqlTypeMapping.put("double precision", "double");
     postgresqlTypeMapping.put("decimal", "double");
     postgresqlTypeMapping.put("money", "money");
+    postgresqlTypeMapping.put("bool", "bool");
     postgresqlTypeMapping.put("boolean", "bool");
     postgresqlTypeMapping.put("char", "string");
     postgresqlTypeMapping.put("varchar", "text");
@@ -392,11 +407,13 @@ public class Types {
     sqlServerTypeMapping.put("real", "float");
     sqlServerTypeMapping.put("float", "double");
     sqlServerTypeMapping.put("decimal", "double");
+    sqlServerTypeMapping.put("double", "double");
     sqlServerTypeMapping.put("money", "money");
     sqlServerTypeMapping.put("bit", "bool");
     sqlServerTypeMapping.put("char", "string");
     sqlServerTypeMapping.put("nchar", "string");
     sqlServerTypeMapping.put("varchar", "text");
+    sqlServerTypeMapping.put("text", "text");
     sqlServerTypeMapping.put("nvarchar", "text");
     sqlServerTypeMapping.put("varbinary", "bytes");
     sqlServerTypeMapping.put("date", "date");
@@ -412,9 +429,12 @@ public class Types {
     hsqldbTypeMapping.put("real", "float");
     hsqldbTypeMapping.put("float", "double");
     hsqldbTypeMapping.put("decimal", "double");
+    hsqldbTypeMapping.put("double", "double");
+    hsqldbTypeMapping.put("bool", "bool");
     hsqldbTypeMapping.put("boolean", "bool");
     hsqldbTypeMapping.put("char", "string");
     hsqldbTypeMapping.put("varchar", "text");
+    hsqldbTypeMapping.put("text", "text");
     hsqldbTypeMapping.put("longvarchar", "text");
     hsqldbTypeMapping.put("longvarbinary", "bytes");
     hsqldbTypeMapping.put("date", "date");

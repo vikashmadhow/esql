@@ -17,8 +17,14 @@ import java.util.Map;
 public class Databases {
   public static HSqlDb HSqlDb() {
     if (hSqlDb == null) {
+//      hSqlDb = new HSqlDb(Map.of(
+//          "database.name", "mem:test",
+//          "database.user.name", "SA",
+//          "database.user.password", ""), true, true);
+      String userHome = System.getProperty("user.home");
       hSqlDb = new HSqlDb(Map.of(
-          "database.name", "mem:test",
+//          "database.name", "file:temp/test",
+          "database.name", "file:" + userHome + "/testdb/data",
           "database.user.name", "SA",
           "database.user.password", ""), true, true);
     }
