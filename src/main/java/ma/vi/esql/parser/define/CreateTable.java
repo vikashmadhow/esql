@@ -94,15 +94,17 @@ public class CreateTable extends Define<String> {
       String tableName = name();
       T2<String, String> splitName = Type.splitName(tableName);
       String schema = splitName.a;
-      if (target == SQLSERVER) {
-        try (ResultSet rs = con.createStatement().executeQuery(
-            "select name from sys.schemas where name='" + schema + "'")) {
-          if (!rs.next()) {
-            con.createStatement().executeUpdate("create schema \"" + schema + '"');
+      if (schema != null) {
+        if (target == SQLSERVER) {
+          try (ResultSet rs = con.createStatement().executeQuery(
+              "select name from sys.schemas where name='" + schema + "'")) {
+            if (!rs.next()) {
+              con.createStatement().executeUpdate("create schema \"" + schema + '"');
+            }
           }
+        } else {
+          con.createStatement().executeUpdate("create schema if not exists \"" + schema + '"');
         }
-      } else {
-        con.createStatement().executeUpdate("create schema if not exists \"" + schema + '"');
       }
 
       // create or alter table
