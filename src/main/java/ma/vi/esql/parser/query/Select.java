@@ -21,6 +21,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import static java.util.stream.Collectors.joining;
 import static ma.vi.base.tuple.T2.of;
+import static ma.vi.esql.parser.Translatable.Target.ESQL;
 import static ma.vi.esql.parser.Translatable.Target.HSQLDB;
 
 /**
@@ -92,6 +93,11 @@ public class Select extends QueryUpdate {
     } else {
       return this;
     }
+  }
+
+  @Override
+  public boolean modifying() {
+    return false;
   }
 
   private static String makeUnique(Set<String> names, String alias) {
@@ -361,6 +367,52 @@ public class Select extends QueryUpdate {
                                       q.resultAttributes);
         }
       }
+    } else if (target == ESQL) {
+      StringBuilder st = new StringBuilder("select ");
+      if (distinct()) {
+        st.append("distinct ");
+        List<Expression<?>> distinctOn = distinctOn();
+        if (distinctOn != null && !distinctOn.isEmpty()) {
+          st.append("on (")
+            .append(distinctOn.stream().map(e -> e.translate(target)).collect(joining(", ")))
+            .append(") ");
+        }
+      }
+
+      if (explicit() != null && explicit()) {
+        st.append("explicit ");
+      }
+
+      st.append(columns().stream()
+                         .map(c -> c.translate(ESQL))
+                         .collect(joining(", ")));
+
+      if (tables() != null) {
+        st.append(" from ").append(tables().translate(target));
+      }
+      if (where() != null) {
+        st.append(" where ").append(where().translate(target));
+      }
+      if (groupBy() != null) {
+        st.append(groupBy().translate(target));
+      }
+      if (having() != null) {
+        st.append(" having ").append(having().translate(target));
+      }
+      if (orderBy() != null && !orderBy().isEmpty()) {
+        st.append(" order by ")
+          .append(orderBy().stream()
+                           .map(e -> e.translate(target))
+                           .collect(joining(", ")));
+      }
+      if (offset() != null) {
+        st.append(" offset ").append(offset().translate(target));
+      }
+      if (limit() != null) {
+        st.append(" limit ").append(limit().translate(target));
+      }
+      return new QueryTranslation(st.toString(), null, null, null, null);
+
     } else {
       StringBuilder st = new StringBuilder("select ");
       if (distinct()) {

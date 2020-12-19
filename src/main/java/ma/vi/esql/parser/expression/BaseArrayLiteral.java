@@ -51,24 +51,33 @@ public class BaseArrayLiteral extends Literal<Type> {
   @Override
   public String translate(Target target) {
     return switch (target) {
-      case POSTGRESQL, HSQLDB -> "array[" + items().stream()
-                                                   .map(e -> e.translate(target))
-                                                   .collect(joining(",")) + "]::" + componentType().array().translate(target);
+      case POSTGRESQL
+          -> "array[" + items().stream()
+                               .map(e -> e.translate(target))
+                               .collect(joining(",")) + "]::" + componentType().array().translate(target);
 
-      case SQLSERVER -> items().stream()
-                               .map(e -> e instanceof StringLiteral
-                                             ? ARRAY_ESCAPE.escape((String)e.value(target))
-                                             : ARRAY_ESCAPE.escape(e.translate(target)))
-                               .collect(joining(",", "N'[", "]'"));
+      case HSQLDB
+          -> "array[" + items().stream()
+                               .map(e -> e.translate(target))
+                               .collect(joining(",")) + "]";
 
-      case JSON, JAVASCRIPT -> items().stream()
-                                      .map(e -> e.translate(target))
-                                      .collect(joining(",", "[", "]"));
+      case SQLSERVER
+          -> items().stream()
+                    .map(e -> e instanceof StringLiteral
+                                  ? ARRAY_ESCAPE.escape((String)e.value(target))
+                                  : ARRAY_ESCAPE.escape(e.translate(target)))
+                    .collect(joining(",", "N'[", "]'"));
 
-      default -> componentType().translate(Target.ESQL)
-                  + items().stream()
-                           .map(e -> ARRAY_ESCAPE.escape(e.translate(target)))
-                           .collect(joining(",", "[", "]"));
+      case JSON, JAVASCRIPT
+          -> items().stream()
+                    .map(e -> e.translate(target))
+                    .collect(joining(",", "[", "]"));
+
+      default
+          -> componentType().translate(Target.ESQL)
+               + items().stream()
+                        .map(e -> ARRAY_ESCAPE.escape(e.translate(target)))
+                        .collect(joining(",", "[", "]"));
     };
   }
 

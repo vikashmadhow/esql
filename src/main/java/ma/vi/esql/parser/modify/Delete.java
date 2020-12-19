@@ -77,6 +77,11 @@ public class Delete extends QueryUpdate {
   }
 
   @Override
+  public boolean modifying() {
+    return true;
+  }
+
+  @Override
   public QueryTranslation translate(Target target) {
     StringBuilder st = new StringBuilder("delete ");
     QueryTranslation q = null;

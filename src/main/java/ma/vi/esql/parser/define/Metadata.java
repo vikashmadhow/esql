@@ -5,14 +5,12 @@
 package ma.vi.esql.parser.define;
 
 import ma.vi.esql.parser.Context;
-import ma.vi.esql.parser.expression.BooleanLiteral;
-import ma.vi.esql.parser.expression.Expression;
-import ma.vi.esql.parser.expression.IntegerLiteral;
-import ma.vi.esql.parser.expression.StringLiteral;
+import ma.vi.esql.parser.expression.*;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import static java.util.stream.Collectors.joining;
 
@@ -100,6 +98,10 @@ public class Metadata extends TableDefinition {
 
   public Attribute attribute(String name, boolean value) {
     return attribute(name, new BooleanLiteral(context, value));
+  }
+
+  public Attribute attribute(String name, UUID value) {
+    return attribute(name, new UuidLiteral(context, value));
   }
 
   public Attribute attribute(String name, int value) {

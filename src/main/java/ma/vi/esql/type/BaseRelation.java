@@ -44,7 +44,7 @@ public class BaseRelation extends Relation {
     super(name);
     this.context = context;
     this.id = id;
-    this.name = name != null ? name : "__temp__.rel_" + random(4);
+    this.name = name != null ? name : "__temp__.rel_" + random(10);
     this.displayName = displayName;
     this.description = description;
     if (constraints != null) {

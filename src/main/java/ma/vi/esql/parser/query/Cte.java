@@ -80,6 +80,11 @@ public class Cte extends QueryUpdate {
   }
 
   @Override
+  public boolean modifying() {
+    return query().modifying();
+  }
+
+  @Override
   public QueryTranslation translate(Target target) {
     // translate query and surround by CTE fields definition
     QueryTranslation q = query().translate(target);

@@ -21,7 +21,7 @@ import ma.vi.esql.type.Type;
 import ma.vi.esql.type.Types;
 
 import java.util.ArrayList;
-import java.util.Set;
+import java.util.UUID;
 
 import static ma.vi.esql.builder.Attributes.*;
 
@@ -71,7 +71,6 @@ public class Column extends MetadataContainer<Expression<?>, String> {
                             def.metadata());
     if (derived) {
       col.attribute(DERIVED, new BooleanLiteral(def.context, true));
-//      col.attribute(EXPRESSION, derivedDef.expression());
     } else if (defaultExpr != null) {
       col.attribute(EXPRESSION, defaultExpr);
     }
@@ -141,8 +140,8 @@ public class Column extends MetadataContainer<Expression<?>, String> {
 
   public boolean notNull() {
     if (metadata() != null) {
-      Boolean notNull = metadata().evaluateAttribute(REQUIRED);
-      return notNull != null && notNull;
+      Object notNull = metadata().evaluateAttribute(REQUIRED);
+      return notNull instanceof Boolean && (Boolean)notNull;
     }
     return false;
   }
@@ -154,7 +153,7 @@ public class Column extends MetadataContainer<Expression<?>, String> {
     metadata().attribute(REQUIRED, new BooleanLiteral(context, notNull));
   }
 
-  public String id() {
+  public UUID id() {
     if (metadata() != null && metadata().attribute(ID) != null) {
       return metadata().evaluateAttribute(ID);
     } else {
@@ -162,7 +161,7 @@ public class Column extends MetadataContainer<Expression<?>, String> {
     }
   }
 
-  public void id(String id) {
+  public void id(UUID id) {
     if (metadata() == null) {
       metadata(new Metadata(context, new ArrayList<>()));
     }

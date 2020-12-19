@@ -67,6 +67,11 @@ public class Update extends QueryUpdate {
   }
 
   @Override
+  public boolean modifying() {
+    return true;
+  }
+
+  @Override
   public QueryTranslation translate(Target target) {
     StringBuilder st = new StringBuilder("update ");
     QueryTranslation q = null;

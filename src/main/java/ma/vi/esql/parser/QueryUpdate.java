@@ -97,7 +97,7 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
       Set<String> columnNames = new HashSet<>();
       Map<String, String> aliased = new HashMap<>();
 
-      if (!grouped()) {
+      if (!grouped() && !modifying()) {
         // Add all metadata columns defined on the tables being queried
         for (Column column: fromType.columnsPrefixedBy(null, "/")) {
           columns.put(column.alias(), column.copy());
@@ -190,9 +190,19 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
     return type;
   }
 
+  /**
+   * @return Whether this is a grouping query or not. In grouping queries
+   *         column expansions must be done carefully (or not at all) as they
+   *         can affect the result of the query.
+   */
   protected boolean grouped() {
     return false;
   }
+
+  /**
+   * @return Whether this is a modifying query (update, insert, delete) or not.
+   */
+  public abstract boolean modifying();
 
   /**
    * Adds the output clause to the query. For selects this is the selected columns. For

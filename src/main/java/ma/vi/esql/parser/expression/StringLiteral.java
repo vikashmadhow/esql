@@ -46,10 +46,11 @@ public class StringLiteral extends BaseLiteral<String> {
      * non-printable characters.
      */
     return switch (target) {
-      case SQLSERVER, HSQLDB -> 'N' + value;
+      case SQLSERVER  -> 'N' + value;
+      case HSQLDB     -> value;
       case POSTGRESQL -> esqlToPostgresqlString(value);
-      case JSON -> '`' + escapeJsonString(value.substring(1, value.length() - 1)) + '`';
-      default -> value; // Javascript and ESQL
+      case JSON       -> '`' + escapeJsonString(value.substring(1, value.length() - 1)) + '`';
+      default         -> value; // Javascript and ESQL
     };
   }
 
@@ -118,13 +119,14 @@ public class StringLiteral extends BaseLiteral<String> {
    * Escapes a string so that it can be embedded in an ESQL query.
    */
   public static String escapeEsqlString(String value) {
-    return value.replace("%", "%%")
-                .replace("'", "%q")
-                .replace("\b", "%b")
-                .replace("\f", "%f")
-                .replace("\n", "%n")
-                .replace("\r", "%r")
-                .replace("\t", "%t");
+    return value.replace("'", "''");
+//    return value.replace("%", "%%")
+//                .replace("'", "%q")
+//                .replace("\b", "%b")
+//                .replace("\f", "%f")
+//                .replace("\n", "%n")
+//                .replace("\r", "%r")
+//                .replace("\t", "%t");
   }
 
 //  /**

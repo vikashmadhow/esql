@@ -8,6 +8,7 @@ import ma.vi.esql.parser.Context;
 import ma.vi.esql.parser.Esql;
 import ma.vi.esql.parser.TranslationException;
 import ma.vi.esql.type.ArrayType;
+import ma.vi.esql.type.Interval;
 import ma.vi.esql.type.Type;
 import ma.vi.esql.type.Types;
 import ma.vi.base.tuple.T2;
@@ -131,7 +132,7 @@ public abstract class Literal<V> extends Expression<V> {
     } else if (value instanceof Date) {
       return new DateLiteral(context, DateLiteral.DateTimeFormat.format((Date)value));
 
-    } else if (value instanceof Literal) {
+    } else if (value instanceof Interval) {
       return new IntervalLiteral(context, value.toString());
 
     } else if (value instanceof JSONArray) {

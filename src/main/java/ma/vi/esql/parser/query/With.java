@@ -82,6 +82,16 @@ public class With extends QueryUpdate {
   }
 
   @Override
+  public boolean modifying() {
+    for (Cte cte: ctes()) {
+      if (cte.modifying()) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @Override
   public T2<Boolean, String> restrict(Restriction restriction,
                                       String targetAlias,
                                       boolean ignoreHiddenFields,

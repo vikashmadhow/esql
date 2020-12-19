@@ -177,7 +177,7 @@ public class AlterTable extends Define<String> {
                         " ALTER COLUMN \"" + column.alias() +
                         "\" RENAME TO \"" + def.toName() + '"');
               }
-              s.database.columnName(con, UUID.fromString(column.id()), def.toName());
+              s.database.columnName(con, column.id(), def.toName());
               column.alias(def.toName());
             }
           }
@@ -197,7 +197,7 @@ public class AlterTable extends Define<String> {
                         " ALTER COLUMN \"" + column.alias() +
                         "\" TYPE " + def.toType().translate(target));
               }
-              s.database.columnType(con, UUID.fromString(column.id()), def.toType().translate(ESQL));
+              s.database.columnType(con, column.id(), def.toType().translate(ESQL));
               column.type(def.toType());
             }
           }
@@ -231,7 +231,7 @@ public class AlterTable extends Define<String> {
                 con.createStatement().executeUpdate(
                   "ALTER TABLE " + dbName + " ALTER COLUMN \"" + column.alias() + "\" DROP DEFAULT");
               }
-              s.database.defaultValue(con, UUID.fromString(column.id()), null);
+              s.database.defaultValue(con, column.id(), null);
               column.defaultExpression(null);
             }
           }
@@ -252,7 +252,7 @@ public class AlterTable extends Define<String> {
                         " ALTER COLUMN \"" + column.alias() +
                         "\" SET DEFAULT " + def.setDefault().translate(target));
               }
-              s.database.defaultValue(con, UUID.fromString(column.id()), def.setDefault().translate(ESQL));
+              s.database.defaultValue(con, column.id(), def.setDefault().translate(ESQL));
               column.defaultExpression(def.setDefault());
             }
           }
@@ -273,7 +273,7 @@ public class AlterTable extends Define<String> {
                         " ALTER COLUMN \"" + column.alias() +
                         "\" SET NOT NULL");
               }
-              s.database.notNull(con, UUID.fromString(column.id()), (target == SQLSERVER ? "1" : "true"));
+              s.database.notNull(con, column.id(), (target == SQLSERVER ? "1" : "true"));
               column.notNull(true);
             }
           }
@@ -293,7 +293,7 @@ public class AlterTable extends Define<String> {
                         " ALTER COLUMN \"" + column.alias() +
                         "\" DROP NOT NULL");
               }
-              s.database.notNull(con, UUID.fromString(column.id()), target == SQLSERVER ? "0" : "false");
+              s.database.notNull(con, column.id(), target == SQLSERVER ? "0" : "false");
               column.notNull(false);
             }
           }
@@ -304,7 +304,7 @@ public class AlterTable extends Define<String> {
             /*
              * add field metadata, removing previous ones
              */
-            s.database.columnMetadata(con, UUID.fromString(column.id()), def.metadata());
+            s.database.columnMetadata(con, column.id(), def.metadata());
             for (Attribute attr: def.metadata().attributes().values()) {
               column.attribute(attr.name(), attr.attributeValue());
             }
@@ -333,7 +333,7 @@ public class AlterTable extends Define<String> {
           con.createStatement().executeUpdate(
             "ALTER TABLE " + dbName + " DROP COLUMN IF EXISTS \"" + drop.columnName() + '"');
 
-          s.database.dropColumn(con, UUID.fromString(column.id()));
+          s.database.dropColumn(con, column.id());
           relation.removeColumn(drop.columnName());
 
         } else if (alteration instanceof DropConstraint) {
