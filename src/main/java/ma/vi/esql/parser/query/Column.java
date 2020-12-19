@@ -69,6 +69,8 @@ public class Column extends MetadataContainer<Expression<?>, String> {
                             def.name(),
                             derived ? derivedDef.expression() : new ColumnRef(def.context, null, def.name()),
                             def.metadata());
+    col.id(UUID.randomUUID());
+
     if (derived) {
       col.attribute(DERIVED, new BooleanLiteral(def.context, true));
     } else if (defaultExpr != null) {

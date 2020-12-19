@@ -433,16 +433,23 @@ public abstract class AbstractDatabase implements Database {
 
         /*
          * Manually create self-references for the core tables so that they can be
-         * accessed through ESQL. We cannot use ESQL for this part yet as the ESQL
-         * translator will query the core tables for type information.
+         * accessed through ESQL.
          */
-        UUID relationsId = UUID.randomUUID();
-        UUID columnsId = UUID.randomUUID();
-        UUID relationAttributesId = UUID.randomUUID();
-        UUID columnAttributesId = UUID.randomUUID();
-        UUID constraintsId = UUID.randomUUID();
-        UUID sequencesId = UUID.randomUUID();
-        UUID indicesId = UUID.randomUUID();
+        BaseRelation relations          = structure.relation("_core.relations");
+        BaseRelation columns            = structure.relation("_core.columns");
+        BaseRelation relationAttributes = structure.relation("_core.relation_attributes");
+        BaseRelation columnAttributes   = structure.relation("_core.column_attributes");
+        BaseRelation constraints        = structure.relation("_core.constraints");
+        BaseRelation sequences          = structure.relation("_core.sequences");
+        BaseRelation indices            = structure.relation("_core.indices");
+
+        UUID relationsId          = relations.id();
+        UUID columnsId            = columns.id();
+        UUID relationAttributesId = relationAttributes.id();
+        UUID columnAttributesId   = columnAttributes.id();
+        UUID constraintsId        = constraints.id();
+        UUID sequencesId          = sequences.id();
+        UUID indicesId            = indices.id();
 
         c.exec(p.parse(
             "insert into _core.relations(_id, name, display_name, type) values " +
@@ -457,63 +464,63 @@ public abstract class AbstractDatabase implements Database {
         // add columns for all tables
         c.exec(p.parse(
             "insert into _core.columns(_id, relation_id, name, seq, type, not_null) values " +
-                "('" + UUID.randomUUID() + "', '" + relationsId + "', '_id',             1, 'uuid',    true), " +
-                "('" + UUID.randomUUID() + "', '" + relationsId + "', '_can_delete',     2, 'bool',    false), " +
-                "('" + UUID.randomUUID() + "', '" + relationsId + "', '_can_edit',       3, 'bool',    false), " +
-                "('" + UUID.randomUUID() + "', '" + relationsId + "', 'name',            4, 'string',  true), " +
-                "('" + UUID.randomUUID() + "', '" + relationsId + "', 'display_name',    5, 'string',  false), " +
-                "('" + UUID.randomUUID() + "', '" + relationsId + "', 'description',     6, 'string',  false), " +
-                "('" + UUID.randomUUID() + "', '" + relationsId + "', 'type',            7, 'char',    true), " +
-                "('" + UUID.randomUUID() + "', '" + relationsId + "', 'view_definition', 8, 'text',    false), " +
+                "('" + relations.column("_id").id()             + "', '" + relationsId + "', '_id',             1, 'uuid',    true), " +
+                "('" + relations.column("_can_delete").id()     + "', '" + relationsId + "', '_can_delete',     2, 'bool',    false), " +
+                "('" + relations.column("_can_edit").id()       + "', '" + relationsId + "', '_can_edit',       3, 'bool',    false), " +
+                "('" + relations.column("name").id()            + "', '" + relationsId + "', 'name',            4, 'string',  true), " +
+                "('" + relations.column("display_name").id()    + "', '" + relationsId + "', 'display_name',    5, 'string',  false), " +
+                "('" + relations.column("description").id()     + "', '" + relationsId + "', 'description',     6, 'string',  false), " +
+                "('" + relations.column("type").id()            + "', '" + relationsId + "', 'type',            7, 'char',    true), " +
+                "('" + relations.column("view_definition").id() + "', '" + relationsId + "', 'view_definition', 8, 'text',    false), " +
 
-                "('" + UUID.randomUUID() + "', '" + columnsId + "', '_id',                1, 'uuid',   true), " +
-                "('" + UUID.randomUUID() + "', '" + columnsId + "', '_can_delete',        2, 'bool',   false), " +
-                "('" + UUID.randomUUID() + "', '" + columnsId + "', '_can_edit',          3, 'bool',   false), " +
-                "('" + UUID.randomUUID() + "', '" + columnsId + "', 'relation_id',        4, 'uuid',   true), " +
-                "('" + UUID.randomUUID() + "', '" + columnsId + "', 'name',               5, 'string', true), " +
-                "('" + UUID.randomUUID() + "', '" + columnsId + "', 'derived',            6, 'bool',   false), " +
-                "('" + UUID.randomUUID() + "', '" + columnsId + "', 'type',               7, 'string', true), " +
-                "('" + UUID.randomUUID() + "', '" + columnsId + "', 'not_null',           8, 'bool',   false), " +
-                "('" + UUID.randomUUID() + "', '" + columnsId + "', 'expression',         9, 'text',   false), " +
-                "('" + UUID.randomUUID() + "', '" + columnsId + "', 'seq',               10, 'int',    true), " +
+                "('" + columns.column("_id").id()            + "', '" + columnsId + "', '_id',             1, 'uuid',   true), " +
+                "('" + columns.column("_can_delete").id()    + "', '" + columnsId + "', '_can_delete',     2, 'bool',   false), " +
+                "('" + columns.column("_can_edit").id()      + "', '" + columnsId + "', '_can_edit',       3, 'bool',   false), " +
+                "('" + columns.column("relation_id").id()    + "', '" + columnsId + "', 'relation_id',     4, 'uuid',   true), " +
+                "('" + columns.column("name").id()           + "', '" + columnsId + "', 'name',            5, 'string', true), " +
+                "('" + columns.column("derived_column").id() + "', '" + columnsId + "', 'derived_column',  6, 'bool',   false), " +
+                "('" + columns.column("type").id()           + "', '" + columnsId + "', 'type',            7, 'string', true), " +
+                "('" + columns.column("not_null").id()       + "', '" + columnsId + "', 'not_null',        8, 'bool',   false), " +
+                "('" + columns.column("expression").id()     + "', '" + columnsId + "', 'expression',      9, 'text',   false), " +
+                "('" + columns.column("seq").id()            + "', '" + columnsId + "', 'seq',            10, 'int',    true), " +
 
-                "('" + UUID.randomUUID() + "', '" + relationAttributesId + "', '_id',         1, 'uuid',   true), " +
-                "('" + UUID.randomUUID() + "', '" + relationAttributesId + "', 'relation_id', 2, 'uuid',   true), " +
-                "('" + UUID.randomUUID() + "', '" + relationAttributesId + "', 'attribute',   3, 'string', true), " +
-                "('" + UUID.randomUUID() + "', '" + relationAttributesId + "', 'value',       4, 'text',   false), " +
+                "('" + relationAttributes.column("_id").id()         + "', '" + relationAttributesId + "', '_id',         1, 'uuid',   true), " +
+                "('" + relationAttributes.column("relation_id").id() + "', '" + relationAttributesId + "', 'relation_id', 2, 'uuid',   true), " +
+                "('" + relationAttributes.column("attribute").id()   + "', '" + relationAttributesId + "', 'attribute',   3, 'string', true), " +
+                "('" + relationAttributes.column("value").id()       + "', '" + relationAttributesId + "', 'value',       4, 'text',   false), " +
 
-                "('" + UUID.randomUUID() + "', '" + columnAttributesId + "', '_id',       1, 'uuid',   true), " +
-                "('" + UUID.randomUUID() + "', '" + columnAttributesId + "', 'column_id', 2, 'uuid',   true), " +
-                "('" + UUID.randomUUID() + "', '" + columnAttributesId + "', 'attribute', 3, 'string', true), " +
-                "('" + UUID.randomUUID() + "', '" + columnAttributesId + "', 'value',     4, 'text',   false), " +
+                "('" + columnAttributes.column("_id").id()       + "', '" + columnAttributesId + "', '_id',       1, 'uuid',   true), " +
+                "('" + columnAttributes.column("column_id").id() + "', '" + columnAttributesId + "', 'column_id', 2, 'uuid',   true), " +
+                "('" + columnAttributes.column("attribute").id() + "', '" + columnAttributesId + "', 'attribute', 3, 'string', true), " +
+                "('" + columnAttributes.column("value").id()     + "', '" + columnAttributesId + "', 'value',     4, 'text',   false), " +
 
-                "('" + UUID.randomUUID() + "', '" + constraintsId + "', '_id',                   1, 'uuid',   true), " +
-                "('" + UUID.randomUUID() + "', '" + constraintsId + "', 'name',                  2, 'string', true), " +
-                "('" + UUID.randomUUID() + "', '" + constraintsId + "', 'relation_id',           3, 'uuid',   true), " +
-                "('" + UUID.randomUUID() + "', '" + constraintsId + "', 'type',                  4, 'char',   true), " +
-                "('" + UUID.randomUUID() + "', '" + constraintsId + "', 'check_expr',            5, 'text',   false), " +
-                "('" + UUID.randomUUID() + "', '" + constraintsId + "', 'source_columns',        6, 'int[]',  false), " +
-                "('" + UUID.randomUUID() + "', '" + constraintsId + "', 'target_relation_id',    7, 'uuid',   false), " +
-                "('" + UUID.randomUUID() + "', '" + constraintsId + "', 'target_columns',        8, 'int[]',  false), " +
-                "('" + UUID.randomUUID() + "', '" + constraintsId + "', 'forward_cost',          9, 'int',    true), " +
-                "('" + UUID.randomUUID() + "', '" + constraintsId + "', 'reverse_cost',         10, 'int',    true), " +
-                "('" + UUID.randomUUID() + "', '" + constraintsId + "', 'on_update',            11, 'char',   false), " +
-                "('" + UUID.randomUUID() + "', '" + constraintsId + "', 'on_delete',            12, 'char',   false), " +
+                "('" + constraints.column("_id").id()                + "', '" + constraintsId + "', '_id',                 1, 'uuid',   true), " +
+                "('" + constraints.column("name").id()               + "', '" + constraintsId + "', 'name',                2, 'string', true), " +
+                "('" + constraints.column("relation_id").id()        + "', '" + constraintsId + "', 'relation_id',         3, 'uuid',   true), " +
+                "('" + constraints.column("type").id()               + "', '" + constraintsId + "', 'type',                4, 'char',   true), " +
+                "('" + constraints.column("check_expr").id()         + "', '" + constraintsId + "', 'check_expr',          5, 'text',   false), " +
+                "('" + constraints.column("source_columns").id()     + "', '" + constraintsId + "', 'source_columns',      6, 'int[]',  false), " +
+                "('" + constraints.column("target_relation_id").id() + "', '" + constraintsId + "', 'target_relation_id',  7, 'uuid',   false), " +
+                "('" + constraints.column("target_columns").id()     + "', '" + constraintsId + "', 'target_columns',      8, 'int[]',  false), " +
+                "('" + constraints.column("forward_cost").id()       + "', '" + constraintsId + "', 'forward_cost',        9, 'int',    true), " +
+                "('" + constraints.column("reverse_cost").id()       + "', '" + constraintsId + "', 'reverse_cost',       10, 'int',    true), " +
+                "('" + constraints.column("on_update").id()          + "', '" + constraintsId + "', 'on_update',          11, 'char',   false), " +
+                "('" + constraints.column("on_delete").id()          + "', '" + constraintsId + "', 'on_delete',          12, 'char',   false), " +
 
-                "('" + UUID.randomUUID() + "', '" + sequencesId + "', '_id',         1, 'uuid',   true), " +
-                "('" + UUID.randomUUID() + "', '" + sequencesId + "', 'name',        2, 'string', true), " +
-                "('" + UUID.randomUUID() + "', '" + sequencesId + "', 'start',       3, 'long',   true), " +
-                "('" + UUID.randomUUID() + "', '" + sequencesId + "', 'increment',   4, 'long',   true), " +
-                "('" + UUID.randomUUID() + "', '" + sequencesId + "', 'maximum',     5, 'long',   true), " +
-                "('" + UUID.randomUUID() + "', '" + sequencesId + "', 'cycles',      6, 'bool',   true), " +
+                "('" + sequences.column("_id").id()       + "', '" + sequencesId + "', '_id',       1, 'uuid',   true), " +
+                "('" + sequences.column("name").id()      + "', '" + sequencesId + "', 'name',      2, 'string', true), " +
+                "('" + sequences.column("start").id()     + "', '" + sequencesId + "', 'start',     3, 'long',   true), " +
+                "('" + sequences.column("increment").id() + "', '" + sequencesId + "', 'increment', 4, 'long',   true), " +
+                "('" + sequences.column("maximum").id()   + "', '" + sequencesId + "', 'maximum',   5, 'long',   true), " +
+                "('" + sequences.column("cycles").id()    + "', '" + sequencesId + "', 'cycles',    6, 'bool',   true), " +
 
-                "('" + UUID.randomUUID() + "', '" + indicesId + "', '_id',                      1, 'uuid',   true), " +
-                "('" + UUID.randomUUID() + "', '" + indicesId + "', 'name',                     2, 'string', true), " +
-                "('" + UUID.randomUUID() + "', '" + indicesId + "', 'relation_id',              3, 'uuid',   true), " +
-                "('" + UUID.randomUUID() + "', '" + indicesId + "', 'unique_index',             4, 'bool',   false), " +
-                "('" + UUID.randomUUID() + "', '" + indicesId + "', 'columns',                  5, 'int[]',  false), " +
-                "('" + UUID.randomUUID() + "', '" + indicesId + "', 'expressions',              6, 'text[]', false), " +
-                "('" + UUID.randomUUID() + "', '" + indicesId + "', 'partial_index_expression', 7, 'text',   false)"));
+                "('" + indices.column("_id").id()                     + "', '" + indicesId + "', '_id',                     1, 'uuid',   true), " +
+                "('" + indices.column("name").id()                    + "', '" + indicesId + "', 'name',                    2, 'string', true), " +
+                "('" + indices.column("relation_id").id()             + "', '" + indicesId + "', 'relation_id',             3, 'uuid',   true), " +
+                "('" + indices.column("unique_index").id()            + "', '" + indicesId + "', 'unique_index',            4, 'bool',   false), " +
+                "('" + indices.column("columns").id()                 + "', '" + indicesId + "', 'columns',                 5, 'int[]',  false), " +
+                "('" + indices.column("expressions").id()             + "', '" + indicesId + "', 'expressions',             6, 'text[]', false), " +
+                "('" + indices.column("partial_index_condition").id() + "', '" + indicesId + "', 'partial_index_condition', 7, 'text',   false)"));
 
 //      // add columns as children of relations
 //      con.createStatement().executeUpdate(
@@ -3909,7 +3916,7 @@ public abstract class AbstractDatabase implements Database {
     String targetRelationId = rs.getString("target_relation_id");
     BaseRelation targetRelation = null;
     if (targetRelationId != null) {
-      targetRelation = structure.relation(targetRelationId);
+      targetRelation = structure.relation(UUID.fromString(targetRelationId));
     }
     String sourceCols = rs.getString("source_columns");
     List<String> sourceColumns = sourceCols == null
@@ -4128,8 +4135,11 @@ public abstract class AbstractDatabase implements Database {
      * its value, which controls whether this field can later be dropped.
      */
     Boolean canDelete = column.metadata() == null ? null : column.metadata().evaluateAttribute(CAN_DELETE);
-    UUID columnId = UUID.randomUUID();
-    column.id(columnId);
+    UUID columnId = column.id();
+    if (columnId == null) {
+      columnId = UUID.randomUUID();
+      column.id(columnId);
+    }
     econ.exec(insertCol,
               Param.of("id",            columnId),
               Param.of("canDelete",     canDelete),
@@ -4162,56 +4172,42 @@ public abstract class AbstractDatabase implements Database {
   @Override
   public void columnName(Connection con, UUID columnId, String name) {
     if (hasCoreTables(con)) {
-      try {
-        con.createStatement().executeUpdate(
-            "UPDATE _core.columns " +
-                "   SET name='" + name + "'" +
-                " WHERE _id='" + columnId + "'");
-      } catch (SQLException e) {
-        throw new RuntimeException(e);
-      }
+      EsqlConnection econ = esql(con);
+      Parser p = new Parser(structure());
+      econ.exec(p.parse("update _core.columns set name='" + name + "' where _id='" + columnId + "'"));
     }
   }
 
   @Override
   public void columnType(Connection con, UUID columnId, String type) {
     if (hasCoreTables(con)) {
-      try {
-        con.createStatement().executeUpdate(
-            "UPDATE _core.columns " +
-                "   SET type='" + type + "'" +
-                " WHERE _id='" + columnId + "'");
-      } catch (SQLException e) {
-        throw new RuntimeException(e);
-      }
+      EsqlConnection econ = esql(con);
+      Parser p = new Parser(structure());
+      econ.exec(p.parse("update _core.columns set type='" + type + "' where _id='" + columnId + "'"));
     }
   }
 
   @Override
   public void defaultValue(Connection con, UUID columnId, String defaultValue) {
     if (hasCoreTables(con)) {
-      try {
-        con.createStatement().executeUpdate(
-            "UPDATE _core.columns " +
-                "   SET default_value=" + (defaultValue == null ? "null" : "'" + defaultValue + "'") +
-                " WHERE _id='" + columnId + "'");
-      } catch (SQLException e) {
-        throw new RuntimeException(e);
-      }
+      EsqlConnection econ = esql(con);
+      Parser p = new Parser(structure());
+      econ.exec(p.parse(
+        "update _core.columns " +
+              "   set expression=" + (defaultValue == null ? "null" : "'" + defaultValue + "'") +
+              " where _id='" + columnId + "'"));
     }
   }
 
   @Override
   public void notNull(Connection con, UUID columnId, String notNull) {
     if (hasCoreTables(con)) {
-      try {
-        con.createStatement().executeUpdate(
-            "UPDATE _core.columns " +
-                "   SET not_null=" + notNull +
-                " WHERE _id='" + columnId + "'");
-      } catch (SQLException e) {
-        throw new RuntimeException(e);
-      }
+      EsqlConnection econ = esql(con);
+      Parser p = new Parser(structure());
+      econ.exec(p.parse(
+            "update _core.columns " +
+                "   set not_null=" + notNull +
+                " where _id='" + columnId + "'"));
     }
   }
 
@@ -4220,27 +4216,25 @@ public abstract class AbstractDatabase implements Database {
                              UUID columnId,
                              Metadata metadata) {
     if (hasCoreTables(con)) {
-      try (PreparedStatement attrAdd = con.prepareStatement(INSERT_COLUMN_ATTRIBUTE)) {
-        columnMetadata(con, columnId, metadata, attrAdd);
-      } catch (SQLException e) {
-        throw new RuntimeException(e);
-      }
+      EsqlConnection econ = esql(con);
+      Parser p = new Parser(structure());
+      Insert insertColAttr = p.parse(INSERT_COLUMN_ATTRIBUTE, "insert");
+      columnMetadata(econ, p, columnId, metadata, insertColAttr);
     }
   }
 
-  private void columnMetadata(Connection con,
+  private void columnMetadata(EsqlConnection econ,
+                              Parser p,
                               UUID columnId,
                               Metadata metadata,
-                              PreparedStatement attrAdd) throws SQLException {
-    con.createStatement().executeUpdate("DELETE FROM _core.column_attributes WHERE column_id='" + columnId + "'");
+                              Insert insertColAttr) {
+    econ.exec(p.parse("delete from _core.column_attributes where column_id='" + columnId + "'"));
     if (metadata != null && metadata.attributes() != null) {
       for (Attribute attr: metadata.attributes().values()) {
-        attrAdd.setObject(1, UUID.randomUUID());
-        attrAdd.setObject(2, columnId);
-        attrAdd.setString(3, attr.name());
-        String value = attr.attributeValue().translate(ESQL);
-        attrAdd.setString(4, value);
-        attrAdd.executeUpdate();
+        econ.exec(insertColAttr,
+                  Param.of("columnId", columnId),
+                  Param.of("name", attr.name()),
+                  Param.of("value", attr.attributeValue().translate(ESQL)));
       }
     }
   }
@@ -4248,11 +4242,9 @@ public abstract class AbstractDatabase implements Database {
   @Override
   public void dropColumn(Connection con, UUID columnId) {
     if (hasCoreTables(con)) {
-      try {
-        con.createStatement().executeUpdate("DELETE FROM _core.columns WHERE _id='" + columnId + "'");
-      } catch (SQLException e) {
-        throw new RuntimeException(e);
-      }
+      EsqlConnection econ = esql(con);
+      Parser p = new Parser(structure());
+      econ.exec(p.parse("delete from _core.columns where _id='" + columnId + "'"));
     }
   }
 
