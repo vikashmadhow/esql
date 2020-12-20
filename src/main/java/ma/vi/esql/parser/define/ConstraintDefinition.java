@@ -89,11 +89,11 @@ public abstract class ConstraintDefinition extends TableDefinition {
   }
 
   public enum ForeignKeyChangeAction {
-    NO_ACTION('A', "no action"),
-    RESTRICT('R', "restrict"),
-    CASCADE('C', "cascade"),
-    SET_NULL('N', "set null"),
-    SET_DEFAULT('D', "set default");
+    NO_ACTION   ('A', "no action"),
+    RESTRICT    ('R', "restrict"),
+    CASCADE     ('C', "cascade"),
+    SET_NULL    ('N', "set null"),
+    SET_DEFAULT ('D', "set default");
 
     ForeignKeyChangeAction(char marker, String keyword) {
       this.marker = marker;
@@ -104,20 +104,19 @@ public abstract class ConstraintDefinition extends TableDefinition {
       checkArgument(marker == 'A' || marker == 'R' || marker == 'C' || marker == 'N' || marker == 'D',
           "Foreign key action marker must be A = no action, R = restrict, C = cascade, " +
               "N = set null or D = set default; '" + marker + "' is not recognised.");
-      return marker == 'A' ? NO_ACTION :
-             marker == 'R' ? RESTRICT :
-             marker == 'C' ? CASCADE :
-             marker == 'N' ? SET_NULL :
-             SET_DEFAULT;
+      return marker == 'A' ? NO_ACTION  :
+             marker == 'R' ? RESTRICT   :
+             marker == 'C' ? CASCADE    :
+             marker == 'N' ? SET_NULL   : SET_DEFAULT;
     }
 
     public static ForeignKeyChangeAction fromInformationSchema(String rule) {
       return switch (rule) {
-        case "NO ACTION" -> NO_ACTION;
-        case "RESTRICT" -> RESTRICT;
-        case "CASCADE" -> CASCADE;
-        case "SET NULL" -> SET_NULL;
-        default -> SET_DEFAULT;
+        case "NO ACTION"  -> NO_ACTION;
+        case "RESTRICT"   -> RESTRICT;
+        case "CASCADE"    -> CASCADE;
+        case "SET NULL"   -> SET_NULL;
+        default           -> SET_DEFAULT;
       };
     }
 

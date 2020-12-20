@@ -9,7 +9,6 @@ import ma.vi.base.tuple.T2;
 import ma.vi.esql.parser.Context;
 import ma.vi.esql.parser.Esql;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 

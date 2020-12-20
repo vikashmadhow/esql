@@ -5,18 +5,17 @@
 package ma.vi.esql.parser.define;
 
 import ma.vi.base.tuple.T2;
+import ma.vi.esql.database.Structure;
+import ma.vi.esql.exec.Result;
 import ma.vi.esql.parser.Context;
 import ma.vi.esql.parser.Esql;
 import ma.vi.esql.parser.query.Column;
-import ma.vi.esql.exec.Result;
 import ma.vi.esql.type.BaseRelation;
-import ma.vi.esql.database.Structure;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
-import java.util.UUID;
 
 import static java.util.Collections.singletonList;
 import static ma.vi.esql.parser.Translatable.Target.ESQL;
@@ -132,7 +131,7 @@ public class AlterTable extends Define<String> {
             ConstraintDefinition constraint = (ConstraintDefinition)definition;
             con.createStatement().executeUpdate("ALTER TABLE " + dbName +
                                                     " ADD " + constraint.translate(target));
-            s.database.constraint(con, relation.id, constraint);
+            s.database.constraint(con, relation.id(), constraint);
             relation.constraint(constraint);
 
             if (constraint instanceof ForeignKeyConstraint) {

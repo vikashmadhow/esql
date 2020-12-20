@@ -4080,29 +4080,32 @@ public abstract class AbstractDatabase implements Database {
                          Column column,
                          Insert insertCol,
                          Insert insertColAttr) {
-    /*
-     * Check if the CAN_DELETE attribute is set on this field and save
-     * its value, which controls whether this field can later be dropped.
-     */
-    Boolean canDelete = column.metadata() == null ? null : column.metadata().evaluateAttribute(CAN_DELETE);
-    UUID columnId = column.id();
-    if (columnId == null) {
-      columnId = UUID.randomUUID();
-      column.id(columnId);
-    }
-    econ.exec(insertCol,
-              Param.of("id",            columnId),
-              Param.of("canDelete",     canDelete),
-              Param.of("relation",      tableId),
-              Param.of("name",          column.alias()),
-              Param.of("derivedColumn", column.derived()),
-              Param.of("type",          column.type().translate(ESQL)),
-              Param.of("nonNull",       column.notNull()),
-              Param.of("expression",
-                       column.derived()                   ? column.expr().translate(ESQL) :
-                       column.defaultExpression() != null ? column.defaultExpression().translate(ESQL) : null));
+    String columnName = column.alias();
+    if (columnName.indexOf('/') == -1) {
+      /*
+       * Check if the CAN_DELETE attribute is set on this field and save
+       * its value, which controls whether this field can later be dropped.
+       */
+      Boolean canDelete = column.metadata() == null ? null : column.metadata().evaluateAttribute(CAN_DELETE);
+      UUID columnId = column.id();
+      if (columnId == null) {
+        columnId = UUID.randomUUID();
+        column.id(columnId);
+      }
+      econ.exec(insertCol,
+                Param.of("id",            columnId),
+                Param.of("canDelete",     canDelete),
+                Param.of("relation",      tableId),
+                Param.of("name",          column.alias()),
+                Param.of("derivedColumn", column.derived()),
+                Param.of("type",          column.type().translate(ESQL)),
+                Param.of("nonNull",       column.notNull()),
+                Param.of("expression",
+                         column.derived()                   ? column.expr().translate(ESQL) :
+                         column.defaultExpression() != null ? column.defaultExpression().translate(ESQL) : null));
 
-    addColumnMetadata(econ, column, insertColAttr);
+      addColumnMetadata(econ, column, insertColAttr);
+    }
   }
 
   private void addColumnMetadata(EsqlConnection econ,
@@ -4144,8 +4147,8 @@ public abstract class AbstractDatabase implements Database {
       Parser p = new Parser(structure());
       econ.exec(p.parse(
         "update _core.columns " +
-              "   set expression=" + (defaultValue == null ? "null" : "'" + defaultValue + "'") +
-              " where _id='" + columnId + "'"));
+              "   set expression=" + (defaultValue == null ? "null" : defaultValue) +
+              " where _id=u'" + columnId + "'"));
     }
   }
 
@@ -4157,7 +4160,7 @@ public abstract class AbstractDatabase implements Database {
       econ.exec(p.parse(
             "update _core.columns " +
                 "   set not_null=" + notNull +
-                " where _id='" + columnId + "'"));
+                " where _id=u'" + columnId + "'"));
     }
   }
 
