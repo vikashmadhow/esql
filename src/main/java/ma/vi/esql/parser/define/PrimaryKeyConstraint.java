@@ -13,6 +13,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.toSet;
+
 public class PrimaryKeyConstraint extends ConstraintDefinition {
   public PrimaryKeyConstraint(Context context, String name, List<String> columns) {
     super(context, name, T2.of("columns", new Esql<>(context, columns)));
@@ -39,7 +41,12 @@ public class PrimaryKeyConstraint extends ConstraintDefinition {
   public boolean sameAs(ConstraintDefinition def) {
     if (def instanceof PrimaryKeyConstraint) {
       PrimaryKeyConstraint c = (PrimaryKeyConstraint)def;
-      return new HashSet<>(c.columns()).equals(new HashSet<>(columns()));
+      return c.columns()
+              .stream()
+              .map(String::trim)
+              .collect(toSet()).equals(columns().stream()
+                                                .map(String::trim)
+                                                .collect(toSet()));
     }
     return false;
   }

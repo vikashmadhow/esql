@@ -13,6 +13,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.toSet;
+
 public class UniqueConstraint extends ConstraintDefinition {
   public UniqueConstraint(Context context, String name, List<String> columns) {
     super(context, name, T2.of("columns", new Esql<>(context, columns)));
@@ -39,7 +41,16 @@ public class UniqueConstraint extends ConstraintDefinition {
   public boolean sameAs(ConstraintDefinition def) {
     if (def instanceof UniqueConstraint) {
       UniqueConstraint c = (UniqueConstraint)def;
-      return new HashSet<>(c.columns()).equals(new HashSet<>(columns()));
+      /*
+       * Trim to work around an error (which I found only in HSQLDB for not)
+       * where the names are padded with some spaces.
+       */
+      return c.columns()
+              .stream()
+              .map(String::trim)
+              .collect(toSet()).equals(columns().stream()
+                                                .map(String::trim)
+                                                .collect(toSet()));
     }
     return false;
   }

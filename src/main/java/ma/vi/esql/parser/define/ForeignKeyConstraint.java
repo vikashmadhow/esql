@@ -13,6 +13,7 @@ import java.util.HashSet;
 import java.util.List;
 
 import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toSet;
 import static ma.vi.esql.parser.define.ConstraintDefinition.ForeignKeyChangeAction.NO_ACTION;
 import static ma.vi.esql.type.Type.dbName;
 import static ma.vi.esql.type.Type.splitName;
@@ -64,11 +65,21 @@ public class ForeignKeyConstraint extends ConstraintDefinition {
   public boolean sameAs(ConstraintDefinition def) {
     if (def instanceof ForeignKeyConstraint) {
       ForeignKeyConstraint c = (ForeignKeyConstraint)def;
-      return new HashSet<>(c.sourceColumns()).equals(new HashSet<>(sourceColumns()))
+      return c.sourceColumns()
+              .stream()
+              .map(String::trim)
+              .collect(toSet()).equals(sourceColumns().stream()
+                                                      .map(String::trim)
+                                                      .collect(toSet()))
 
           && c.targetTable().equals(targetTable())
 
-          && new HashSet<>(c.targetColumns()).equals(new HashSet<>(targetColumns()))
+          && c.targetColumns()
+              .stream()
+              .map(String::trim)
+              .collect(toSet()).equals(targetColumns().stream()
+                                                      .map(String::trim)
+                                                      .collect(toSet()))
 
           && c.forwardCost() == forwardCost()
           && c.reverseCost() == reverseCost()
