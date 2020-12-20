@@ -99,37 +99,32 @@ public class Column extends MetadataContainer<Expression<?>, String> {
 
   @Override
   public String translate(Target target) {
-    StringBuilder st = new StringBuilder(expr().translate(target));
-    Metadata metadata = metadata();
     if (target == Target.ESQL) {
+      StringBuilder st = new StringBuilder();
       if (alias() != null) {
-        st.append(' ').append(alias());
+        st.append(alias()).append(':');
       }
+      st.append(expr().translate(target));
+      Metadata metadata = metadata();
       if (metadata != null && !metadata.attributes().isEmpty()) {
         st.append(" {");
         boolean first = true;
         for (Attribute attr: metadata.attributes().values()) {
-          if (first) {
-            first = false;
-          } else {
-            st.append(", ");
-          }
+          if (first) { first = false; }
+          else       { st.append(", "); }
           st.append(attr.attributeValue().translate(target));
         }
         st.append('}');
       }
       return st.toString();
-    }
-    if (alias() != null) {
-      st.append(' ').append(alias());
-    }
-    // basic metadata loading
-    if (metadata != null && !metadata.attributes().isEmpty()) {
-      for (Attribute attr: metadata.attributes().values()) {
-        st.append(", ").append(attr.attributeValue().translate(target));
+
+    } else {
+      StringBuilder st = new StringBuilder(expr().translate(target));
+      if (alias() != null) {
+        st.append(' ').append(alias());
       }
+      return st.toString();
     }
-    return st.toString();
   }
 
   public boolean derived() {

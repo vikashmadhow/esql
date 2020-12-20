@@ -4147,7 +4147,8 @@ public abstract class AbstractDatabase implements Database {
       Parser p = new Parser(structure());
       econ.exec(p.parse(
         "update _core.columns " +
-              "   set expression=" + (defaultValue == null ? "null" : defaultValue) +
+              "   set expression=" + (defaultValue == null ? "null"
+                                                           : "'" + StringLiteral.escapeEsqlString(defaultValue) + "'") +
               " where _id=u'" + columnId + "'"));
     }
   }

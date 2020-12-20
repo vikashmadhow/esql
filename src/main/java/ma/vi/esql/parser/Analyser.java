@@ -627,7 +627,7 @@ public class Analyser extends EsqlBaseListener {
                           distinct != null && distinct.getText().startsWith("distinct"),
                           distinct != null && distinct.expressionList() != null ? value(distinct.expressionList()) : null,
                           true,
-                          singletonList(new Column(context, null, get(ctx.col), null)),
+                          singletonList(new Column(context, value(ctx.alias()), get(ctx.col), null)),
                           get(ctx.tableExpr()),
                           ctx.where == null ? null : get(ctx.where),
                           null,

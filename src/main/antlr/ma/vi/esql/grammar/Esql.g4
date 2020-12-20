@@ -287,7 +287,7 @@ expr
 
 selectExpression
     : '(' distinct?
-          col=expr
+          (alias ':')? col=expr
           'from'   tableExpr
          ('where'  where=expr)?
          ('order' 'by' orderByList)?
