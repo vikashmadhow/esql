@@ -254,12 +254,13 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
         query.append(", ");
       }
       String colName = column.alias();
-      appendExpression(query, column.expr(), colName, target, qualifier);
+      Type type = column.expr() instanceof ColumnRef ? column.type() : column.expr().type();
+      appendExpression(query, column.expr(), type, colName, target, qualifier);
       columnToIndex.put(colName, itemIndex);
       mappings.put(colName, new Mapping(itemIndex,
-                                       column.expr().type(),
-                                       new ArrayList<>(),
-                                       new HashMap<>()));
+                                        type,
+                                        new ArrayList<>(),
+                                        new HashMap<>()));
     }
 
     /*
@@ -281,7 +282,7 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
         if (itemIndex > 1) {
           query.append(", ");
         }
-        appendExpression(query, attributeValue, colName, target, qualifier);
+        appendExpression(query, attributeValue, attributeValue.type(), colName, target, qualifier);
         resultAttributeIndices.add(T3.of(itemIndex, attrName, attributeValue.type()));
       }
     }
@@ -309,7 +310,7 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
       } else if (addAttributes) {
         itemIndex += 1;
         query.append(", ");
-        appendExpression(query, attributeValue, attrName, target, qualifier);
+        appendExpression(query, attributeValue, attributeValue.type(), attrName, target, qualifier);
         mapping.attributeIndices.add(T3.of(itemIndex, attrName, attributeValue.type()));
       }
     }
@@ -325,6 +326,7 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
    */
   protected void appendExpression(StringBuilder query,
                                   Expression<?> expression,
+                                  Type type,
                                   String alias,
                                   Target target,
                                   String qualifier) {
@@ -333,8 +335,7 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
     }
     if (target == Target.SQLSERVER) {
       // SQL Server does not have a boolean type; work-around using an IIF
-      if (!(expression instanceof ColumnRef)
-       && expression.type() == Types.BoolType) {
+      if (type == Types.BoolType) {
         String boolValue = expression.translate(target);
         if (boolValue.equals("0") || boolValue.equals("1")) {
           // a boolean literal was specified: no need to use IIF

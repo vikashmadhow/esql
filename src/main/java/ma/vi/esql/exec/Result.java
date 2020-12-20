@@ -135,14 +135,14 @@ public class Result implements AutoCloseable {
     if (!columnNameToIndex.containsKey(field)) {
       throw new RuntimeException("No such field: " + field);
     }
-    return get(columnNameToIndex.get(field) + 1);
+    return get(columnNameToIndex.get(field));
   }
 
   public <T> T value(String field) {
     if (!columnNameToIndex.containsKey(field)) {
       throw new RuntimeException("No such field: " + field);
     }
-    return value(columnNameToIndex.get(field) + 1);
+    return value(columnNameToIndex.get(field));
 
   }
 
@@ -154,7 +154,7 @@ public class Result implements AutoCloseable {
     if (!columnNameToIndex.containsKey(field)) {
       throw new RuntimeException("No such field: " + field);
     }
-    return booleanValue(columnNameToIndex.get(field) + 1);
+    return booleanValue(columnNameToIndex.get(field));
   }
 
   public boolean booleanValue(int index) {

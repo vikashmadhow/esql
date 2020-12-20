@@ -131,7 +131,7 @@ public class Select extends QueryUpdate {
         // add output clause
         StringBuilder columns = new StringBuilder();
         QueryTranslation q = constructResult(columns, target, null,
-            addAttributes, optimiseAttributesLoading);
+                                             addAttributes, optimiseAttributesLoading);
 
         st.append(columns);
         st.append(", ").append("row_number() over (partition by ");
@@ -185,10 +185,10 @@ public class Select extends QueryUpdate {
 //                                      .collect(joining(", "));
 //                }
         return new QueryTranslation(query,
-            q.columns,
-            q.columnToIndex,
-            q.resultAttributeIndices,
-            q.resultAttributes);
+                                    q.columns,
+                                    q.columnToIndex,
+                                    q.resultAttributeIndices,
+                                    q.resultAttributes);
       } else {
         boolean hasComplexGroups = false;
         if (groupBy() != null) {

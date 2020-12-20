@@ -331,7 +331,10 @@ public class AlterTable extends Define<String> {
           }
 
           con.createStatement().executeUpdate(
-            "ALTER TABLE " + dbName + " DROP COLUMN IF EXISTS \"" + drop.columnName() + '"');
+            "ALTER TABLE " + dbName + " DROP COLUMN \"" + drop.columnName() + '"');
+
+//          con.createStatement().executeUpdate(
+//            "ALTER TABLE " + dbName + " DROP COLUMN IF EXISTS \"" + drop.columnName() + '"');
 
           s.database.dropColumn(con, column.id());
           relation.removeColumn(drop.columnName());
@@ -347,7 +350,10 @@ public class AlterTable extends Define<String> {
             throw new IllegalArgumentException("Relation " + name() + " does not have constraint " + drop.constraintName());
           }
           con.createStatement().executeUpdate(
-            "ALTER TABLE " + dbName + " DROP CONSTRAINT IF EXISTS \"" + drop.constraintName() + '"');
+            "ALTER TABLE " + dbName + " DROP CONSTRAINT \"" + drop.constraintName() + '"');
+
+//          con.createStatement().executeUpdate(
+//            "ALTER TABLE " + dbName + " DROP CONSTRAINT IF EXISTS \"" + drop.constraintName() + '"');
 
           s.database.dropConstraint(con, relation.id(), drop.constraintName());
           relation.removeConstraint(drop.constraintName());

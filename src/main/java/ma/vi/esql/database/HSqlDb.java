@@ -227,18 +227,23 @@ public class HSqlDb extends AbstractDatabase {
 
   @Override
   public <T> T[] getArray(ResultSet rs, String index, Class<T> componentType) throws SQLException {
-    Array sqlArray = rs.getArray(index);
-    return sqlArray == null
-           ? (T[])java.lang.reflect.Array.newInstance(componentType, 0)
-           : (T[])sqlArray.getArray();
+    return convert(rs.getArray(index), componentType);
   }
 
   @Override
   public <T> T[] getArray(ResultSet rs, int index, Class<T> componentType) throws SQLException {
-    Array sqlArray = rs.getArray(index);
-    return sqlArray == null
-           ? (T[])java.lang.reflect.Array.newInstance(componentType, 0)
-           : (T[])sqlArray.getArray();
+    return convert(rs.getArray(index), componentType);
+  }
+
+  private <T> T[] convert(Array sqlArray, Class<T> componentType) throws SQLException {
+    if (sqlArray == null) {
+      return (T[])java.lang.reflect.Array.newInstance(componentType, 0);
+    } else {
+      T[] a = (T[])sqlArray.getArray();
+      T[] converted = (T[])java.lang.reflect.Array.newInstance(componentType, a.length);
+      System.arraycopy(a, 0, converted, 0, a.length);
+      return converted;
+    }
   }
 
   /**

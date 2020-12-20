@@ -12,7 +12,7 @@ import static ma.vi.base.string.Escape.escapeJsonString;
 
 public class StringLiteral extends BaseLiteral<String> {
   public StringLiteral(Context context, String value) {
-    super(context, value);
+    super(context, value.startsWith("'") ? value : "'" + value + "'");
   }
 
   public StringLiteral(StringLiteral other) {

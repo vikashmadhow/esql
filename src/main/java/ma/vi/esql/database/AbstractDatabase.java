@@ -11,7 +11,10 @@ import ma.vi.esql.exec.Result;
 import ma.vi.esql.parser.Context;
 import ma.vi.esql.parser.Parser;
 import ma.vi.esql.parser.define.*;
-import ma.vi.esql.parser.expression.*;
+import ma.vi.esql.parser.expression.BooleanLiteral;
+import ma.vi.esql.parser.expression.ColumnRef;
+import ma.vi.esql.parser.expression.Expression;
+import ma.vi.esql.parser.expression.StringLiteral;
 import ma.vi.esql.parser.modify.Insert;
 import ma.vi.esql.parser.query.Column;
 import ma.vi.esql.type.BaseRelation;
@@ -19,7 +22,10 @@ import ma.vi.esql.type.Relation;
 import ma.vi.esql.type.Types;
 
 import java.sql.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 import static java.lang.System.Logger.Level.INFO;
 import static java.util.Arrays.asList;
@@ -71,16 +77,27 @@ public abstract class AbstractDatabase implements Database {
 
           // load constraints after all tables are loaded so that foreign key
           // constraints can be properly linked to their target tables.
-          try (ResultSet rs = con.createStatement().executeQuery(
-              "select \"_id\", \"name\", \"relation_id\", \"type\", \"check_expr\", " +
-                  "       \"source_columns\", \"target_relation_id\", \"target_columns\", " +
-                  "       \"forward_cost\", \"reverse_cost\", \"on_update\", \"on_delete\" " +
-                  "  from \"_core\".\"constraints\"")) {
+          Parser p = new Parser(structure);
+          EsqlConnection econ = esql(con);
+          try (Result rs = econ.exec(p.parse(
+              "select _id, name, relation_id, type, check_expr, " +
+                  "        source_columns, target_relation_id, target_columns, " +
+                  "        forward_cost, reverse_cost, on_update, on_delete " +
+                  "   from _core.constraints"))) {
             while (rs.next()) {
               loadConstraints(context, structure, parser, rs);
             }
           }
-
+//          try (ResultSet rs = con.createStatement().executeQuery(
+//              "select \"_id\", \"name\", \"relation_id\", \"type\", \"check_expr\", " +
+//                  "       \"source_columns\", \"target_relation_id\", \"target_columns\", " +
+//                  "       \"forward_cost\", \"reverse_cost\", \"on_update\", \"on_delete\" " +
+//                  "  from \"_core\".\"constraints\"")) {
+//            while (rs.next()) {
+//              loadConstraints(context, structure, parser, rs);
+//            }
+//          }
+//
 //          // load indices and link to covered tables
 //          try (ResultSet rs = c.createStatement().executeQuery("SELECT _id, name, relation_id, unique_index, " +
 //              "columns, expressions, partial_index_condition " +
@@ -267,10 +284,8 @@ public abstract class AbstractDatabase implements Database {
                                                target.a,
                                                targetColumns,
                                                0, 0,
-                                               ConstraintDefinition.ForeignKeyChangeAction.fromInformationSchema(
-                                                   updateRule),
-                                               ConstraintDefinition.ForeignKeyChangeAction.fromInformationSchema(
-                                                   deleteRule));
+                                               ConstraintDefinition.ForeignKeyChangeAction.fromInformationSchema(updateRule),
+                                               ConstraintDefinition.ForeignKeyChangeAction.fromInformationSchema(deleteRule));
                 }
             }
 
@@ -494,18 +509,18 @@ public abstract class AbstractDatabase implements Database {
                 "('" + columnAttributes.column("attribute").id() + "', '" + columnAttributesId + "', 'attribute', 3, 'string', true), " +
                 "('" + columnAttributes.column("value").id()     + "', '" + columnAttributesId + "', 'value',     4, 'text',   false), " +
 
-                "('" + constraints.column("_id").id()                + "', '" + constraintsId + "', '_id',                 1, 'uuid',   true), " +
-                "('" + constraints.column("name").id()               + "', '" + constraintsId + "', 'name',                2, 'string', true), " +
-                "('" + constraints.column("relation_id").id()        + "', '" + constraintsId + "', 'relation_id',         3, 'uuid',   true), " +
-                "('" + constraints.column("type").id()               + "', '" + constraintsId + "', 'type',                4, 'char',   true), " +
-                "('" + constraints.column("check_expr").id()         + "', '" + constraintsId + "', 'check_expr',          5, 'text',   false), " +
-                "('" + constraints.column("source_columns").id()     + "', '" + constraintsId + "', 'source_columns',      6, 'int[]',  false), " +
-                "('" + constraints.column("target_relation_id").id() + "', '" + constraintsId + "', 'target_relation_id',  7, 'uuid',   false), " +
-                "('" + constraints.column("target_columns").id()     + "', '" + constraintsId + "', 'target_columns',      8, 'int[]',  false), " +
-                "('" + constraints.column("forward_cost").id()       + "', '" + constraintsId + "', 'forward_cost',        9, 'int',    true), " +
-                "('" + constraints.column("reverse_cost").id()       + "', '" + constraintsId + "', 'reverse_cost',       10, 'int',    true), " +
-                "('" + constraints.column("on_update").id()          + "', '" + constraintsId + "', 'on_update',          11, 'char',   false), " +
-                "('" + constraints.column("on_delete").id()          + "', '" + constraintsId + "', 'on_delete',          12, 'char',   false), " +
+                "('" + constraints.column("_id").id()                + "', '" + constraintsId + "', '_id',                 1, 'uuid',     true), " +
+                "('" + constraints.column("name").id()               + "', '" + constraintsId + "', 'name',                2, 'string',   true), " +
+                "('" + constraints.column("relation_id").id()        + "', '" + constraintsId + "', 'relation_id',         3, 'uuid',     true), " +
+                "('" + constraints.column("type").id()               + "', '" + constraintsId + "', 'type',                4, 'char',     true), " +
+                "('" + constraints.column("check_expr").id()         + "', '" + constraintsId + "', 'check_expr',          5, 'text',     false), " +
+                "('" + constraints.column("source_columns").id()     + "', '" + constraintsId + "', 'source_columns',      6, 'string[]', false), " +
+                "('" + constraints.column("target_relation_id").id() + "', '" + constraintsId + "', 'target_relation_id',  7, 'uuid',     false), " +
+                "('" + constraints.column("target_columns").id()     + "', '" + constraintsId + "', 'target_columns',      8, 'string[]', false), " +
+                "('" + constraints.column("forward_cost").id()       + "', '" + constraintsId + "', 'forward_cost',        9, 'int',      true), " +
+                "('" + constraints.column("reverse_cost").id()       + "', '" + constraintsId + "', 'reverse_cost',       10, 'int',      true), " +
+                "('" + constraints.column("on_update").id()          + "', '" + constraintsId + "', 'on_update',          11, 'char',     false), " +
+                "('" + constraints.column("on_delete").id()          + "', '" + constraintsId + "', 'on_delete',          12, 'char',     false), " +
 
                 "('" + sequences.column("_id").id()       + "', '" + sequencesId + "', '_id',       1, 'uuid',   true), " +
                 "('" + sequences.column("name").id()      + "', '" + sequencesId + "', 'name',      2, 'string', true), " +
@@ -3793,8 +3808,6 @@ public abstract class AbstractDatabase implements Database {
                  "  from \"_core\".\"column_attributes\" " +
                  " where \"column_id\"=?")) {
 
-      Map<String, Column> derived = new HashMap<>();
-      Map<String, Column> columnsByName = new HashMap<>();
       while (rs.next()) {
         UUID columnId = UUID.fromString(rs.getString("_id"));
         String columnName = rs.getString("name");
@@ -3807,12 +3820,7 @@ public abstract class AbstractDatabase implements Database {
         // load custom column attributes
         Metadata metadata = new Metadata(context, new ArrayList<>());
         metadata.attribute(TYPE, columnType);
-        Expression<?> expr = null;
-        if (expression != null) {
-          expr = parser.parseExpression(expression);
-          metadata.attribute(EXPRESSION, expr);
-        }
-        metadata.attribute(ID, columnId.toString());
+        metadata.attribute(ID, columnId);
         metadata.attribute(REQUIRED, notNull);
         metadata.attribute(SEQUENCE, columnNumber);
         attrStmt.setString(1, columnId.toString());
@@ -3824,117 +3832,59 @@ public abstract class AbstractDatabase implements Database {
           }
         }
 
+        Expression<?> expr = expression != null ? parser.parseExpression(expression) : null;
         if (derivedColumn) {
           metadata.attribute(DERIVED, true);
           Column col = new Column(context, columnName, expr, metadata);
           columns.add(col);
-          columnsByName.put(columnName, col);
-          derived.put(columnName, col);
-
-          columns.add(new Column(
-              context,
-              columnName + "/e",
-              new UncomputedExpression(context, expr),
-              metadata
-          ));
-          columns.add(col);
-          columnsByName.put(columnName, col);
         } else {
           Column col = new Column(
               context,
               columnName,
               new ColumnRef(context, null, columnName),
-              metadata
-          );
+              metadata);
+          if (expr != null) {
+            col.attribute(EXPRESSION, expr);
+          }
           columns.add(col);
-          columnsByName.put(columnName, col);
         }
       }
-
-//      for (Map.Entry<String, Column> e: derived.entrySet()) {
-//        String columnName = e.getKey();
-//        Column column = e.getValue();
-//        column.expr(expandDerived(columnsByName,
-//                                  columnName,
-//                                  column.expr(),
-//                                  new HashSet<>()));
-//      }
       return columns;
     } catch (SQLException sqle) {
       throw new RuntimeException(sqle);
     }
   }
 
-//  public static Expression<?> expandDerived(Map<String, Column> columns,
-//                                            String columnName,
-//                                            Expression<?> derivedExpression,
-//                                            Set<String> seen) {
-//    try {
-//      seen.add(columnName);
-//      return (Expression<?>)derivedExpression.map(e -> {
-//          if (e instanceof ColumnRef) {
-//            ColumnRef ref = (ColumnRef)e;
-//            String colName = ref.name();
-//            if (!columns.containsKey(colName)) {
-//              throw new TranslationException("Unknown column " + colName
-//                  + " in derived expresion " + derivedExpression);
-//            } else if (seen.contains(colName)) {
-//              throw new TranslationException("A circular definition was detected "
-//                  + "in the expression " + derivedExpression
-//                  + " consisting of the column " + colName);
-//            } else {
-//              Column column = columns.get(colName);
-//              Metadata metadata = column.metadata();
-//              if (metadata != null) {
-//                Boolean derived = metadata.evaluateAttribute(DERIVED);
-//                if (derived != null && derived) {
-//                  return expandDerived(columns, colName, column.expr(), seen);
-//                }
-//              }
-//            }
-//          }
-//          return e;
-//        },
-//        e -> !(e instanceof Select));
-//    } finally {
-//      seen.remove(columnName);
-//    }
-//  }
-
   protected void loadConstraints(Context context,
                                  Structure structure,
                                  Parser parser,
-                                 ResultSet rs) throws SQLException {
+                                 Result rs) throws SQLException {
     /*
      * Load constraints.
      */
     // UUID id = UUID.fromString(rs.getString("_id"));
-    String name = rs.getString("name");
-    BaseRelation relation = structure.relation(UUID.fromString(rs.getString("relation_id")));
-    ConstraintDefinition.Type type = fromMarker(rs.getString("type").charAt(0));
+    String name = rs.value("name");
+    BaseRelation relation = structure.relation((UUID)rs.value("relation_id"));
+    ConstraintDefinition.Type type = fromMarker(((String)rs.value("type")).charAt(0));
 
-    String targetRelationId = rs.getString("target_relation_id");
+    UUID targetRelationId = rs.value("target_relation_id");
     BaseRelation targetRelation = null;
     if (targetRelationId != null) {
-      targetRelation = structure.relation(UUID.fromString(targetRelationId));
+      targetRelation = structure.relation(targetRelationId);
     }
-    String sourceCols = rs.getString("source_columns");
-    List<String> sourceColumns = sourceCols == null
-        ? emptyList()
-        : asList(sourceCols.split(","));
+    String[] sourceCols = rs.value("source_columns");
+    List<String> sourceColumns = sourceCols == null ? emptyList() : asList(sourceCols);
 
-    String targetCols = rs.getString("target_columns");
-    List<String> targetColumns = targetCols == null
-        ? emptyList()
-        : asList(sourceCols.split(","));
+    String[] targetCols = rs.value("target_columns");
+    List<String> targetColumns = targetCols == null ? emptyList() : asList(targetCols);
 
-    String check = rs.getString("check_expr");
+    String check = rs.value("check_expr");
 
-    int forwardCost = rs.getInt("forward_cost");
-    int reverseCost = rs.getInt("reverse_cost");
+    int forwardCost = rs.value("forward_cost");
+    int reverseCost = rs.value("reverse_cost");
 
-    String onUpdate = rs.getString("on_update");
-    String onDelete = rs.getString("on_delete");
+    String onUpdate = rs.value("on_update");
+    String onDelete = rs.value("on_delete");
 
     ConstraintDefinition c = switch (type) {
       case CHECK -> new CheckConstraint(

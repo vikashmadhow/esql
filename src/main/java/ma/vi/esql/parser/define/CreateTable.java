@@ -251,12 +251,15 @@ public class CreateTable extends Define<String> {
              * drop excess fields
              */
             for (Column column: table.columns()) {
-              if (!columns.containsKey(column.alias())) {
+              String columnName = column.alias();
+              if (columnName != null
+               && columnName.indexOf('/') == -1
+               && !columns.containsKey(columnName)) {
                 /*
                  * Drop existing field not specified in create command
                  */
                 alter = new AlterTable(context, tableName,
-                                       singletonList(new DropColumn(context, column.alias())));
+                                       singletonList(new DropColumn(context, columnName)));
                 alter.execute(con, structure, target);
               }
             }
