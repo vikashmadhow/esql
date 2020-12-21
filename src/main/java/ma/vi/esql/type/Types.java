@@ -104,6 +104,7 @@ public class Types {
 
   private static String normaliseType(String typeName) {
     typeName = typeName.toLowerCase();
+    typeName = typeName.replaceAll("\\W+", "");
     if (typeName.startsWith("character")) {
       typeName = "text";
     }
@@ -382,6 +383,7 @@ public class Types {
     postgresqlTypeMapping.put("integer", "int");
     postgresqlTypeMapping.put("bigint", "long");
     postgresqlTypeMapping.put("real", "float");
+    postgresqlTypeMapping.put("float", "float");
     postgresqlTypeMapping.put("double", "double");
     postgresqlTypeMapping.put("double precision", "double");
     postgresqlTypeMapping.put("decimal", "double");
@@ -395,10 +397,21 @@ public class Types {
     postgresqlTypeMapping.put("date", "date");
     postgresqlTypeMapping.put("time", "time");
     postgresqlTypeMapping.put("timestamp", "datetime");
+    postgresqlTypeMapping.put("datetime", "datetime");
     postgresqlTypeMapping.put("interval", "interval");
     postgresqlTypeMapping.put("uuid", "uuid");
     postgresqlTypeMapping.put("json", "json");
     postgresqlTypeMapping.put("jsonb", "json");
+    postgresqlTypeMapping.put("array", "text[]");
+    postgresqlTypeMapping.put("anyarray", "text[]");
+    postgresqlTypeMapping.put("name", "text");
+    postgresqlTypeMapping.put("regproc", "long");
+    postgresqlTypeMapping.put("pg_node_tree", "text");
+    postgresqlTypeMapping.put("pg_ndistinct", "text");
+    postgresqlTypeMapping.put("pg_dependencies", "text");
+    postgresqlTypeMapping.put("pg_mcv_list", "text");
+    postgresqlTypeMapping.put("xid", "long");
+    postgresqlTypeMapping.put("pg_lsn", "long");
 
     sqlServerTypeMapping.put("tinyint", "byte");
     sqlServerTypeMapping.put("smallint", "short");
@@ -455,7 +468,9 @@ public class Types {
     typeSynonyms.put("float8", "double");
     typeSynonyms.put("timetz", "time");
     typeSynonyms.put("timestamp with time zone", "datetime");
+    typeSynonyms.put("timestampwithtimezone", "datetime");
     typeSynonyms.put("timestamp without time zone", "datetime");
+    typeSynonyms.put("timestampwithouttimezone", "datetime");
     typeSynonyms.put("timestamptz", "datetime");
   }
 }

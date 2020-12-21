@@ -8,14 +8,14 @@ import ma.vi.base.string.Strings;
 import ma.vi.base.tuple.T2;
 import ma.vi.base.tuple.T3;
 import ma.vi.esql.builder.Attr;
+import ma.vi.esql.database.Structure;
+import ma.vi.esql.exec.Mapping;
+import ma.vi.esql.exec.Result;
 import ma.vi.esql.parser.define.Attribute;
 import ma.vi.esql.parser.define.ForeignKeyConstraint;
 import ma.vi.esql.parser.define.Metadata;
 import ma.vi.esql.parser.expression.*;
 import ma.vi.esql.parser.query.*;
-import ma.vi.esql.database.Structure;
-import ma.vi.esql.exec.Mapping;
-import ma.vi.esql.exec.Result;
 import ma.vi.esql.type.*;
 
 import java.sql.Connection;

@@ -227,7 +227,8 @@ public class Postgresql extends AbstractDatabase {
                                      String username,
                                      String password) {
     try {
-      Connection con = dataSource.getConnection(username, password);
+//      Connection con = dataSource.getConnection(username, password);
+      Connection con = dataSource.getConnection();
       con.setAutoCommit(autoCommit);
       if (isolationLevel != -1) {
         con.setTransactionIsolation(isolationLevel);

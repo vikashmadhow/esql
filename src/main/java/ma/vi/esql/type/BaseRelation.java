@@ -617,7 +617,6 @@ public class BaseRelation extends Relation {
    */
   private final List<Column> columns;
 
-//  private final Map<String, Column> = new HashMap<>();
   private final PathTrie<Column> columnsByAlias = new PathTrie<>();
 
   /**

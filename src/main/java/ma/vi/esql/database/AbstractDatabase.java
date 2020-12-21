@@ -3823,7 +3823,7 @@ public abstract class AbstractDatabase implements Database {
         metadata.attribute(ID, columnId);
         metadata.attribute(REQUIRED, notNull);
         metadata.attribute(SEQUENCE, columnNumber);
-        attrStmt.setString(1, columnId.toString());
+        attrStmt.setObject(1, columnId);
         try (ResultSet ars = attrStmt.executeQuery()) {
           while (ars.next()) {
             metadata.attribute(
