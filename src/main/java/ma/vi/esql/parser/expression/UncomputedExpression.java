@@ -37,15 +37,11 @@ public class UncomputedExpression extends SingleSubExpression {
 
   @Override
   public String translate(Target target) {
-    switch (target) {
-      case JAVASCRIPT:
-        return '`' + expr().translate(target) + '`';
-      case ESQL:
-        return "$(" + expr().translate(target) + ')';
-      default:
-        String translation = expr().translate(target);
-        return '\'' + translation.replace("'", "''") + '\'';
-    }
+    return switch (target) {
+      case JAVASCRIPT -> '`' + expr().translate(target) + '`';
+      case ESQL       -> "$(" + expr().translate(target) + ')';
+      default         -> '\'' + expr().translate(target).replace("'", "''") + '\'';
+    };
   }
 
   @Override

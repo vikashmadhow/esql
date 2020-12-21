@@ -208,7 +208,6 @@ simpleExpr
     | qualifiedName '(' distinct? expressionList? ')' window?       #SimpleFunctionInvocation
 
     | columnReference                                               #SimpleColumnExpr
-    | '`' qualifiedName                                             #SimpleSymbol       // used in macros
 
     // a -> b : c -> d : e -> f : g
     | <assoc=right> simpleExpr ('->' simpleExpr ':' simpleExpr)+   #SimpleCaseExpr
@@ -275,7 +274,6 @@ expr
     | expr 'is' Not? NullLiteral                            #NullCheckExpr
 
     | columnReference                                       #ColumnExpr
-    | '`' qualifiedName                                     #Symbol             // used in macros
 
     | left=expr 'and' right=expr                            #LogicalAndExpr
     | left=expr 'or'  right=expr                            #LogicalOrExpr
@@ -349,7 +347,7 @@ baseLiteral
     : IntegerLiteral            #Integer
     | FloatingPointLiteral      #FloatingPoint
     | BooleanLiteral            #Boolean
-    | TripleQuotedStringLiteral #TripleQuotedString
+    | MultiLineStringLiteral    #MultiLineString
     | StringLiteral             #String
     | UuidLiteral               #Uuid
     | DateLiteral               #Date
@@ -671,8 +669,8 @@ BooleanLiteral
     | 'false'
     ;
 
-TripleQuotedStringLiteral
-    : '\'\'\'' .*? '\'\'\''
+MultiLineStringLiteral
+    : '`' .*? '`'
     ;
 
 StringLiteral

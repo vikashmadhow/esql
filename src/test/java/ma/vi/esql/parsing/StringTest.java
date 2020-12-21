@@ -22,33 +22,33 @@ public class StringTest {
     StringLiteral expr = (StringLiteral)parser.parseExpression("'this is a \n\ttest\n...\tMX3\f\\c'");
     assertEquals("'this is a \n\ttest\n...\tMX3\f\\c'", expr.value);
     assertEquals("N'this is a \n\ttest\n...\tMX3\f\\c'", expr.translate(SQLSERVER));
-    assertEquals("N'this is a \n\ttest\n...\tMX3\f\\c'", expr.translate(HSQLDB));
+    assertEquals("'this is a \n\ttest\n...\tMX3\f\\c'", expr.translate(HSQLDB));
     assertEquals("E'this is a \\n\\ttest\\n...\\tMX3\\f\\\\c'", expr.translate(POSTGRESQL));
   }
 
   @Test
-  void tripleQuotedStrings() {
+  void multiLineStrings() {
     EsqlParser p = Parser.parser(
         "{\n" +
-        "a: '''function sum(x, y) {\n" +
-        "        x *= x's;\n" +
-        "        y += x;\n" +
-        "        if (x > y) {\n" +
-        "          return y;\n" +
-        "        } else {\n" +
-        "          return x - y;\n" +
-        "        }\n" +
-        "      }''',\n" +
-        "b: '''function sum(x, y) {\n" +
-        "        x *= x''s;\n" +
+        "a: `function sum(x, y) {\n" +
+        "      x *= x's;\n" +
+        "      y += x;\n" +
+        "      if (x > y) {\n" +
+        "        return y;\n" +
+        "      } else {\n" +
+        "        return x - y;\n" +
+        "      }\n" +
+        "    }`,\n" +
+        "b: `function sum(x, y) {\n" +
+        "      x *= x''s;\n" +
         "  y += x;\n" +
-        "       if (x > y) {\n" +
-        "          return y;\n" +
-        "        } else {\n" +
-        "          return x - y;\n" +
-        "        }\n" +
-        "      }''',\n" +
-        "c: '''\n" +
+        "     if (x > y) {\n" +
+        "        return y;\n" +
+        "      } else {\n" +
+        "        return x - y;\n" +
+        "      }\n" +
+        "    }`,\n" +
+        "c: `\n" +
         "   function sum(x, y) {\n" +
         "     x *= x''s;\n" +
         "     y += x;\n" +
@@ -58,7 +58,7 @@ public class StringTest {
         "       return x - y;\n" +
         "     }\n" +
         "   }\n" +
-        "   '''\n" +
+        "   `\n" +
         "}"
     );
     Structure structure = Databases.HSqlDb().structure();

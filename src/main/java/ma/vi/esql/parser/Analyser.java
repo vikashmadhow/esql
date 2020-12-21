@@ -406,21 +406,18 @@ public class Analyser extends EsqlBaseListener {
   }
 
   @Override
-  public void exitTripleQuotedString(TripleQuotedStringContext ctx) {
+  public void exitMultiLineString(MultiLineStringContext ctx) {
     /*
      * Strip left margin from multi-line string:
-     *  text: '''func x(a,b) {
-     *             a = a^b
-     *             return a%b
-     *           }'''
-     *
+     *  text: `func x(a,b) {
+     *           a = a^b
+     *           return a%b
+     *         }`
      * or
-     *  text: '''
-     *        func x(a,b) {
-     *          a = a^b
-     *          return a%b
-     *        }
-     *        '''
+     *  text: `func x(a,b) {
+     *           a = a^b
+     *           return a%b
+     *         }`
      *
      * will produce the following string after stripping:
      * func x(a,b) {
@@ -429,13 +426,13 @@ public class Analyser extends EsqlBaseListener {
      * }
      */
     String text = ctx.getText();
-    int margin = ctx.getStart().getCharPositionInLine() + 3;
+    int margin = ctx.getStart().getCharPositionInLine() + 1;
     StringBuilder stripped = new StringBuilder("'");
     boolean first = true;
-    String[] lines = text.substring(3, text.length() - 3).split("\n");
+    String[] lines = text.substring(1, text.length() - 1).split("\n");
     if (lines.length > 0) {
       if (lines[0].trim().length() == 0) {
-        margin -= 3;
+        margin -= 1;
       } else {
         stripped.append(lines[0].replace("'", "''"));
         first = false;
@@ -1118,16 +1115,6 @@ public class Analyser extends EsqlBaseListener {
   @Override
   public void exitQualifiedName(QualifiedNameContext ctx) {
     put(ctx, new Esql<>(context, ctx.getText()));
-  }
-
-  @Override
-  public void exitSymbol(SymbolContext ctx) {
-    put(ctx, new Symbol(context, value(ctx.qualifiedName())));
-  }
-
-  @Override
-  public void exitSimpleSymbol(SimpleSymbolContext ctx) {
-    put(ctx, new Symbol(context, value(ctx.qualifiedName())));
   }
 
   @Override

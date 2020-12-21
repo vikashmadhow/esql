@@ -5,11 +5,7 @@
 package ma.vi.esql.parser.macro;
 
 import ma.vi.base.tuple.T4;
-import ma.vi.esql.parser.Context;
-import ma.vi.esql.parser.Esql;
-import ma.vi.esql.parser.Macro;
-import ma.vi.esql.parser.QueryUpdate;
-import ma.vi.esql.parser.TranslationException;
+import ma.vi.esql.parser.*;
 import ma.vi.esql.builder.SelectBuilder;
 import ma.vi.esql.parser.expression.*;
 import ma.vi.esql.parser.query.*;
@@ -117,8 +113,8 @@ public class JoinLabelMacroFunction extends Function implements Macro {
         Expression<?> tableExpr = i.next();
 
         String table;
-        if (tableExpr instanceof Symbol) {
-          table = ((Symbol)tableExpr).name();
+        if (tableExpr instanceof UncomputedExpression) {
+          table = tableExpr.translate(Translatable.Target.ESQL);
 
         } else if (tableExpr instanceof StringLiteral) {
           table = ((StringLiteral)tableExpr).value(null);
@@ -230,8 +226,8 @@ public class JoinLabelMacroFunction extends Function implements Macro {
   }
 
   public static Expression<?> toColumnRef(Context ctx, Expression<?> expr, String qualifier) {
-    if (expr instanceof Symbol) {
-      return new ColumnRef(ctx, qualifier, ((Symbol)expr).name());
+    if (expr instanceof UncomputedExpression) {
+      return new ColumnRef(ctx, qualifier, expr.translate(Translatable.Target.ESQL));
 
     } else if (expr instanceof StringLiteral) {
       return new ColumnRef(ctx, qualifier, ((StringLiteral)expr).value(null));

@@ -885,10 +885,10 @@ public abstract class AbstractDatabase implements Database {
                            "   can_insert: false, " +
                            "   can_edit: false, " +
                            "   can_remove: false, " +
-                           "   link_table: `_platform.user.User, " +
+                           "   link_table: '_platform.user.User', " +
                            "   link_table_code_value: 'username', " +
                            "   link_table_code_label: 'realname', " +
-                           "   value_label: joinlabel(username, `username, `realname, `_platform.user.User)" +
+                           "   value_label: joinlabel(username, 'username', 'realname', '_platform.user.User')" +
                            "}, " +
                            "action string not null {" +
                            "   can_insert: false, " +
@@ -901,10 +901,10 @@ public abstract class AbstractDatabase implements Database {
                            "   can_insert: false, " +
                            "   can_edit: false, " +
                            "   can_remove: false, " +
-                           "   link_table: `_core.relations, " +
+                           "   link_table: '_core.relations', " +
                            "   link_table_code_value: 'name', " +
                            "   link_table_code_label: 'display_name', " +
-                           "   value_label: joinlabel(on_table, `name, `display_name, `_core.relations)" +
+                           "   value_label: joinlabel(on_table, 'name', 'display_name', '_core.relations')" +
                            "}, " +
                            "record_id uuid, " +
                            "identifier text, " +
@@ -1074,10 +1074,10 @@ public abstract class AbstractDatabase implements Database {
                            "target_lookup_id uuid not null {" +
                            "   label: 'Target', " +
                            "   required: true, " +
-                           "   link_table: `_platform.lookup.Lookup, " +
-                           "   link_table_code_value: `_id, " +
+                           "   link_table: '_platform.lookup.Lookup', " +
+                           "   link_table_code_value: '_id', " +
                            "   link_table_code_label: 'name', " +
-                           "   value_label: joinlabel(`target_lookup_id, `_id, `name, `_platform.lookup.Lookup)" +
+                           "   value_label: joinlabel('target_lookup_id', '_id', 'name', '_platform.lookup.Lookup')" +
                            "}, " +
 
                            "primary key(_id), " +
@@ -1157,11 +1157,11 @@ public abstract class AbstractDatabase implements Database {
                            "   can_insert: false, " +
                            "   can_edit: false, " +
                            "   can_remove: false, " +
-                           "   link_table: `_core.relations, " +
+                           "   link_table: '_core.relations', " +
                            "   link_table_code_value: 'name', " +
                            "   link_table_code_label: 'display_name', " +
                            "   filter_by: 'leftstr(name, 1) != ''_''', " +
-                           "   value_label: joinlabel(for_table, `name, `display_name, `_core.relations)" +
+                           "   value_label: joinlabel(for_table, 'name', 'display_name', '_core.relations')" +
                            "}," +
 
                            "unique(for_table, name), " +
@@ -1182,18 +1182,18 @@ public abstract class AbstractDatabase implements Database {
                            "_last_update_time datetime, " +
 
                            "filter_id uuid not null {" +
-                           "   link_table: `_platform.filter.Filter, " +
-                           "   link_table_code_value: `_id, " +
+                           "   link_table: '_platform.filter.Filter', " +
+                           "   link_table_code_value: '_id', " +
                            "   link_table_code_label: 'name', " +
-                           "   value_label: joinlabel(`filter_id, `_id, `name, `_platform.filter.Filter)" +
+                           "   value_label: joinlabel(filter_id, '_id', 'name', '_platform.filter.Filter')" +
                            "}, " +
                            "link_op string not null default 'and', " +
                            "expression text not null, " +
                            "operation string not null {" +
-                           "   link_table: `_platform.filter.FilterOperation, " +
-                           "   link_table_code_value: `op_code, " +
-                           "   link_table_code_label: `name, " +
-                           "   value_label: joinlabel(operation, `op_code, `name, `_platform.filter.FilterOperation)" +
+                           "   link_table: '_platform.filter.FilterOperation', " +
+                           "   link_table_code_value: 'op_code', " +
+                           "   link_table_code_label: 'name', " +
+                           "   value_label: joinlabel(operation, 'op_code', 'name', '_platform.filter.FilterOperation')" +
                            "}, " +
                            "value text, " +
                            "exclude bool default true, " +
@@ -1243,10 +1243,10 @@ public abstract class AbstractDatabase implements Database {
                            "_last_update_time datetime, " +
 
                            "filter_operation_id uuid not null {" +
-                           "   link_table: `_platform.filter.FilterOperation, " +
-                           "   link_table_code_value: `_id, " +
+                           "   link_table: '_platform.filter.FilterOperation', " +
+                           "   link_table_code_value: '_id', " +
                            "   link_table_code_label: 'name', " +
-                           "   value_label: joinlabel(`filter_operation_id, `_id, `name, `_platform.filter.FilterOperation)" +
+                           "   value_label: joinlabel(filter_operation_id, '_id', 'name', '_platform.filter.FilterOperation')" +
                            "}, " +
                            "type string not null, " +
 
@@ -1267,10 +1267,10 @@ public abstract class AbstractDatabase implements Database {
 //                    "_last_update_time datetime, " +
 //
 //                    "filter_condition_id uuid not null {" +
-//                    "   link_table: `_platform.filter.FilterCondition, " +
-//                    "   link_table_code_value: `_id, " +
+//                    "   link_table: '_platform.filter.FilterCondition', " +
+//                    "   link_table_code_value: '_id', " +
 //                    "   link_table_code_label: 'expression', " +
-//                    "   value_label: joinlabel(`filter_condition_id, `_id, `expression, `_platform.filter.FilterCondition)" +
+//                    "   value_label: joinlabel('filter_condition_id', '_id', 'expression', '_platform.filter.FilterCondition')" +
 //                    "}, " +
 //                    "name string not null, " +
 //
@@ -1637,11 +1637,11 @@ public abstract class AbstractDatabase implements Database {
                            "   can_insert: false, " +
                            "   can_edit: false, " +
                            "   can_remove: false, " +
-                           "   link_table: `_core.relations, " +
+                           "   link_table: '_core.relations', " +
                            "   link_table_code_value: 'name', " +
                            "   link_table_code_label: 'display_name', " +
                            "   filter_by: 'leftstr(name, 1) != ''_''', " +
-                           "   value_label: joinlabel(for_table, `name, `display_name, `_core.relations)" +
+                           "   value_label: joinlabel(for_table, 'name', 'display_name', '_core.relations')" +
                            "}," +
 
                            "show_aggregates_first bool default false {" +
@@ -1822,11 +1822,11 @@ public abstract class AbstractDatabase implements Database {
                            "   initial_value: 'join' " +
                            "}, " +
 //          "join_table string not null {" +
-//          "   link_table: `_core.relations, " +
+//          "   link_table: '_core.relations', " +
 //          "   link_table_code_value: 'name', " +
 //          "   link_table_code_label: 'display_name', " +
 //          "   filter_by: 'leftstr(name, 1) != ''_''', " +
-//          "   value_label: joinlabel(join_table, `name, `display_name, `_core.relations)" +
+//          "   value_label: joinlabel(join_table, 'name', 'display_name', '_core.relations')" +
 //          "}, " +
                            "join_table text not null {" +
                            "   span: 24, " +
@@ -1865,8 +1865,8 @@ public abstract class AbstractDatabase implements Database {
                            "}, " +
                            "attribute string not null { " +
                            "   mask: 'Iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii'," +
-                           "   link_table: `_report_field_attribute, " +
-                           "   value_label: lookuplabel(attribute, `_report_field_attribute)" +
+                           "   link_table: '_report_field_attribute', " +
+                           "   value_label: lookuplabel(attribute, '_report_field_attribute')" +
                            "}," +
                            "value text, " +
 
@@ -1935,8 +1935,8 @@ public abstract class AbstractDatabase implements Database {
                            "   mask: 'Iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii' " +
                            "}," +
                            "type string not null {" +
-                           "   link_table: `_basetype, " +
-                           "   value_label: lookuplabel(type, `_basetype)" +
+                           "   link_table: '_basetype', " +
+                           "   value_label: lookuplabel(type, '_basetype')" +
                            "}," +
                            "seq int default 1 {" +
                            "   show: false" +
@@ -1963,8 +1963,8 @@ public abstract class AbstractDatabase implements Database {
                            "}, " +
                            "attribute string not null { " +
                            "   mask: 'Iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii'," +
-                           "   link_table: `_field_attribute, " +
-                           "   value_label: lookuplabel(attribute, `_field_attribute)" +
+                           "   link_table: '_field_attribute', " +
+                           "   value_label: lookuplabel(attribute, '_field_attribute')" +
                            "}," +
                            "value text, " +
 
@@ -2201,7 +2201,7 @@ public abstract class AbstractDatabase implements Database {
                            "   link_table: '_platform.report.Report', " +
                            "   link_table_code_value: '<>._id', " +
                            "   link_table_code_label: '<>.name', " +
-                           "   value_label: joinlabel(report_id, `_id, `name, `_platform.report.Report) " +
+                           "   value_label: joinlabel(report_id, '_id', 'name', '_platform.report.Report') " +
                            "}," +
 
                            "sent_at datetime not null, " +
@@ -2630,8 +2630,8 @@ public abstract class AbstractDatabase implements Database {
                            "   mask: 'Iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii' " +
                            "}," +
                            "type string not null {" +
-                           "   link_table: `_basetype, " +
-                           "   value_label: lookuplabel(type, `_basetype)" +
+                           "   link_table: '_basetype', " +
+                           "   value_label: lookuplabel(type, '_basetype')" +
                            "}," +
                            "column_index int not null {" +
                            "   description: 'The index of the column in the source file to import into this field'" +
@@ -2662,8 +2662,8 @@ public abstract class AbstractDatabase implements Database {
                            "}, " +
                            "attribute string not null { " +
                            "   mask: 'Iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii'," +
-                           "   link_table: `_field_attribute, " +
-                           "   value_label: lookuplabel(attribute, `_field_attribute)" +
+                           "   link_table: '_field_attribute', " +
+                           "   value_label: lookuplabel(attribute, '_field_attribute')" +
                            "}," +
                            "value text, " +
 
@@ -2944,11 +2944,11 @@ public abstract class AbstractDatabase implements Database {
                            "   can_remove: false," +
                            "   can_edit: false," +
                            "   link_table: '_core.columns'," +
-                           "   link_table_code_value: `_id, " +
-                           "   link_table_code_label: 'joinlabel(`relation_id, `_id, `display_name, `_core.relations) || '' / '' || name', " +
+                           "   link_table_code_value: '_id', " +
+                           "   link_table_code_label: `joinlabel('relation_id', '_id', 'display_name', '_core.relations') || '' / '' || name`, " +
                            "   filter_by: 'leftstr(name, 1) != ''_''', " +
-                           "   value_label: joinlabel(`field_id, `_id, `name, `_core.columns, " +
-                           "                                  `relation_id, `_id, `display_name, `_core.relations)" +
+                           "   value_label: joinlabel(field_id, '_id', 'name', '_core.columns', " +
+                           "                                    'relation_id', '_id', 'display_name', '_core.relations')" +
                            "}, " +
 
                            "primary key(_id)," +
@@ -3051,11 +3051,11 @@ public abstract class AbstractDatabase implements Database {
                            "   can_insert: false, " +
                            "   can_edit: false, " +
                            "   can_remove: false, " +
-                           "   link_table: `_core.relations, " +
+                           "   link_table: '_core.relations', " +
                            "   link_table_code_value: 'name', " +
                            "   link_table_code_label: 'display_name', " +
                            "   filter_by: 'leftstr(name, 1) != ''_''', " +
-                           "   value_label: joinlabel(on_table, `name, `display_name, `_core.relations)" +
+                           "   value_label: joinlabel(on_table, 'name', 'display_name', '_core.relations')" +
                            "}," +
                            "weight_expression string not null default 'count(*)' {" +
                            "   description: 'Expression to use for weighing a group in the population. " +

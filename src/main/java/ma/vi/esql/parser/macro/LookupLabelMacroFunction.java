@@ -85,9 +85,9 @@ public class LookupLabelMacroFunction extends Function implements Macro {
      * second argument is the name of the lookup
      */
     Expression<?> e = i.next();
-    String target = e instanceof Symbol
-                    ? ((Symbol)e).name()
-                    : ((StringLiteral)e).value(null);
+    String target = e instanceof UncomputedExpression
+                        ? e.translate(Translatable.Target.ESQL)
+                        : ((StringLiteral)e).value(null);
 
     /*
      * 3rd and fourth arguments are whether to show code and text
@@ -108,8 +108,8 @@ public class LookupLabelMacroFunction extends Function implements Macro {
     }
     while (i.hasNext()) {
       Expression<?> arg = i.next();
-      if (arg instanceof Symbol) {
-        links.add(((Symbol)arg).name());
+      if (arg instanceof UncomputedExpression) {
+        links.add(arg.translate(Translatable.Target.ESQL));
       } else {
         links.add(((StringLiteral)arg).value(Translatable.Target.ESQL));
       }

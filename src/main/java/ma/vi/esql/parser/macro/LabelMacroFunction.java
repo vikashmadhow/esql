@@ -4,12 +4,7 @@
 
 package ma.vi.esql.parser.macro;
 
-import ma.vi.esql.parser.Context;
-import ma.vi.esql.parser.Parser;
-import ma.vi.esql.parser.Esql;
-import ma.vi.esql.parser.Macro;
-import ma.vi.esql.parser.QueryUpdate;
-import ma.vi.esql.parser.TranslationException;
+import ma.vi.esql.parser.*;
 import ma.vi.esql.builder.SelectBuilder;
 import ma.vi.esql.parser.define.ForeignKeyConstraint;
 import ma.vi.esql.parser.expression.*;
@@ -117,11 +112,11 @@ public class LabelMacroFunction extends Function implements Macro {
 
     for (int i = 1; i < arguments.size(); i++) {
       Expression<?> arg = arguments.get(i);
-      if (arg instanceof Symbol) {
+      if (arg instanceof UncomputedExpression) {
         if (target == null) {
-          target = ((Symbol)arg).name();
+          target = arg.translate(Translatable.Target.ESQL);
         } else {
-          links.add(((Symbol)arg).name());
+          links.add(arg.translate(Translatable.Target.ESQL));
         }
       } else if (arg instanceof NamedArgument) {
         NamedArgument namedArg = (NamedArgument)arg;

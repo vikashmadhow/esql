@@ -558,18 +558,6 @@ public class EsqlBaseListener implements EsqlListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterSimpleSymbol(EsqlParser.SimpleSymbolContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitSimpleSymbol(EsqlParser.SimpleSymbolContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
 	@Override public void enterSimpleLiteralExpr(EsqlParser.SimpleLiteralExprContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -721,18 +709,6 @@ public class EsqlBaseListener implements EsqlListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitQuantifiedComparison(EsqlParser.QuantifiedComparisonContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterSymbol(EsqlParser.SymbolContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitSymbol(EsqlParser.SymbolContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -1266,13 +1242,13 @@ public class EsqlBaseListener implements EsqlListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterTripleQuotedString(EsqlParser.TripleQuotedStringContext ctx) { }
+	@Override public void enterMultiLineString(EsqlParser.MultiLineStringContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitTripleQuotedString(EsqlParser.TripleQuotedStringContext ctx) { }
+	@Override public void exitMultiLineString(EsqlParser.MultiLineStringContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *

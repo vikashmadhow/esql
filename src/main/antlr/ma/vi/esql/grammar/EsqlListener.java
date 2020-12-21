@@ -494,18 +494,6 @@ public interface EsqlListener extends ParseTreeListener {
 	 */
 	void exitSimpleFunctionInvocation(EsqlParser.SimpleFunctionInvocationContext ctx);
 	/**
-	 * Enter a parse tree produced by the {@code SimpleSymbol}
-	 * labeled alternative in {@link EsqlParser#simpleExpr}.
-	 * @param ctx the parse tree
-	 */
-	void enterSimpleSymbol(EsqlParser.SimpleSymbolContext ctx);
-	/**
-	 * Exit a parse tree produced by the {@code SimpleSymbol}
-	 * labeled alternative in {@link EsqlParser#simpleExpr}.
-	 * @param ctx the parse tree
-	 */
-	void exitSimpleSymbol(EsqlParser.SimpleSymbolContext ctx);
-	/**
 	 * Enter a parse tree produced by the {@code SimpleLiteralExpr}
 	 * labeled alternative in {@link EsqlParser#simpleExpr}.
 	 * @param ctx the parse tree
@@ -661,18 +649,6 @@ public interface EsqlListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitQuantifiedComparison(EsqlParser.QuantifiedComparisonContext ctx);
-	/**
-	 * Enter a parse tree produced by the {@code Symbol}
-	 * labeled alternative in {@link EsqlParser#expr}.
-	 * @param ctx the parse tree
-	 */
-	void enterSymbol(EsqlParser.SymbolContext ctx);
-	/**
-	 * Exit a parse tree produced by the {@code Symbol}
-	 * labeled alternative in {@link EsqlParser#expr}.
-	 * @param ctx the parse tree
-	 */
-	void exitSymbol(EsqlParser.SymbolContext ctx);
 	/**
 	 * Enter a parse tree produced by the {@code BetweenExpr}
 	 * labeled alternative in {@link EsqlParser#expr}.
@@ -1184,17 +1160,17 @@ public interface EsqlListener extends ParseTreeListener {
 	 */
 	void exitBoolean(EsqlParser.BooleanContext ctx);
 	/**
-	 * Enter a parse tree produced by the {@code TripleQuotedString}
+	 * Enter a parse tree produced by the {@code MultiLineString}
 	 * labeled alternative in {@link EsqlParser#baseLiteral}.
 	 * @param ctx the parse tree
 	 */
-	void enterTripleQuotedString(EsqlParser.TripleQuotedStringContext ctx);
+	void enterMultiLineString(EsqlParser.MultiLineStringContext ctx);
 	/**
-	 * Exit a parse tree produced by the {@code TripleQuotedString}
+	 * Exit a parse tree produced by the {@code MultiLineString}
 	 * labeled alternative in {@link EsqlParser#baseLiteral}.
 	 * @param ctx the parse tree
 	 */
-	void exitTripleQuotedString(EsqlParser.TripleQuotedStringContext ctx);
+	void exitMultiLineString(EsqlParser.MultiLineStringContext ctx);
 	/**
 	 * Enter a parse tree produced by the {@code String}
 	 * labeled alternative in {@link EsqlParser#baseLiteral}.
