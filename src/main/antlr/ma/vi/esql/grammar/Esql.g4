@@ -215,8 +215,7 @@ simpleExpr
 
 
 /**
- * An expr represents an expression in the language. An expression
- * can be computed to return a single-value
+ * An expression in ESQL which can be computed to return a single-value.
  */
 expr
     : '(' expr ')'                                          #GroupingExpr
