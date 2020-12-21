@@ -22,10 +22,7 @@ import ma.vi.esql.type.Relation;
 import ma.vi.esql.type.Types;
 
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 import static java.lang.System.Logger.Level.INFO;
 import static java.util.Arrays.asList;
@@ -126,6 +123,7 @@ public abstract class AbstractDatabase implements Database {
         // to other relations which are not loaded yet. After loading the relations
         // their columns, constraints, indices, and so on are loaded and they can
         // refer freely to other relations.
+        Set<String> existingInCore = new HashSet<>();
         try (ResultSet rs = stmt.executeQuery("select table_schema, table_name " +
                                                   "  from information_schema.tables " +
                                                   " where table_type='BASE TABLE'")) {
@@ -138,7 +136,9 @@ public abstract class AbstractDatabase implements Database {
             String name = rs.getString("table_name");
             String tableName = schema + '.' + name;
 
-            if (!structure.relationExists(tableName)) {
+            if (structure.relationExists(tableName)) {
+              existingInCore.add(tableName);
+            } else {
               /*
                * Load columns.
                */
@@ -213,7 +213,8 @@ public abstract class AbstractDatabase implements Database {
         }
 
         /*
-         * Load constraints.
+         * Load constraints from information schema for tables which do not
+         * already exist in the core tables.
          */
         try (ResultSet crs = con.createStatement().executeQuery(
             "select table_schema, table_name, constraint_schema, " +
@@ -224,97 +225,101 @@ public abstract class AbstractDatabase implements Database {
           while (crs.next()) {
             String schema = crs.getString("table_schema");
             String name = crs.getString("table_name");
-            String constraintSchema = crs.getString("constraint_schema");
-            String constraintName = crs.getString("constraint_name");
-            String constraintType = crs.getString("constraint_type");
-
             String tableName = schema + '.' + name;
-            BaseRelation relation = structure.relation(tableName);
-            List<String> sourceColumns = keyColumns(con.createStatement(), constraintSchema, constraintName).b;
-            List<String> targetColumns;
-            BaseRelation targetRelation = null;
-            ConstraintDefinition c = null;
-            switch (constraintType) {
-              case "CHECK":
-                try (ResultSet r = con.createStatement().executeQuery(
-                    "select check_clause " +
-                        "  from information_schema.check_constraints " +
-                        " where constraint_schema='" + constraintSchema + "' " +
-                        "   and constraint_name='" + constraintName + "'")) {
-                  r.next();
-                  c = new CheckConstraint(
-                      context,
-                      constraintName,
-                      parser.parseExpression(r.getString("check_clause")));
-                }
-                break;
+            if (!existingInCore.contains(tableName)) {
+              BaseRelation relation = structure.relation(tableName);
+              String constraintSchema = crs.getString("constraint_schema");
+              String constraintName = crs.getString("constraint_name");
+              String constraintType = crs.getString("constraint_type");
 
-              case "UNIQUE":
-                c = new UniqueConstraint(context, constraintName, sourceColumns);
-                break;
+              List<String> sourceColumns = keyColumns(con.createStatement(), constraintSchema, constraintName).b;
+              List<String> targetColumns;
+              BaseRelation targetRelation = null;
+              ConstraintDefinition c = null;
+              switch (constraintType) {
+                case "CHECK":
+                  try (ResultSet r = con.createStatement().executeQuery(
+                      "select check_clause " +
+                          "  from information_schema.check_constraints " +
+                          " where constraint_schema='" + constraintSchema + "' " +
+                          "   and constraint_name='" + constraintName + "'")) {
+                    r.next();
+                    c = new CheckConstraint(
+                        context,
+                        constraintName,
+                        parser.parseExpression(r.getString("check_clause")));
+                  }
+                  break;
 
-              case "PRIMARY KEY":
-                c = new PrimaryKeyConstraint(context, constraintName, sourceColumns);
-                break;
+                case "UNIQUE":
+                  c = new UniqueConstraint(context, constraintName, sourceColumns);
+                  break;
 
-              case "FOREIGN KEY":
-                try (ResultSet r = con.createStatement().executeQuery(
-                    "select unique_constraint_schema," +
-                        "       unique_constraint_name," +
-                        "       update_rule, " +
-                        "       delete_rule " +
-                        "  from information_schema.referential_constraints " +
-                        " where constraint_schema='" + constraintSchema + "' " +
-                        "   and constraint_name='" + constraintName + "'")) {
-                  r.next();
-                  String uniqueConstraintSchema = r.getString("unique_constraint_schema");
-                  String uniqueConstraintName = r.getString("unique_constraint_name");
-                  String updateRule = r.getString("update_rule");
-                  String deleteRule = r.getString("delete_rule");
+                case "PRIMARY KEY":
+                  c = new PrimaryKeyConstraint(context, constraintName, sourceColumns);
+                  break;
 
-                  T2<String, List<String>> target = keyColumns(con.createStatement(),
-                                                               uniqueConstraintSchema,
-                                                               uniqueConstraintName);
-                  targetRelation = structure.relation(target.a);
-                  targetColumns = target.b;
+                case "FOREIGN KEY":
+                  try (ResultSet r = con.createStatement().executeQuery(
+                      "select unique_constraint_schema," +
+                          "       unique_constraint_name," +
+                          "       update_rule, " +
+                          "       delete_rule " +
+                          "  from information_schema.referential_constraints " +
+                          " where constraint_schema='" + constraintSchema + "' " +
+                          "   and constraint_name='" + constraintName + "'")) {
+                    r.next();
+                    String uniqueConstraintSchema = r.getString("unique_constraint_schema");
+                    String uniqueConstraintName = r.getString("unique_constraint_name");
+                    String updateRule = r.getString("update_rule");
+                    String deleteRule = r.getString("delete_rule");
 
-                  c = new ForeignKeyConstraint(context,
-                                               constraintName,
-                                               sourceColumns,
-                                               target.a,
-                                               targetColumns,
-                                               0, 0,
-                                               ConstraintDefinition.ForeignKeyChangeAction.fromInformationSchema(updateRule),
-                                               ConstraintDefinition.ForeignKeyChangeAction.fromInformationSchema(deleteRule));
-                }
+                    T2<String, List<String>> target = keyColumns(con.createStatement(),
+                                                                 uniqueConstraintSchema,
+                                                                 uniqueConstraintName);
+                    targetRelation = structure.relation(target.a);
+                    targetColumns = target.b;
+
+                    c = new ForeignKeyConstraint(context,
+                                                 constraintName,
+                                                 sourceColumns,
+                                                 target.a,
+                                                 targetColumns,
+                                                 0, 0,
+                                                 ConstraintDefinition.ForeignKeyChangeAction.fromInformationSchema(
+                                                     updateRule),
+                                                 ConstraintDefinition.ForeignKeyChangeAction.fromInformationSchema(
+                                                     deleteRule));
+                  }
+              }
+
+              c.table(tableName);
+              relation.constraint(c);
+
+              // dependent relation:
+              // E.g., r1[a] -> r2[b]: r1 depends on r2. If r2 is dropped, so should r1.
+              if (targetRelation != null) {
+                // targetRelation.dependency(relation);
+                targetRelation.dependentConstraint((ForeignKeyConstraint)c);
+              }
+
+              //            // link referenced field to constraint
+              //            // if the field is dropped, so should the constraint
+              //            if (columns != null && !columns.isEmpty()) {
+              //              for (Field f: columns) {
+              //                f.dependentConstraint(c);
+              //              }
+              //            }
+              //
+              //            // link referring table for foreign keys to field;
+              //            // if this field is dropped, so should the referring table.
+              //            //      E.g., r1[a] -> r2[b]: r1 is the dependent relation for field b
+              //            if (targetColumns != null && !targetColumns.isEmpty()) {
+              //              for (Field f: targetColumns) {
+              //                f.dependentForeignKey(relation);
+              //              }
+              //            }
             }
-
-            c.table(tableName);
-            relation.constraint(c);
-
-            // dependent relation:
-            // E.g., r1[a] -> r2[b]: r1 depends on r2. If r2 is dropped, so should r1.
-            if (targetRelation != null) {
-              // targetRelation.dependency(relation);
-              targetRelation.dependentConstraint((ForeignKeyConstraint)c);
-            }
-
-//            // link referenced field to constraint
-//            // if the field is dropped, so should the constraint
-//            if (columns != null && !columns.isEmpty()) {
-//              for (Field f: columns) {
-//                f.dependentConstraint(c);
-//              }
-//            }
-//
-//            // link referring table for foreign keys to field;
-//            // if this field is dropped, so should the referring table.
-//            //      E.g., r1[a] -> r2[b]: r1 is the dependent relation for field b
-//            if (targetColumns != null && !targetColumns.isEmpty()) {
-//              for (Field f: targetColumns) {
-//                f.dependentForeignKey(relation);
-//              }
-//            }
           }
         }
 
@@ -3999,7 +4004,7 @@ public abstract class AbstractDatabase implements Database {
           "insert into _core.relations(_id, name, display_name, description, type) values(" +
               "'" + table.id().toString() + "', " +
               "'" + table.name() + "', " +
-              (table.displayName == null ? table.name() : "'" + escapeSqlString(table.displayName) + "'") + ", " +
+              (table.displayName == null ? "'" + table.name() + "'" : "'" + escapeSqlString(table.displayName) + "'") + ", " +
               (table.description == null ? "null" : "'" + escapeSqlString(table.description) + "'") + ", " +
               "'" + Relation.RelationType.TABLE.marker + "')"));
 
