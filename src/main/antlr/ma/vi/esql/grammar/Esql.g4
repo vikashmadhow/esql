@@ -17,14 +17,31 @@ grammar Esql;
 
 // @todo window functions
 
+/**
+ * A program is a semi-colon separated sequence of ESQL statements.
+ */
 program
     : statement (';' statement)* ';'?
     ;
 
+/**
+ * A semi-colon can also be interpreted as a silent no-operation (noop)
+ * statement. Noops can be used to disable certain part of a program
+ * dynamically (by replacing the statement with a noop) without having
+ * to remove the previous statement which can be difficult in some cases.
+ */
 noop
     : ';'
     ;
 
+/**
+ * ESQL statements can be divided into two groups: statements for defining
+ * and altering database structures (such as tables and columns) and those
+ * for querying and manipulating the data in those structures (select, insert, etc.).
+ * select is the only statement for querying data while there are 3 different
+ * statements for modifying data (insert, update and delete) which are grouped
+ * into modify statements.
+ */
 statement
     : select
     | modify
@@ -32,21 +49,34 @@ statement
     | noop
     ;
 
-queryUpdate
-    : select
-    | modify
-    ;
-
+/**
+ * The 3 data modifying statements are update, insert and delete.
+ */
 modify
     : update
     | insert
     | delete
     ;
 
+/**
+ * select and modify are the data manipulation group of statements in ESQL.
+ */
+queryUpdate
+    : select
+    | modify
+    ;
+
+/**
+ * A `select` statement extracts rows with a set columns (and metadata)
+ * from a one or more joined tables and optionally subject to filters,
+ * groupings, limits and orderings.
+ *
+ * Selects can also be combined with set operators (union, intersection, etc.)
+ * or through `with` statements which creates temporary selects that can
+ * be used to compose more complex `selects` in the same statement.
+ */
 select
-    : with                                  #WithSelection
-    | select setop select                   #CompositeSelection
-    |'select' metadata? distinct? explicit? columns
+    : 'select' metadata? distinct? explicit? columns
       ('from'  tableExpr)?
       ('where' where=expr)?
       ('order' 'by' orderByList)?
@@ -54,20 +84,178 @@ select
       ('having' having=expr)?
       ('offset' offset=expr)?
       ('limit'  limit=expr)?                #BaseSelection
+
+    | select setop select                   #CompositeSelection
+
+    | with                                  #WithSelection
     ;
 
+/**
+ * Metadata in ESQL is a comma-separated list of attributes surrounded by parenthesis
+ * ({}) with each attribute consisting of a name-expression pair. Metadata can be
+ * attached to a table and to its columns. For instance this is a `create table`
+ * statement which defines metadata attributes on both the table and its columns:
+ *
+ *  ```
+ *    create table com.example.S(
+ *      {
+ *        # table metadata (applied to all queries on this table)
+ *        max_a: (max(a) from com.example.S),
+ *        a_gt_b: a > b
+ *      }
+ *      a int   { m1: b > 5, m2: 10, m3: a != 0 },
+ *      b int   { m1: b < 0 },
+ *
+ *      # derived columns (whose value are computed instead of stored) are
+ *      # also supported in ESQL and is defined with an `=` between the name
+ *      # of the column and the expression to compute its value
+ *      c=a + b  { m1: a > 5, m2: a + b, m3: b > 5 },
+ *      d=b + c  { m1: 10 },
+ *
+ *      e int    { m1: c },
+ *
+ *      # ESQL also has a simplified select syntax for select expressions where
+ *      # the `select` keyword is dropped and only a single column is specified.
+ *      # Select expressions must be surrounded by brackets.
+ *      f=(max(a) from S) { m1: min(a) from S },
+ *      g=(distinct c from S where d>5) { m1: min(a) from T },
+ *
+ *      h int { m1: 5 }
+ *
+ *      # select expressions can be arbitrarily complex and refer to the columns
+ *      # in the current table as well as columns in other joined tables.
+ *      i string {
+ *        label: lv.label from lv:LookupValue
+ *                        join  l:Lookup on lv.lookup_id=l._id
+ *                                      and  l.name='City'
+ *                        where lv.code=i
+ *      }
+ *  }
+ *  ```
+ * When a table is queried, its metadata and those on its queried columns are also added
+ * to the query and can be overridden by attributes provided in the query.
+ */
+metadata
+    : '{' attributeList '}'
+    ;
+
+/**
+ * Metadata consists of a comma-separated list of attributes.
+ */
+attributeList
+    : attribute (',' attribute)*
+    ;
+
+/**
+ * Each attribute consists of a simple name and an expression which must be valid
+ * in the query that will be executed over the table where the metadata attribute
+ * is specified.
+ */
+attribute
+    : Identifier ':' expr
+    ;
+
+/**
+ * The optional distinct clause in `select` can be `all` which is the default where
+ * all matching records are returned or `distinct` which means that only unique records
+ * are returned with duplicated eliminated. `distinct` can optionally be followed by
+ * by an expression list which is used to identify duplicates.
+ */
+distinct
+    : 'all'
+    | 'distinct' ('on' '(' expressionList ')')?
+    ;
+
+/**
+ * The optional `explicit` keyword, when specified, disable the automatic addition and
+ * expansion of metadata in a query and returns a resultset consisting only of the
+ * explicitly specified columns.
+ */
+explicit
+    : 'explicit'
+    ;
+
+columns
+    : column (',' column)*
+    ;
+
+column
+    : (alias ':')? expr metadata?       #SingleColumn
+    | qualifier? '*'                    #StarColumn
+    ;
+
+alias
+    : (root='/')? aliasPart ('/' aliasPart )*
+    ;
+
+aliasPart
+    : EscapedIdentifier     #EscapedAliasPart
+    | qualifiedName         #NormalAliasPart
+    ;
+
+qualifiedName
+    : Identifier ('.' Identifier)*
+    ;
+
+// t{x:4, y:b=0}(a {m1:x}, b {m2:y}):(values (1,2), (3,4))
+tableExpr
+    : (alias ':')? qualifiedName                                 #SingleTableExpr
+    | alias ':' '(' select ')'                                   #SelectTableExpr
+    | alias metadata? dynamicColumns ':' '(' 'values' rows ')'   #DynamicTableExpr
+    | left=tableExpr 'cross' right=tableExpr                     #CrossProductTableExpr
+    | left=tableExpr joinType? 'join' right=tableExpr 'on' expr  #JoinTableExpr
+    ;
+
+joinType
+    : 'left'
+    | 'right'
+    | 'full'
+    ;
+
+dynamicColumns
+    : '(' nameWithMetadata (',' nameWithMetadata)* ')'
+    ;
+
+nameWithMetadata
+    : Identifier metadata?
+    ;
+
+/**
+ * The `group by` clause of a select consists of a subset of expressions
+ * present in the columns of select. 3 types of groupings are supported:
+ * simple, rollup and cube. The latter two are indicated by surrounding
+ * the group list with the keword `rollup` and `cube` respectively.
+ */
 groupByList
-    : expressionList                    #SimpleGroup
-    | 'rollup' '(' expressionList ')'   #RollupGroup
-    | 'cube'   '(' expressionList ')'   #CubeGroup
+    : expressionList                        #SimpleGroup
+    | 'rollup' '(' expressionList ')'       #RollupGroup
+    | 'cube'   '(' expressionList ')'       #CubeGroup
     ;
 
+/**
+ * The `order by` clause of a `select` statement is a comma-separated list
+ * or expression by which the select must order its result.
+ */
 orderByList
     : orderBy (',' orderBy)*
     ;
 
+/**
+ * An order expression in the `order by` list of a `select` is an expression
+ * which can be followed optionally by a direction: `asc` (default) for ascending
+ * or `desc` for descending.
+ */
 orderBy
     : expr direction?
+    ;
+
+/**
+ * Directions of order by expressions: `asc` (default) for ascending
+ * or `desc` for descending.
+ */
+direction
+    : 'asc'
+    | 'desc'
     ;
 
 setop
@@ -76,6 +264,26 @@ setop
     | 'intersect'
     | 'except'
     ;
+
+with
+    : 'with' recursive='recursive'? cteList queryUpdate
+    ;
+
+cteList
+    : cte (',' cte)*
+    ;
+
+cte
+    : Identifier names? '(' queryUpdate ')'
+    ;
+
+names
+    : '(' Identifier (',' Identifier)* ')'
+    ;
+
+
+
+
 
 insert
     : 'insert' 'into' (alias ':')? qualifiedName names?
@@ -118,75 +326,6 @@ delete
       ('returning' metadata? columns)?
     ;
 
-with
-    : 'with' recursive='recursive'? cteList queryUpdate
-    ;
-
-cteList
-    : cte (',' cte)*
-    ;
-
-cte
-    : Identifier names? '(' queryUpdate ')'
-    ;
-
-names
-    : '(' Identifier (',' Identifier)* ')'
-    ;
-
-distinct
-    : 'all'
-    | 'distinct' ('on' '(' expressionList ')')?
-    ;
-
-explicit
-    : 'explicit'
-    ;
-
-columns
-    : column (',' column)*
-    ;
-
-column
-    : (alias ':')? expr metadata?       #SingleColumn
-    | qualifier? '*'                    #StarColumn
-    ;
-
-// t{x:4, y:b=0}(a {m1:x}, b {m2:y}):(values (1,2), (3,4))
-tableExpr
-    : (alias ':')? qualifiedName                                 #SingleTableExpr
-    | alias ':' '(' select ')'                                   #SelectTableExpr
-    | alias metadata? dynamicColumns ':' '(' 'values' rows ')'   #DynamicTableExpr
-    | left=tableExpr 'cross' right=tableExpr                     #CrossProductTableExpr
-    | left=tableExpr joinType? 'join' right=tableExpr 'on' expr  #JoinTableExpr
-    ;
-
-dynamicColumns
-    : '(' nameWithMetadata (',' nameWithMetadata)* ')'
-    ;
-
-nameWithMetadata
-    : Identifier metadata?
-    ;
-
-joinType
-    : 'left'
-    | 'right'
-    | 'full'
-    ;
-
-aliasPart
-    : EscapedIdentifier     #EscapedAliasPart
-    | qualifiedName         #NormalAliasPart
-    ;
-
-alias
-    : (root='/')? aliasPart ('/' aliasPart )*
-    ;
-
-qualifiedName
-    : Identifier ('.' Identifier)*
-    ;
 
 /**
  * An expression which excludes certain combinations of expression
@@ -322,18 +461,6 @@ expressionList
     : expr (',' expr)*
     ;
 
-metadata
-    : '{' attributeList '}'
-    ;
-
-attributeList
-    : attribute (',' attribute)*
-    ;
-
-attribute
-    : Identifier ':' expr
-    ;
-
 literal
     : baseLiteral                           #BasicLiterals
     | NullLiteral                           #Null
@@ -367,11 +494,6 @@ columnReference
 
 qualifier
     : (Identifier '.')
-    ;
-
-direction
-    : 'asc'
-    | 'desc'
     ;
 
 define
@@ -464,7 +586,7 @@ alterDefault
  * derived column.
  */
 derivedColumnDefinition
-    : 'derived' Identifier expr metadata?
+    : Identifier '=' expr metadata?
     ;
 
 constraintDefinition

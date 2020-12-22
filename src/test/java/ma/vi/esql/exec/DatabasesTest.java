@@ -52,21 +52,21 @@ public class DatabasesTest {
                                              "  b int {" +
                                              "    m1: b < 0" +
                                              "  }," +
-                                             "  derived c a+b {" +
+                                             "  c=a+b {" +
                                              "    m1: a > 5," +
                                              "    m2: a + b," +
                                              "    m3: b > 5" +
                                              "  }," +
-                                             "  derived d b+c {" +
+                                             "  d=b+c {" +
                                              "    m1: 10" +
                                              "  }," +
                                              "  e int {" +
                                              "    m1: c" +
                                              "  }," +
-                                             "  derived f (max(a) from S) {" +
+                                             "  f=(max(a) from S) {" +
                                              "    m1: (min(a) from S)" +
                                              "  }," +
-                                             "  derived g (distinct c from S where d>5) {" +
+                                             "  g=(distinct c from S where d>5) {" +
                                              "    m1: (min(a) from a.b.T)" +
                                              "  }," +
                                              "  h int {" +
@@ -95,7 +95,7 @@ public class DatabasesTest {
                     try (EsqlConnection con = db.esql(db.pooledConnection())) {
                       Program s = p.parse("create table X (" +
                                               "  _id int, " +
-                                              "  derived a a" +
+                                              "  a=a" +
                                               ")");
                       System.out.println(s);
                       Assertions.assertThrows(
@@ -114,8 +114,8 @@ public class DatabasesTest {
                    try (EsqlConnection con = db.esql(db.pooledConnection())) {
                      Program s = p.parse("create table X (" +
                                              "  _id int, " +
-                                             "  derived a b, " +
-                                             "  derived b a" +
+                                             "  a=b, " +
+                                             "  b=a" +
                                              ")");
                      System.out.println(s);
                      Assertions.assertThrows(
@@ -135,9 +135,9 @@ public class DatabasesTest {
                       Program s = p.parse("create table Y (" +
                                               "  _id int, " +
                                               "  a int, " +
-                                              "  derived b a + a, " +
-                                              "  derived c b + a, " +
-                                              "  derived d c + c + b " +
+                                              "  b=a + a, " +
+                                              "  c=b + a, " +
+                                              "  d=c + c + b " +
                                               ")");
                       con.exec(s);
                       System.out.println(s);

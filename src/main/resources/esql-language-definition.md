@@ -5,162 +5,30 @@
 ESQL aims to be a database query language similar in syntax to SQL but with
 extensions to include metadata into the query language and the ability to be
 transparently translated to different implementations of the SQL language 
-supported by the main relational databases in use. For practical reasons, 
-PostgreSQL and Microsoft SQL Server are the first two supported databases as
-those are the ones which I've been using in my professional endeavours.
+supported by the main relational databases in use. PostgreSQL, Microsoft SQL Server
+and HyperSQL are the currently supported database more planned in the near future.
 
 This document describes the second version of the ESQL language, with the first
 version starting development in late 2018 and used in a production system around 
 mid 2019. By the end of 2019, early 2020, ESQL v1 has met most of its initial
-design goals and was the underpinnings of a successful multi-company payroll
-system. The experience with developing the first version also underscored some
-of the flaws of the language, including the lack of a full specification, missing 
-rules on how to combine metadata in complex queries and missing rules on how to 
-compute metadata in different type of queries such as in the presence of aggregate 
-functions and when using sub-queries.
+design goals and was the underpinnings of a successful multi-company payroll 
+system (using MS SQL Server) and used in a Statistical Business Register that I 
+developed for the Central Statistics Agency of Ethiopia (using Postgresql). 
+
+The experience with developing the first version also underscored some of the flaws
+of the language, including the lack of a full specification, missing rules on how 
+to combine metadata in complex queries and missing rules on how to compute metadata 
+in different type of queries such as in the presence of aggregate functions and when
+using sub-queries.
 
 The lack of a full specification in v1 means that the language produces its 
 results along with their metadata in an opaque manner which leads to cryptic
 and hard to find errors.   
 
 ### <a name=''>2. The Language</a>
+The grammar of the language is defined as a set of production rules in ANTLR which 
+is repeated here with comments:
 
-A Bind application package contains modules and assets in the following folder
-structure:
-
-```
-  +-- modules
-  |   +-- Module1.bind      # code for module named Module1
-  |   +-- Module2.bind      # code for module named Module2
-  |   .
-  |   .
-  |   +-- ModuleN.bind      # code for module named ModuleN
-  |
-  +-- translations          # text and their translations used in the application
-  |   +-- text.p            # main text file
-  |   +-- text.en.p         # english localised file
-  |   +-- text.fr.p         # french localised file
-  |   .
-  |   .
-  |
-  +-- assets                # any folder structure containing any files allowed
-  |   .                     # inside this folder. These are served automatically
-  |   .                     # to the client-side of the application after
-  |   .                     # installation
-  |
-  +-- Main.bind             # the application module describing the application
-                            # and containing application-wide structures and
-                            # functions
-```
-
-The Explore system installs or updates an application that it receives in the
-form of a compressed package (in the zip or some other acceptable compression
-format); the compressed package could be provided to the system in several ways
-including selecting it from an application store and selecting the package for
-installation from a local folder.
-
-If the application was already installed and the version of the package is
-higher than the existing one (versioning order compared according to semantic
-versioning definitions), it will be updated; otherwise the application is
-installed.
-
-Installation/update of an application in the Explore system proceeds as follows:
-1. The application package is provided in some manner to the Explore system;
-2. The system verifies the integrity of the package and does not proceed if any
-   integrity issues are found.
-3. The application definition is read from the `main.bind` and the system
-   determines if this is the first time it is encountering this application or
-   if this is a new version of an application that was already installed. If
-   this is an older version of an application which is already installed, the
-   system does not proceed;
-4. A virtual environment is created for the installation/upgrade of the
-   application inside which the contents of application package (assets and
-   modules) can be accessed and invoked as necessary;
-5. The function `install` is invoked for both first-time installation or upgrade
-   of the application. This function should create or modify any persistent data
-   structures required by the application. The function should first verify that
-   the modification is necessary and then proceed with doing it. If this is done
-   systematically, any version of the application can be installed and will
-   properly create all structures in the form required by that version and
-   making only the necessary changes to upgrade from any previous versions
-   installed.
-
-Following is a `main.bind` file using pseudo-code to illustrate the above
-process:
-
-```
-[
-  name:         'com.example.xyz',
-  name: 'Example application'
-  author_key:   'AB343F343DDB020AEEA',
-  description:  loc('APP_DESC'),
-  version:      '1.0.2',
-  icon:         'icon/app_icon.png',
-  requires:     ['x.z.t', 'x.z.s:[1.1.4, 2.1.2]']
-]
-application module Main
-
-import db
-
-fn install() {
-    # this statement will create or update the table as per
-    # the definition. This is equivalent to the statements
-    # following this command.
-    db.create_or_update(com.example.xyz.TodoList)
-
-    # Equivalent to the previous call.
-    # create necessary database structures, etc.
-    # version 0.0.1
-    if not exists com.example.xyz.TodoList {
-        create table com.example.xyz.TodoList as {
-            ...
-        }
-    }
-
-    # version 0.1.0
-    if not com.example.xyz.TodoList has_column completed {
-        alter table com.example.xyz.TodoList add column done boolean
-    }
-
-    # version 0.1.1
-    if com.example.xyz.TodoList[done] can be null {
-        alter table com.example.xyz.TodoList alter column done set not null
-    }
-    ...
-}
-
-fn uninstall() {
-    # delete or, preferably, hide database structures, etc.
-}
-
-fn start() {
-    # application has been launched, show previous page
-}
-
-fn focus() {
-    # application has been brought into focus
-}
-
-fn unfocus() {
-    # user is switching to another application
-}
-
-fn stop() {
-    # application is being switched off
-}
-
-class Shape {
-    fn draw() {}
-}
-
-class Rectangle extends Shape {
-    fn draw() {
-        # draw rectangle
-    }
-}
-
-...
-```
 
 ## <a name="expansion_rules">3. Expansion Rules</a>
 
