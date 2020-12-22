@@ -15,8 +15,6 @@ grammar Esql;
     package ma.vi.esql.grammar;
 }
 
-// @todo window functions
-
 /**
  * A program is a semi-colon separated sequence of ESQL statements.
  */
@@ -158,7 +156,7 @@ attribute
 /**
  * The optional distinct clause in `select` can be `all` which is the default where
  * all matching records are returned or `distinct` which means that only unique records
- * are returned with duplicated eliminated. `distinct` can optionally be followed by
+ * are returned with duplicates eliminated. `distinct` can optionally be followed by
  * by an expression list which is used to identify duplicates.
  */
 distinct
@@ -175,24 +173,118 @@ explicit
     : 'explicit'
     ;
 
+/**
+ * The `select` keyword is followed by the `columns` clause which is a comma-separated
+ * sequence of columns to select into the result, with each column being an expression
+ * which can refer to columns in the tables specified in the `from` clause of the select
+ * query.
+ */
 columns
     : column (',' column)*
     ;
 
+/**
+ * A column in a select statement consists of a expression which will be executed
+ * in the context of the tables in the `from` clause of the select. The column can
+ * be given an alias which will be the name of that column in the result of the query.
+ * Metadata can also be associated to the column and will override any metadata
+ * defined for that column in the table (this only applies when the columns refers
+ * exactly to a column in a table).
+ *
+ * A column can also be the asterisk (*) character, optionally qualified, and is
+ * expanded to all the columns in the tables joined for the query, or, if qualified,
+ * all the columns in table referred to by the qualifier.
+ */
 column
     : (alias ':')? expr metadata?       #SingleColumn
     | qualifier? '*'                    #StarColumn
     ;
 
+/**
+ * An alias consists of one or more alias parts separated by the front slash ('/'), and,
+ * optionally, starting with a front slash. An alias part can be a qualified identifier
+ * or an escaped identifier. Qualified identifiers are one or more identifiers (an identifier
+ * is a name starting with [$_a-zA-Z] and optionally followed by zero or more [$_a-zA-Z0-9])
+ * joined together with periods. For instance, these are valid qualified identifiers:
+ *
+ *  ```
+ *    a
+ *    b.x
+ *    a.b.c
+ *  ```
+ *
+ * An escaped identifier is a sequence of one or more characters surrounded by double quotes.
+ * These are all valid escaped identifiers:
+ *  ```
+ *    "Level 1"
+ *    "!$$#42everything after$$#"
+ *    ".a.b."
+ *  ```
+ *
+ * All the following are valid aliases:
+ *
+ *  ```
+ *    a
+ *    age
+ *    man/age
+ *    /country/city/street
+ *    /"level 1"/"level 2"
+ *    x.y.z/"intermediate level"/b.y/"another level"/"yet another level"
+ *  ```
+ */
 alias
-    : (root='/')? aliasPart ('/' aliasPart )*
+    : (root='/')? aliasPart ('/' aliasPart)*
     ;
 
+/**
+ * An alias part can be a qualified identifier or an escaped identifier. Qualified identifiers
+ * are one or more identifiers (an identifier is a name starting with [$_a-zA-Z] and optionally
+ * followed by zero or more [$_a-zA-Z0-9]) joined together with periods. For instance, these
+ * are valid qualified identifiers:
+ *
+ *  ```
+ *    a
+ *    b.x
+ *    a.b.c
+ *  ```
+ *
+ * An escaped identifier is a sequence of one or more characters surrounded by double quotes.
+ * These are all valid escaped identifiers:
+ *  ```
+ *    "Level 1"
+ *    "!$$#42everything after$$#"
+ *    ".a.b."
+ *  ```
+ */
 aliasPart
-    : EscapedIdentifier     #EscapedAliasPart
-    | qualifiedName         #NormalAliasPart
+    : EscapedIdentifier                 #EscapedAliasPart
+    | qualifiedName                     #NormalAliasPart
     ;
 
+/**
+ * An escaped identifier is a sequence of one or more characters surrounded by double quotes.
+ * These are all valid escaped identifiers:
+ *  ```
+ *    "Level 1"
+ *    "!$$#42everything after$$#"
+ *    ".a.b."
+ *  ```
+ */
+EscapedIdentifier
+    : '"' ~["]+ '"'
+    ;
+
+/**
+ * Qualified identifiers are one or more identifiers (an identifier is a name starting with
+ * [$_a-zA-Z] and optionally followed by zero or more [$_a-zA-Z0-9]) joined together with
+ * periods. For instance, these are valid qualified identifiers:
+ *
+ *  ```
+ *    a
+ *    b.x
+ *    a.b.c
+ *  ```
+ */
 qualifiedName
     : Identifier ('.' Identifier)*
     ;
@@ -655,20 +747,12 @@ foreignKeyAction
 type
      : BaseType         #Base
      | arrayType        #Array
-//     | objectType
      ;
 
 arrayType
     : BaseType '[' ']'
     ;
 
-//returnType
-//     : BaseType
-//     | arrayType
-//     | setofType
-//     | VoidType
-//     | objectType
-//     ;
 
 Quantifier
     : 'all' | 'any'
@@ -695,67 +779,14 @@ BaseType            // POSTGRESQL TYPE      SQL SERVER TYPE
     | 'json'        // jsonb                varchar(max)
     ;
 
-//RecordType
-//    : 'record'
-//    ;
-
-//VoidType
-//    : 'void'
-//    ;
-
-//PolymorphicType
-//    : 'anyelement'
-//    | 'anyarray'
-//    | 'anynonarray'
-//    ;
-
-//objectType
-//    : table
-//    ;
-
-//EscapedIdentifier
-//    : '"' ~["]+ '"'
-//    ;
-
-//setofType
-//    : 'setof' '[' (BaseType | objectType) ']'
-//    ;
-
-EscapedIdentifier
-//    : '"' Identifier '"'
-    : '"' ~["]+ '"'
-    ;
-
-If
-    : 'if'
-    ;
-
 Not
     : 'not'
-    ;
-
-Exists
-    : 'exists'
     ;
 
 // Integers
 IntegerLiteral
     : '-'? Digits
     ;
-
-//fragment DecimalNumeral
-//    : Zero
-//    | GreaterThanZero
-//    ;
-//
-//fragment Zero
-//    : '0'
-//    ;
-//
-//fragment GreaterThanZero
-//    : [1-9] [0-9]*
-//    ;
-
 
 // Floating-Point Literals
 fragment Digits
@@ -813,25 +844,6 @@ UuidLiteral
         '-' HexDigit HexDigit HexDigit HexDigit
         '-' HexDigit HexDigit HexDigit HexDigit HexDigit HexDigit HexDigit HexDigit HexDigit HexDigit HexDigit HexDigit '\''
     ;
-
-//fragment StringCharacter
-//    : NormalStringCharacter
-//    | EscapeSequence
-//    ;
-//
-//fragment NormalStringCharacter
-//    : ~['%]
-//    ;
-//
-//// Escape Sequences for string Literals
-//fragment EscapeSequence
-//    : '%' [btnfrq%]
-//    | UnicodeEscape
-//    ;
-//
-//fragment UnicodeEscape
-//    : '%u' HexDigit HexDigit HexDigit HexDigit
-//    ;
 
 DateLiteral
     : 'd\'' Date '\''
