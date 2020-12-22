@@ -116,13 +116,12 @@ public class CreateTable extends Define<String> {
       // update structure if this was not a system table creation and
       // the table did not exist before
       if (!structure.relationExists(tableName)) {
-        /*
-         * Does not exist: create
-         */
-        con.createStatement().executeUpdate(translate(target));
 
         /*
-         * Get table name and description from table attributes if specified
+         * Get table name and description from table attributes if specified.
+         * Errors in the table structure are detected when creating the BaseRelation
+         * instance and will prevent the creation to go through if the structure
+         * is not valid.
          */
         String tableDisplayName = metadata().evaluateAttribute(NAME);
         String tableDescription = metadata().evaluateAttribute(DESCRIPTION);
@@ -136,6 +135,10 @@ public class CreateTable extends Define<String> {
                                                        .map(Column::fromDefinition)
                                                        .collect(Collectors.toList()),
                                               constraints());
+        /*
+         * Does not exist and valid: create
+         */
+        con.createStatement().executeUpdate(translate(target));
         structure.relation(table);
         structure.database.table(con, table);
       } else {
