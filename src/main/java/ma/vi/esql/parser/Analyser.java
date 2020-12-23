@@ -758,14 +758,53 @@ public class Analyser extends EsqlBaseListener {
              : new IsNotNull(context, get(ctx.expr())));
    }
 
+//  @Override
+//  public void exitSimpleExpression(SimpleExpressionContext ctx) {
+//    put(ctx, );
+//   }
+
   @Override
   public void exitCoalesceExpr(CoalesceExprContext ctx) {
-    put(ctx, new Coalesce(context, get(ctx.left), get(ctx.right)));
+    List<ExprContext> expressions = ctx.expr();
+    boolean optimised = false;
+    if (expressions.size() == 2) {
+      Esql<?, ?> first = get(expressions.get(0));
+      if (first instanceof Coalesce) {
+        Coalesce firstCoalesce = (Coalesce)first;
+        List<Expression<?>> coalesceExprs =
+            new ArrayList<>(firstCoalesce.expressions());
+        coalesceExprs.add(get(expressions.get(1)));
+        put(ctx, new Coalesce(context, coalesceExprs));
+        optimised = true;
+      }
+    }
+    if (!optimised) {
+      put(ctx, new Coalesce(context, ctx.expr().stream()
+                                        .map(e -> (Expression<?>)get(e))
+                                        .collect(toList())));
+    }
   }
 
   @Override
   public void exitSimpleCoalesceExpr(SimpleCoalesceExprContext ctx) {
-    put(ctx, new Coalesce(context, get(ctx.left), get(ctx.right)));
+    List<SimpleExprContext> expressions = ctx.simpleExpr();
+    boolean optimised = false;
+    if (expressions.size() == 2) {
+      Esql<?, ?> first = get(expressions.get(0));
+      if (first instanceof Coalesce) {
+        Coalesce firstCoalesce = (Coalesce)first;
+        List<Expression<?>> coalesceExprs =
+            new ArrayList<>(firstCoalesce.expressions());
+        coalesceExprs.add(get(expressions.get(1)));
+        put(ctx, new Coalesce(context, coalesceExprs));
+        optimised = true;
+      }
+    }
+    if (!optimised) {
+      put(ctx, new Coalesce(context, ctx.simpleExpr().stream()
+                                        .map(e -> (Expression<?>)get(e))
+                                        .collect(toList())));
+    }
   }
 
   @Override
@@ -774,14 +813,14 @@ public class Analyser extends EsqlBaseListener {
     boolean optimised = false;
     if (expressions.size() == 3) {
       /*
-       * Multi-select case statements are broken in 3-parts
-       * corresponding to (expr -> expr : expr), associating to
-       * the right (starting at the end of the whole case expression).
-       * If the last expr is a case expression, we can optimise
-       * the whole case statement by combining it into a single one.
+       * Multi-select case statements are broken in 3-parts corresponding to
+       * (expr 'if' expr 'else' expr), associating to the right (starting at
+       * the end of the whole case expression). If the last expr is a case
+       * expression, we can optimise the whole case statement by combining it
+       * into a single one.
        *
-       * Thus (e1 -> e2 : case) where case is (e3 -> e4 : e5)
-       * is combined into (e1 -> e2 : e3 -> e4 : e5)
+       * Thus (e1 if e2 else case) where case is (e3 if e4 else e5)
+       * is combined into (e1 if e2 else e3 if e4 else e5)
        */
       Esql<?, ?> last = get(expressions.get(2));
       if (last instanceof Case) {

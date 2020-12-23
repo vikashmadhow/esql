@@ -5,15 +5,20 @@
 package ma.vi.esql.parser.expression;
 
 import ma.vi.esql.parser.Context;
-import ma.vi.esql.type.Type;
-import ma.vi.esql.type.Types;
+
+import java.util.List;
 
 import static ma.vi.base.string.Escape.escapeJsonString;
 import static ma.vi.esql.parser.Translatable.Target.JSON;
 
-public class Coalesce extends DoubleSubExpressions<String> {
-  public Coalesce(Context context, Expression<?> left, Expression<?> right) {
-    super(context, "coalesce", left, right);
+/**
+ * Returns first non-null expressions among its arguments.
+ *
+ * @author Vikash Madhow (vikash.madhow@gmail.com)
+ */
+public class Coalesce extends MultipleSubExpressions<String> {
+  public Coalesce(Context context, List<Expression<?>> expressions) {
+    super(context, "coalesce", expressions);
   }
 
   public Coalesce(Coalesce other) {
@@ -35,31 +40,46 @@ public class Coalesce extends DoubleSubExpressions<String> {
   }
 
   @Override
-  public Type type() {
-    Type type = expr1().type();
-    if (!type.equals(Types.NullType)) {
-      return type;
-    }
-    return Types.TopType;
-  }
-
-  @Override
   public String translate(Target target) {
     switch (target) {
-      case JSON:
-      case JAVASCRIPT:
-        String e1 = expr1().translate(target);
-        String translation = "((" + e1 + ") || (" + e1 + ") === 0 || (" + e1 + ") === '' ? " + e1 + " : " + expr2().translate(target) + ')';
+      case JSON, JAVASCRIPT -> {
+        StringBuilder st = new StringBuilder();
+        for (Expression<?> e: expressions()) {
+          if (st.length() > 0) {
+            st.append(" || ");
+          }
+          String t = e.translate(target);
+          st.append("((" + t + ") || (" + t + ") === 0 || (" + t + ") === '' ? " + t + " : null)");
+        }
+        String translation = "(" + st.toString() + ")";
         if (target == JSON) {
           translation = '"' + escapeJsonString(translation) + '"';
         }
         return translation;
+      }
 
-      case ESQL:
-        return expr1().translate(target) + " ? " + expr2().translate(target);
+      case ESQL -> {
+        StringBuilder st = new StringBuilder();
+        for (Expression<?> e: expressions()) {
+          st.append(st.length() == 0 ? "" : "?").append(e.translate(target));
+        }
+        return st.toString();
+      }
 
-      default:
-        return "coalesce(" + expr1().translate(target) + ", " + expr2().translate(target) + ')';
+      default -> {
+        boolean first = true;
+        StringBuilder st = new StringBuilder("coalesce(");
+        for (Expression<?> e: expressions()) {
+          if (first) {
+            first = false;
+          } else {
+            st.append(", ");
+          }
+          st.append(e.translate(target));
+        }
+        st.append(')');
+        return st.toString();
+      }
     }
   }
 }

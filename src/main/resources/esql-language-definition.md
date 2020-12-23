@@ -1,33 +1,548 @@
 # ESQL V2 specification
 
-## <a name='1_about'>1. About</a>
+## <a name='about'>About</a>
 
 ESQL aims to be a database query language similar in syntax to SQL but with
 extensions to include metadata into the query language and the ability to be
 transparently translated to different implementations of the SQL language 
 supported by the main relational databases in use. PostgreSQL, Microsoft SQL Server
-and HyperSQL are the currently supported database more planned in the near future.
+and HyperSQL are the currently supported databases with more planned in the near future.
 
-This document describes the second version of the ESQL language, with the first
-version starting development in late 2018 and used in a production system around 
-mid 2019. By the end of 2019, early 2020, ESQL v1 has met most of its initial
-design goals and was the underpinnings of a successful multi-company payroll 
-system (using MS SQL Server) and used in a Statistical Business Register that I 
-developed for the Central Statistics Agency of Ethiopia (using Postgresql). 
+I built a first version of ESQL in 2018 to use for my own projects and have used it 
+successfully in several projects in Mauritius, Eswatini and Ethiopia. ESQL greatly 
+reduced the effort required to deliver projects through 1) its metadata which can be 
+used to automatically generate rich user interfaces, reports, user filters, data imports, 
+etc. and 2) its translation to various databases allows for a single language to be used
+even if the different projects use different databases.
 
-The experience with developing the first version also underscored some of the flaws
-of the language, including the lack of a full specification, missing rules on how 
+Experience over the last 2 years has also revealed some flaws in the initial
+design of the language, including the lack of a full specification, missing rules on how 
 to combine metadata in complex queries and missing rules on how to compute metadata 
 in different type of queries such as in the presence of aggregate functions and when
-using sub-queries.
+using sub-queries. This is a revised design addressing those issues, enhancing the 
+language and building a more robust implementation.
 
-The lack of a full specification in v1 means that the language produces its 
-results along with their metadata in an opaque manner which leads to cryptic
-and hard to find errors.   
+### <a name='overview'>Overview</a>
+The core feature of ESQL is that it all metadata to be embedded in table definitions
+and queries. Metadata in ESQL is a comma-separated list of attributes surrounded by 
+curly braces ({}) with each attribute consisting of a name-expression pair. Metadata 
+can be attached to a table and to its columns. For instance this is a `create table`
+statement which defines metadata attributes on both the table and its columns:
 
-### <a name=''>2. The Language</a>
-The grammar of the language is defined as a set of production rules in ANTLR which 
-is repeated here with comments:
+```postgresql
+create table com.example.S(
+  {
+    # table metadata (applied to all queries on this table)
+    max_a: (max(a) from com.example.S),
+    a_gt_b: a > b
+  },
+  a int {
+    # column metadata attached to column a 
+    m1: b > 5, m2: 10, m3: a != 0
+  },
+  b int { m1: b < 0 },
+
+  # derived columns (whose value are computed instead of stored) are
+  # also supported in ESQL and is defined with a `=` between the name
+  # of the column and the expression to compute its value. Metadata can
+  # also be attached to derived columns
+  ########  
+  c=a + b { label: 'Sum of a and b', m1: a > 5, m2: a + b, m3: b > 5 },
+  d=b + c { m1: 10 },
+
+  e int { m1: c },
+
+  # ESQL also has a simplified select syntax for select expressions where
+  # the `select` keyword is dropped and only a single column is specified.
+  # Select expressions must be surrounded by parentheses.
+  ########
+  f=(max(a) from com.example.S) { m1: min(a) from com.example.S },
+  g=(distinct c from com.example.S where d>5) { m1: min(a) from T },
+
+  h int { m1: 5 }
+
+  # select expressions can be arbitrarily complex and refer to the columns
+  # in the current table as well as columns in other joined tables.
+  ########
+  i string {
+    label: lv.label from lv:LookupValue
+                    join  l:Lookup on lv.lookup_id=l._id
+                                  and  l.name='City'
+                   where lv.code=i
+  }
+)
+```
+
+When a table is queried, its metadata and those on its queried columns are added
+to the query and can be overridden by metadata provided directly in the query. For
+example:
+
+```sql
+select { a_gt_b: a != b },
+       a,
+       c { m3: b > 1500 }
+  from com.example.S
+ where d > 1000
+```
+
+will be conceptually expanded to:
+```sql
+select { 
+         max_a: (max(a) from com.example.S),  # from definition of the table
+         a_gt_b: a != b                       # override the default attribute with the same name on the table
+       },
+       a {
+         m1: b > 5, m2: 10, m3: a != 0
+       },
+       c { 
+         label: 'Sum of a and b', 
+         m1: a > 5, 
+         m2: a + b, 
+         m3: b > 1500                         # overridden                         
+       }
+  from com.example.S
+ where d > 1000
+```
+
+When translated to the SQL supported by the underlying database, the metadata attributes are converted to 
+valid columns in the query aliased in a way that they are recognised as metadata and not normal columns. 
+
+### <a name='overview'>What ESQL is not</a>
+
+ESQL is not a full database virtualization layer and does not aim to completely hide the complexity of the
+underlying database; it can simplify the development of software that can work transparently different databases
+in most cases; however the features of the underlying database still need to be kept in mind when using ESQL.
+
+For instance, modification queries (insert, delete, update) producing a resultset is not supported in all
+databases. When it does ESQL will translate to the correct SQL and function as expected. If this is not
+supported, the query will fail. Thus, using ESQL only does not guarantee that software can be migrated to
+any database; ESQL remains limited by the underlying features of the database.
+
+However, where possible, ESQL emulates some features which are not present in the underlying database (such 
+as the boolean datatype on SQL Server) and, together with some care in which feature to use and which to avoid,
+allows for the development of software that works on several different databases with minimal development effort. 
+
+
+## <a name=''>Language specification</a>
+The grammar of the language is defined as a set of production rules in ANTLR which is repeated here with comments:
+
+```antlrv4
+grammar Esql;
+
+@header {
+    package ma.vi.esql.grammar;
+}
+
+/**
+ * An ESQL program is a semi-colon separated sequence of ESQL statements.
+ */
+program
+    : statement (';' statement)* ';'?
+    ;
+
+/**
+ * A semi-colon can also be interpreted as a silent no-operation (noop)
+ * statement. Noops can be used to disable certain part of a program
+ * dynamically (by replacing the statement with a noop) without having
+ * to remove the statement which can be harder in some cases.
+ */
+noop
+    : ';'
+    ;
+
+/**
+ * ESQL statements can be divided into two groups: statements for defining
+ * and altering database structures (such as tables and columns) and those
+ * for querying and manipulating the data in those structures (select, insert, etc.).
+ * select is the only statement for querying data while there are 3 different
+ * statements for modifying data (insert, update and delete) which are grouped
+ * into modify statements.
+ */
+statement
+    : select
+    | modify
+    | define
+    | noop
+    ;
+
+/**
+ * The 3 data modifying statements are update, insert and delete.
+ */
+modify
+    : update
+    | insert
+    | delete
+    ;
+
+/**
+ * select and modify are the data manipulation group of statements in ESQL.
+ */
+queryUpdate
+    : select
+    | modify
+    ;
+
+/**
+ * A `select` statement extracts rows with a set columns (and metadata)
+ * from a one or more joined tables and optionally subject to filters,
+ * groupings, limits and orderings.
+ *
+ * Selects can also be combined with set operators (union, intersection, etc.)
+ * or through `with` statements which creates temporary selects that can
+ * be used to compose more complex `selects` in the same statement.
+ */
+select
+    : 'select'  (metadata ','?)? distinct? explicit? columns
+      ('from'   tableExpr)?
+      ('where'  where=expr)?
+      ('order'  'by' orderByList)?
+      ('group'  'by' groupByList)?
+      ('having' having=expr)?
+      ('offset' offset=expr)?
+      ('limit'  limit=expr)?                #BaseSelection
+
+    | select setop select                   #CompositeSelection
+
+    | with                                  #WithSelection
+    ;
+
+/**
+ * Metadata in ESQL is a comma-separated list of attributes surrounded by curly
+ * parentheses ({}) with each attribute consisting of a name-expression pair.
+ * Metadata can beattached to a table and to its columns. For instance this is
+ * a `create table` statement which defines metadata attributes on both the table
+ * and its columns:
+ *
+ *      create table com.example.S(
+ *        {
+ *          # table metadata (applied to all queries on this table)
+ *          max_a: (max(a) from com.example.S),
+ *          a_gt_b: a > b
+ *        },
+ *        a int {
+ *          # column metadata attached to column a
+ *          m1: b > 5, m2: 10, m3: a != 0
+ *        },
+ *        b int { m1: b < 0 },
+ *
+ *        # derived columns (whose value are computed instead of stored) are
+ *        # also supported in ESQL and is defined with a `=` between the name
+ *        # of the column and the expression to compute its value. Metadata can
+ *        # also be attached to derived columns
+ *        ########
+ *        c=a + b { label: 'Sum of a and b', m1: a > 5, m2: a + b, m3: b > 5 },
+ *        d=b + c { m1: 10 },
+ *
+ *        e int { m1: c },
+ *
+ *        # ESQL also has a simplified select syntax for select expressions where
+ *        # the `select` keyword is dropped and only a single column is specified.
+ *        # Select expressions must be surrounded by parentheses.
+ *        ########
+ *        f=(max(a) from com.example.S) { m1: min(a) from com.example.S },
+ *        g=(distinct c from com.example.S where d>5) { m1: min(a) from T },
+ *
+ *        h int { m1: 5 }
+ *
+ *        # select expressions can be arbitrarily complex and refer to the columns
+ *        # in the current table as well as columns in other joined tables.
+ *        ########
+ *        i string {
+ *          label: lv.label from lv:LookupValue
+ *                          join  l:Lookup on lv.lookup_id=l._id
+ *                                        and  l.name='City'
+ *                         where lv.code=i
+ *        }
+ *      )
+ *
+ * When a table is queried, its metadata and those on its queried columns are also added
+ * to the query and can be overridden by attributes provided in the query.
+ */
+metadata
+    : '{' attributeList '}'
+    ;
+
+/**
+ * Metadata consists of a comma-separated list of attributes.
+ */
+attributeList
+    : attribute (',' attribute)*
+    ;
+
+/**
+ * Each attribute consists of a simple name and an expression which must be valid
+ * in the query that will be executed over the table where the metadata attribute
+ * is specified.
+ */
+attribute
+    : Identifier ':' expr
+    ;
+
+/**
+ * The optional distinct clause in `select` can be `all` which is the default where
+ * all matching records are returned or `distinct` which means that only unique records
+ * are returned with duplicates eliminated. `distinct` can optionally be followed by
+ * by an expression list which is used to identify duplicates.
+ */
+distinct
+    : 'all'
+    | 'distinct' ('on' '(' expressionList ')')?
+    ;
+
+/**
+ * The optional `explicit` keyword, when specified, disable the automatic addition and
+ * expansion of metadata in a query and returns a resultset consisting only of the
+ * explicitly specified columns.
+ */
+explicit
+    : 'explicit'
+    ;
+
+/**
+ * The `select` keyword is followed by the `columns` clause which is a comma-separated
+ * sequence of columns to select into the result, with each column being an expression
+ * which can refer to columns in the tables specified in the `from` clause of the select
+ * query.
+ */
+columns
+    : column (',' column)*
+    ;
+
+/**
+ * A column in a select statement consists of a expression which will be executed
+ * in the context of the tables in the `from` clause of the select. The column can
+ * be given an alias which will be the name of that column in the result of the query.
+ * Metadata can also be associated to the column and will override any metadata
+ * defined for that column in the table (this only applies when the columns refers
+ * exactly to a column in a table).
+ *
+ * A column can also be the asterisk (*) character, optionally qualified, and is
+ * expanded to all the columns in the tables joined for the query, or, if qualified,
+ * all the columns in table referred to by the qualifier.
+ */
+column
+    : (alias ':')? expr metadata?       #SingleColumn
+    | qualifier? '*'                    #StarColumn
+    ;
+
+/**
+ * An alias consists of one or more alias parts separated by the front slash ('/'), and,
+ * optionally, starting with a front slash. An alias part can be a qualified identifier
+ * or an escaped identifier. Qualified identifiers are one or more identifiers (an identifier
+ * is a name starting with [$_a-zA-Z] and optionally followed by zero or more [$_a-zA-Z0-9])
+ * joined together with periods. For instance, these are valid qualified identifiers:
+ *
+ *    a
+ *    b.x
+ *    a.b.c
+ *
+ * An escaped identifier is a sequence of one or more characters surrounded by double quotes.
+ * These are all valid escaped identifiers:
+ *
+ *    "Level 1"
+ *    "!$$#42everything after$$#"
+ *    ".a.b."
+ *
+ * All the following are valid aliases:
+ *
+ *    a
+ *    age
+ *    man/age
+ *    /country/city/street
+ *    /"level 1"/"level 2"
+ *    x.y.z/"intermediate level"/b.y/"another level"/"yet another level"
+ *
+ */
+alias
+    : (root='/')? aliasPart ('/' aliasPart)*
+    ;
+
+/**
+ * An alias part can be a qualified identifier or an escaped identifier. Qualified identifiers
+ * are one or more identifiers (an identifier is a name starting with [$_a-zA-Z] and optionally
+ * followed by zero or more [$_a-zA-Z0-9]) joined together with periods. For instance, these
+ * are valid qualified identifiers:
+ *
+ *    a
+ *    b.x
+ *    a.b.c
+ *
+ * An escaped identifier is a sequence of one or more characters surrounded by double quotes.
+ * These are all valid escaped identifiers:
+ *
+ *    "Level 1"
+ *    "!$$#42everything after$$#"
+ *    ".a.b."
+ *
+ */
+aliasPart
+    : EscapedIdentifier                 #EscapedAliasPart
+    | qualifiedName                     #NormalAliasPart
+    ;
+
+/**
+ * An escaped identifier is a sequence of one or more characters surrounded by double quotes.
+ * These are all valid escaped identifiers:
+ *
+ *    "Level 1"
+ *    "!$$#42everything after$$#"
+ *    ".a.b."
+ *
+ */
+EscapedIdentifier
+    : '"' ~["]+ '"'
+    ;
+
+/**
+ * Qualified identifiers are one or more identifiers (an identifier is a name starting with
+ * [$_a-zA-Z] and optionally followed by zero or more [$_a-zA-Z0-9]) joined together with
+ * periods. For instance, these are valid qualified identifiers:
+ *
+ *    a
+ *    b.x
+ *    a.b.c
+ *
+ */
+qualifiedName
+    : Identifier ('.' Identifier)*
+    ;
+
+/**
+ * The `from` clause of a `select` contains a table expression which can be one of these:
+ * 1. A single table optionally aliased. If an alias is not provided, a default one with the
+ *    the table name (without schema) will be used. I.e. `a.b.X` is equivalent to `X:a.b.X`.
+ *
+ * 2. An aliased select statement: E.g. `select t.x, t.y from t:(select x, y, z from T)`.
+ *
+ * 3. A dynamic table expression which creates a named temporary table with rows as part of
+ *    the query and allow selection from it. E.g.:
+ *          `select a, b from X(a, b):((1, 'One'), (2, 'Two'), ('3, 'Three'))
+ *
+ * 4. Cartesian product of any two table expressions: E.g.:
+ *          `select x.a, x.b, y.c from x:X times y:Y`
+ *
+ * 5. A join (inner, left, right, full) of any two table expressions:
+ *          `select x.a, x.b, y.c, z.d from x:X join y:Y on x.a=y.b left join z:Z on y.c=z.c`
+ *
+ * Cartesian products and joins can combine any table expression types (including themselves)
+ * to form more complex table expressions through composition.
+ */
+tableExpr
+    : (alias ':')? qualifiedName                                 #SingleTableExpr
+    | alias ':' '(' select ')'                                   #SelectTableExpr
+    | alias metadata? dynamicColumns ':' '(' rows ')'            #DynamicTableExpr
+    | left=tableExpr 'times' right=tableExpr                     #CrossProductTableExpr
+    | left=tableExpr joinType? 'join' right=tableExpr 'on' expr  #JoinTableExpr
+    ;
+
+/**
+ * The definition of a dynamic table expression is a set of column names with optional
+ * metadata attached to each column.
+ */
+dynamicColumns
+    : '(' nameWithMetadata (',' nameWithMetadata)* ')'
+    ;
+
+/**
+ * A column in the definition of the type of a dynamic table expression consists of an
+ * identifier and followed optionally by metadata for the column.
+ */
+nameWithMetadata
+    : Identifier metadata?
+    ;
+
+/**
+ * 4 join types are available in ESQL: `left`, `right` and `full` joins are built with these
+ * respective keywords before the `join` keyword in a table expression; when none of those is
+ * provided, an inner join is assumed.
+ */
+joinType
+    : 'left'
+    | 'right'
+    | 'full'
+    ;
+
+/**
+ * The `group by` clause of a select consists of a subset of expressions
+ * present in the columns of select. 3 types of groupings are supported:
+ * simple, rollup and cube. The latter two are indicated by surrounding
+ * the group list with the keword `rollup` and `cube` respectively.
+ */
+groupByList
+    : expressionList                        #SimpleGroup
+    | 'rollup' '(' expressionList ')'       #RollupGroup
+    | 'cube'   '(' expressionList ')'       #CubeGroup
+    ;
+
+/**
+ * The `order by` clause of a `select` statement is a comma-separated list
+ * or expression by which the select must order its result.
+ */
+orderByList
+    : orderBy (',' orderBy)*
+    ;
+
+/**
+ * An order expression in the `order by` list of a `select` is an expression
+ * which can be followed optionally by a direction: `asc` (default) for ascending
+ * or `desc` for descending.
+ */
+orderBy
+    : expr direction?
+    ;
+
+/**
+ * Directions of order by expressions: `asc` (default) for ascending
+ * or `desc` for descending.
+ */
+direction
+    : 'asc'
+    | 'desc'
+    ;
+
+/**
+ * `select`s can be combined with the following set operations:
+ *  1. `union`: returns the union of two selects removing all duplicate rows;
+ *  2. `union all`: returns the union of two selects without removing any duplicate rows;
+ *  3. `intersect`: returns the intersection of two selects;
+ *  4. `except`: returns the set difference between two selects (i.e. `A except B` returns all rows in A which are not also in B).
+ */
+setop
+    : 'union'
+    | 'union' 'all'
+    | 'intersect'
+    | 'except'
+    ;
+
+/**
+ * `with` queries combine `select` and `modify` queries such that the result of one query
+ * can be used in subsequent queries in the same `with` query. Not all databases support the
+ * use of the result of modification queries in subsequent query in the same `with` query
+ * (e.g. Postgresql does, SQL Server does not). Some databases also do not support return values
+ * on modification queries. In some cases, ESQL will simulate the feature in translated SQL
+ * but, in most cases, the translated SQL will fail when executed on the database; therefore
+ * the supported features of the underlying database must be known and ESQL commands limited
+ * to the supported subset.
+ *
+ * `with` queries consist of a list of common-table-expressions (CTE, i.e. a selection or
+ * modification query) followed by a final selection/modification query. The first CTE can
+ * be recursive and refer to itself (check SQL specification on recursive with queries).
+ *
+ * Example with query (an example upsert query):
+ *
+ *      with modify(id) (
+ *        update X set a=3, b=4 where c=100 returning id
+ *      ),
+ *      insert into X(a, b)
+ *        select 3, 4
+ *          from X left join modify on X.id=modify.id
+ *         where modify.id is null
+ *
+ */
+with
+    : 'with' recursive='recursive'? cteList queryUpdate
+    ;
+```
 
 
 ## <a name="expansion_rules">3. Expansion Rules</a>
