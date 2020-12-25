@@ -9,8 +9,8 @@ import ma.vi.esql.parser.Esql;
 import ma.vi.base.tuple.T2;
 
 /**
- * A table expression which can be aliased (a single table,
- * a select expression or dynamic table expression).
+ * A table expression which can be aliased (a single table, a select expression
+ * or dynamic table expression).
  *
  * @author vikash.madhow@gmail.com
  */

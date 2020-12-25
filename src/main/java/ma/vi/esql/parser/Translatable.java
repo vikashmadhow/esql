@@ -21,6 +21,7 @@ public interface Translatable<T> {
 
     POSTGRESQL,
     SQLSERVER,
+    MARIADB,
     HSQLDB,
     MYSQL,
     ORACLE,

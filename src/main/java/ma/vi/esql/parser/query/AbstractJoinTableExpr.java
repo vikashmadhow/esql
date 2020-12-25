@@ -4,10 +4,17 @@
 
 package ma.vi.esql.parser.query;
 
+import ma.vi.base.tuple.T2;
 import ma.vi.esql.parser.Context;
 import ma.vi.esql.type.Join;
-import ma.vi.base.tuple.T2;
 
+/**
+ * Abstract parent of cross-products and joins table expressions. Each of these
+ * table expressions compose two table expressions, which are accessible through
+ * {@link #left()} and {@link #right()}.
+ *
+ * @author Vikash Madhow (vikash.madhow@gmail.com)
+ */
 public abstract class AbstractJoinTableExpr extends TableExpr {
   public AbstractJoinTableExpr(Context context, String joinType, TableExpr left, TableExpr right) {
     super(context, joinType, T2.of("left", left), T2.of("right", right));

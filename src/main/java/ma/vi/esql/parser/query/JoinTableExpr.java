@@ -8,6 +8,13 @@ import ma.vi.esql.parser.Context;
 import ma.vi.esql.parser.Esql;
 import ma.vi.esql.parser.expression.Expression;
 
+/**
+ * Represents a join between two table expressions. The join type, which can
+ * be null (inner, default), 'left', 'right' or 'full' is accessible through
+ * the {@link #joinType()} method.
+ *
+ * @author Vikash Madhow (vikash.madhow@gmail.com)
+ */
 public class JoinTableExpr extends AbstractJoinTableExpr {
   public JoinTableExpr(Context context, TableExpr left, String joinType, TableExpr right, Expression<?> on) {
     super(context, joinType, left, right);

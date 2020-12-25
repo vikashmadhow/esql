@@ -4,13 +4,13 @@
 
 package ma.vi.esql.parser.query;
 
+import ma.vi.base.tuple.T2;
 import ma.vi.esql.parser.Context;
 import ma.vi.esql.parser.Esql;
 import ma.vi.esql.type.Relation;
-import ma.vi.base.tuple.T2;
 
 /**
- * Represents parts of a from clause.
+ * The table expression in the from clause of a select, update or delete statement
  *
  * @author vikash.madhow@gmail.com
  */

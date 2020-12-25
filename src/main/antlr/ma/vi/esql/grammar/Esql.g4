@@ -453,49 +453,78 @@ names
 
 
 /**
+ * Rows can be inserted in a table with the `insert` statement which takes a
+ * table name, an optional list of column names (if not provided, all the columns
+ * in the given table are assumed in the same order that they were defined when
+ * the table was created), definition for the rows to insert and, optionally,
+ * a list of columns from the affected rows to return as the result of the
+ * statement.
  *
+ * Rows to insert are provided as one of:
+ * 1. a comma-separated list of row values; or
+ * 2. the keyword `default values` which means that one row will be inserted
+ *    with the column values set to their default value or null, if such a
+ *    row is valid; or
+ * 3. a `select` query returning a list of conformant rows to insert.
  */
 insert
     : 'insert' 'into' (alias ':')? qualifiedName names?
       (('values' rows) | defaultValues | select)
-      ('returning' metadata? columns)?
+      ('return' metadata? columns)?
+    ;
+
+/**
+ * Rows to insert are a comma-separated list of row definitions.
+ */
+rows
+    : row (',' row)*
+    ;
+
+/**
+ * A row is defined as a comma-separated list of expressions, surrounded
+ * by parentheses.
+ */
+row
+    : '(' expressionList ')'
     ;
 
 defaultValues
     : 'default' 'values'
     ;
 
-rows
-    : row (',' row)*
-    ;
-
-row
-    : '(' expressionList ')'
-    ;
-
-
+/**
+ *
+ */
 update
-    : 'update'     (alias ':')? qualifiedName
-      'set'        setList
-      ('using'     tableExpr)?
-      ('where'     expr)?
-      ('returning' metadata? columns)?
+    : 'update'  alias
+      'set'     setList
+      'from'    tableExpr
+      ('where'  expr)?
+      ('return' metadata? columns)?
     ;
+
 
 setList
     : set (',' set)*
     ;
 
+/**
+ * Set instructions in updates consist of the name of the column to update and
+ * the expression to update it with. Databases which support multi-table updates
+ * (such as mysql) requires a qualified name for the column when multiple tables
+ * are being updated in a single update. In databases where the column name must
+ * be a single identifier, the translator will automatically drop the qualifiers,
+ * if provided.
+ */
 set
-    : Identifier '=' expr
+    : qualifiedName '=' expr
     ;
 
-
 delete
-    : 'delete' 'from'? (alias ':')? qualifiedName
-      ('using' tableExpr)?
-      ('where' expr)?
-      ('returning' metadata? columns)?
+    :  'delete' alias
+         'from' tableExpr
+      ( 'where' expr)?
+      ('return' metadata? columns)?
     ;
 
 
@@ -531,13 +560,6 @@ expr
                                                                                 // x?y?z == | x if x is not null
                                                                                 //          | y if x is null and y is not null
                                                                                 //          | otherwise z
-
-//    | expr '?' expr ('?' expr)*                             #CoalesceExpr   // x?0 == | x if x is not null
-//                                                                            //        | 0 if x is null
-//                                                                            //
-//                                                                            // x?y?z == | x if x is not null
-//                                                                            //          | y if x is null and y is not null
-//                                                                            //          | otherwise z
 
     | left=expr '||' right=expr                                 #ConcatenationExpr
     | '-' expr                                                  #NegationExpr

@@ -4,16 +4,16 @@
 
 package ma.vi.esql.parser.query;
 
+import ma.vi.base.lang.NotFoundException;
 import ma.vi.esql.parser.Context;
 import ma.vi.esql.type.AliasedRelation;
 import ma.vi.esql.type.Relation;
 import ma.vi.esql.type.Type;
-import ma.vi.base.lang.NotFoundException;
 
 /**
- * Represents a single table in the from clause; a single table
- * can either refer to a table in the database or a common table
- * expression (CTE) defined in a with query.
+ * Represents a single table in the from clause; a single table can either refer
+ * to a table in the database or a common table expression (CTE) defined in a
+ * `with` query.
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */

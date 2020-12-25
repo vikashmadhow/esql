@@ -440,16 +440,6 @@ public interface EsqlListener extends ParseTreeListener {
 	 */
 	void exitInsert(EsqlParser.InsertContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link EsqlParser#defaultValues}.
-	 * @param ctx the parse tree
-	 */
-	void enterDefaultValues(EsqlParser.DefaultValuesContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link EsqlParser#defaultValues}.
-	 * @param ctx the parse tree
-	 */
-	void exitDefaultValues(EsqlParser.DefaultValuesContext ctx);
-	/**
 	 * Enter a parse tree produced by {@link EsqlParser#rows}.
 	 * @param ctx the parse tree
 	 */
@@ -469,6 +459,16 @@ public interface EsqlListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitRow(EsqlParser.RowContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link EsqlParser#defaultValues}.
+	 * @param ctx the parse tree
+	 */
+	void enterDefaultValues(EsqlParser.DefaultValuesContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link EsqlParser#defaultValues}.
+	 * @param ctx the parse tree
+	 */
+	void exitDefaultValues(EsqlParser.DefaultValuesContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link EsqlParser#update}.
 	 * @param ctx the parse tree

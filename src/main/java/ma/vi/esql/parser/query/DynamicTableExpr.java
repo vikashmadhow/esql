@@ -4,8 +4,8 @@
 
 package ma.vi.esql.parser.query;
 
-import ma.vi.esql.parser.Context;
 import ma.vi.esql.builder.Attributes;
+import ma.vi.esql.parser.Context;
 import ma.vi.esql.parser.define.Attribute;
 import ma.vi.esql.parser.define.Metadata;
 import ma.vi.esql.parser.define.NameWithMetadata;
@@ -25,11 +25,10 @@ import static java.util.stream.Collectors.joining;
 import static ma.vi.esql.type.Types.NullType;
 
 /**
- * Represents a dynamic table created from as list of rows in a
- * values clause:
+ * Represents a dynamic table created from a list of rows:
  * <pre>
- *      select t.a, t.b from t(a, b):(values ('One', 1), ('Two', 2))
- *                          |---------------------------------------| -&gt; Dynamic table expression
+ *      select t.a, t.b from t(a, b):(('One', 1), ('Two', 2))
+ *                           |------------------------------| -&gt; Dynamic table expression
  * </pre>
  *
  * @author vikash.madhow@gmail.com

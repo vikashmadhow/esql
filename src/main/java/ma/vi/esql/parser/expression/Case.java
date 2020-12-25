@@ -13,9 +13,12 @@ import static ma.vi.base.string.Escape.escapeJsonString;
 import static ma.vi.esql.parser.Translatable.Target.JSON;
 
 /**
- * Ternary condition in the form {expression when true} if {condition} else {expression when false}
- * similar to python ternary condition. This converted to a case expression in SQL and
- * the ternary conditional operator in Javascript.
+ * Ternary condition in the form:
+ *
+ *   <pre>{expression when true} if {condition} else {expression when false}</pre>
+ *
+ * similar to python ternary condition. This is converted to a case expression in
+ * SQL and the ternary conditional operator in Javascript.
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */

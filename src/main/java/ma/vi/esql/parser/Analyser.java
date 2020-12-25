@@ -333,8 +333,8 @@ public class Analyser extends EsqlBaseListener {
   @Override
   public void exitDelete(DeleteContext ctx) {
     put(ctx, new Delete(context,
-                        new SingleTableExpr(context, value(ctx.qualifiedName()), value(ctx.alias())),
-                        ctx.tableExpr() == null ? null : get(ctx.tableExpr()),
+                        value(ctx.alias()),
+                        get(ctx.tableExpr()),
                         ctx.expr() == null ? null : get(ctx.expr()),
                         ctx.metadata() == null ? null : get(ctx.metadata()),
                         ctx.columns() == null ? null : value(ctx.columns())));
@@ -346,9 +346,9 @@ public class Analyser extends EsqlBaseListener {
   @Override
   public void exitUpdate(UpdateContext ctx) {
     put(ctx, new Update(context,
-                        new SingleTableExpr(context, value(ctx.qualifiedName()), value(ctx.alias())),
+                        value(ctx.alias()),
+                        get(ctx.tableExpr()),
                         get(ctx.setList()),
-                        ctx.tableExpr() == null ? null : get(ctx.tableExpr()),
                         ctx.expr() == null ? null : get(ctx.expr()),
                         ctx.metadata() == null ? null : get(ctx.metadata()),
                         ctx.columns() == null ? null : value(ctx.columns())));
@@ -363,7 +363,7 @@ public class Analyser extends EsqlBaseListener {
 
   @Override
   public void exitSet(SetContext ctx) {
-    put(ctx, new Attribute(context, ctx.Identifier().getText(), get(ctx.expr())));
+    put(ctx, new Attribute(context, ctx.qualifiedName().getText(), get(ctx.expr())));
   }
 
   // literals

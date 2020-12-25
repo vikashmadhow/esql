@@ -105,7 +105,9 @@ select {
 ```
 
 When translated to the SQL supported by the underlying database, the metadata attributes are converted to 
-valid columns in the query aliased in a way that they are recognised as metadata and not normal columns. 
+valid columns in the query aliased in a way that they are recognised as metadata and not normal columns.
+
+Unlike SQL, ESQL is case-sensitive and the keywords are in lowercase.
 
 ### <a name='overview'>What ESQL is not</a>
 
@@ -121,7 +123,6 @@ any database; ESQL remains limited by the underlying features of the database.
 However, where possible, ESQL emulates some features which are not present in the underlying database (such 
 as the boolean datatype on SQL Server) and, together with some care in which feature to use and which to avoid,
 allows for the development of software that works on several different databases with minimal development effort. 
-
 
 ## <a name=''>Language specification</a>
 The grammar of the language is defined as a set of production rules in ANTLR which is repeated here with comments:

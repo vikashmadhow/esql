@@ -6,6 +6,11 @@ package ma.vi.esql.parser.query;
 
 import ma.vi.esql.parser.Context;
 
+/**
+ * Represents a cross-product (cartesian product) over two table expressions.
+ *
+ * @author Vikash Madhow (vikash.madhow@gmail.com)
+ */
 public class CrossProductTableExpr extends AbstractJoinTableExpr {
   public CrossProductTableExpr(Context context, TableExpr left, TableExpr right) {
     super(context, "cross", left, right);
