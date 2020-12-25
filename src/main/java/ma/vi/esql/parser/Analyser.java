@@ -8,7 +8,6 @@ import ma.vi.esql.grammar.EsqlBaseListener;
 import ma.vi.esql.parser.define.*;
 import ma.vi.esql.parser.expression.BooleanLiteral;
 import ma.vi.esql.parser.expression.DateLiteral;
-import ma.vi.esql.parser.expression.Exists;
 import ma.vi.esql.parser.expression.FloatingPointLiteral;
 import ma.vi.esql.parser.expression.IntegerLiteral;
 import ma.vi.esql.parser.expression.IntervalLiteral;

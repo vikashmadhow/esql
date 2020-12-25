@@ -4,12 +4,13 @@
 
 package ma.vi.esql.database;
 
+import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.exec.EsqlConnectionImpl;
 import ma.vi.esql.parser.Translatable;
 import ma.vi.esql.parser.define.ConstraintDefinition;
 import ma.vi.esql.parser.define.Metadata;
 import ma.vi.esql.parser.query.Column;
-import ma.vi.esql.exec.EsqlConnection;
-import ma.vi.esql.exec.EsqlConnectionImpl;
+import ma.vi.esql.translator.*;
 import ma.vi.esql.type.BaseRelation;
 
 import java.sql.Connection;
@@ -18,6 +19,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Map;
 import java.util.UUID;
+
+import static ma.vi.esql.parser.Translatable.Target.*;
 
 /**
  * Represents a database containing tables and other persistent objects
@@ -46,7 +49,20 @@ public interface Database {
    *
    * @param config Contains the configuration keys for connecting to the database.
    */
-  void init(Map<String, Object> config);
+  default void init(Map<String, Object> config) {
+    /*
+     * Register translators.
+     */
+    TranslatorFactory.register(POSTGRESQL, new PostgresqlTranslator());
+    TranslatorFactory.register(SQLSERVER,  new SqlServerTranslator());
+    TranslatorFactory.register(MARIADB,    new MariaDbTranslator());
+    TranslatorFactory.register(HSQLDB,     new HSqlDbTranslator());
+
+    /*
+     * Load database structure.
+     */
+    structure();
+  }
 
   /**
    * Returns an unmodifiable copy of the default config supplied when the database was created.

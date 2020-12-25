@@ -43,11 +43,6 @@ public class Postgresql extends AbstractDatabase {
   }
 
   @Override
-  public void init(Map<String, Object> config) {
-    structure();
-  }
-
-  @Override
   public Map<String, Object> config() {
     return config;
   }

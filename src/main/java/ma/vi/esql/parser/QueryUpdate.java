@@ -223,11 +223,11 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
    *                                  for the same attributes.
    * @return The query translation along with supporting information for its execution.
    */
-  protected QueryTranslation constructResult(StringBuilder query,
-                                             Target target,
-                                             String qualifier,
-                                             boolean addAttributes,
-                                             boolean optimiseAttributesLoading) {
+  public QueryTranslation constructResult(StringBuilder query,
+                                          Target target,
+                                          String qualifier,
+                                          boolean addAttributes,
+                                          boolean optimiseAttributesLoading) {
 //    /*
 //     * Do not expand column list of selects inside expressions as the
 //     * whole expression is a single-value and expanding the column list

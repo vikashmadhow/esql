@@ -8,16 +8,16 @@ import ma.vi.base.tuple.T2;
 import ma.vi.esql.parser.Context;
 import ma.vi.esql.parser.Esql;
 import ma.vi.esql.parser.QueryUpdate;
-import ma.vi.esql.parser.TranslationException;
 import ma.vi.esql.parser.define.Attribute;
 import ma.vi.esql.parser.define.Metadata;
 import ma.vi.esql.parser.expression.Expression;
-import ma.vi.esql.parser.query.*;
+import ma.vi.esql.parser.query.AbstractJoinTableExpr;
+import ma.vi.esql.parser.query.Column;
+import ma.vi.esql.parser.query.SingleTableExpr;
+import ma.vi.esql.parser.query.TableExpr;
 
 import java.util.List;
 
-import static java.util.Collections.emptyList;
-import static java.util.Collections.emptyMap;
 import static ma.vi.base.tuple.T2.of;
 
 /**
@@ -65,93 +65,10 @@ public class Update extends QueryUpdate {
     return true;
   }
 
-  @Override
-  public QueryTranslation translate(Target target) {
-    StringBuilder st = new StringBuilder("update ");
-    QueryTranslation q = null;
-
-    TableExpr from = tables();
-    if (from instanceof SingleTableExpr) {
-      st. append(from.translate(target));
-
-    } else if (from instanceof AbstractJoinTableExpr) {
-      if (target == Target.SQLSERVER) {
-        /*
-         * SQL Server supports multiple tables in updates but, in those cases,
-         * it is simpler and clearer to refer to the table being updated using
-         * its alias instead of a double from clause.
-         */
-        st.append(updateTableAlias());
-        addSet(st, set(), target, true);
-
-        // output clause for SQL Server if specified
-        if (columns() != null) {
-          st.append(" output ");
-          q = constructResult(st, target, "inserted", true, true);
-        }
-        st.append(" from ").append(from.translate(target));
-
-      } else if (target == Target.POSTGRESQL) {
-        /*
-         * For postgresql the single table referred by the update table alias
-         * must be extracted from the table expression and added as the main
-         * table of the update statement; the rest of the table expression can
-         * then be added to the `from` clause of the update; any join condition
-         * removed when extracting the single update table must be moved to the
-         * `where` clause.
-         */
-        T2<AbstractJoinTableExpr, SingleTableExpr> updateTable = removeSingleTable((AbstractJoinTableExpr)from,
-                                                                                   updateTableAlias());
-        if (updateTable == null) {
-          throw new TranslationException("Could not find table with alias " + updateTableAlias());
-        }
-        if (updateTable.a instanceof JoinTableExpr) {
-          JoinTableExpr join = (JoinTableExpr)updateTable.a;
-          where(join.on(), false);
-        }
-        st.append(updateTable.b.translate(target));
-        addSet(st, set(), target, false);
-        st.append(" from ").append(tables().translate(target));
-
-      } else if (target == Target.MARIADB) {
-        /*
-         * Maria DB allows simultaneous updates of multiple tables.
-         */
-        st.append(from.translate(target));
-        addSet(st, set(), target, false);
-
-      } else {
-        throw new TranslationException(target + " does not support multiple tables or joins in updates");
-      }
-    } else {
-      throw new TranslationException("Wrong table type to update: " + from);
-    }
-
-    if (where() != null) {
-      st.append(" where ").append(where().translate(target));
-    }
-    if (columns() != null) {
-      if (target == Target.MARIADB || target == Target.HSQLDB) {
-        throw new TranslationException(target + " does not support return values in updates");
-
-      } else if (target == Target.POSTGRESQL) {
-        st.append(" returning ");
-        q = constructResult(st, target, null, true, true);
-      }
-    }
-    if (q == null) {
-      return new QueryTranslation(st.toString(), emptyList(), emptyMap(),
-                                  emptyList(), emptyMap());
-    } else {
-      return new QueryTranslation(st.toString(), q.columns, q.columnToIndex,
-                                  q.resultAttributeIndices, q.resultAttributes);
-    }
-  }
-
-  private static void addSet(StringBuilder st,
-                             Metadata sets,
-                             Target target,
-                             boolean removeQualifier) {
+  public static void addSet(StringBuilder st,
+                            Metadata sets,
+                            Target target,
+                            boolean removeQualifier) {
     boolean first = true;
     st.append(" set ");
     for (Attribute set: sets.attributes().values()) {
@@ -185,14 +102,14 @@ public class Update extends QueryUpdate {
    *         to. The parent join is used to extract any condition set on the
    *         join and put it in the `where` clause of the query.
    */
-  protected static T2<AbstractJoinTableExpr, SingleTableExpr> removeSingleTable(AbstractJoinTableExpr join,
+  public static T2<AbstractJoinTableExpr, SingleTableExpr> removeSingleTable(AbstractJoinTableExpr join,
                                                                                 String singleTableAlias) {
     if (join.left() instanceof SingleTableExpr
      && singleTableAlias.equals(((SingleTableExpr)join.left()).alias())) {
       /*
-       *        J                        J
-       *      /   \     remove x       /   \
-       *     J    z    ---------->    y     z
+       *        J                    J
+       *      /  \    remove x     /  \
+       *     J    z  ---------->  y    z
        *    / \
        *   x  y
        */
@@ -203,9 +120,9 @@ public class Update extends QueryUpdate {
     } else if (join.right() instanceof SingleTableExpr
             && singleTableAlias.equals(((SingleTableExpr)join.right()).alias())) {
       /*
-       *        J                        J
-       *      /   \     remove y       /   \
-       *     J    z    ---------->    x     z
+       *        J                     J
+       *      /  \   remove y       /  \
+       *     J    z ---------->    x    z
        *    / \
        *   x  y
        */
