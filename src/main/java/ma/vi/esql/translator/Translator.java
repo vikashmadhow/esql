@@ -9,7 +9,5 @@ import ma.vi.esql.parser.Translatable;
 public interface Translator {
   Translatable.Target target();
 
-  default <R> R translate(Esql<?, R> esql) {
-    return esql.translate(target());
-  }
+  <R> R translate(Esql<?, R> esql);
 }

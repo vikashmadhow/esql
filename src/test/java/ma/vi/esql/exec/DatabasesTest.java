@@ -24,8 +24,8 @@ public class DatabasesTest {
   static void setup() {
     databases = new Database[] {
         Databases.Postgresql(),
+        Databases.SqlServer(),
         Databases.HSqlDb(),
-        Databases.SqlServer()
     };
   }
 

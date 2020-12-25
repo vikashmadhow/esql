@@ -93,11 +93,11 @@ public class SelectBuilder implements Builder<Select> {
     return from(new SelectTableExpr(context, select, alias));
   }
 
-  public SelectBuilder cross(String tableName, String alias) {
-    return cross(new SingleTableExpr(context, tableName, alias));
+  public SelectBuilder times(String tableName, String alias) {
+    return times(new SingleTableExpr(context, tableName, alias));
   }
 
-  public SelectBuilder cross(TableExpr right) {
+  public SelectBuilder times(TableExpr right) {
     return from(new CrossProductTableExpr(context, from, right));
   }
 

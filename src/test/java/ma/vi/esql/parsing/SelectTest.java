@@ -50,7 +50,7 @@ public class SelectTest {
                                         "  from s:S " +
                                         "  left join a.b.T on s._id=T.s_id " +
                                         "  join x:a.b.X on x.t_id=T._id " +
-                                        " cross y:b.Y " +
+                                        " times y:b.Y " +
                                         " order by s.x desc," +
                                         "          y.x," +
                                         "          T.b asc");
@@ -68,7 +68,7 @@ public class SelectTest {
                       .from("S", "s")
                       .leftJoin("a.b.T", null, "s._id = T.s_id")
                       .join("a.b.X", "x", "x.t_id = T._id")
-                      .cross("b.Y", "y")
+                      .times("b.Y", "y")
                       .orderBy("s.x", "desc")
                       .orderBy("y.x")
                       .orderBy("T.b", "asc")
