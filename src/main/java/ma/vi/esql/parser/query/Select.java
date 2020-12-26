@@ -4,6 +4,8 @@
 
 package ma.vi.esql.parser.query;
 
+import ma.vi.base.string.Strings;
+import ma.vi.esql.function.Function;
 import ma.vi.esql.parser.Context;
 import ma.vi.esql.parser.Esql;
 import ma.vi.esql.parser.QueryUpdate;
@@ -13,8 +15,6 @@ import ma.vi.esql.parser.expression.ColumnRef;
 import ma.vi.esql.parser.expression.Expression;
 import ma.vi.esql.parser.expression.FunctionCall;
 import ma.vi.esql.parser.expression.IntegerLiteral;
-import ma.vi.esql.function.Function;
-import ma.vi.base.string.Strings;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -30,32 +30,32 @@ import static ma.vi.esql.parser.Translatable.Target.HSQLDB;
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 public class Select extends QueryUpdate {
-  public Select(Context context,
-                Metadata metadata,
-                boolean distinct,
+  public Select(Context             context,
+                Metadata            metadata,
+                boolean             distinct,
                 List<Expression<?>> distinctOn,
-                boolean explicit,
-                List<Column> columns,
-                TableExpr from,
-                Expression<?> where,
-                GroupBy groupBy,
-                Expression<?> having,
-                List<Order> orderBy,
-                Expression<?> offset,
-                Expression<?> limit) {
+                boolean             explicit,
+                List<Column>        columns,
+                TableExpr           from,
+                Expression<?>       where,
+                GroupBy             groupBy,
+                Expression<?>       having,
+                List<Order>         orderBy,
+                Expression<?>       offset,
+                Expression<?>       limit) {
     super(context, "Select",
-        of("distinct", new Esql<>(context, distinct)),
-        of("distinctOn", new Esql<>(context, "distinctOn", distinctOn)),
-        of("explicit", new Esql<>(context, explicit)),
-        of("metadata", metadata),
-        of("columns", new Esql<>(context, columns)),
-        of("tables", from),
-        of("where", where),
-        of("groupBy", groupBy),
-        of("having", having),
-        of("orderBy", new Esql<>(context, "orderBy", orderBy)),
-        of("offset", offset),
-        of("limit", limit));
+        of("distinct",    new Esql<>(context, distinct)),
+        of("distinctOn",  new Esql<>(context, "distinctOn", distinctOn)),
+        of("explicit",    new Esql<>(context, explicit)),
+        of("metadata",    metadata),
+        of("columns",     new Esql<>(context, columns)),
+        of("tables",      from),
+        of("where",       where),
+        of("groupBy",     groupBy),
+        of("having",      having),
+        of("orderBy",     new Esql<>(context, "orderBy", orderBy)),
+        of("offset",      offset),
+        of("limit",       limit));
 
     /*
      * Rename column names to be unique without random characters.
@@ -473,10 +473,10 @@ public class Select extends QueryUpdate {
    *         the outer query.</li>
    * </ol>
    */
-  private Expression<?> remapExpression(Expression<?> expression,
-                                        Map<String, String> addedInnerCols,
-                                        List<Column> innerCols,
-                                        String innerSelectAlias) {
+  public Expression<?> remapExpression(Expression<?> expression,
+                                       Map<String, String> addedInnerCols,
+                                       List<Column> innerCols,
+                                       String innerSelectAlias) {
     /*
      * Find column references in the expression and add to the columns
      * of the inner query.

@@ -17,15 +17,16 @@ import java.util.stream.IntStream;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 import static java.util.stream.Collectors.joining;
+import static ma.vi.esql.parser.Translatable.Target.ESQL;
 import static ma.vi.esql.parser.modify.Delete.findSingleTable;
 
 /**
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public class PostgresqlTranslator extends AbstractTranslator {
+public class EsqlTranslator extends AbstractTranslator {
   @Override
   public Translatable.Target target() {
-    return Translatable.Target.POSTGRESQL;
+    return ESQL;
   }
 
   @Override
@@ -41,9 +42,14 @@ public class PostgresqlTranslator extends AbstractTranslator {
       }
     }
 
-    // add output clause
-    QueryTranslation q = select.constructResult(st, target(), null,
-                                                true, true);
+    if (select.explicit() != null && select.explicit()) {
+      st.append("explicit ");
+    }
+
+    st.append(select.columns().stream()
+                    .map(c -> c.translate(target()))
+                    .collect(joining(", ")));
+
     if (select.tables() != null) {
       st.append(" from ").append(select.tables().translate(target()));
     }
@@ -59,8 +65,8 @@ public class PostgresqlTranslator extends AbstractTranslator {
     if (select.orderBy() != null && !select.orderBy().isEmpty()) {
       st.append(" order by ")
         .append(select.orderBy().stream()
-                      .map(e -> e.translate(target()))
-                      .collect(joining(", ")));
+                         .map(e -> e.translate(target()))
+                         .collect(joining(", ")));
     }
     if (select.offset() != null) {
       st.append(" offset ").append(select.offset().translate(target()));
@@ -68,11 +74,8 @@ public class PostgresqlTranslator extends AbstractTranslator {
     if (select.limit() != null) {
       st.append(" limit ").append(select.limit().translate(target()));
     }
-    return new QueryTranslation(st.toString(),
-                                q.columns,
-                                q.columnToIndex,
-                                q.resultAttributeIndices,
-                                q.resultAttributes);
+    return new QueryTranslation(st.toString(), null, null, null, null);
+
   }
 
   @Override

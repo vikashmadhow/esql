@@ -53,6 +53,7 @@ public interface Database {
     /*
      * Register translators.
      */
+    TranslatorFactory.register(ESQL,       new EsqlTranslator());
     TranslatorFactory.register(POSTGRESQL, new PostgresqlTranslator());
     TranslatorFactory.register(SQLSERVER,  new SqlServerTranslator());
     TranslatorFactory.register(MARIADB,    new MariaDbTranslator());
