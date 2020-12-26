@@ -82,8 +82,7 @@ public interface Database {
    */
   void postInit(Connection con,
                 Structure structure,
-                boolean createCoreTables,
-                boolean createPlatformTables);
+                boolean createCoreTables);
 
   /**
    * Returns the target for this database.

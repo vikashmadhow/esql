@@ -2,7 +2,7 @@
  * Copyright (c) 2020 Vikash Madhow
  */
 
-package ma.vi.esql.parsing;
+package ma.vi.esql.parse;
 
 import ma.vi.esql.Databases;
 import ma.vi.esql.TestDatabase;

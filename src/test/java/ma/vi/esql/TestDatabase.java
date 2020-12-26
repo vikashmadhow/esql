@@ -240,8 +240,7 @@ public class TestDatabase implements Database {
   @Override
   public void postInit(Connection con,
                        Structure structure,
-                       boolean createCoreTables,
-                       boolean createPlatformTables) {
+                       boolean createCoreTables) {
   }
 
   @Override

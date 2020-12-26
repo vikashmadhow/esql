@@ -24,8 +24,7 @@ import static ma.vi.esql.parser.Translatable.Target.HSQLDB;
  */
 public class HSqlDb extends AbstractDatabase {
   public HSqlDb(Map<String, Object> config,
-                boolean createCoreTables,
-                boolean createPlatformTables) {
+                boolean createCoreTables) {
     this.config = config;
 
     Properties props = new Properties();
@@ -57,7 +56,7 @@ public class HSqlDb extends AbstractDatabase {
     }
 
     init(config);
-    postInit(pooledConnection(), structure(), createCoreTables, createPlatformTables);
+    postInit(pooledConnection(), structure(), createCoreTables);
   }
 
   @Override
@@ -73,9 +72,8 @@ public class HSqlDb extends AbstractDatabase {
   @Override
   public void postInit(Connection con,
                        Structure structure,
-                       boolean createCoreTables,
-                       boolean createPlatformTables) {
-    super.postInit(con, structure, createCoreTables, createPlatformTables);
+                       boolean createCoreTables) {
+    super.postInit(con, structure, createCoreTables);
     try (Connection c = pooledConnection(true, -1)) {
       // HSqlDB specific
       // c.createStatement().executeUpdate("CREATE SCHEMA IF NOT EXISTS \"" + CORE_SCHEMA + '"');

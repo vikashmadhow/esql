@@ -26,8 +26,7 @@ import static ma.vi.esql.type.BaseType.BASE_TYPE;
  */
 public class SqlServer extends AbstractDatabase {
   public SqlServer(Map<String, Object> config,
-                   boolean createCoreTables,
-                   boolean createPlatformTables) {
+                   boolean createCoreTables) {
     this.config = config;
 
     Properties props = new Properties();
@@ -43,7 +42,7 @@ public class SqlServer extends AbstractDatabase {
     dataSource = new HikariDataSource(new HikariConfig(props));
 
     init(config);
-    postInit(pooledConnection(), structure(), createCoreTables, createPlatformTables);
+    postInit(pooledConnection(), structure(), createCoreTables);
   }
 
   @Override
@@ -59,9 +58,8 @@ public class SqlServer extends AbstractDatabase {
   @Override
   public void postInit(Connection con,
                        Structure structure,
-                       boolean createCoreTables,
-                       boolean createPlatformTables) {
-    super.postInit(con, structure, createCoreTables, createPlatformTables);
+                       boolean createCoreTables) {
+    super.postInit(con, structure, createCoreTables);
     try (Connection c = pooledConnection(true, -1)) {
 
       // MS Sql-server specific initialization
