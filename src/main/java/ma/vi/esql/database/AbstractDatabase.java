@@ -954,8 +954,8 @@ public abstract class AbstractDatabase implements Database {
       Parser p = new Parser(structure());
       econ.exec(p.parse(
           "update rel " +
-              "    set name='" + name +
               "   from rel:_core.relations " +
+              "    set name='" + name +
               "' where _id='" + tableId + "'"));
     }
   }
@@ -1048,7 +1048,7 @@ public abstract class AbstractDatabase implements Database {
     if (hasCoreTables(con)) {
       EsqlConnection econ = esql(con);
       Parser p = new Parser(structure());
-      econ.exec(p.parse("update col set name='" + name + "' from col:_core.columns where _id='" + columnId + "'"));
+      econ.exec(p.parse("update col from col:_core.columns set name='" + name + "' where _id='" + columnId + "'"));
     }
   }
 
@@ -1057,7 +1057,7 @@ public abstract class AbstractDatabase implements Database {
     if (hasCoreTables(con)) {
       EsqlConnection econ = esql(con);
       Parser p = new Parser(structure());
-      econ.exec(p.parse("update col set type='" + type + "' from col:_core.columns where _id='" + columnId + "'"));
+      econ.exec(p.parse("update col from col:_core.columns set type='" + type + "' where _id='" + columnId + "'"));
     }
   }
 
@@ -1068,10 +1068,10 @@ public abstract class AbstractDatabase implements Database {
       Parser p = new Parser(structure());
       econ.exec(p.parse(
         "update col " +
-              "   set expression=" + (defaultValue == null ? "null"
+            "  from col:_core.columns " +
+            "   set expression=" + (defaultValue == null ? "null"
                                                            : "'" + StringLiteral.escapeEsqlString(defaultValue) + "'") +
-              "  from col:_core.columns " +
-              " where _id=u'" + columnId + "'"));
+            " where _id=u'" + columnId + "'"));
     }
   }
 
@@ -1082,8 +1082,8 @@ public abstract class AbstractDatabase implements Database {
       Parser p = new Parser(structure());
       econ.exec(p.parse(
             "update col" +
-                "   set not_null=" + notNull +
                 "  from col:_core.columns " +
+                "   set not_null=" + notNull +
                 " where _id=u'" + columnId + "'"));
     }
   }
@@ -1259,21 +1259,21 @@ public abstract class AbstractDatabase implements Database {
         if (tableDisplayName != null && tableDescription != null) {
           econ.exec(p.parse(
               "update rel " +
+              "  from rel:_core.relations " +
               "   set display_name='" + escapeSqlString(tableDisplayName) + "', " +
               "       description='" + escapeSqlString(tableDescription) + "'" +
-              "  from rel:_core.relations " +
               " where _id='" + tableId + "'"));
         } else if (tableDisplayName != null) {
           econ.exec(p.parse(
               "update rel " +
-                  "   set display_name='" + escapeSqlString(tableDisplayName) + "'" +
                   "  from rel:_core.relations " +
+                  "   set display_name='" + escapeSqlString(tableDisplayName) + "'" +
                   " where _id='" + tableId + "'"));
         } else if (tableDescription != null) {
           econ.exec(p.parse(
               "update rel " +
-                  "   set description='" + escapeSqlString(tableDescription) + "'" +
                   "  from reL:_core.relations " +
+                  "   set description='" + escapeSqlString(tableDescription) + "'" +
                   " where _id='" + tableId + "'"));
         }
       }

@@ -125,7 +125,7 @@ public class DynamicTableExpr extends AbstractAliasTableExpr {
          + rows().stream()
                  .map(r -> r.translate(target))
                  .collect(joining(", "))
-         + ") as " + alias()
+         + ") as \"" + alias() + '"'
          + "(" + columns().stream()
                           .map(c -> c.translate(target))
                           .collect(joining(", "))

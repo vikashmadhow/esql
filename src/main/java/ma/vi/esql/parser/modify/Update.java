@@ -103,7 +103,7 @@ public class Update extends QueryUpdate {
    *         join and put it in the `where` clause of the query.
    */
   public static T2<AbstractJoinTableExpr, SingleTableExpr> removeSingleTable(AbstractJoinTableExpr join,
-                                                                                String singleTableAlias) {
+                                                                             String singleTableAlias) {
     if (join.left() instanceof SingleTableExpr
      && singleTableAlias.equals(((SingleTableExpr)join.left()).alias())) {
       /*

@@ -2723,11 +2723,11 @@ public class EsqlParser extends Parser {
 		public AliasContext alias() {
 			return getRuleContext(AliasContext.class,0);
 		}
-		public SetListContext setList() {
-			return getRuleContext(SetListContext.class,0);
-		}
 		public TableExprContext tableExpr() {
 			return getRuleContext(TableExprContext.class,0);
+		}
+		public SetListContext setList() {
+			return getRuleContext(SetListContext.class,0);
 		}
 		public ExprContext expr() {
 			return getRuleContext(ExprContext.class,0);
@@ -2763,13 +2763,13 @@ public class EsqlParser extends Parser {
 			setState(471);
 			alias();
 			setState(472);
-			match(T__43);
-			setState(473);
-			setList();
-			setState(474);
 			match(T__3);
-			setState(475);
+			setState(473);
 			tableExpr(0);
+			setState(474);
+			match(T__43);
+			setState(475);
+			setList();
 			setState(478);
 			_errHandler.sync(this);
 			switch ( getInterpreter().adaptivePredict(_input,52,_ctx) ) {
@@ -2841,27 +2841,29 @@ public class EsqlParser extends Parser {
 	public final SetListContext setList() throws RecognitionException {
 		SetListContext _localctx = new SetListContext(_ctx, getState());
 		enterRule(_localctx, 68, RULE_setList);
-		int _la;
 		try {
+			int _alt;
 			enterOuterAlt(_localctx, 1);
 			{
 			setState(487);
 			set();
 			setState(492);
 			_errHandler.sync(this);
-			_la = _input.LA(1);
-			while (_la==T__2) {
-				{
-				{
-				setState(488);
-				match(T__2);
-				setState(489);
-				set();
-				}
+			_alt = getInterpreter().adaptivePredict(_input,55,_ctx);
+			while ( _alt!=2 && _alt!=org.antlr.v4.runtime.atn.ATN.INVALID_ALT_NUMBER ) {
+				if ( _alt==1 ) {
+					{
+					{
+					setState(488);
+					match(T__2);
+					setState(489);
+					set();
+					}
+					} 
 				}
 				setState(494);
 				_errHandler.sync(this);
-				_la = _input.LA(1);
+				_alt = getInterpreter().adaptivePredict(_input,55,_ctx);
 			}
 			}
 		}
@@ -7536,9 +7538,9 @@ public class EsqlParser extends Parser {
 		"\u01d0\3\2\2\2\u01ce\u01cc\3\2\2\2\u01ce\u01cf\3\2\2\2\u01cf?\3\2\2\2"+
 		"\u01d0\u01ce\3\2\2\2\u01d1\u01d2\7\24\2\2\u01d2\u01d3\5Z.\2\u01d3\u01d4"+
 		"\7\25\2\2\u01d4A\3\2\2\2\u01d5\u01d6\7,\2\2\u01d6\u01d7\7*\2\2\u01d7C"+
-		"\3\2\2\2\u01d8\u01d9\7-\2\2\u01d9\u01da\5\34\17\2\u01da\u01db\7.\2\2\u01db"+
-		"\u01dc\5F$\2\u01dc\u01dd\7\6\2\2\u01dd\u01e0\5\"\22\2\u01de\u01df\7\7"+
-		"\2\2\u01df\u01e1\5L\'\2\u01e0\u01de\3\2\2\2\u01e0\u01e1\3\2\2\2\u01e1"+
+		"\3\2\2\2\u01d8\u01d9\7-\2\2\u01d9\u01da\5\34\17\2\u01da\u01db\7\6\2\2"+
+		"\u01db\u01dc\5\"\22\2\u01dc\u01dd\7.\2\2\u01dd\u01e0\5F$\2\u01de\u01df"+
+		"\7\7\2\2\u01df\u01e1\5L\'\2\u01e0\u01de\3\2\2\2\u01e0\u01e1\3\2\2\2\u01e1"+
 		"\u01e7\3\2\2\2\u01e2\u01e4\7+\2\2\u01e3\u01e5\5\16\b\2\u01e4\u01e3\3\2"+
 		"\2\2\u01e4\u01e5\3\2\2\2\u01e5\u01e6\3\2\2\2\u01e6\u01e8\5\30\r\2\u01e7"+
 		"\u01e2\3\2\2\2\u01e7\u01e8\3\2\2\2\u01e8E\3\2\2\2\u01e9\u01ee\5H%\2\u01ea"+

@@ -51,7 +51,7 @@ public class SelectTableExpr extends AbstractAliasTableExpr {
 
   @Override
   public String translate(Target target) {
-    return '(' + select().translate(target).statement + ") " + alias();
+    return '(' + select().translate(target).statement + ") \"" + alias() + '"';
   }
 
   @Override

@@ -66,7 +66,7 @@ public class Delete extends QueryUpdate {
   }
 
   public static SingleTableExpr findSingleTable(AbstractJoinTableExpr join,
-                                                   String alias) {
+                                                String alias) {
     if (join.left() instanceof SingleTableExpr
      && alias.equals(((SingleTableExpr)join.left()).alias())) {
       return (SingleTableExpr)join.left();

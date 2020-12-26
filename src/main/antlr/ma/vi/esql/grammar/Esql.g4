@@ -497,8 +497,8 @@ defaultValues
  */
 update
     : 'update'  alias
-      'set'     setList
       'from'    tableExpr
+      'set'     setList
       ('where'  expr)?
       ('return' metadata? columns)?
     ;

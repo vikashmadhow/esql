@@ -506,7 +506,12 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
        * Add as where clause.
        */
       Expression<?> w = where();
-      child("where", w == null ? where : new LogicalAnd(context, w, where));
+      child("where",
+            w == null
+              ? where
+              : new LogicalAnd(context,
+                               new GroupedExpression(context, w),
+                               new GroupedExpression(context, where)));
     }
     return this;
   }

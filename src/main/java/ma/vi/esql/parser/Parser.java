@@ -4,12 +4,11 @@
 
 package ma.vi.esql.parser;
 
-import ma.vi.base.lang.Errors;
 import ma.vi.base.reflect.Dissector;
-import ma.vi.esql.parser.expression.Expression;
 import ma.vi.esql.database.Structure;
 import ma.vi.esql.grammar.EsqlLexer;
 import ma.vi.esql.grammar.EsqlParser;
+import ma.vi.esql.parser.expression.Expression;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.ParserRuleContext;
@@ -152,6 +151,29 @@ public class Parser {
 //            return Literal.makeLiteral(context, expression);
 //        }
 //    }
+
+  public interface Rules {
+    String PROGRAM = "program";
+    String STATEMENT = "statement";
+
+    String SELECT = "select";
+    String SELECT_EXPRESSION = "selectExpression";
+
+    String INSERT = "insert";
+    String UPDATE = "update";
+    String DELETE = "delete";
+
+    String CREATE_TABLE = "createTable";
+    String ALTER_TABLE = "alterTable";
+    String DROP_TABLE = "dropTable";
+
+    String EXPRESSION = "expr";
+    String SIMPLE_EXPRESSION = "simpleExpr";
+    String LITERAL = "literal";
+
+    String METADATA = "metadata";
+
+  }
 
   public final Structure structure;
 }

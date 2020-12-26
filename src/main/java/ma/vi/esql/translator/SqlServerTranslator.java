@@ -1,12 +1,10 @@
 package ma.vi.esql.translator;
 
-import ma.vi.base.tuple.T2;
 import ma.vi.esql.parser.Translatable;
-import ma.vi.esql.parser.TranslationException;
 import ma.vi.esql.parser.modify.Delete;
 import ma.vi.esql.parser.modify.Update;
-import ma.vi.esql.parser.query.*;
-import ma.vi.esql.type.Type;
+import ma.vi.esql.parser.query.QueryTranslation;
+import ma.vi.esql.parser.query.TableExpr;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
@@ -25,7 +23,7 @@ public class SqlServerTranslator extends AbstractTranslator {
     StringBuilder st = new StringBuilder("update ");
 
     TableExpr from = update.tables();
-    st.append(update.updateTableAlias());
+    st.append('"').append(update.updateTableAlias()).append('"');
     Update.addSet(st, update.set(), target(), true);
 
     // output clause for SQL Server if specified
@@ -41,10 +39,10 @@ public class SqlServerTranslator extends AbstractTranslator {
     }
     if (q == null) {
       return new QueryTranslation(st.toString(), emptyList(), emptyMap(),
-                                     emptyList(), emptyMap());
+                                  emptyList(), emptyMap());
     } else {
       return new QueryTranslation(st.toString(), q.columns, q.columnToIndex,
-                                     q.resultAttributeIndices, q.resultAttributes);
+                                  q.resultAttributeIndices, q.resultAttributes);
     }
   }
 

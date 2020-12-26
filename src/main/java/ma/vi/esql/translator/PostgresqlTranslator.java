@@ -3,13 +3,19 @@ package ma.vi.esql.translator;
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.parser.Translatable;
 import ma.vi.esql.parser.TranslationException;
+import ma.vi.esql.parser.define.Attribute;
 import ma.vi.esql.parser.modify.Delete;
 import ma.vi.esql.parser.modify.Update;
 import ma.vi.esql.parser.query.*;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
-
+import static ma.vi.esql.parser.modify.Delete.findSingleTable;
 
 /**
  * @author Vikash Madhow (vikash.madhow@gmail.com)
@@ -22,14 +28,26 @@ public class PostgresqlTranslator extends AbstractTranslator {
 
   @Override
   protected QueryTranslation translate(Update update) {
-    StringBuilder st = new StringBuilder("update ");
-    QueryTranslation q = null;
-
     TableExpr from = update.tables();
     if (from instanceof SingleTableExpr) {
+      StringBuilder st = new StringBuilder("update ");
       st.append(from.translate(target()));
       Update.addSet(st, update.set(), target(), false);
-
+      if (update.where() != null) {
+        st.append(" where ").append(update.where().translate(target()));
+      }
+      QueryTranslation q = null;
+      if (update.columns() != null) {
+        st.append(" returning ");
+        q = update.constructResult(st, target(), null, true, true);
+      }
+      if (q == null) {
+        return new QueryTranslation(st.toString(), emptyList(), emptyMap(),
+                                    emptyList(), emptyMap());
+      } else {
+        return new QueryTranslation(st.toString(), q.columns, q.columnToIndex,
+                                    q.resultAttributeIndices, q.resultAttributes);
+      }
     } else if (from instanceof AbstractJoinTableExpr) {
       /*
        * For postgresql the single table referred by the update table alias
@@ -37,39 +55,91 @@ public class PostgresqlTranslator extends AbstractTranslator {
        * table of the update statement; the rest of the table expression can
        * then be added to the `from` clause of the update; any join condition
        * removed when extracting the single update table must be moved to the
-       * `where` clause.
+       * `where` clause. However, the extracted single table cannot then be
+       * part of a join condition, which makes the rewriting of the query much
+       * more complicated.
+       * 
+       * A simple approach is to change the update into select and execute it
+       * in a with query whose result is then used to perform the update. For 
+       * instance:
+       * 
+       *      update usr_role
+       *        from usr:_platform.user.User
+       *        join usr_role:_platform.user.UserRole on usr_role.user_id=usr._id
+       *        join role:_platform.user.Role on usr_role.role_id=role._id
+       *         set role_id=role._id
+       *       where usr.email='xyz@yxz.com'
+       *      return usr_role.user_id
+       * 
+       * becomes:
+       *
+       *      with upd(id, v1) as (
+       *        select usr_role.ctid, role._id
+       *          from _platform.user.User usr
+       *          join _platform.user.UserRole usr_role on usr_role.user_id = usr._id
+       *          join _platform.user.Role role on usr_role.role_id = role._id
+       *        where usr.email = 'xyz@yxz.com'
+       *      )
+       *      update _platform.user.UserRole usr_role
+       *         set role_id=upd.v1
+       *        from upd
+       *       where usr_role.ctid=upd.id
+       *      returning usr_role.user_id
        */
-      T2<AbstractJoinTableExpr, SingleTableExpr> updateTable =
-          Update.removeSingleTable((AbstractJoinTableExpr)from,
-                                   update.updateTableAlias());
+      String withAlias = "\"!!\"";
+      StringBuilder st =
+          new StringBuilder("with " + withAlias + "(id, "
+                                    + IntStream.rangeClosed(1, update.set().attributes().size())
+                                               .boxed()
+                                               .map(i -> "v" + i)
+                                               .collect(Collectors.joining(", "))
+                                    + ") as (");
+
+      List<Attribute> set = new ArrayList<>(update.set().attributes().values());
+      st.append("select \"").append(update.updateTableAlias()).append("\".ctid, ")
+        .append(set.stream()
+                   .map(a -> a.attributeValue().translate(target()))
+                   .collect(Collectors.joining(", ")))
+        .append(" from ").append(from.translate(target()));
+
+      if (update.where() != null) {
+        st.append(" where ").append(update.where().translate(target()));
+      }
+      st.append(") update ");
+
+      SingleTableExpr updateTable = findSingleTable((AbstractJoinTableExpr)from,
+                                                    update.updateTableAlias());
       if (updateTable == null) {
         throw new TranslationException("Could not find table with alias " + update.updateTableAlias());
       }
-      if (updateTable.a instanceof JoinTableExpr) {
-        JoinTableExpr join = (JoinTableExpr)updateTable.a;
-        update.where(join.on(), false);
-      }
-      st.append(updateTable.b.translate(target()));
-      Update.addSet(st, update.set(), target(), false);
-      st.append(" from ").append(update.tables().translate(target()));
+      st.append(updateTable.translate(target()));
 
+      st.append(" set ");
+      boolean first = true;
+      for (int i = 0; i < set.size(); i++) {
+        if (first) { first = false;   }
+        else       { st.append(", "); }
+        Attribute a = set.get(i);
+        st.append(a.name()).append('=').append(withAlias).append(".v").append(i+1);
+      }
+      st.append(" from ").append(withAlias)
+        .append(" where \"").append(update.updateTableAlias())
+        .append("\".ctid=").append(withAlias).append(".id");
+
+      QueryTranslation q = null;
+      if (update.columns() != null) {
+        st.append(" returning ");
+        q = update.constructResult(st, target(), null, true, true);
+      }
+      if (q == null) {
+        return new QueryTranslation(st.toString(), emptyList(), emptyMap(),
+                                    emptyList(), emptyMap());
+      } else {
+        return new QueryTranslation(st.toString(), q.columns, q.columnToIndex,
+                                    q.resultAttributeIndices, q.resultAttributes);
+      }
     } else {
       throw new TranslationException("Wrong table type to update: " + from);
-    }
-
-    if (update.where() != null) {
-      st.append(" where ").append(update.where().translate(target()));
-    }
-    if (update.columns() != null) {
-      st.append(" returning ");
-      q = update.constructResult(st, target(), null, true, true);
-    }
-    if (q == null) {
-      return new QueryTranslation(st.toString(), emptyList(), emptyMap(),
-                                  emptyList(), emptyMap());
-    } else {
-      return new QueryTranslation(st.toString(), q.columns, q.columnToIndex,
-                                  q.resultAttributeIndices, q.resultAttributes);
     }
   }
 
@@ -80,8 +150,6 @@ public class PostgresqlTranslator extends AbstractTranslator {
     TableExpr from = delete.tables();
     if (from instanceof SingleTableExpr) {
       st.append(" from ").append(from.translate(target()));
-//      st.append(" from ")
-//        .append(Type.dbName(((SingleTableExpr)from).tableName(), target()));
 
     } else if (from instanceof AbstractJoinTableExpr) {
       /*
