@@ -226,7 +226,7 @@ public class BaseRelation extends Relation {
     return cols;
   }
 
-  private static List<Column> expandColumns(List<Attribute> attributes, List<Column> columns) {
+  public static List<Column> expandColumns(List<Attribute> attributes, List<Column> columns) {
     List<Column> newCols = new ArrayList<>();
     Map<String, String> aliased = aliasedColumns(columns);
 

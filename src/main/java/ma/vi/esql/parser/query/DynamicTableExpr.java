@@ -4,22 +4,20 @@
 
 package ma.vi.esql.parser.query;
 
-import ma.vi.esql.builder.Attributes;
 import ma.vi.esql.parser.Context;
-import ma.vi.esql.parser.define.Attribute;
 import ma.vi.esql.parser.define.Metadata;
 import ma.vi.esql.parser.define.NameWithMetadata;
 import ma.vi.esql.parser.expression.ColumnRef;
 import ma.vi.esql.parser.expression.Expression;
-import ma.vi.esql.parser.expression.StringLiteral;
 import ma.vi.esql.parser.modify.InsertRow;
 import ma.vi.esql.type.AliasedRelation;
+import ma.vi.esql.type.BaseRelation;
 import ma.vi.esql.type.Selection;
 import ma.vi.esql.type.Type;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
+import java.util.Random;
 
 import static java.util.stream.Collectors.joining;
 import static ma.vi.esql.type.Types.NullType;
@@ -66,54 +64,58 @@ public class DynamicTableExpr extends AbstractAliasTableExpr {
   @Override
   public AliasedRelation type() {
     if (type == null) {
-      /*
-       * Infer the field type of the row by looking at up to 100 rows.
-       */
-      List<Type> fieldTypes = new ArrayList<>();
+      List<Type> columnTypes = new ArrayList<>();
       for (NameWithMetadata ignored: columns()) {
-        fieldTypes.add(NullType);
+        columnTypes.add(NullType);
       }
 
-      int rows = 0;
-      for (Iterator<InsertRow> i = rows().iterator(); i.hasNext() && rows < 100; ) {
-        InsertRow row = i.next();
+      /*
+       * Infer column types of the rows by looking at up to 100 rows
+       * probabilistically. Using a random sampling of rows ensure that we are
+       * not looking at any specific cluster (such as the top 100) and inferring
+       * only the type characteristics of that cluster.
+       */
+      Random random = new Random();
+      List<InsertRow> rows = rows();
+      for (int i = 0, rowsChecked = 0;
+           rowsChecked < Math.min(100, rows.size());
+           i = rows.size() <= 10 ? i + 1 : random.nextInt(rows.size()), rowsChecked++) {
+        InsertRow row = rows.get(i);
+        boolean hasAbstractTypes = false;
         List<Expression<?>> values = row.values();
         for (int j = 0; j < values.size(); j++) {
           Type type = values.get(j).type();
-          if (fieldTypes.get(j).isAbstract()) {
-            fieldTypes.set(j, type);
+          hasAbstractTypes |= columnTypes.get(j).isAbstract() && type.isAbstract();
+          if (columnTypes.get(j).isAbstract()) {
+            columnTypes.set(j, type);
           }
         }
-        rows += 1;
+        if (!hasAbstractTypes) {
+          break;
+        }
       }
 
       List<NameWithMetadata> columns = columns();
       List<Column> relationColumns = new ArrayList<>();
-      for (int i = 0; i < fieldTypes.size(); i++) {
+      for (int i = 0; i < columnTypes.size(); i++) {
         NameWithMetadata column = columns.get(i);
-        Metadata metadata = column.metadata();
-        if (metadata == null) {
-          metadata = new Metadata(context, new ArrayList<>());
-        }
-        if (metadata.attributes() == null) {
-          metadata.attributes(new ArrayList<>());
-        }
-
-        metadata.attribute(Attributes.TYPE,
-                           new StringLiteral(context, fieldTypes.get(i).name()));
-        relationColumns.add(new Column(
-            context,
-            column.name(),
-            new ColumnRef(context, null, column.name()),
-            metadata
-        ));
+        Column col = new Column(context,
+                                column.name(),
+                                new ColumnRef(context, null, column.name()),
+                                column.metadata());
+        col.type(columnTypes.get(i));
+        relationColumns.add(col);
       }
-      Selection selection = new Selection(relationColumns, this);
-      if (metadata() != null) {
-        for (Attribute attribute: metadata().attributes().values()) {
-          selection.attribute(attribute.name(), attribute.attributeValue());
-        }
-      }
+      Selection selection = new Selection(BaseRelation.expandColumns(
+                                            metadata() != null
+                                              ? new ArrayList<>(metadata().attributes().values())
+                                              : null,
+                                            relationColumns),this);
+//      if (metadata() != null) {
+//        for (Attribute attribute: metadata().attributes().values()) {
+//          selection.attribute(attribute.name(), attribute.attributeValue());
+//        }
+//      }
       type = new AliasedRelation(selection, alias());
     }
     return type;
@@ -135,10 +137,10 @@ public class DynamicTableExpr extends AbstractAliasTableExpr {
   @Override
   public String toString() {
     return alias()
-        + ":(" + columns().stream()
-                          .map(NameWithMetadata::name)
-                          .collect(joining(", "))
-        + ")";
+         + ":(" + columns().stream()
+                           .map(NameWithMetadata::name)
+                           .collect(joining(", "))
+         + ")";
   }
 
   @Override

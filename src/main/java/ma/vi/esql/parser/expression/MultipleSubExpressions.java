@@ -30,9 +30,8 @@ abstract class MultipleSubExpressions<V> extends Expression<V> {
 
   @Override
   public Type type() {
-    for (Iterator<Expression<?>> i = expressions().iterator(); i.hasNext(); ) {
-      Expression<?> e = i.next();
-      Type type = i.hasNext() ? i.next().type() : e.type();
+    for (Expression<?> e: expressions()) {
+      Type type = e.type();
       if (!type.equals(Types.NullType)) {
         return type;
       }

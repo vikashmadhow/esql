@@ -38,7 +38,7 @@ public class Result implements AutoCloseable {
   public Result(Structure structure,
                 ResultSet rs,
                 Relation type,
-                List<Mapping> columns,
+                List<ColumnMapping> columns,
                 Map<String, Integer> columnNameToIndex,
                 List<T3<Integer, String, Type>> resultAttributeIndices,
                 Map<String, Object> resultAttributes) {
@@ -103,7 +103,7 @@ public class Result implements AutoCloseable {
    */
   public <T> ResultColumn<T> get(int field) {
     try {
-      Mapping mapping = columns.get(field - 1);
+      ColumnMapping mapping = columns.get(field - 1);
       if (mapping == null) {
         throw new NotFoundException("Invalid field index: " + field);
       }
@@ -262,7 +262,7 @@ public class Result implements AutoCloseable {
 
   private final Relation type;
 
-  private final List<Mapping> columns;
+  private final List<ColumnMapping> columns;
 
   private final Map<String, Integer> columnNameToIndex;
 

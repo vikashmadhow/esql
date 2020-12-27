@@ -4,7 +4,7 @@
 
 package ma.vi.esql.parser.query;
 
-import ma.vi.esql.exec.Mapping;
+import ma.vi.esql.exec.ColumnMapping;
 import ma.vi.esql.type.Type;
 import ma.vi.base.tuple.T3;
 
@@ -21,7 +21,7 @@ import java.util.Map;
  */
 public class QueryTranslation {
   public QueryTranslation(String statement,
-                          List<Mapping> columns,
+                          List<ColumnMapping> columns,
                           Map<String, Integer> columnToIndex,
                           List<T3<Integer, String, Type>> resultAttributeIndices,
                           Map<String, Object> resultAttributes) {
@@ -47,7 +47,7 @@ public class QueryTranslation {
    * the index of the value of the column in the resultset as well as
    * the indices of the attribute values (and values of precomputed attributes).
    */
-  public final List<Mapping> columns;
+  public final List<ColumnMapping> columns;
 
   /**
    * Maps the name of columns to their index.

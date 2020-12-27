@@ -9,7 +9,7 @@ import ma.vi.base.tuple.T2;
 import ma.vi.base.tuple.T3;
 import ma.vi.esql.builder.Attr;
 import ma.vi.esql.database.Structure;
-import ma.vi.esql.exec.Mapping;
+import ma.vi.esql.exec.ColumnMapping;
 import ma.vi.esql.exec.Result;
 import ma.vi.esql.parser.define.Attribute;
 import ma.vi.esql.parser.define.ForeignKeyConstraint;
@@ -98,13 +98,18 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
       Map<String, String> aliased = new HashMap<>();
 
       if (!grouped() && !modifying()) {
-        // Add all metadata columns defined on the tables being queried
+        /*
+         * Add all relation-level metadata columns defined on the tables
+         * being queried.
+         */
         for (Column column: fromType.columnsPrefixedBy(null, "/")) {
           columns.put(column.alias(), column.copy());
           columnNames.add(column.alias());
         }
 
-        // Override with explicit result metadata defined in select
+        /*
+         * Override with explicit result metadata defined in query.
+         */
         Metadata metadata = metadata();
         if (metadata != null && metadata.attributes() != null) {
           for (Attribute a: metadata.attributes().values()) {
@@ -236,32 +241,11 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
 //    boolean selectExpression = ancestor(SelectExpression.class) != null;
 
     Map<String, Integer> columnToIndex = new HashMap<>();
-    Map<String, Mapping> mappings = new LinkedHashMap<>();
+    Map<String, ColumnMapping> columnMappings = new LinkedHashMap<>();
     Map<String, Object> resultAttributes = new HashMap<>();
     List<T3<Integer, String, Type>> resultAttributeIndices = new ArrayList<>();
-
-    /*
-     * Output columns.
-     */
     int itemIndex = 0;
     Selection selection = type();
-    for (Column column: selection.columns()
-                                 .stream()
-                                 .filter(c -> !c.alias().contains("/"))
-                                 .collect(toList())) {
-      itemIndex++;
-      if (itemIndex > 1) {
-        query.append(", ");
-      }
-      String colName = column.alias();
-      Type type = column.expr() instanceof ColumnRef ? column.type() : column.expr().type();
-      appendExpression(query, column.expr(), type, colName, target, qualifier);
-      columnToIndex.put(colName, itemIndex);
-      mappings.put(colName, new Mapping(itemIndex,
-                                        type,
-                                        new ArrayList<>(),
-                                        new HashMap<>()));
-    }
 
     /*
      * Output result metadata
@@ -282,9 +266,34 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
         if (itemIndex > 1) {
           query.append(", ");
         }
-        appendExpression(query, attributeValue, attributeValue.type(), colName, target, qualifier);
+        appendExpression(query, attributeValue, target, qualifier);
         resultAttributeIndices.add(T3.of(itemIndex, attrName, attributeValue.type()));
       }
+    }
+
+    /*
+     * Output columns.
+     */
+    for (Column column: selection.columns()
+                                 .stream()
+                                 .filter(c -> !c.alias().contains("/"))
+                                 .collect(toList())) {
+      itemIndex++;
+      if (itemIndex > 1) {
+        query.append(", ");
+      }
+      column = column.copy();
+      Expression<?> expression = column.expr();
+      if (qualifier != null) {
+        ColumnRef.qualify(expression, qualifier, null, true);
+      }
+      query.append(column.translate(target));
+      String colName = column.alias();
+      columnToIndex.put(colName, itemIndex);
+      columnMappings.put(colName, new ColumnMapping(itemIndex,
+                                                    column.type(),
+                                                    new ArrayList<>(),
+                                                    new HashMap<>()));
     }
 
     /*
@@ -297,7 +306,7 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
       String alias = col.alias();
       int pos = alias.indexOf('/');
       String colName = alias.substring(0, pos);
-      Mapping mapping = mappings.get(colName);
+      ColumnMapping mapping = columnMappings.get(colName);
       if (mapping == null) {
         throw new RuntimeException("Could not find column mapping for column " + colName
                                  + " while there is an attribute for that columns (" + alias + ")");
@@ -310,12 +319,12 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
       } else if (addAttributes) {
         itemIndex += 1;
         query.append(", ");
-        appendExpression(query, attributeValue, attributeValue.type(), attrName, target, qualifier);
+        appendExpression(query, attributeValue, target, qualifier);
         mapping.attributeIndices.add(T3.of(itemIndex, attrName, attributeValue.type()));
       }
     }
     return new QueryTranslation(query.toString(),
-                                new ArrayList<>(mappings.values()),
+                                new ArrayList<>(columnMappings.values()),
                                 columnToIndex,
                                 resultAttributeIndices,
                                 resultAttributes);
@@ -326,39 +335,30 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
    */
   protected void appendExpression(StringBuilder query,
                                   Expression<?> expression,
-                                  Type type,
-                                  String alias,
                                   Target target,
                                   String qualifier) {
     if (qualifier != null) {
       ColumnRef.qualify(expression, qualifier, null, true);
     }
-    if (target == Target.SQLSERVER) {
-      // SQL Server does not have a boolean type; work-around using an IIF
-      if (type == Types.BoolType) {
-        String boolValue = expression.translate(target);
-        if (boolValue.equals("0") || boolValue.equals("1")) {
-          // a boolean literal was specified: no need to use IIF
-          query.append(boolValue);
-        } else {
-          // otherwise, turn into a boolean expression using IIF
-          query.append("iif(").append(boolValue).append(", 1, 0)");
-        }
+    Type type = expression.type();
+    if (target == Target.SQLSERVER && type == Types.BoolType) {
+      /*
+       * SQL Server does not have a boolean type; work-around using an IIF
+       */
+      String boolValue = expression.translate(target);
+      if (boolValue.equals("0") || boolValue.equals("1")) {
+        /*
+         * a boolean literal was specified: no need to use IIF
+         */
+        query.append(boolValue);
       } else {
-        query.append(expression.translate(target));
+        /*
+         * otherwise, turn into a boolean expression using IIF
+         */
+        query.append("iif(").append(boolValue).append(", 1, 0)");
       }
     } else {
       query.append(expression.translate(target));
-    }
-
-    // add alias for expressions and when different from column name
-    if (expression instanceof ColumnRef) {
-      ColumnRef ref = (ColumnRef)expression;
-      if (!ref.name().equals(alias)) {
-        query.append(" \"").append(alias).append('"');
-      }
-    } else {
-      query.append(" \"").append(alias).append('"');
     }
   }
 

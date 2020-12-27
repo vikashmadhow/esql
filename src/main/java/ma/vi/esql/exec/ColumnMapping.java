@@ -4,22 +4,24 @@
 
 package ma.vi.esql.exec;
 
-import ma.vi.esql.type.Type;
 import ma.vi.base.tuple.T3;
+import ma.vi.esql.type.Type;
 
 import java.util.List;
 import java.util.Map;
 
 /**
- * Maps a projected column (in a select, e.g.) to its type (regular field or field metadata).
+ * Maps a query column (in a select, e.g.) to the column index in the resultset,
+ * its type, and the indices of its metadata attributes in the resultset. Any
+ * attributes which be pre-calculated is also added to the column mapping.
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public class Mapping {
-  public Mapping(int valueIndex,
-                 Type valueType,
-                 List<T3<Integer, String, Type>> attributeIndices,
-                 Map<String, Object> attributes) {
+public class ColumnMapping {
+  public ColumnMapping(int valueIndex,
+                       Type valueType,
+                       List<T3<Integer, String, Type>> attributeIndices,
+                       Map<String, Object> attributes) {
     this.valueIndex = valueIndex;
     this.valueType = valueType;
     this.attributeIndices = attributeIndices;

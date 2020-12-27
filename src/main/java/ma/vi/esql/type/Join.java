@@ -64,7 +64,8 @@ public class Join extends Relation {
   }
 
   @Override
-  protected Column findColumn(String relationAlias, String name) throws NotFoundException, AmbiguousColumnException {
+  protected Column findColumn(String relationAlias,
+                              String name) throws NotFoundException, AmbiguousColumnException {
     if (relationAlias == null) {
       Column col = left.column(name);
       if (col == null) {
@@ -73,8 +74,7 @@ public class Join extends Relation {
         Column rightCol = right.column(name);
         if (rightCol != null) {
           /*
-           * Ambiguous column as existing in both left
-           * and right relations.
+           * Ambiguous column as existing in both left and right relations.
            */
           throw new AmbiguousColumnException("Ambiguous column " + name +
               " exists in both " + left + " and " + right);
@@ -87,12 +87,6 @@ public class Join extends Relation {
         throw new NotFoundException("Relation with alias " + relationAlias + " could not be found");
       }
       return rel.findColumn(relationAlias, name);
-//      for (Column c: rel.columns()) {
-//        if (c.alias() != null && c.alias().equals(name)) {
-//          return c;
-//        }
-//      }
-//      return null;
     }
   }
 

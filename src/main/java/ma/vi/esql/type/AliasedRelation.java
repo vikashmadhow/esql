@@ -102,5 +102,5 @@ public class AliasedRelation extends Relation {
   public final Relation relation;
   public final String alias;
 
-  private volatile List<Column> columns;
+  private transient volatile List<Column> columns;
 }

@@ -5,10 +5,9 @@
 package ma.vi.esql.parser.expression;
 
 import ma.vi.esql.parser.Context;
-import ma.vi.esql.parser.define.Attribute;
 import ma.vi.esql.parser.query.Order;
-import ma.vi.esql.parser.query.QueryTranslation;
 import ma.vi.esql.parser.query.Select;
+import ma.vi.esql.type.Type;
 
 import java.util.List;
 
@@ -41,6 +40,11 @@ public class SelectExpression extends Expression<Select> {
     } else {
       return this;
     }
+  }
+
+  @Override
+  public Type type() {
+    return select().columns().get(0).type();
   }
 
   @Override

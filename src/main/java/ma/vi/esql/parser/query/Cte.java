@@ -4,13 +4,9 @@
 
 package ma.vi.esql.parser.query;
 
-import ma.vi.esql.parser.Context;
-import ma.vi.esql.parser.Esql;
-import ma.vi.esql.parser.QueryUpdate;
-import ma.vi.esql.parser.Restriction;
-import ma.vi.esql.parser.TranslationException;
-import ma.vi.esql.type.Selection;
 import ma.vi.base.tuple.T2;
+import ma.vi.esql.parser.*;
+import ma.vi.esql.type.Selection;
 
 import java.util.List;
 

@@ -59,29 +59,29 @@ public class SingleTableExpr extends AbstractAliasTableExpr {
     }
     return type;
 
-//        if (type == null) {
-//            String table = tableName();
-//            Relation r = (Relation)context.typeOf(table);
-//            if (r == null) {
-//                r = context.translator.structure().relation(table);
-//            }
-//            if (r == null) {
-//                // for 'with' queries, ensure that CTEs have been added to local type registry
-//                // before throwing an exception
-//                With with = ancestor(With.class);
-//                if (with != null) {
-//                    for (Cte cte: with.ctes()) {
-//                        cte.type();
-//                    }
-//                }
-//                r = (Relation)context.typeOf(table);
-//                if (r == null) {
-//                    throw new TranslationException("Relation " + table + " is not known");
-//                }
-//            }
-//            type = new AliasedRelation(context.translator, r.copy(), alias());
+//    if (type == null) {
+//      String table = tableName();
+//      Relation r = (Relation)context.typeOf(table);
+//      if (r == null) {
+//        r = context.translator.structure().relation(table);
+//      }
+//      if (r == null) {
+//        // for 'with' queries, ensure that CTEs have been added to local type registry
+//        // before throwing an exception
+//        With with = ancestor(With.class);
+//        if (with != null) {
+//          for (Cte cte: with.ctes()) {
+//            cte.type();
+//          }
 //        }
-//        return type;
+//        r = (Relation)context.typeOf(table);
+//        if (r == null) {
+//          throw new TranslationException("Relation " + table + " is not known");
+//        }
+//      }
+//      type = new AliasedRelation(context.translator, r.copy(), alias());
+//    }
+//    return type;
   }
 
   @Override

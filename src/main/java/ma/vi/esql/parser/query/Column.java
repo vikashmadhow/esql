@@ -118,10 +118,37 @@ public class Column extends MetadataContainer<Expression<?>, String> {
       }
       return st.toString();
 
+    } else if (target == Target.SQLSERVER) {
+      StringBuilder st = new StringBuilder();
+      Type type = type();
+      if (type.equals(Types.BoolType)) {
+        /*
+         * SQL Server does not have a boolean type; work-around using an IIF
+         */
+        String boolValue = expr().translate(target);
+        if (boolValue.equals("0") || boolValue.equals("1")) {
+          /*
+           * a boolean literal was specified: no need to use IIF
+           */
+          st.append(boolValue);
+        } else {
+          /*
+           * otherwise, turn into a boolean expression using IIF
+           */
+          st.append("iif(").append(boolValue).append(", 1, 0)");
+        }
+      } else {
+        st.append(expr().translate(target));
+      }
+      if (alias() != null) {
+        st.append(" \"").append(alias()).append('"');
+      }
+      return st.toString();
+
     } else {
       StringBuilder st = new StringBuilder(expr().translate(target));
       if (alias() != null) {
-        st.append(' ').append(alias());
+        st.append(" \"").append(alias()).append('"');
       }
       return st.toString();
     }

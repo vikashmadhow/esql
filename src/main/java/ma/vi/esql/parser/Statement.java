@@ -9,6 +9,8 @@ import ma.vi.base.tuple.T2;
 import java.util.List;
 
 /**
+ * The parent of all ESQL statements.
+ *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 public abstract class Statement<V, R> extends Esql<V, R> {
