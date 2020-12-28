@@ -72,5 +72,5 @@ public class SelectTableExpr extends AbstractAliasTableExpr {
     return childValue("alias");
   }
 
-  private volatile AliasedRelation type;
+  private transient volatile AliasedRelation type;
 }

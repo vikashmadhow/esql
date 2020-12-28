@@ -36,11 +36,11 @@ public class DatabasesTest {
                    System.out.println(db.target());
                    Parser p = new Parser(db.structure());
                    try (EsqlConnection con = db.esql(db.pooledConnection())) {
-                     Program s = p.parse("create table S (" +
+                     Program s = p.parse("create table A drop undefined(" +
                                              "  {" +
-                                             "    name: 'S'," +
-                                             "    description: 'S test table'," +
-                                             "    tm1: (max(b) from S)," +
+                                             "    name: 'A'," +
+                                             "    description: 'A test table'," +
+                                             "    tm1: (max(b) from A)," +
                                              "    tm2: a > b" +
                                              "  }, " +
                                              "  _id uuid not null," +
@@ -63,18 +63,18 @@ public class DatabasesTest {
                                              "  e int {" +
                                              "    m1: c" +
                                              "  }," +
-                                             "  f=(max(a) from S) {" +
-                                             "    m1: (min(a) from S)" +
+                                             "  f=(max(a) from A) {" +
+                                             "    m1: (min(a) from A)" +
                                              "  }," +
-                                             "  g=(distinct c from S where d>5) {" +
-                                             "    m1: (min(a) from a.b.T)" +
+                                             "  g=(distinct c from A where d>5) {" +
+                                             "    m1: (min(a) from a.b.B)" +
                                              "  }," +
-                                             "  h int {" +
+                                             "  h text {" +
                                              "    m1: 5" +
                                              "  }," +
                                              "  i string {" +
-                                             "    label: (lv.label from lv:LookupValue" +
-                                             "                     join l:Lookup on lv.lookup_id=l._id" +
+                                             "    label: (lv.label from lv:_platform.lookup.LookupValue" +
+                                             "                     join l:_platform.lookup.Lookup on lv.lookup_id=l._id" +
                                              "                                  and l.name='City'" +
                                              "                    where lv.code=i)" +
                                              "  }," +

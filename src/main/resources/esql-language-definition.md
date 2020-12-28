@@ -679,9 +679,9 @@ rules are as follows:
 3. `select c from S` **=>** 
    ```
    select c:(S.a+S.b), 
-          c/m1/v:(S.a>5), 
-          c/m2/v:(S.a+S.b), 
-          c/m3/v:(S.b>5) 
+          c/m1:(S.a>5), 
+          c/m2:(S.a+S.b), 
+          c/m3:(S.b>5) 
      from S:S
    ```
    derived fields are expanded into their expressions and given the name of the
@@ -690,18 +690,18 @@ rules are as follows:
 4. `select a, b, c from S` **=>** 
     ```
     select a:S.a, 
-           a/m0/v:(S.b), 
-           a/m1/v:(S.a+1),  a/m1/e:$(S.a+1), 
-           a/m2/v:(10), 
-           a/m3/v:(S.a!=0), a/m3/e:$(S.a!=0) 
+           a/m0:(S.b), 
+           a/m1:(S.a+1),  a/m1/e:$(S.a+1), 
+           a/m2:(10), 
+           a/m3:(S.a!=0), a/m3/e:$(S.a!=0) 
            
            b:S.b,
-           b/m1/v:(S.b<0),  b/m1/e:$(S.b<0),
+           b/m1:(S.b<0),  b/m1/e:$(S.b<0),
    
-           c:(S.a+S.b),      c/e:$(S.a+S.b) 
-           c/m1/v:(S.a>5),   c/m1/v:$(S.a>5), 
-           c/m2/v:(S.a+S.b), c/m2/v:$(S.a+S.b), 
-           c/m3/v:(S.b>5),   c/m3/v:$(S.b>5) 
+           c:(S.a+S.b),    c/e:$(S.a+S.b) 
+           c/m1:(S.a>5),   c/m1/e:$(S.a>5), 
+           c/m2:(S.a+S.b), c/m2/e:$(S.a+S.b), 
+           c/m3:(S.b>5),   c/m3/e:$(S.b>5) 
       from S:S
     ```
     if all dependent fields of a derived field are in the columns list, the

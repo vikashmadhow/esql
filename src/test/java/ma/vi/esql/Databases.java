@@ -17,7 +17,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import static java.lang.System.Logger.Level.INFO;
-import static ma.vi.base.string.Escape.escapeEsqlQuote;
+import static ma.vi.esql.parser.expression.StringLiteral.escapeEsqlString;
 
 /**
  * @author Vikash Madhow (vikash.madhow@gmail.com)
@@ -2574,7 +2574,7 @@ public class Databases {
           Operation[] operations = new Operation[]{
               new Operation("Equal", "Equal", "=",
                             true, true, null,
-                            escapeEsqlQuote("if (typeof(value) === \"string\") { \n" +
+                            escapeEsqlString("if (typeof(value) === \"string\") { \n" +
                                                 "    return \"lower(\" + (alias ? alias + '.' : '') + expression + \")='\" + value.toLowerCase() + \"'\"; \n" +
                                                 "} else { \n" +
                                                 "    return (alias ? alias + '.' : '') + expression + \"=\" + convert.toEsqlLiteral(value); \n" +
@@ -2585,7 +2585,7 @@ public class Databases {
 
               new Operation("NotEqual", "Not equal", "!=",
                             true, true, null,
-                            escapeEsqlQuote(
+                            escapeEsqlString(
                                 "if (typeof(value) === \"string\") { \n" +
                                     "    return \"lower(\" + (alias ? alias + '.' : '') + expression + \")!='\" + value.toLowerCase() + \"'\"; \n" +
                                     "} else { \n" +
@@ -2627,7 +2627,7 @@ public class Databases {
 
               new Operation("InList", "In list", "in",
                             true, true, "text",
-                            escapeEsqlQuote(
+                            escapeEsqlString(
                                 "const items = (value.split(/[,;\r\n]+/)" +
                                     ".filter(i => i.trim().length > 0)" +
                                     ".map(i => convert.toEsqlLiteral(convert.toType(i.trim(), column.type)))" +
@@ -2652,7 +2652,7 @@ public class Databases {
 
               new Operation("Contains", "Contains",
                             "ilike", false, true, null,
-                            escapeEsqlQuote(
+                            escapeEsqlString(
                                 "const keywords = value.split(/\\W+/).filter(w => w.length > 0);\n" +
                                     "return (alias ? alias + '.' : '') + expression + \" ilike '%\" + keywords.join('%') + \"%'\";"
                                            ),

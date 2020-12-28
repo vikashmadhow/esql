@@ -130,5 +130,5 @@ public class SingleTableExpr extends AbstractAliasTableExpr {
     return value;
   }
 
-  private volatile AliasedRelation type;
+  private transient volatile AliasedRelation type;
 }

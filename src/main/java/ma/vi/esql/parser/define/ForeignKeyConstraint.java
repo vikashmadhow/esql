@@ -81,13 +81,13 @@ public class ForeignKeyConstraint extends ConstraintDefinition {
                                                       .map(String::trim)
                                                       .collect(toSet()))
 
-          && c.forwardCost() == forwardCost()
-          && c.reverseCost() == reverseCost()
+//          && c.forwardCost() == forwardCost()
+//          && c.reverseCost() == reverseCost()
 
-          && (c.onUpdate() == null
+          && (c.onUpdate() == null || c.onUpdate() == NO_ACTION
                 ? onUpdate() == null || onUpdate() == NO_ACTION
                 : c.onUpdate() == onUpdate())
-          && (c.onDelete() == null
+          && (c.onDelete() == null || c.onDelete() == NO_ACTION
                 ? onDelete() == null || onDelete() == NO_ACTION
                 : c.onDelete() == onDelete());
     }

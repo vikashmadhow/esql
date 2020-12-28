@@ -122,7 +122,7 @@ public class UpdateTest {
               "set role_id=\"!!\".v1 " +
               "from \"!!\" " +
               "where \"usr_role\".ctid=\"!!\".id " +
-              "returning \"usr_role\".\"user_id\"",
+              "returning \"usr_role\".\"user_id\" \"user_id\"",
           q.statement);
       con.exec(s);
     }

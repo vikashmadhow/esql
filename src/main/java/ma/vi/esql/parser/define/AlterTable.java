@@ -18,8 +18,7 @@ import java.sql.SQLException;
 import java.util.List;
 
 import static java.util.Collections.singletonList;
-import static ma.vi.esql.parser.Translatable.Target.ESQL;
-import static ma.vi.esql.parser.Translatable.Target.SQLSERVER;
+import static ma.vi.esql.parser.Translatable.Target.*;
 import static ma.vi.esql.type.Type.dbName;
 import static ma.vi.esql.type.Type.splitName;
 
@@ -185,16 +184,16 @@ public class AlterTable extends Define<String> {
              * change column type.
              */
             if (!column.derived()) {
-              if (target == SQLSERVER) {
-                con.createStatement().executeUpdate(
-                    "ALTER TABLE " + dbName +
-                        " ALTER COLUMN \"" + column.alias() +
-                        "\" " + def.toType().translate(target));
-              } else {
+              if (target == POSTGRESQL) {
                 con.createStatement().executeUpdate(
                     "ALTER TABLE " + dbName +
                         " ALTER COLUMN \"" + column.alias() +
                         "\" TYPE " + def.toType().translate(target));
+              } else {
+                con.createStatement().executeUpdate(
+                    "ALTER TABLE " + dbName +
+                        " ALTER COLUMN \"" + column.alias() +
+                        "\" " + def.toType().translate(target));
               }
               s.database.columnType(con, column.id(), def.toType().translate(ESQL));
               column.type(def.toType());

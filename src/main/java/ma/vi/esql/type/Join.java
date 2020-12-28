@@ -9,9 +9,14 @@ import ma.vi.esql.parser.expression.Expression;
 import ma.vi.esql.parser.query.Column;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.toSet;
 
 /**
  * @author Vikash Madhow (vikash.madhow@gmail.com)
@@ -92,8 +97,14 @@ public class Join extends Relation {
 
   @Override
   public List<Column> columnsPrefixedBy(String relationAlias, String prefix) {
-    List<Column> cols = new ArrayList<>(left.columnsPrefixedBy(relationAlias, prefix));
-    cols.addAll(right.columnsPrefixedBy(relationAlias, prefix));
+    List<Column> leftCols = left.columnsPrefixedBy(relationAlias, prefix);
+    List<Column> cols = new ArrayList<>(leftCols);
+    Set<String> columnNames = leftCols.stream().map(Column::alias).collect(toSet());
+    for (Column col: right.columnsPrefixedBy(relationAlias, prefix)) {
+      if (!columnNames.contains(col.alias())) {
+        cols.add(col);
+      }
+    }
     return cols;
   }
 
@@ -123,5 +134,5 @@ public class Join extends Relation {
 
   private final Relation left;
   private final Relation right;
-  private volatile List<Column> columns;
+  private transient volatile List<Column> columns;
 }

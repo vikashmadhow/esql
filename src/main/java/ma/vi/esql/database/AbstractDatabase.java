@@ -11,14 +11,12 @@ import ma.vi.esql.exec.Result;
 import ma.vi.esql.parser.Context;
 import ma.vi.esql.parser.Parser;
 import ma.vi.esql.parser.define.*;
-import ma.vi.esql.parser.expression.BooleanLiteral;
-import ma.vi.esql.parser.expression.ColumnRef;
-import ma.vi.esql.parser.expression.Expression;
-import ma.vi.esql.parser.expression.StringLiteral;
+import ma.vi.esql.parser.expression.*;
 import ma.vi.esql.parser.modify.Insert;
 import ma.vi.esql.parser.query.Column;
 import ma.vi.esql.type.BaseRelation;
 import ma.vi.esql.type.Relation;
+import ma.vi.esql.type.Type;
 import ma.vi.esql.type.Types;
 
 import java.sql.*;
@@ -121,6 +119,7 @@ public abstract class AbstractDatabase implements Database {
         // to other relations which are not loaded yet. After loading the relations
         // their columns, constraints, indices, and so on are loaded and they can
         // refer freely to other relations.
+        Set<BaseRelation> toSave = new HashSet<>();
         Set<String> existingInCore = new HashSet<>();
         try (ResultSet rs = stmt.executeQuery("select table_schema, table_name " +
                                                   "  from information_schema.tables " +
@@ -182,7 +181,7 @@ public abstract class AbstractDatabase implements Database {
                     }
                     attributes.add(new Attribute(context, EXPRESSION, parser.parseExpression(defaultValue)));
                   }
-                  attributes.add(new Attribute(context, ID, new StringLiteral(context, columnId.toString())));
+                  attributes.add(new Attribute(context, ID, new UuidLiteral(context, columnId)));
                   attributes.add(new Attribute(context, REQUIRED, new BooleanLiteral(context, notNull)));
                   Metadata metadata = new Metadata(context, attributes);
                   columns.add(new Column(
@@ -205,6 +204,7 @@ public abstract class AbstractDatabase implements Database {
                   new ArrayList<>()
               );
               structure.relation(relation);
+              toSave.add(relation);
               Types.customType(relation.name(), relation);
             }
           }
@@ -320,6 +320,21 @@ public abstract class AbstractDatabase implements Database {
             }
           }
         }
+
+        /*
+         * Save missing relations into core tables, but limit to those
+         * having a period in their as those are the ESQL user-defined
+         * tables.
+         */
+        if (hasCoreTables && !toSave.isEmpty()) {
+          for (BaseRelation rel: toSave) {
+            String schema = Type.schema(rel.name()).toUpperCase();
+            if (!ignoredSchemas.contains(schema)) {
+              table(con, rel);
+            }
+          }
+        }
+
 
 //        // load indices and link to covered tables
 //        try (ResultSet rs = stmt.executeQuery("select _id, name, relation_id, unique_index, " +
@@ -631,8 +646,21 @@ public abstract class AbstractDatabase implements Database {
                 "      columnsOrder: [''_id'', ''column_id'', ''attribute'', ''value'']" +
                 "    }" +
                 "}')"));
+
       } finally {
-        hasCoreTables = true;
+        if (!hasCoreTables) {
+          hasCoreTables = true;
+
+          /*
+           * Add tables from information schema to _core tables
+           */
+          for (BaseRelation rel: structure.relations().values()) {
+            String schema = Type.schema(rel.name()).toUpperCase();
+            if (!ignoredSchemas.contains(schema)) {
+              table(con, rel);
+            }
+          }
+        }
       }
     }
   }
@@ -914,35 +942,39 @@ public abstract class AbstractDatabase implements Database {
     if (hasCoreTables(con)) {
       Parser p = new Parser(structure());
       EsqlConnection econ = esql(con);
-      econ.exec(p.parse(
-          "insert into _core.relations(_id, name, display_name, description, type) values(" +
-              "'" + table.id().toString() + "', " +
-              "'" + table.name() + "', " +
-              (table.displayName == null ? "'" + table.name() + "'" : "'" + escapeSqlString(table.displayName) + "'") + ", " +
-              (table.description == null ? "null" : "'" + escapeSqlString(table.description) + "'") + ", " +
-              "'" + Relation.RelationType.TABLE.marker + "')"));
+      try (Result rs = econ.exec(p.parse("select _id from _core.relations where name='" + table.name() + "'"))) {
+        if (!rs.next()) {
+          econ.exec(p.parse(
+              "insert into _core.relations(_id, name, display_name, description, type) values(" +
+                  "'" + table.id().toString() + "', " +
+                  "'" + table.name() + "', " +
+                  (table.displayName == null ? "'" + table.name() + "'" : "'" + escapeSqlString(table.displayName) + "'") + ", " +
+                  (table.description == null ? "null" : "'" + escapeSqlString(table.description) + "'") + ", " +
+                  "'" + Relation.RelationType.TABLE.marker + "')"));
 
-      if (table.attributes() != null) {
-        Insert insertRelAttr = p.parse(INSERT_TABLE_ATTRIBUTE, "insert");
-        for (Map.Entry<String, Expression<?>> a: table.attributes().entrySet()) {
-          econ.exec(insertRelAttr,
-                    Param.of("tableId", table.id()),
-                    Param.of("name", a.getKey()),
-                    Param.of("value", a.getValue().translate(ESQL)));
+          if (table.attributes() != null) {
+            Insert insertRelAttr = p.parse(INSERT_TABLE_ATTRIBUTE, "insert");
+            for (Map.Entry<String, Expression<?>> a: table.attributes().entrySet()) {
+              econ.exec(insertRelAttr,
+                        Param.of("tableId", table.id()),
+                        Param.of("name", a.getKey()),
+                        Param.of("value", a.getValue().translate(ESQL)));
+            }
+          }
+
+          // add columns
+          Insert insertCol = p.parse(INSERT_COLUMN, "insert");
+          Insert insertColAttr = p.parse(INSERT_COLUMN_ATTRIBUTE, "insert");
+          for (Column column: table.columns()) {
+            addColumn(econ, table.id(), column, insertCol, insertColAttr);
+          }
+
+          // add constraints
+          Insert insertConstraint = p.parse(INSERT_CONSTRAINT, "insert");
+          for (ConstraintDefinition c: table.constraints()) {
+            addConstraint(econ, table.id(), c, insertConstraint);
+          }
         }
-      }
-
-      // add columns
-      Insert insertCol = p.parse(INSERT_COLUMN, "insert");
-      Insert insertColAttr = p.parse(INSERT_COLUMN_ATTRIBUTE, "insert");
-      for (Column column: table.columns()) {
-        addColumn(econ, table.id(), column, insertCol, insertColAttr);
-      }
-
-      // add constraints
-      Insert insertConstraint = p.parse(INSERT_CONSTRAINT, "insert");
-      for (ConstraintDefinition c: table.constraints()) {
-        addConstraint(econ, table.id(), c, insertConstraint);
       }
     }
   }
@@ -1316,4 +1348,7 @@ public abstract class AbstractDatabase implements Database {
           + " :onUpdate, :onDelete)";
 
   private static final System.Logger log = System.getLogger(AbstractDatabase.class.getName());
+
+  private static final Set<String> ignoredSchemas = Set.of("INFORMATION_SCHEMA", "DBO", "PUBLIC", "PG_CATALOG",
+                                                           "SYSTEM_LOBS");
 }

@@ -49,5 +49,5 @@ public abstract class AbstractJoinTableExpr extends TableExpr {
     return child("right");
   }
 
-  private volatile Join type;
+  private transient volatile Join type;
 }
