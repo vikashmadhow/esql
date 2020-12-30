@@ -91,7 +91,7 @@ public class SingleTableExpr extends AbstractAliasTableExpr {
     if (target == Target.ESQL) {
       return (alias == null ? "" : alias + ':') + (table == null ? "" : table);
     } else {
-      return (table == null ? "" : Type.dbName(table, target)) + (alias == null ? "" : " \"" + alias + '"');
+      return (table == null ? "" : Type.dbTableName(table, target)) + (alias == null ? "" : " \"" + alias + '"');
     }
   }
 

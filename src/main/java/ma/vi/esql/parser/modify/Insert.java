@@ -76,7 +76,7 @@ public class Insert extends QueryUpdate {
       throw new TranslationException("Insert only works with single tables. A " + table.getClass().getSimpleName()
           + " was found instead.");
     }
-    st.append(Type.dbName(((SingleTableExpr)table).tableName(), target));
+    st.append(Type.dbTableName(((SingleTableExpr)table).tableName(), target));
 
     List<String> fields = fields();
     if (fields != null && !fields.isEmpty()) {

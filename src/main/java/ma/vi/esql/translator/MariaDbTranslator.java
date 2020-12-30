@@ -104,7 +104,7 @@ public class MariaDbTranslator extends AbstractTranslator {
       if (deleteTable == null) {
         throw new TranslationException("Could not find table with alias " + delete.deleteTableAlias());
       }
-      st.append(Type.dbName(deleteTable.tableName(), target()));
+      st.append(Type.dbTableName(deleteTable.tableName(), target()));
       st.append(" from ").append(from.translate(target()));
 
     } else {

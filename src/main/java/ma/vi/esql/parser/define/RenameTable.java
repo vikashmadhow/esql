@@ -41,7 +41,7 @@ public class RenameTable extends AlterTableAction {
 
   @Override
   public String translate(Target target) {
-    return "rename to " + Type.dbName(toName(), target);
+    return "rename to " + Type.dbTableName(toName(), target);
   }
 
   public String toName() {

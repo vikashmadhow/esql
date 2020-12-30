@@ -25,7 +25,7 @@ import static java.util.Collections.singletonList;
 import static ma.vi.esql.builder.Attributes.DESCRIPTION;
 import static ma.vi.esql.builder.Attributes.NAME;
 import static ma.vi.esql.parser.Translatable.Target.SQLSERVER;
-import static ma.vi.esql.type.Type.dbName;
+import static ma.vi.esql.type.Type.dbTableName;
 
 /**
  * Create table statement.
@@ -69,7 +69,7 @@ public class CreateTable extends Define<String> {
     if (target != SQLSERVER) {
       st.append("if not exists ");
     }
-    st.append(dbName(name(), target)).append('(');
+    st.append(dbTableName(name(), target)).append('(');
 
     boolean first = true;
     for (ColumnDefinition column: columns()) {

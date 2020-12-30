@@ -43,7 +43,7 @@ public class Function {
   public String translate(FunctionCall call, Translatable.Target target) {
     String functionName = translations == null || !translations.containsKey(target) ? name : translations.get(target);
     if (functionName.contains(".")) {
-      functionName = Type.dbName(functionName, target);
+      functionName = Type.dbTableName(functionName, target);
     }
     StringBuilder st = new StringBuilder(functionName).append('(');
     if (aggregate && call.distinct()) {

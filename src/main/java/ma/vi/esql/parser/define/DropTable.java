@@ -13,7 +13,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 
 import static ma.vi.esql.parser.Translatable.Target.ESQL;
-import static ma.vi.esql.type.Type.dbName;
+import static ma.vi.esql.type.Type.dbTableName;
 
 public class DropTable extends Define<String> {
   public DropTable(Context context, String name) {
@@ -40,7 +40,7 @@ public class DropTable extends Define<String> {
 
   @Override
   public String translate(Target target) {
-    return "drop table " + (target == ESQL ? name() : dbName(name(), target));
+    return "drop table " + (target == ESQL ? name() : dbTableName(name(), target));
   }
 
   /**

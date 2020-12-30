@@ -39,7 +39,7 @@ import static ma.vi.esql.parser.Translatable.Target.ESQL;
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public abstract class QueryUpdate extends MetadataContainer<String, QueryTranslation> implements Macro {
+public abstract class QueryUpdate extends MetadataContainer<String, QueryTranslation>  {
   public QueryUpdate(Context context,
                      String value,
                      T2<String, ? extends Esql<?, ?>>... children) {
@@ -53,39 +53,6 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
 
   @Override
   public abstract QueryUpdate copy();
-
-  @Override
-  public int expansionOrder() {
-    return HIGHEST;
-  }
-
-  @Override
-  public boolean expand(String name, Esql<?, ?> esql) {
-    /*
-     * Expand all columns (*) to the individual columns they refer to
-     */
-    TableExpr from = tables();
-    Relation fromType = from.type();
-
-    boolean expanded = false;
-    List<Column> resolvedColumns = new ArrayList<>();
-    for (Column column: columns()) {
-      if (column instanceof StarColumn) {
-        expanded = true;
-        StarColumn all = (StarColumn)column;
-        String qualifier = all.qualifier();
-        Relation rel = qualifier == null ? fromType : fromType.forAlias(qualifier);
-        for (Column relCol: rel.columns()) {
-          Column col = new Column(context, relCol.alias(), new ColumnRef(context, qualifier, relCol.alias()), null);
-          resolvedColumns.add(col);
-        }
-      } else {
-        resolvedColumns.add(column);
-      }
-    }
-    columns(resolvedColumns);
-    return expanded;
-  }
 
   @Override
   public Selection type() {

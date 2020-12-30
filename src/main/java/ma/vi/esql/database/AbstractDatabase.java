@@ -131,7 +131,7 @@ public abstract class AbstractDatabase implements Database {
             UUID tableId = UUID.randomUUID();
             String schema = rs.getString("table_schema");
             String name = rs.getString("table_name");
-            String tableName = schema + '.' + name;
+            String tableName = Type.esqlTableName(schema, name, target());
 
             if (structure.relationExists(tableName)) {
               existingInCore.add(tableName);
@@ -223,7 +223,7 @@ public abstract class AbstractDatabase implements Database {
           while (crs.next()) {
             String schema = crs.getString("table_schema");
             String name = crs.getString("table_name");
-            String tableName = schema + '.' + name;
+            String tableName = Type.esqlTableName(schema, name, target());
             if (!existingInCore.contains(tableName)) {
               BaseRelation relation = structure.relation(tableName);
               String constraintSchema = crs.getString("constraint_schema");

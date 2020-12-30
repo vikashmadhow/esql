@@ -166,7 +166,7 @@ public class EsqlConnectionImpl implements EsqlConnection {
     // first collect macros in terms of priority
     PriorityQueue<Integer> orders = new PriorityQueue<>();
     Map<Integer, List<T2<String, Macro>>> macros = new HashMap<>();
-    loadMacros(esql, 0, orders, macros, previousExpansionResult, new IdentityHashMap<>());
+    loadMacros(null, esql, 0, orders, macros, previousExpansionResult, new IdentityHashMap<>());
 
     // expand in priority order
     Set<Macro> executed = new HashSet<>();
@@ -186,73 +186,116 @@ public class EsqlConnectionImpl implements EsqlConnection {
     return changed;
   }
 
-  private static void loadMacros(Esql<?, ?> esql,
+  private static void loadMacros(String childName,
+                                 Object child,
                                  int level,
                                  PriorityQueue<Integer> orders,
                                  Map<Integer, List<T2<String, Macro>>> macros,
                                  IdentityHashMap<Macro, Boolean> previousExpansionResult,
                                  IdentityHashMap<Object, Object> cycleDetector) {
-    exploreChild(null, esql.value, level + 1, orders,
-                 macros, previousExpansionResult, cycleDetector);
-
-    if (esql.value instanceof List<?>) {
-      for (Object v: (List<?>)esql.value) {
-        exploreChild(null, v, level + 1, orders,
-                     macros, previousExpansionResult, cycleDetector);
-      }
-    }
-
-    Set<String> childrenNames = new HashSet<>(esql.children.keySet());
-    for (String childName: childrenNames) {
-      exploreChild(childName, esql.children.get(childName), level + 1, orders,
-                   macros, previousExpansionResult, cycleDetector);
-    }
-  }
-
-  private static void exploreChild(String childName,
-                                   Object child,
-                                   int level,
-                                   PriorityQueue<Integer> orders,
-                                   Map<Integer, List<T2<String, Macro>>> macros,
-                                   IdentityHashMap<Macro, Boolean> previousExpansionResult,
-                                   IdentityHashMap<Object, Object> cycleDetector) {
-    if (cycleDetector.containsKey(child)) {
-      if (child instanceof Esql) {
-        Esql<?, ?> esql = (Esql<?, ?>)child;
-        throw new TranslationException("Cycle detected during macro expansion with the following Esql element " +
-            "present in the cycle: " + esql.getClass() + " {value: " +
-            esql.value + ", parent: " + esql.parent +
-            (esql.parent == null ? "" : " of class " + esql.parent.getClass()) +
-            ", children: " + Maps.toString(esql.children) + "}");
-      } else {
-        throw new TranslationException("Cycle detected during macro expansion with the following object " +
-            "present in the cycle: " + child.getClass() + " {value: " +
-            child + "}");
-      }
-    }
-    cycleDetector.put(child, child);
-
-    if (child instanceof Esql<?, ?>) {
-      loadMacros((Esql<?, ?>)child, level, orders, macros,
-          previousExpansionResult, cycleDetector);
-    }
-    if (child instanceof Macro) {
-      Macro macro = (Macro)child;
-
-      // only add this macro for expansion if it has not been seen before
-      // or it expanded before (which means that it could expand more).
-      if (previousExpansionResult.getOrDefault(macro, true)) {
-        int order = macro.expansionOrder() - level;
-        if (macros.containsKey(order)) {
-          macros.get(order).add(T2.of(childName, macro));
+    if (child != null) {
+      if (cycleDetector.containsKey(child)) {
+        if (child instanceof Esql) {
+          Esql<?, ?> esql = (Esql<?, ?>)child;
+          throw new TranslationException("Cycle detected during macro expansion with the following Esql element " +
+                                             "present in the cycle: " + esql.getClass() + " {value: " +
+                                             esql.value + ", parent: " + esql.parent +
+                                             (esql.parent == null ? "" : " of class " + esql.parent.getClass()) +
+                                             ", children: " + Maps.toString(esql.children) + "}");
         } else {
-          orders.add(order);
-          macros.put(order, new ArrayList<>(Collections.singletonList(T2.of(childName, macro))));
+          throw new TranslationException("Cycle detected during macro expansion with the following object " +
+                                             "present in the cycle: " + child.getClass() + " {value: " +
+                                             child + "}");
         }
       }
+      try {
+        cycleDetector.put(child, child);
+        if (child instanceof Esql<?, ?>) {
+          //        loadMacros((Esql<?, ?>)child, level, orders, macros,
+          //                   previousExpansionResult, cycleDetector);
+
+          Esql<?, ?> esql = (Esql<?, ?>)child;
+          loadMacros(null, esql.value, level + 1, orders,
+                     macros, previousExpansionResult, cycleDetector);
+
+          if (esql.value instanceof List<?>) {
+            for (Object v: (List<?>)esql.value) {
+              loadMacros(null, v, level + 1, orders,
+                         macros, previousExpansionResult, cycleDetector);
+            }
+          }
+
+          Set<String> childrenNames = new HashSet<>(esql.children.keySet());
+          for (String c: childrenNames) {
+            loadMacros(c, esql.children.get(c), level + 1, orders,
+                       macros, previousExpansionResult, cycleDetector);
+          }
+        }
+        if (child instanceof Macro) {
+          Macro macro = (Macro)child;
+
+          // only add this macro for expansion if it has not been seen before
+          // or it was expanded before (which means that it could expand more).
+          if (previousExpansionResult.getOrDefault(macro, true)) {
+            int order = macro.expansionOrder() - level;
+            if (macros.containsKey(order)) {
+              macros.get(order).add(T2.of(childName, macro));
+            } else {
+              orders.add(order);
+              macros.put(order, new ArrayList<>(Collections.singletonList(T2.of(childName, macro))));
+            }
+          }
+        }
+      } finally {
+        cycleDetector.remove(child);
+      }
     }
-    cycleDetector.remove(child);
   }
+
+//  private static void exploreChild(String childName,
+//                                   Object child,
+//                                   int level,
+//                                   PriorityQueue<Integer> orders,
+//                                   Map<Integer, List<T2<String, Macro>>> macros,
+//                                   IdentityHashMap<Macro, Boolean> previousExpansionResult,
+//                                   IdentityHashMap<Object, Object> cycleDetector) {
+//    if (cycleDetector.containsKey(child)) {
+//      if (child instanceof Esql) {
+//        Esql<?, ?> esql = (Esql<?, ?>)child;
+//        throw new TranslationException("Cycle detected during macro expansion with the following Esql element " +
+//            "present in the cycle: " + esql.getClass() + " {value: " +
+//            esql.value + ", parent: " + esql.parent +
+//            (esql.parent == null ? "" : " of class " + esql.parent.getClass()) +
+//            ", children: " + Maps.toString(esql.children) + "}");
+//      } else {
+//        throw new TranslationException("Cycle detected during macro expansion with the following object " +
+//            "present in the cycle: " + child.getClass() + " {value: " +
+//            child + "}");
+//      }
+//    }
+//    cycleDetector.put(child, child);
+//
+//    if (child instanceof Esql<?, ?>) {
+//      loadMacros((Esql<?, ?>)child, level, orders, macros,
+//          previousExpansionResult, cycleDetector);
+//    }
+//    if (child instanceof Macro) {
+//      Macro macro = (Macro)child;
+//
+//      // only add this macro for expansion if it has not been seen before
+//      // or it was expanded before (which means that it could expand more).
+//      if (previousExpansionResult.getOrDefault(macro, true)) {
+//        int order = macro.expansionOrder() - level;
+//        if (macros.containsKey(order)) {
+//          macros.get(order).add(T2.of(childName, macro));
+//        } else {
+//          orders.add(order);
+//          macros.put(order, new ArrayList<>(Collections.singletonList(T2.of(childName, macro))));
+//        }
+//      }
+//    }
+//    cycleDetector.remove(child);
+//  }
 
   protected final Translatable.Target target;
 

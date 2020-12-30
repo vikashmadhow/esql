@@ -8,13 +8,13 @@ import ma.vi.base.string.Strings;
 import ma.vi.esql.function.Function;
 import ma.vi.esql.parser.Context;
 import ma.vi.esql.parser.Esql;
+import ma.vi.esql.parser.Macro;
 import ma.vi.esql.parser.QueryUpdate;
 import ma.vi.esql.parser.define.GroupBy;
 import ma.vi.esql.parser.define.Metadata;
-import ma.vi.esql.parser.expression.ColumnRef;
-import ma.vi.esql.parser.expression.Expression;
-import ma.vi.esql.parser.expression.FunctionCall;
-import ma.vi.esql.parser.expression.IntegerLiteral;
+import ma.vi.esql.parser.expression.*;
+import ma.vi.esql.type.BaseRelation;
+import ma.vi.esql.type.Relation;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -29,7 +29,7 @@ import static ma.vi.esql.parser.Translatable.Target.HSQLDB;
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public class Select extends QueryUpdate {
+public class Select extends QueryUpdate implements Macro {
   public Select(Context             context,
                 Metadata            metadata,
                 boolean             distinct,
@@ -107,6 +107,44 @@ public class Select extends QueryUpdate {
       name = alias + "_" + (unique++);
     }
     return name;
+  }
+
+  @Override
+  public int expansionOrder() {
+    return HIGHEST;
+  }
+
+  @Override
+  public boolean expand(String name, Esql<?, ?> esql) {
+    /*
+     * Expand all columns (*) to the individual columns they refer to
+     */
+    TableExpr from = tables();
+    Relation fromType = from.type();
+
+    boolean expanded = false;
+    List<Column> resolvedColumns = new ArrayList<>();
+    for (Column column: columns()) {
+      if (column instanceof StarColumn) {
+        expanded = true;
+        StarColumn all = (StarColumn)column;
+        String qualifier = all.qualifier();
+        Relation rel = qualifier == null ? fromType : fromType.forAlias(qualifier);
+        for (Column relCol: rel.columns()) {
+          Column col = rel instanceof BaseRelation
+                          ? relCol.copy()
+                          : new Column(context,
+                                       relCol.alias(),
+                                       new ColumnRef(context, qualifier, relCol.alias()),
+                                       null);
+          resolvedColumns.add(col);
+        }
+      } else {
+        resolvedColumns.add(column);
+      }
+    }
+    columns(resolvedColumns);
+    return expanded;
   }
 
   @Override

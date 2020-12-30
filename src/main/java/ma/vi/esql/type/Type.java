@@ -197,21 +197,30 @@ public interface Type extends Close, Copy<Type>, Translatable<String> {
    * the table names "a.b"."c" (a.b is the schema and c is the table in this
    * schema), while 'a' is simply mapped to "a".
    */
-  static String dbName(String name, Target target) {
+  static String dbTableName(String name, Target target) {
     T2<String, String> q = Type.splitName(name);
     StringBuilder st = new StringBuilder();
     if (q.a != null) {
-      String schema = q.a;
-//      if (target == Target.HSQLDB && schema.indexOf('.') != -1) {
-//        /*
-//         * HSqlDB does not support '.' in schema names,
-//         * convert to '_'
-//         */
-//        schema = schema.replace('.', '_');
-//      }
-      st.append('"').append(schema).append("\".");
+      st.append('"').append(q.a).append("\".");
+
+    } else if (target == Target.HSQLDB) {
+      st.append("\"PUBLIC\".");
+
+    } else if (target == Target.POSTGRESQL) {
+      st.append("\"public\".");
+
+    } else if (target == Target.SQLSERVER) {
+      st.append("\"DBO\".");
     }
     st.append('"').append(q.b).append('"');
     return st.toString();
+  }
+
+  /**
+   * Returns the ESQL table name for the database schema and table name supplied.
+   */
+  static String esqlTableName(String schema, String table, Target target) {
+    return schema.equalsIgnoreCase("public") || schema.equalsIgnoreCase("dbo")
+              ? table : schema + '.' + table;
   }
 }

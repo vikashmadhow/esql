@@ -4,6 +4,7 @@
 
 package ma.vi.esql.parser.expression;
 
+import ma.vi.base.tuple.T2;
 import ma.vi.esql.parser.Context;
 import ma.vi.esql.parser.Esql;
 import ma.vi.esql.parser.TranslationException;
@@ -11,7 +12,6 @@ import ma.vi.esql.type.ArrayType;
 import ma.vi.esql.type.Interval;
 import ma.vi.esql.type.Type;
 import ma.vi.esql.type.Types;
-import ma.vi.base.tuple.T2;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -28,6 +28,11 @@ import java.util.UUID;
 import static ma.vi.esql.parser.expression.StringLiteral.escapeEsqlString;
 import static ma.vi.esql.type.Type.Kind.BASE;
 
+/**
+ * Parent of literals in ESQL.
+ *
+ * @author Vikash Madhow (vikash.madhow@gmail.com)
+ */
 public abstract class Literal<V> extends Expression<V> {
   public Literal(Context context, V value) {
     super(context, value);

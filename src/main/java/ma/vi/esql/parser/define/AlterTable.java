@@ -19,7 +19,7 @@ import java.util.List;
 
 import static java.util.Collections.singletonList;
 import static ma.vi.esql.parser.Translatable.Target.*;
-import static ma.vi.esql.type.Type.dbName;
+import static ma.vi.esql.type.Type.dbTableName;
 import static ma.vi.esql.type.Type.splitName;
 
 public class AlterTable extends Define<String> {
@@ -49,7 +49,7 @@ public class AlterTable extends Define<String> {
   @Override
   public String translate(Target target) {
     StringBuilder st = new StringBuilder("alter table ");
-    st.append(dbName(name(), target)).append(' ');
+    st.append(dbTableName(name(), target)).append(' ');
 
     boolean first = true;
     for (AlterTableAction alteration: alterations()) {
@@ -66,7 +66,7 @@ public class AlterTable extends Define<String> {
   @Override
   public Result execute(Connection con, Structure structure, Target target) {
     String name = name();
-    String dbName = dbName(name, target);
+    String dbName = dbTableName(name, target);
     Structure s = context.structure;
     BaseRelation relation = s.relation(name);
     if (relation == null) {

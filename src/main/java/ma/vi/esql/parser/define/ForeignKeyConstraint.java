@@ -9,13 +9,12 @@ import ma.vi.base.tuple.T2;
 import ma.vi.esql.parser.Context;
 import ma.vi.esql.parser.Esql;
 
-import java.util.HashSet;
 import java.util.List;
 
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toSet;
 import static ma.vi.esql.parser.define.ConstraintDefinition.ForeignKeyChangeAction.NO_ACTION;
-import static ma.vi.esql.type.Type.dbName;
+import static ma.vi.esql.type.Type.dbTableName;
 import static ma.vi.esql.type.Type.splitName;
 
 /**
@@ -98,7 +97,7 @@ public class ForeignKeyConstraint extends ConstraintDefinition {
   public String translate(Target target) {
     return "constraint \"" + (name() != null ? name() : defaultConstraintName())
         + "\" foreign key(" + quotedColumnsList(sourceColumns()) + ") "
-        + "references " + dbName(targetTable(), target) + '('
+        + "references " + dbTableName(targetTable(), target) + '('
         + quotedColumnsList(targetColumns()) + ')'
         + (onUpdate() != null ? " on update " + onUpdate().keyword : "")
         + (onDelete() != null ? " on delete " + onDelete().keyword : "");
