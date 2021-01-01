@@ -13,6 +13,7 @@ import ma.vi.esql.parser.QueryUpdate;
 import ma.vi.esql.parser.define.GroupBy;
 import ma.vi.esql.parser.define.Metadata;
 import ma.vi.esql.parser.expression.*;
+import ma.vi.esql.type.AliasedRelation;
 import ma.vi.esql.type.BaseRelation;
 import ma.vi.esql.type.Relation;
 
@@ -73,7 +74,6 @@ public class Select extends QueryUpdate implements Macro {
         alias = makeUnique(names, alias);
       }
       column.alias(alias);
-      names.add(alias);
     }
   }
 
@@ -106,6 +106,7 @@ public class Select extends QueryUpdate implements Macro {
     while (names.contains(name)) {
       name = alias + "_" + (unique++);
     }
+    names.add(name);
     return name;
   }
 
@@ -123,7 +124,8 @@ public class Select extends QueryUpdate implements Macro {
     Relation fromType = from.type();
 
     boolean expanded = false;
-    List<Column> resolvedColumns = new ArrayList<>();
+    Map<String, String> aliased = new HashMap<>();
+    Map<String, Column> resolvedColumns = new LinkedHashMap<>();
     for (Column column: columns()) {
       if (column instanceof StarColumn) {
         expanded = true;
@@ -131,19 +133,54 @@ public class Select extends QueryUpdate implements Macro {
         String qualifier = all.qualifier();
         Relation rel = qualifier == null ? fromType : fromType.forAlias(qualifier);
         for (Column relCol: rel.columns()) {
-          Column col = rel instanceof BaseRelation
-                          ? relCol.copy()
-                          : new Column(context,
-                                       relCol.alias(),
-                                       new ColumnRef(context, qualifier, relCol.alias()),
-                                       null);
-          resolvedColumns.add(col);
+          String alias = relCol.alias();
+          if (alias == null) {
+            alias = Strings.makeUnique(aliased.keySet(), "col", false);
+          }
+          int pos = alias.indexOf('/');
+          if (pos == -1) {
+            /*
+             * Normal column (not metadata).
+             */
+            Column col;
+            if (rel instanceof BaseRelation
+             || (rel instanceof AliasedRelation && ((AliasedRelation)rel).relation instanceof BaseRelation)) {
+              col = relCol.copy();
+              aliased.put(relCol.alias(), alias);
+              col.alias(alias);
+              if (qualifier != null) {
+                ColumnRef.qualify(col.expr(), qualifier, null, false);
+              }
+            } else {
+              col = new Column(context,
+                               alias,
+                               new ColumnRef(context, qualifier, relCol.alias()),
+                               null);
+            }
+            resolvedColumns.put(alias, col);
+
+          } else if (pos > 0) {
+            /*
+             * Column metadata
+             */
+            String columnName = alias.substring(0, pos);
+            if (aliased.containsKey(columnName)) {
+
+            }
+
+          } else if (!aliased.containsKey(alias)) {
+            /*
+             * table metadata first encounter (by elimination, pos==0 in this case)
+             */
+
+
+          }
         }
       } else {
-        resolvedColumns.add(column);
+        resolvedColumns.put(column.alias(), column);
       }
     }
-    columns(resolvedColumns);
+    columns(new ArrayList<>(resolvedColumns.values()));
     return expanded;
   }
 
