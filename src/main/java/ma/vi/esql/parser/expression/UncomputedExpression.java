@@ -5,10 +5,12 @@
 package ma.vi.esql.parser.expression;
 
 import ma.vi.esql.parser.Context;
+import ma.vi.esql.type.Type;
+import ma.vi.esql.type.Types;
 
 /**
- * An wrapped expression which is not computed but sent in to the
- * client in a form that it can be interpreted there.
+ * A wrapped expression which is not computed but sent to the client in a form
+ * (such as text) that it can be interpreted there.
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
@@ -33,6 +35,16 @@ public class UncomputedExpression extends SingleSubExpression {
     } else {
       return this;
     }
+  }
+
+  @Override
+  public Type type() {
+    /*
+     * Uncomputed expressions are not computed and therefore their
+     * representation is their type. Thus all uncomputed expressions
+     * are similar to text values.
+     */
+    return Types.TextType;
   }
 
   @Override

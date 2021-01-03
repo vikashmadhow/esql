@@ -135,27 +135,34 @@ public class Select extends QueryUpdate implements Macro {
         for (Column relCol: rel.columns()) {
           String alias = relCol.alias();
           if (alias == null) {
-            alias = Strings.makeUnique(aliased.keySet(), "col", false);
+            alias = Strings.makeUnique(resolvedColumns.keySet(), "col", false);
           }
+          Column col;
+          if (rel instanceof BaseRelation
+              || (rel instanceof AliasedRelation && ((AliasedRelation)rel).relation instanceof BaseRelation)) {
+            col = relCol.copy();
+            if (qualifier != null) {
+              ColumnRef.qualify(col.expr(), qualifier, null, false);
+            }
+
+          } else {
+            col = new Column(context,
+                             alias,
+                             new ColumnRef(context, qualifier, relCol.alias()),
+                             null);
+          }
+
           int pos = alias.indexOf('/');
           if (pos == -1) {
             /*
              * Normal column (not metadata).
              */
-            Column col;
-            if (rel instanceof BaseRelation
-             || (rel instanceof AliasedRelation && ((AliasedRelation)rel).relation instanceof BaseRelation)) {
-              col = relCol.copy();
+            if (resolvedColumns.containsKey(alias)) {
+              alias = Strings.makeUnique(resolvedColumns.keySet(), alias, false);
+            }
+            if (relCol.alias() != null && !alias.equals(relCol.alias())) {
               aliased.put(relCol.alias(), alias);
               col.alias(alias);
-              if (qualifier != null) {
-                ColumnRef.qualify(col.expr(), qualifier, null, false);
-              }
-            } else {
-              col = new Column(context,
-                               alias,
-                               new ColumnRef(context, qualifier, relCol.alias()),
-                               null);
             }
             resolvedColumns.put(alias, col);
 
@@ -165,15 +172,18 @@ public class Select extends QueryUpdate implements Macro {
              */
             String columnName = alias.substring(0, pos);
             if (aliased.containsKey(columnName)) {
-
+              // replace column name with replacement if the column name was changed
+              String aliasName = aliased.get(columnName);
+              alias = aliasName + alias.substring(pos);
+              col.alias(alias);
             }
+            resolvedColumns.put(alias, col);
 
-          } else if (!aliased.containsKey(alias)) {
+          } else if (!resolvedColumns.containsKey(alias)) {
             /*
              * table metadata first encounter (by elimination, pos==0 in this case)
              */
-
-
+            resolvedColumns.put(alias, col);
           }
         }
       } else {

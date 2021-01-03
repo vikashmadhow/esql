@@ -67,11 +67,15 @@ public class SelectBuilder implements Builder<Select> {
 
   public SelectBuilder column(Expression<?> expression, String alias, Attr... metadata) {
     this.columns.add(
-        new Column(context, alias, expression,
-            new Metadata(context,
-                Stream.of(metadata)
-                      .map(a -> new Attribute(context, a.name, parser.parseExpression(a.expr)))
-                      .collect(toList()))));
+      new Column(context,
+                 alias,
+                 expression,
+                 metadata.length == 0
+                   ? null
+                   : new Metadata(context,
+                                  Stream.of(metadata)
+                                        .map(a -> new Attribute(context, a.name, parser.parseExpression(a.expr)))
+                                        .collect(toList()))));
     return this;
   }
 

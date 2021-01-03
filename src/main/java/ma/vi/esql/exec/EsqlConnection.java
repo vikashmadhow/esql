@@ -12,26 +12,53 @@ import static ma.vi.base.lang.Errors.unchecked;
 import static ma.vi.esql.parser.Esql.Target;
 
 /**
- * An interface representing a connection to the database through
- * which ESQL statement can be sent. An ESQL connection will normally
- * wrap and specialise a JDBC database connection for querying the
- * database using ESQL, but still allowing direct access to the underlying
- * connection for when SQL commands need to be sent.
+ * An interface representing a connection to the database through which ESQL
+ * statements can be sent. An ESQL connection will normally wrap and specialise
+ * a JDBC database connection for querying the database using ESQL, but still
+ * allowing direct access to the underlying connection for when SQL commands
+ * need to be sent.
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 public interface EsqlConnection extends AutoCloseable {
 
-  Target target();
-
+  /**
+   * Executes the ESQL statement using this connection after inserting the
+   * provided optional parameters.
+   *
+   * @param esql   The esql statement to execute.
+   * @param params An optional list of parameters matching the parameter
+   *               placeholders in the statement.
+   * @return The result produced by the esql command on execution.
+   */
   Result exec(Esql<?, ?> esql, Param... params);
 
+  /**
+   * @return The database that this connection works on.
+   */
+  Target target();
+
+  /**
+   * Commits the current transaction on this connection.
+   */
   void commit();
 
+  /**
+   * Rolls back the current transaction on this connection.
+   */
   void rollback();
 
+  /**
+   * Sets the connection on rollback-only mode meaning that any executed
+   * statements will be automatically rolled back when the connection is
+   * closed.
+   */
   void rollbackOnly();
 
+  /**
+   * @return true if {@link #rollbackOnly()} was previoulsy called on this
+   *         connection setting it to rollback-only mode.
+   */
   boolean isRollbackOnly();
 
   /**
@@ -39,6 +66,10 @@ public interface EsqlConnection extends AutoCloseable {
    */
   Connection con();
 
+  /**
+   * Closes the connection, committing if the connection is not in auto-commit
+   * or rollback-only mode, otherwise rolling back the ongoing transaction.
+   */
   @Override
   default void close() {
     try {

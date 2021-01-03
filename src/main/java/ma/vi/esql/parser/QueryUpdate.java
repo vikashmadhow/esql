@@ -91,14 +91,12 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
       /*
        * Add columns and metadata
        */
-      int columnNumber = 1;
       if (columns() != null) {
         for (Column column: columns()) {
           Expression<?> colExpr = column.expr();
           String alias = column.alias();
           if (alias == null) {
-            alias = "column" + columnNumber;
-            alias = makeUnique(columnNames, alias);
+            alias = makeUnique(columnNames, "col");
           }
           column = column.copy();
           column.alias(alias);
@@ -202,12 +200,12 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
                                           String qualifier,
                                           boolean addAttributes,
                                           boolean optimiseAttributesLoading) {
-//    /*
-//     * Do not expand column list of selects inside expressions as the
-//     * whole expression is a single-value and expanding the column list
-//     * will break the query or not be of any use.
-//     */
-//    boolean selectExpression = ancestor(SelectExpression.class) != null;
+    /*
+     * Do not expand column list of selects inside expressions as the
+     * whole expression is a single-value and expanding the column list
+     * will break the query or not be of any use.
+     */
+    boolean selectExpression = ancestor(SelectExpression.class) != null;
 
     Map<String, Integer> columnToIndex = new HashMap<>();
     Map<String, ColumnMapping> columnMappings = new LinkedHashMap<>();
@@ -219,24 +217,26 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
     /*
      * Output result metadata
      */
-    for (Column column: selection.columns()
-                                 .stream()
-                                 .filter(c -> c.alias().startsWith("/"))
-                                 .collect(toList())) {
-      String colName = column.alias();
-      String attrName = colName.substring(1);
-      columnToIndex.put(colName, itemIndex);
+    if (!selectExpression) {
+      for (Column column: selection.columns()
+                                   .stream()
+                                   .filter(c -> c.alias().startsWith("/"))
+                                   .collect(toList())) {
+        String colName = column.alias();
+        String attrName = colName.substring(1);
 
-      Expression<?> attributeValue = column.expr();
-      if (optimiseAttributesLoading && attributeValue instanceof Literal) {
-        resultAttributes.put(attrName, attributeValue.value(target));
-      } else if (addAttributes) {
-        itemIndex += 1;
-        if (itemIndex > 1) {
-          query.append(", ");
+        Expression<?> attributeValue = column.expr();
+        if (optimiseAttributesLoading && (attributeValue instanceof Literal
+                                       || attributeValue instanceof UncomputedExpression)) {
+          resultAttributes.put(attrName, attributeValue.value(target));
+        } else if (addAttributes) {
+          itemIndex += 1;
+          if (itemIndex > 1) {
+            query.append(", ");
+          }
+          appendExpression(query, attributeValue, target, qualifier);
+          resultAttributeIndices.add(T3.of(itemIndex, attrName, attributeValue.type()));
         }
-        appendExpression(query, attributeValue, target, qualifier);
-        resultAttributeIndices.add(T3.of(itemIndex, attrName, attributeValue.type()));
       }
     }
 
@@ -268,28 +268,31 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
     /*
      * Output columns metadata.
      */
-    for (Column col: selection.columns()
-                              .stream()
-                              .filter(c -> c.alias().indexOf('/', 1) != -1)
-                              .collect(toList())) {
-      String alias = col.alias();
-      int pos = alias.indexOf('/');
-      String colName = alias.substring(0, pos);
-      ColumnMapping mapping = columnMappings.get(colName);
-      if (mapping == null) {
-        throw new RuntimeException("Could not find column mapping for column " + colName
-                                 + " while there is an attribute for that columns (" + alias + ")");
-      }
+    if (!selectExpression) {
+      for (Column col: selection.columns()
+                                .stream()
+                                .filter(c -> c.alias().charAt(0) != '/' && c.alias().indexOf('/', 1) != -1)
+                                .collect(toList())) {
+        String alias = col.alias();
+        int pos = alias.indexOf('/');
+        String colName = alias.substring(0, pos);
+        ColumnMapping mapping = columnMappings.get(colName);
+        if (mapping == null) {
+          throw new RuntimeException("Could not find column mapping for column " + colName
+                                         + " while there is an attribute for that columns (" + alias + ")");
+        }
 
-      String attrName = alias.substring(pos + 1);
-      Expression<?> attributeValue = col.expr();
-      if (optimiseAttributesLoading && attributeValue instanceof Literal) {
-        mapping.attributes.put(attrName, attributeValue.value(target));
-      } else if (addAttributes) {
-        itemIndex += 1;
-        query.append(", ");
-        appendExpression(query, attributeValue, target, qualifier);
-        mapping.attributeIndices.add(T3.of(itemIndex, attrName, attributeValue.type()));
+        String attrName = alias.substring(pos + 1);
+        Expression<?> attributeValue = col.expr();
+        if (optimiseAttributesLoading && (attributeValue instanceof Literal
+                                       || attributeValue instanceof UncomputedExpression)) {
+          mapping.attributes.put(attrName, attributeValue.value(target));
+        } else if (addAttributes) {
+          itemIndex += 1;
+          query.append(", ");
+          appendExpression(query, attributeValue, target, qualifier);
+          mapping.attributeIndices.add(T3.of(itemIndex, attrName, attributeValue.type()));
+        }
       }
     }
     return new QueryTranslation(query.toString(),
@@ -508,9 +511,9 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
 
   @Override
   public Result execute(Connection con, Structure structure, Target target) {
-    Selection selection = type();
     QueryTranslation translation = translate(target);
     try {
+      Selection selection = type();
       if (!selection.columns().isEmpty()) {
         ResultSet rs = con.createStatement(TYPE_SCROLL_INSENSITIVE, CONCUR_READ_ONLY)
                           .executeQuery(translation.statement);
@@ -548,38 +551,6 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
     public final SingleTableExpr table;
     public final Expression<?> on;
   }
-
-  protected static void linearise(TableExpr expr,
-                                  List<TableExpr> linearisedTables,
-                                  List<Expression<?>> joinExpressions) {
-    if (expr instanceof AbstractJoinTableExpr) {
-      AbstractJoinTableExpr join = (AbstractJoinTableExpr)expr;
-      linearise(join.left(), linearisedTables, joinExpressions);
-      linearise(join.right(), linearisedTables, joinExpressions);
-      if (expr instanceof JoinTableExpr) {
-        joinExpressions.add(((JoinTableExpr)expr).on());
-      }
-    } else {
-      linearisedTables.add(expr);
-    }
-  }
-
-  @Override
-  public void close() {
-    if (!closed() && !closing()) {
-      try {
-        closing(true);
-        if (type != null) {
-          type.close();
-        }
-      } finally {
-        closing(false);
-        closed(true);
-      }
-      super.close();
-    }
-  }
-
 
   public T2<Boolean, String> restrict(String restrictToTable) {
     return restrict(context.structure.relation(restrictToTable));

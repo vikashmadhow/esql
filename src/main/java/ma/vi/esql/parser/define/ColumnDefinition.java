@@ -13,6 +13,11 @@ import ma.vi.esql.type.Type;
 import static ma.vi.esql.parser.Translatable.Target.ESQL;
 import static ma.vi.esql.parser.Translatable.Target.HSQLDB;
 
+/**
+ * The definition of a column in a create or alter table statement.
+ *
+ * @author vikash.madhow@gmail.com
+ */
 public class ColumnDefinition extends TableDefinition {
   public ColumnDefinition(Context context,
                           String name,

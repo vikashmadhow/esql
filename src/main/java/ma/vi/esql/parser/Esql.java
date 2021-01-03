@@ -16,6 +16,7 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
+import static java.lang.Integer.MAX_VALUE;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 import static ma.vi.esql.type.Types.VoidType;
@@ -379,13 +380,13 @@ public class  Esql<V, R> implements Close, Copy<Esql<V, R>>, Translatable<R> {
       return 0;
     } else if (parent != null) {
       int parentLevel = parent.ancestorDistance(cls);
-      if (parentLevel == -1) {
-        return -1;
+      if (parentLevel == MAX_VALUE) {
+        return MAX_VALUE;
       } else {
         return parentLevel + 1;
       }
     } else {
-      return -1;
+      return MAX_VALUE;
     }
   }
 

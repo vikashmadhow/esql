@@ -34,9 +34,9 @@ public class SelectTest {
   @BeforeAll
   static void setup() {
     databases = new Database[] {
-//        Databases.Postgresql(),
+        Databases.Postgresql(),
 //        Databases.SqlServer(),
-        Databases.HSqlDb(),
+//        Databases.HSqlDb(),
     };
 
     for (Database db: databases) {
@@ -204,59 +204,59 @@ public class SelectTest {
   }
 
   @TestFactory
-  Stream<DynamicTest> select() {
+  Stream<DynamicTest> simpleSelect() {
     return Stream.of(databases)
                  .map(db -> dynamicTest(db.target().toString(), () -> {
                    System.out.println(db.target());
                    Parser p = new Parser(db.structure());
                    try (EsqlConnection con = db.esql(db.pooledConnection())) {
-                     Select select = p.parse("select s.*, T.*, v:x.a + x.b {m1:x, m2: y >= 5} " +
-                                             "  from s:S " +
-                                             "  left join a.b.T on s._id=T.s_id " +
-                                             "  join x:a.b.X on x.t_id=T._id " +
-                                             " times y:b.Y " +
-                                             " order by s.x desc," +
-                                             "          y.x," +
-                                             "          T.b asc", SELECT);
-
+                     Select select = p.parse("select a, b from s:S order by s.a asc", SELECT);
                      Context context = new Context(db.structure());
                      assertEquals(new SelectBuilder(context)
-                                      .starColumn("s")
-                                      .starColumn("T")
-                                      .column("x.a+x.b", "v", Attr.of("m1", "x"), Attr.of("m2", "y>=5"))
-                                      .from("S", "s")
-                                      .leftJoin("a.b.T", null, "s._id = T.s_id")
-                                      .join("a.b.X", "x", "x.t_id = T._id")
-                                      .times("b.Y", "y")
-                                      .orderBy("s.x", "desc")
-                                      .orderBy("y.x")
-                                      .orderBy("T.b", "asc")
-                                      .build(),
+                                        .column("a", null)
+                                        .column("b", null)
+                                        .from("S", "s")
+                                        .orderBy("s.a", "asc")
+                                        .build(),
                                   select);
                      con.exec(select);
                    }
                  }));
   }
 
-  @Test
-  void simpleSelect() {
-    TestDatabase db = Databases.TestDatabase();
-    Parser parser = new Parser(db.structure());
-    Program program = parser.parse("select * from s:S left join a.b.T on s._id=t.s_id order by x desc");
+  @TestFactory
+  Stream<DynamicTest> joinSelect() {
+    return Stream.of(databases)
+                 .map(db -> dynamicTest(db.target().toString(), () -> {
+                   System.out.println(db.target());
+                   Parser p = new Parser(db.structure());
+                   try (EsqlConnection con = db.esql(db.pooledConnection())) {
+                     Select select = p.parse("select s.*, T.*, v:x.a + y.b {m1:x.a, m2: y.b >= 5} " +
+                                             "  from s:S " +
+                                             "  left join a.b.T on s._id=T.s_id " +
+                                             "  join x:a.b.X on x.t_id=T._id " +
+                                             " times y:b.Y " +
+                                             " order by s.a desc," +
+                                             "          y.b," +
+                                             "          T.b asc", SELECT);
 
-    List<Statement<?, ?>> st = program.statements();
-    assertEquals(1, st.size());
-
-    assertTrue(st.get(0) instanceof Select);
-    Select select = (Select)st.get(0);
-    Context context = new Context(db.structure());
-    assertEquals(new SelectBuilder(context)
-                      .starColumn(null)
-                      .from("S", "s")
-                      .leftJoin("a.b.T", "T", "s._id = t.s_id")
-                      .orderBy("x", "desc")
-                      .build(),
-                 select);
+                     Context context = new Context(db.structure());
+                     assertEquals(new SelectBuilder(context)
+                                      .starColumn("s")
+                                      .starColumn("T")
+                                      .column("x.a+y.b", "v", Attr.of("m1", "x.a"), Attr.of("m2", "y.b>=5"))
+                                      .from("S", "s")
+                                      .leftJoin("a.b.T", null, "s._id = T.s_id")
+                                      .join("a.b.X", "x", "x.t_id = T._id")
+                                      .times("b.Y", "y")
+                                      .orderBy("s.a", "desc")
+                                      .orderBy("y.b")
+                                      .orderBy("T.b", "asc")
+                                      .build(),
+                                  select);
+                     con.exec(select);
+                   }
+                 }));
   }
 
   @Test

@@ -6,8 +6,6 @@ package ma.vi.esql.exec;
 
 import ma.vi.base.collections.Maps;
 import ma.vi.base.tuple.T2;
-import ma.vi.esql.parser.Parser;
-import ma.vi.esql.parser.Translatable;
 import ma.vi.esql.parser.*;
 import ma.vi.esql.parser.expression.Literal;
 import ma.vi.esql.parser.expression.NamedParameter;
@@ -20,16 +18,7 @@ import java.util.*;
 import static ma.vi.base.lang.Errors.unchecked;
 
 /**
- * An abstract ESQL connection which facilitates the creation of database-specific
- * ESQL connections types. Two such DB-specific ESQL connections are included in
- * the system, one for MS SQL Server and the other for PostgreSQL. Both are equally
- * well supported.
- *
- * An interface representing a connection to the database through which ESQL
- * statement can be sent. An ESQL connection will normally wrap and specialise
- * a JDBC database connection for querying the database using ESQL, but still
- * allowing direct access to the underlying connection for when SQL commands
- * need to be sent.
+ * The implementation of {@link EsqlConnection}.
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
@@ -251,51 +240,6 @@ public class EsqlConnectionImpl implements EsqlConnection {
       }
     }
   }
-
-//  private static void exploreChild(String childName,
-//                                   Object child,
-//                                   int level,
-//                                   PriorityQueue<Integer> orders,
-//                                   Map<Integer, List<T2<String, Macro>>> macros,
-//                                   IdentityHashMap<Macro, Boolean> previousExpansionResult,
-//                                   IdentityHashMap<Object, Object> cycleDetector) {
-//    if (cycleDetector.containsKey(child)) {
-//      if (child instanceof Esql) {
-//        Esql<?, ?> esql = (Esql<?, ?>)child;
-//        throw new TranslationException("Cycle detected during macro expansion with the following Esql element " +
-//            "present in the cycle: " + esql.getClass() + " {value: " +
-//            esql.value + ", parent: " + esql.parent +
-//            (esql.parent == null ? "" : " of class " + esql.parent.getClass()) +
-//            ", children: " + Maps.toString(esql.children) + "}");
-//      } else {
-//        throw new TranslationException("Cycle detected during macro expansion with the following object " +
-//            "present in the cycle: " + child.getClass() + " {value: " +
-//            child + "}");
-//      }
-//    }
-//    cycleDetector.put(child, child);
-//
-//    if (child instanceof Esql<?, ?>) {
-//      loadMacros((Esql<?, ?>)child, level, orders, macros,
-//          previousExpansionResult, cycleDetector);
-//    }
-//    if (child instanceof Macro) {
-//      Macro macro = (Macro)child;
-//
-//      // only add this macro for expansion if it has not been seen before
-//      // or it was expanded before (which means that it could expand more).
-//      if (previousExpansionResult.getOrDefault(macro, true)) {
-//        int order = macro.expansionOrder() - level;
-//        if (macros.containsKey(order)) {
-//          macros.get(order).add(T2.of(childName, macro));
-//        } else {
-//          orders.add(order);
-//          macros.put(order, new ArrayList<>(Collections.singletonList(T2.of(childName, macro))));
-//        }
-//      }
-//    }
-//    cycleDetector.remove(child);
-//  }
 
   protected final Translatable.Target target;
 

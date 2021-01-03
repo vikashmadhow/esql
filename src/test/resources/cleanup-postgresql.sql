@@ -12,4 +12,14 @@ drop schema "_platform.sampling" cascade;
 drop schema _core cascade;
 
 
-select "_id" _id, "name" name, "relation_id" relation_id, "type" type, "check_expr" check_expr, "source_columns" source_columns, "target_relation_id" target_relation_id, "target_columns" target_columns, "forward_cost" forward_cost, "reverse_cost" reverse_cost, "on_update" on_update, "on_delete" on_delete from "_core"."constraints" "constraints"
+select "a" > "b",
+       '"a" > "b"',
+       (select max("b") "max" from "public"."S" "S"),
+       '(select max("b") "max" from "public"."S" "S")',
+       "a" "a",
+       "b" "b",
+       "b" > 5,
+       '"b" > 5',
+       "a" != 0, '"a" != 0', "b" < 0, '"b" < 0'
+from "public"."S" "S"
+order by "S"."a" asc;

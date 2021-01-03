@@ -7,6 +7,11 @@ package ma.vi.esql.parser.define;
 import ma.vi.esql.parser.Context;
 import ma.vi.esql.parser.expression.Expression;
 
+/**
+ * The definition of a derived column in a create table statement.
+ *
+ * @author vikash.madhow@gmail.com
+ */
 public class DerivedColumnDefinition extends ColumnDefinition {
   public DerivedColumnDefinition(Context context,
                                  String name,
