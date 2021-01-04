@@ -13,7 +13,6 @@ import java.util.List;
 
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toSet;
-import static ma.vi.esql.parser.define.ConstraintDefinition.ForeignKeyChangeAction.NO_ACTION;
 import static ma.vi.esql.type.Type.dbTableName;
 import static ma.vi.esql.type.Type.splitName;
 

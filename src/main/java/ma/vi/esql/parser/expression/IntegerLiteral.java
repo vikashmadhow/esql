@@ -8,6 +8,11 @@ import ma.vi.esql.parser.Context;
 import ma.vi.esql.type.Type;
 import ma.vi.esql.type.Types;
 
+/**
+ * An integer in ESQL.
+ *
+ * @author Vikash Madhow (vikash.madhow@gmail.com)
+ */
 public class IntegerLiteral extends BaseLiteral<Long> {
   public IntegerLiteral(Context context, Long value) {
     super(context, value);

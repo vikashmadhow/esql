@@ -5,12 +5,12 @@
 package ma.vi.esql.parser.macro;
 
 import ma.vi.base.tuple.T4;
-import ma.vi.esql.parser.*;
 import ma.vi.esql.builder.SelectBuilder;
-import ma.vi.esql.parser.expression.*;
-import ma.vi.esql.parser.query.*;
 import ma.vi.esql.database.Structure;
 import ma.vi.esql.function.Function;
+import ma.vi.esql.parser.*;
+import ma.vi.esql.parser.expression.*;
+import ma.vi.esql.parser.query.*;
 import ma.vi.esql.type.Types;
 
 import java.util.ArrayList;

@@ -6,6 +6,11 @@ package ma.vi.esql.parser.expression;
 
 import ma.vi.esql.parser.Context;
 
+/**
+ * Modulus (%) operator in ESQL.
+ *
+ * @author Vikash Madhow (vikash.madhow@gmail.com)
+ */
 public class Modulus extends ArithmeticOperator {
   public Modulus(Context context, Expression<?> expr1, Expression<?> expr2) {
     super(context, "%", expr1, expr2);

@@ -6,6 +6,11 @@ package ma.vi.esql.parser.expression;
 
 import ma.vi.esql.parser.Context;
 
+/**
+ * Arithmetic negation (-) in ESQL.
+ *
+ * @author Vikash Madhow (vikash.madhow@gmail.com)
+ */
 public class Negation extends SingleSubExpression {
   public Negation(Context context, Expression negated) {
     super(context, negated);

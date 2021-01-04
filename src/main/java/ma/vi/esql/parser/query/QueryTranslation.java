@@ -4,9 +4,9 @@
 
 package ma.vi.esql.parser.query;
 
+import ma.vi.base.tuple.T3;
 import ma.vi.esql.exec.ColumnMapping;
 import ma.vi.esql.type.Type;
-import ma.vi.base.tuple.T3;
 
 import java.util.List;
 import java.util.Map;

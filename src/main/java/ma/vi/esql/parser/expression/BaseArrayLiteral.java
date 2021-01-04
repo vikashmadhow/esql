@@ -4,9 +4,9 @@
 
 package ma.vi.esql.parser.expression;
 
+import ma.vi.base.util.Convert;
 import ma.vi.esql.parser.Context;
 import ma.vi.esql.type.Type;
-import ma.vi.base.util.Convert;
 import ma.vi.esql.type.Types;
 
 import java.lang.reflect.Array;

@@ -8,11 +8,16 @@ import ma.vi.esql.parser.Context;
 import ma.vi.esql.type.Type;
 import ma.vi.esql.type.Types;
 
-import static ma.vi.esql.parser.Translatable.Target.JSON;
 import static ma.vi.base.string.Escape.escapeJsonString;
+import static ma.vi.esql.parser.Translatable.Target.JSON;
 
+/**
+ * The is null operator in ESQL.
+ *
+ * @author Vikash Madhow (vikash.madhow@gmail.com)
+ */
 public class IsNull extends SingleSubExpression {
-  public IsNull(Context context, Expression expr) {
+  public IsNull(Context context, Expression<?> expr) {
     super(context, expr);
   }
 

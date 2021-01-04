@@ -4,7 +4,6 @@
 
 package ma.vi.esql.type;
 
-import ma.vi.esql.parser.expression.ColumnRef;
 import ma.vi.esql.parser.expression.Expression;
 import ma.vi.esql.parser.query.Column;
 

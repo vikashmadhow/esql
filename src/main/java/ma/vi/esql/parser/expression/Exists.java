@@ -9,6 +9,11 @@ import ma.vi.esql.parser.query.Select;
 import ma.vi.esql.type.Type;
 import ma.vi.esql.type.Types;
 
+/**
+ * The exists operator in ESQL.
+ *
+ * @author Vikash Madhow (vikash.madhow@gmail.com)
+ */
 public class Exists extends Expression<Select> {
   public Exists(Context context, Select select) {
     super(context, select);

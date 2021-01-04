@@ -9,8 +9,16 @@ import ma.vi.esql.parser.Context;
 import static ma.vi.base.string.Escape.escapeJsonString;
 import static ma.vi.esql.parser.Translatable.Target.JSON;
 
+/**
+ * Parent of binary operators in ESQL.
+ *
+ * @author Vikash Madhow (vikash.madhow@gmail.com)
+ */
 abstract class BinaryOperator extends DoubleSubExpressions<String> {
-  public BinaryOperator(Context context, String op, Expression expr1, Expression expr2) {
+  public BinaryOperator(Context context,
+                        String op,
+                        Expression<?> expr1,
+                        Expression<?> expr2) {
     super(context, op, expr1, expr2);
   }
 

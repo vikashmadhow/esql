@@ -6,6 +6,11 @@ package ma.vi.esql.parser.expression;
 
 import ma.vi.esql.parser.Context;
 
+/**
+ * Multiplication operator in ESQL.
+ *
+ * @author Vikash Madhow (vikash.madhow@gmail.com)
+ */
 public class Multiplication extends ArithmeticOperator {
   public Multiplication(Context context, Expression<?> expr1, Expression<?> expr2) {
     super(context, "*", expr1, expr2);

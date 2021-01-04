@@ -10,6 +10,11 @@ import ma.vi.esql.parser.Esql;
 
 import java.util.List;
 
+/**
+ * Base literals are literals of simple types.
+ *
+ * @author Vikash Madhow (vikash.madhow@gmail.com)
+ */
 public abstract class BaseLiteral<V> extends Literal<V> {
   public BaseLiteral(Context context, V value) {
     super(context, value);

@@ -4,11 +4,11 @@
 
 package ma.vi.esql.type;
 
+import ma.vi.base.tuple.T2;
 import ma.vi.esql.parser.Close;
 import ma.vi.esql.parser.Copy;
 import ma.vi.esql.parser.Translatable;
 import ma.vi.esql.parser.expression.Expression;
-import ma.vi.base.tuple.T2;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentMap;

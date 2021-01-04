@@ -4,13 +4,21 @@
 
 package ma.vi.esql.parser.expression;
 
+import ma.vi.base.tuple.T2;
 import ma.vi.esql.parser.Context;
 import ma.vi.esql.parser.Esql;
 import ma.vi.esql.parser.query.Select;
 import ma.vi.esql.type.Type;
-import ma.vi.base.tuple.T2;
 import ma.vi.esql.type.Types;
 
+/**
+ * The quantified comparison operator in ESQL takes the form of
+ * <pre>
+ *   expression comparison-operator ('all'|'any') (select)
+ * </pre>
+ *
+ * @author Vikash Madhow (vikash.madhow@gmail.com)
+ */
 public class QuantifiedComparison extends Expression<Expression<?>> {
   public QuantifiedComparison(Context context, Expression<?> expr, String compareOp,
                               String quantifier, Select select) {

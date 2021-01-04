@@ -9,6 +9,11 @@ import ma.vi.esql.type.Type;
 
 import static ma.vi.esql.type.Types.BoolType;
 
+/**
+ * A boolean literal in ESQL.
+ *
+ * @author Vikash Madhow (vikash.madhow@gmail.com)
+ */
 public class BooleanLiteral extends BaseLiteral<Boolean> {
   public BooleanLiteral(Context context, Boolean value) {
     super(context, value);

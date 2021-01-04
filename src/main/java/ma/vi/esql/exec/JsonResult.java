@@ -4,10 +4,6 @@
 
 package ma.vi.esql.exec;
 
-import static java.util.stream.Collectors.joining;
-import static ma.vi.base.util.Numbers.isIntegral;
-import static org.json.JSONObject.quote;
-
 /**
  * Utility class to serialize query result to Json.
  * The result is serialized as such:

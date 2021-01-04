@@ -8,6 +8,11 @@ import ma.vi.esql.parser.Context;
 
 import static ma.vi.esql.parser.Translatable.Target.SQLSERVER;
 
+/**
+ * The negation of the case-insensitive like (not ilike) operator in ESQL.
+ *
+ * @author Vikash Madhow (vikash.madhow@gmail.com)
+ */
 public class NotILike extends RelationalOperator {
   public NotILike(Context context, Expression<?> expr1, Expression<?> expr2) {
     super(context, "not ilike", expr1, expr2);

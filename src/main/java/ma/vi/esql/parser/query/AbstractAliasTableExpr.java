@@ -4,9 +4,9 @@
 
 package ma.vi.esql.parser.query;
 
+import ma.vi.base.tuple.T2;
 import ma.vi.esql.parser.Context;
 import ma.vi.esql.parser.Esql;
-import ma.vi.base.tuple.T2;
 
 /**
  * A table expression which can be aliased (a single table, a select expression

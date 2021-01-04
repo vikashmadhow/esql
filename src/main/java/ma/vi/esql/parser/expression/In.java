@@ -4,17 +4,22 @@
 
 package ma.vi.esql.parser.expression;
 
+import ma.vi.base.tuple.T2;
 import ma.vi.esql.parser.Context;
 import ma.vi.esql.parser.Esql;
 import ma.vi.esql.parser.query.Select;
 import ma.vi.esql.type.Type;
-import ma.vi.base.tuple.T2;
 import ma.vi.esql.type.Types;
 
 import java.util.List;
 
 import static java.util.stream.Collectors.joining;
 
+/**
+ * The in operator in ESQL.
+ *
+ * @author Vikash Madhow (vikash.madhow@gmail.com)
+ */
 public class In extends Expression<Expression<?>> {
   public In(Context context, Expression expr, boolean not, List<Expression<?>> expressionList, Select select) {
     super(context, expr,

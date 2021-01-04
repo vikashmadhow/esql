@@ -16,6 +16,11 @@ import java.util.Date;
 import static ma.vi.base.string.Escape.escapeJsonString;
 import static ma.vi.esql.parser.Translatable.Target.JSON;
 
+/**
+ * A date literal in ESQL.
+ *
+ * @author Vikash Madhow (vikash.madhow@gmail.com)
+ */
 public class DateLiteral extends BaseLiteral<String> {
   public DateLiteral(Context context, String value) {
     super(context, value);

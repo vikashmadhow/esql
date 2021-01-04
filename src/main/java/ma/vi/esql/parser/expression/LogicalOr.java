@@ -6,9 +6,14 @@ package ma.vi.esql.parser.expression;
 
 import ma.vi.esql.parser.Context;
 
-import static ma.vi.esql.parser.Translatable.Target.JSON;
 import static ma.vi.base.string.Escape.escapeJsonString;
+import static ma.vi.esql.parser.Translatable.Target.JSON;
 
+/**
+ * Logical or operator in ESQL.
+ *
+ * @author Vikash Madhow (vikash.madhow@gmail.com)
+ */
 public class LogicalOr extends RelationalOperator {
   public LogicalOr(Context context, Expression<?> expr1, Expression<?> expr2) {
     super(context, "or", expr1, expr2);

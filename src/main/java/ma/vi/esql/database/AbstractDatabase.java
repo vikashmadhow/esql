@@ -27,7 +27,6 @@ import static java.util.Collections.emptyList;
 import static ma.vi.base.string.Escape.escapeSqlString;
 import static ma.vi.esql.builder.Attributes.*;
 import static ma.vi.esql.parser.Translatable.Target.ESQL;
-import static ma.vi.esql.parser.define.ConstraintDefinition.ForeignKeyChangeAction.NO_ACTION;
 import static ma.vi.esql.parser.define.ConstraintDefinition.Type.fromMarker;
 
 /**

@@ -4,9 +4,9 @@
 
 package ma.vi.esql.parser.expression;
 
+import ma.vi.base.tuple.T2;
 import ma.vi.esql.parser.Context;
 import ma.vi.esql.parser.Esql;
-import ma.vi.base.tuple.T2;
 
 import java.util.HashSet;
 import java.util.List;

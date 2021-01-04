@@ -4,14 +4,14 @@
 
 package ma.vi.esql.parser.expression;
 
+import ma.vi.base.tuple.T2;
 import ma.vi.esql.parser.Context;
 import ma.vi.esql.parser.Esql;
 import ma.vi.esql.type.Type;
-import ma.vi.base.tuple.T2;
 import ma.vi.esql.type.Types;
 
-import static ma.vi.esql.parser.Translatable.Target.JSON;
 import static ma.vi.base.string.Escape.escapeJsonString;
+import static ma.vi.esql.parser.Translatable.Target.JSON;
 
 /**
  * A range expression bounds an expression between two expression

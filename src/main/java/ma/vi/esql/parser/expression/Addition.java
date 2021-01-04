@@ -6,8 +6,15 @@ package ma.vi.esql.parser.expression;
 
 import ma.vi.esql.parser.Context;
 
+/**
+ * An addition in ESQL.
+ *
+ * @author Vikash Madhow (vikash.madhow@gmail.com)
+ */
 public class Addition extends ArithmeticOperator {
-  public Addition(Context context, Expression<?> expr1, Expression<?> expr2) {
+  public Addition(Context context,
+                  Expression<?> expr1,
+                  Expression<?> expr2) {
     super(context, "+", expr1, expr2);
   }
 

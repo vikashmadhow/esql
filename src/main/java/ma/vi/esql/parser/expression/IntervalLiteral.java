@@ -9,9 +9,14 @@ import ma.vi.esql.type.Interval;
 import ma.vi.esql.type.Type;
 import ma.vi.esql.type.Types;
 
-import static ma.vi.esql.parser.Translatable.Target.JSON;
 import static ma.vi.base.string.Escape.escapeJsonString;
+import static ma.vi.esql.parser.Translatable.Target.JSON;
 
+/**
+ * A interval literal in ESQL.
+ *
+ * @author Vikash Madhow (vikash.madhow@gmail.com)
+ */
 public class IntervalLiteral extends BaseLiteral<String> {
   public IntervalLiteral(Context context, String value) {
     super(context, value);

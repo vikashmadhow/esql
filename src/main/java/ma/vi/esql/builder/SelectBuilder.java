@@ -11,7 +11,7 @@ import ma.vi.esql.parser.define.Attribute;
 import ma.vi.esql.parser.define.GroupBy;
 import ma.vi.esql.parser.define.Metadata;
 import ma.vi.esql.parser.expression.Expression;
-import ma.vi.esql.parser.expression.StarColumn;
+import ma.vi.esql.parser.query.StarColumn;
 import ma.vi.esql.parser.query.*;
 
 import java.util.ArrayList;

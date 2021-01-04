@@ -9,8 +9,8 @@ import ma.vi.base.lang.NotFoundException;
 import ma.vi.base.string.Strings;
 import ma.vi.base.tuple.T3;
 import ma.vi.esql.database.DataException;
-import ma.vi.esql.parser.query.Column;
 import ma.vi.esql.database.Structure;
+import ma.vi.esql.parser.query.Column;
 import ma.vi.esql.type.*;
 import org.postgresql.util.PGInterval;
 

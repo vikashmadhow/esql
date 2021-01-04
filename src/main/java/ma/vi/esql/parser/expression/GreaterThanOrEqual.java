@@ -6,6 +6,11 @@ package ma.vi.esql.parser.expression;
 
 import ma.vi.esql.parser.Context;
 
+/**
+ * A greater-than-or-equal operator in ESQL.
+ *
+ * @author Vikash Madhow (vikash.madhow@gmail.com)
+ */
 public class GreaterThanOrEqual extends RelationalOperator {
   public GreaterThanOrEqual(Context context, Expression<?> expr1, Expression<?> expr2) {
     super(context, ">=", expr1, expr2);

@@ -4,9 +4,9 @@
 
 package ma.vi.esql.parser;
 
+import ma.vi.esql.database.Structure;
 import ma.vi.esql.type.Type;
 import ma.vi.esql.type.Types;
-import ma.vi.esql.database.Structure;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;

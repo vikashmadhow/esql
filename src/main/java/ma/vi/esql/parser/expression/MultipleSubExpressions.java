@@ -8,7 +8,6 @@ import ma.vi.esql.parser.Context;
 import ma.vi.esql.type.Type;
 import ma.vi.esql.type.Types;
 
-import java.util.Iterator;
 import java.util.List;
 
 /**

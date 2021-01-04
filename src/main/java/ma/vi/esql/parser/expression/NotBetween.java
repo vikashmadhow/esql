@@ -6,9 +6,14 @@ package ma.vi.esql.parser.expression;
 
 import ma.vi.esql.parser.Context;
 
-import static ma.vi.esql.parser.Translatable.Target.JSON;
 import static ma.vi.base.string.Escape.escapeJsonString;
+import static ma.vi.esql.parser.Translatable.Target.JSON;
 
+/**
+ * The negation of the between operator (not between) in ESQL.
+ *
+ * @author Vikash Madhow (vikash.madhow@gmail.com)
+ */
 public class NotBetween extends Between {
   public NotBetween(Context context, Expression<?> compare, Expression<?> from, Expression<?> to) {
     super(context, compare, from, to);

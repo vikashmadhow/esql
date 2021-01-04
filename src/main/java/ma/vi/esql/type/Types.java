@@ -9,7 +9,6 @@ import ma.vi.esql.parser.Translatable;
 import java.sql.Date;
 import java.sql.Time;
 import java.util.HashMap;
-import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;

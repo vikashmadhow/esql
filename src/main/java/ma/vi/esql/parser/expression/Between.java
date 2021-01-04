@@ -12,6 +12,11 @@ import ma.vi.esql.type.Types;
 import static ma.vi.base.string.Escape.escapeJsonString;
 import static ma.vi.esql.parser.Translatable.Target.JSON;
 
+/**
+ * Between range comparison operator in ESQL.
+ *
+ * @author Vikash Madhow (vikash.madhow@gmail.com)
+ */
 public class Between extends Expression<Expression<?>> {
   public Between(Context context, Expression<?> compare, Expression<?> from, Expression<?> to) {
     super(context, compare, T2.of("from", from), T2.of("to", to));

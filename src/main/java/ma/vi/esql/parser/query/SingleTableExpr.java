@@ -6,9 +6,7 @@ package ma.vi.esql.parser.query;
 
 import ma.vi.base.lang.NotFoundException;
 import ma.vi.esql.parser.Context;
-import ma.vi.esql.type.AliasedRelation;
 import ma.vi.esql.type.BaseRelation;
-import ma.vi.esql.type.Relation;
 import ma.vi.esql.type.Type;
 
 /**

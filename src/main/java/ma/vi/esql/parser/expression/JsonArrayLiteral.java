@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 import static java.util.stream.Collectors.joining;
 
 /**
- * Json array.
+ * Json array literal in ESQL.
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */

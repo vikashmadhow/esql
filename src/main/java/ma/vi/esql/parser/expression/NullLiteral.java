@@ -8,6 +8,11 @@ import ma.vi.esql.parser.Context;
 import ma.vi.esql.type.Type;
 import ma.vi.esql.type.Types;
 
+/**
+ * The null literal ('null') in ESQL.
+ *
+ * @author Vikash Madhow (vikash.madhow@gmail.com)
+ */
 public class NullLiteral extends Literal<String> {
   public NullLiteral(Context context) {
     super(context, "null");

@@ -4,13 +4,13 @@
 
 package ma.vi.esql.function;
 
-import ma.vi.esql.parser.Translatable;
+import ma.vi.esql.database.Structure;
 import ma.vi.esql.parser.QueryUpdate;
+import ma.vi.esql.parser.Translatable;
 import ma.vi.esql.parser.expression.ColumnRef;
 import ma.vi.esql.parser.expression.Expression;
 import ma.vi.esql.parser.expression.FunctionCall;
 import ma.vi.esql.parser.macro.LookupLabelMacroFunction;
-import ma.vi.esql.database.Structure;
 import ma.vi.esql.type.Types;
 
 import java.util.Arrays;

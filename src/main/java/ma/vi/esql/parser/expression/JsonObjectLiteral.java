@@ -15,7 +15,7 @@ import java.util.List;
 import static java.util.stream.Collectors.joining;
 
 /**
- * Json object.
+ * Json object literal in ESQL.
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */

@@ -4,11 +4,11 @@
 
 package ma.vi.esql.parser.query;
 
+import ma.vi.base.tuple.T2;
 import ma.vi.esql.parser.Context;
 import ma.vi.esql.parser.Esql;
 import ma.vi.esql.parser.expression.Expression;
 import ma.vi.esql.type.Type;
-import ma.vi.base.tuple.T2;
 import ma.vi.esql.type.Types;
 
 /**

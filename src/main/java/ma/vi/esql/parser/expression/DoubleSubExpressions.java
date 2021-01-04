@@ -4,9 +4,9 @@
 
 package ma.vi.esql.parser.expression;
 
+import ma.vi.base.tuple.T2;
 import ma.vi.esql.parser.Context;
 import ma.vi.esql.type.Type;
-import ma.vi.base.tuple.T2;
 
 /**
  * Abstract parent of ESQL expressions taking exactly two arguments.

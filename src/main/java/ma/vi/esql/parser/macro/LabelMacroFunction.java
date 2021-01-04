@@ -4,13 +4,13 @@
 
 package ma.vi.esql.parser.macro;
 
-import ma.vi.esql.parser.*;
 import ma.vi.esql.builder.SelectBuilder;
+import ma.vi.esql.database.Structure;
+import ma.vi.esql.function.Function;
+import ma.vi.esql.parser.*;
 import ma.vi.esql.parser.define.ForeignKeyConstraint;
 import ma.vi.esql.parser.expression.*;
 import ma.vi.esql.parser.query.*;
-import ma.vi.esql.database.Structure;
-import ma.vi.esql.function.Function;
 import ma.vi.esql.type.BaseRelation;
 import ma.vi.esql.type.Relation;
 import ma.vi.esql.type.Types;

@@ -2,11 +2,10 @@
  * Copyright (c) 2020 Vikash Madhow
  */
 
-package ma.vi.esql.parser.expression;
+package ma.vi.esql.parser.query;
 
 import ma.vi.esql.parser.Context;
 import ma.vi.esql.parser.Esql;
-import ma.vi.esql.parser.query.Column;
 
 import static ma.vi.base.string.Escape.escapeJsonString;
 import static ma.vi.esql.parser.Translatable.Target.JSON;

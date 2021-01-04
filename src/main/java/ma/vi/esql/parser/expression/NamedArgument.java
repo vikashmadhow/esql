@@ -4,11 +4,18 @@
 
 package ma.vi.esql.parser.expression;
 
-import ma.vi.esql.parser.Context;
 import ma.vi.base.tuple.T2;
+import ma.vi.esql.parser.Context;
 
 import static ma.vi.esql.parser.Translatable.Target.JSON;
 
+/**
+ * A named argument to a function. The name is dropped when this is translated
+ * to SQL as most databases does not support named arguments yet. This is
+ * however useful for macro expansions.
+ *
+ * @author Vikash Madhow (vikash.madhow@gmail.com)
+ */
 public class NamedArgument extends Expression<String> {
   public NamedArgument(Context context, String name, Expression<?> arg) {
     super(context, name, T2.of("arg", arg));

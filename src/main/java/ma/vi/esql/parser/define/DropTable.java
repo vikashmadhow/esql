@@ -4,10 +4,10 @@
 
 package ma.vi.esql.parser.define;
 
-import ma.vi.esql.parser.Context;
-import ma.vi.esql.exec.Result;
-import ma.vi.esql.type.BaseRelation;
 import ma.vi.esql.database.Structure;
+import ma.vi.esql.exec.Result;
+import ma.vi.esql.parser.Context;
+import ma.vi.esql.type.BaseRelation;
 
 import java.sql.Connection;
 import java.sql.SQLException;

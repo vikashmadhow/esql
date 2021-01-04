@@ -4,11 +4,13 @@
 
 package ma.vi.esql.parser.expression;
 
+import ma.vi.base.tuple.T2;
 import ma.vi.esql.parser.Context;
 import ma.vi.esql.type.Type;
-import ma.vi.base.tuple.T2;
 
 /**
+ * Casts an expression to a given type.
+ *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 public class Cast extends Expression<Type> {

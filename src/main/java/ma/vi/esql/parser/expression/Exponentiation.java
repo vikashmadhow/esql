@@ -6,9 +6,14 @@ package ma.vi.esql.parser.expression;
 
 import ma.vi.esql.parser.Context;
 
-import static ma.vi.esql.parser.Translatable.Target.JSON;
 import static ma.vi.base.string.Escape.escapeJsonString;
+import static ma.vi.esql.parser.Translatable.Target.JSON;
 
+/**
+ * The exponentiation operator (^) in ESQL.
+ *
+ * @author Vikash Madhow (vikash.madhow@gmail.com)
+ */
 public class Exponentiation extends ArithmeticOperator {
   public Exponentiation(Context context, Expression<?> expr1, Expression<?> expr2) {
     super(context, "^", expr1, expr2);

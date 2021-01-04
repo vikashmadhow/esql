@@ -8,6 +8,11 @@ import ma.vi.esql.parser.Context;
 
 import static ma.vi.esql.parser.Translatable.Target.SQLSERVER;
 
+/**
+ * The case-insensitive like operator (ilike) in ESQL.
+ *
+ * @author Vikash Madhow (vikash.madhow@gmail.com)
+ */
 public class ILike extends RelationalOperator {
   public ILike(Context context, Expression<?> expr1, Expression<?> expr2) {
     super(context, "ilike", expr1, expr2);

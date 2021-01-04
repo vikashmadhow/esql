@@ -6,9 +6,14 @@ package ma.vi.esql.parser.expression;
 
 import ma.vi.esql.parser.Context;
 
-import static ma.vi.esql.parser.Translatable.Target.JSON;
 import static ma.vi.base.string.Escape.escapeJsonString;
+import static ma.vi.esql.parser.Translatable.Target.JSON;
 
+/**
+ * The inequality operator in ESQL.
+ *
+ * @author Vikash Madhow (vikash.madhow@gmail.com)
+ */
 public class Inequality extends RelationalOperator {
   public Inequality(Context context, Expression<?> expr1, Expression<?> expr2) {
     super(context, "!=", expr1, expr2);

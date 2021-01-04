@@ -6,6 +6,11 @@ package ma.vi.esql.parser.expression;
 
 import ma.vi.esql.parser.Context;
 
+/**
+ * Like operator in ESQL.
+ *
+ * @author Vikash Madhow (vikash.madhow@gmail.com)
+ */
 public class Like extends RelationalOperator {
   public Like(Context context, Expression<?> expr1, Expression<?> expr2) {
     super(context, "like", expr1, expr2);

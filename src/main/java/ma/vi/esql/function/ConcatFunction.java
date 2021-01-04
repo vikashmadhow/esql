@@ -4,10 +4,10 @@
 
 package ma.vi.esql.function;
 
+import ma.vi.esql.database.Structure;
 import ma.vi.esql.parser.Translatable;
 import ma.vi.esql.parser.expression.Expression;
 import ma.vi.esql.parser.expression.FunctionCall;
-import ma.vi.esql.database.Structure;
 import ma.vi.esql.type.Types;
 
 import java.util.Iterator;
