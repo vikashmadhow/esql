@@ -14,7 +14,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
 
 /**
- * TableType information on various structures stored in the database
+ * Type information on various structures stored in the database
  * including the types themselves.
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)

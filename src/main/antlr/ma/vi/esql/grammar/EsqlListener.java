@@ -534,6 +534,18 @@ public interface EsqlListener extends ParseTreeListener {
 	 */
 	void exitQuantifiedComparison(EsqlParser.QuantifiedComparisonContext ctx);
 	/**
+	 * Enter a parse tree produced by the {@code StarExpr}
+	 * labeled alternative in {@link EsqlParser#expr}.
+	 * @param ctx the parse tree
+	 */
+	void enterStarExpr(EsqlParser.StarExprContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code StarExpr}
+	 * labeled alternative in {@link EsqlParser#expr}.
+	 * @param ctx the parse tree
+	 */
+	void exitStarExpr(EsqlParser.StarExprContext ctx);
+	/**
 	 * Enter a parse tree produced by the {@code BetweenExpr}
 	 * labeled alternative in {@link EsqlParser#expr}.
 	 * @param ctx the parse tree

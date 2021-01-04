@@ -567,6 +567,9 @@ expr
     | left=expr op=('*' | '/' | '%') right=expr                 #MultiplicationExpr
     | left=expr op=('+' | '-') right=expr                       #AdditionExpr
 
+    | '*'                                                       #StarExpr           // Only valid as an argument to
+                                                                                    // certain functions such as count
+
     | ':' Identifier                                            #NamedParameter
     | Identifier ':=' expr                                      #NamedArgument      // A named argument to a function. The name
                                                                                     // is dropped when this is translated to SQL

@@ -7,25 +7,26 @@ package ma.vi.esql.parser.expression;
 import ma.vi.esql.parser.Context;
 
 /**
- * Groups an expression by surrounding it with parenthesis.
+ * The star symbol (*) which is only valid as an argument to
+ * certain functions such as count.
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public class GroupedExpression extends SingleSubExpression {
-  public GroupedExpression(Context context, Expression<?> expr) {
-    super(context, expr);
+public class StarExpression extends Expression<String> {
+  public StarExpression(Context context) {
+    super(context, "star");
   }
 
-  public GroupedExpression(GroupedExpression other) {
+  public StarExpression(StarExpression other) {
     super(other);
   }
 
   @Override
-  public GroupedExpression copy() {
+  public StarExpression copy() {
     if (!copying()) {
       try {
         copying(true);
-        return new GroupedExpression(this);
+        return new StarExpression(this);
       } finally {
         copying(false);
       }
@@ -36,13 +37,11 @@ public class GroupedExpression extends SingleSubExpression {
 
   @Override
   public String translate(Target target) {
-    return '(' + expr().translate(target) + ')';
+    return "*";
   }
 
   @Override
   public void _toString(StringBuilder st, int level, int indent) {
-    st.append('(');
-    expr()._toString(st, level, indent);
-    st.append(')');
+    st.append("*");
   }
 }
