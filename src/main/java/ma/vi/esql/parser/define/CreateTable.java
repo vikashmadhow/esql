@@ -164,7 +164,7 @@ public class CreateTable extends Define<String> {
         Map<String, ColumnDefinition> columns = new HashMap<>();
         for (ColumnDefinition column: columns()) {
           columns.put(column.name(), column);
-          Column existingColumn = table.column(column.name());
+          Column existingColumn = table.findColumn(null, column.name());
           if (existingColumn == null) {
             /*
              * No existing field with that name: add
@@ -226,9 +226,26 @@ public class CreateTable extends Define<String> {
             /*
              * A constraint same as this one does not exist;: add it
              */
-            alter = new AlterTable(context, tableName,
-                                   singletonList(new AddTableDefinition(context, constraint)));
-            alter.execute(con, structure, target);
+            new AlterTable(context, tableName,
+                                   singletonList(new AddTableDefinition(context, constraint))).execute(con, structure, target);
+          } else {
+            /*
+             * There is a similar constraint. For foreign keys check that the cascading
+             * parameters have not changed. If so, update the constraint by dropping
+             * the existing one and recreating it with the new definition.
+             */
+            if (constraint instanceof ForeignKeyConstraint) {
+              ForeignKeyConstraint fk = (ForeignKeyConstraint)constraint;
+              ForeignKeyConstraint existing = (ForeignKeyConstraint)tableConstraint;
+              if (!Objects.equals(fk.onDelete(), existing.onDelete())
+               || !Objects.equals(fk.onUpdate(), existing.onUpdate())) {
+
+                new AlterTable(context, tableName,
+                               singletonList(new DropConstraint(context, tableConstraint.name()))).execute(con, structure, target);
+                new AlterTable(context, tableName,
+                               singletonList(new AddTableDefinition(context, constraint))).execute(con, structure, target);
+              }
+            }
           }
         }
 

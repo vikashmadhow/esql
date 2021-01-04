@@ -53,8 +53,9 @@ public class PrimaryKeyConstraint extends ConstraintDefinition {
 
   @Override
   public String translate(Target target) {
-    return "constraint \"" + (name() != null ? name() : defaultConstraintName()) +
-        "\" primary key(" + quotedColumnsList(columns()) + ')';
+    return "constraint "
+        + '"' + (name() != null ? name() : defaultConstraintName()) + '"'
+        + " primary key(" + quotedColumnsList(columns()) + ')';
   }
 
   @Override

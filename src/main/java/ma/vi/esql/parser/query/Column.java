@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.UUID;
 
 import static ma.vi.esql.builder.Attributes.*;
+import static ma.vi.esql.parser.Translatable.Target.ESQL;
 
 /**
  * A column in a select statement.
@@ -61,7 +62,11 @@ public class Column extends MetadataContainer<Expression<?>, String> {
     boolean derived = def instanceof DerivedColumnDefinition;
     DerivedColumnDefinition derivedDef = derived ? (DerivedColumnDefinition)def : null;
 
-    Type columnType = derived ? derivedDef.expression().type() : def.type();
+//    Type columnType = derived ? derivedDef.expression().type() : def.type();
+    Type columnType = null;
+    if (!derived) {
+      columnType = def.type();
+    }
     Boolean notNull = def.notNull();
     Expression<?> defaultExpr = def.expression();
 
@@ -76,7 +81,9 @@ public class Column extends MetadataContainer<Expression<?>, String> {
     } else if (defaultExpr != null) {
       col.attribute(EXPRESSION, defaultExpr);
     }
-    col.attribute(TYPE, new StringLiteral(def.context, "'" + columnType.translate(Target.ESQL) + "'"));
+    col.attribute(TYPE, new StringLiteral(def.context,
+                                          derived ? Types.VoidType.translate(ESQL)
+                                                  : "'" + columnType.translate(ESQL) + "'"));
     if (notNull) {
       col.attribute(REQUIRED, new BooleanLiteral(def.context, true));
     }
@@ -99,7 +106,7 @@ public class Column extends MetadataContainer<Expression<?>, String> {
 
   @Override
   public String translate(Target target) {
-    if (target == Target.ESQL) {
+    if (target == ESQL) {
       StringBuilder st = new StringBuilder();
       if (alias() != null) {
         st.append(alias()).append(':');
@@ -222,7 +229,7 @@ public class Column extends MetadataContainer<Expression<?>, String> {
     if (metadata() == null) {
       metadata(new Metadata(context, new ArrayList<>()));
     }
-    metadata().attribute(TYPE, new StringLiteral(context, type.translate(Target.ESQL)));
+    metadata().attribute(TYPE, new StringLiteral(context, type.translate(ESQL)));
   }
 
   @Override

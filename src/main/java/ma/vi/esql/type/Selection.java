@@ -13,7 +13,6 @@ import ma.vi.esql.parser.query.TableExpr;
 import java.util.ArrayList;
 import java.util.List;
 
-import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 
 /**
@@ -63,9 +62,11 @@ public class Selection extends Relation {
   }
 
   @Override
-  public List<Column> columnsPrefixedBy(String relationAlias, String prefix) {
+  public List<Column> columns(String relationAlias, String prefix) {
     List<T2<String, Column>> cols = columnsByAlias.getPrefixed(prefix);
-    return cols.stream().map(T2::b).collect(toList());
+    return cols.stream()
+               .map(t -> t.b().copy())
+               .collect(toList());
   }
 
   public TableExpr from() {

@@ -7,6 +7,7 @@ package ma.vi.esql.parser.query;
 import ma.vi.base.lang.NotFoundException;
 import ma.vi.esql.parser.Context;
 import ma.vi.esql.type.AliasedRelation;
+import ma.vi.esql.type.BaseRelation;
 import ma.vi.esql.type.Relation;
 import ma.vi.esql.type.Type;
 
@@ -45,17 +46,18 @@ public class SingleTableExpr extends AbstractAliasTableExpr {
   }
 
   @Override
-  public Relation type() {
+  public BaseRelation type() {
     if (type == null) {
       Type t = context.type(tableName());
       if (t == null) {
         throw new NotFoundException(tableName() + " is not a known relation " +
             "in this query");
-      } else if (!(t instanceof Relation)) {
-        throw new NotFoundException(tableName() + " is not a relation " +
+      } else if (!(t instanceof BaseRelation)) {
+        throw new NotFoundException(tableName() + " is not a base relation " +
             "in this query. It is a " + t.getClass().getSimpleName());
       }
-      type = new AliasedRelation((Relation)t, alias());
+//      type = new AliasedRelation((Relation)t, alias());
+      type = (BaseRelation)t;
     }
     return type;
 
@@ -130,5 +132,5 @@ public class SingleTableExpr extends AbstractAliasTableExpr {
     return value;
   }
 
-  private transient volatile AliasedRelation type;
+  private transient volatile BaseRelation type;
 }

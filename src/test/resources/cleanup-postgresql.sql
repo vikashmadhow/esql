@@ -1,4 +1,3 @@
-drop table "S";
 drop table "X";
 drop table "Y";
 drop schema "_platform.util" cascade;
@@ -9,6 +8,9 @@ drop schema "_platform.import" cascade;
 drop schema "_platform.lookup" cascade;
 drop schema "_platform.report" cascade;
 drop schema "_platform.sampling" cascade;
+drop schema "a.b" cascade;
+drop schema "b" cascade;
+drop table "S";
 drop schema _core cascade;
 
 

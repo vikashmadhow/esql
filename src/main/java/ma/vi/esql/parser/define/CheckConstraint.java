@@ -61,8 +61,9 @@ public class CheckConstraint extends ConstraintDefinition {
 
   @Override
   public String translate(Target target) {
-    return "constraint \"" + (name() != null ? name() : defaultConstraintName()) +
-        "\" check(" + expr().translate(target) + ')';
+    return "constraint "
+        + '"' + (name() != null ? name() : defaultConstraintName()) + '"'
+        + " check(" + expr().translate(target) + ')';
   }
 
   @Override

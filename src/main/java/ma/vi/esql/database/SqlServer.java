@@ -233,189 +233,190 @@ public class SqlServer extends AbstractDatabase {
               "  return @Interval;\n" +
               "end;\n");
 
-      // function to find value from lookups
-      c.createStatement().executeUpdate(
-          "create or alter function _core.lookup_label0(@Code nvarchar(max),\n" +
-              "                                             @Lookup nvarchar(max),\n" +
-              "                                             @ShowCode bit,\n" +
-              "                                             @ShowLabel bit) returns nvarchar(max) as\n" +
-              "begin\n" +
-              "  declare @Result nvarchar(max);\n" +
-              "  select @Result=(iif(coalesce(@ShowCode, 0)=coalesce(@ShowLabel, 0),\n" +
-              "                      code + ' - '+ label,\n" +
-              "                      iif(coalesce(@ShowCode, 0)=1,\n" +
-              "                          code,\n" +
-              "                          label)))\n" +
-              "    from \"_platform.lookup\".\"LookupValue\" v\n" +
-              "    join \"_platform.lookup\".\"Lookup\" l on v.lookup_id=l._id\n" +
-              "  where l.name=@Lookup and v.code=@Code;\n" +
-              "  return @Result;\n" +
-              "end;");
-
-      c.createStatement().executeUpdate("create or alter function _core.lookup_label1(@Code nvarchar(max),\n" +
-                                            "                                             @Lookup nvarchar(max),\n" +
-                                            "                                             @ShowCode bit,\n" +
-                                            "                                             @ShowLabel bit,\n" +
-                                            "                                             @Link1 nvarchar(max)) returns nvarchar(max) as\n" +
-                                            "begin\n" +
-                                            "  declare @LinkCursor Cursor;\n" +
-                                            "  declare @Result nvarchar(max);\n" +
-                                            "\n" +
-                                            "  select @Result=(iif(coalesce(@ShowCode, 0)=coalesce(@ShowLabel, 0),\n" +
-                                            "                      v1.code + ' - '+ v1.label,\n" +
-                                            "                      iif(coalesce(@ShowCode, 0)=1,\n" +
-                                            "                          v1.code,\n" +
-                                            "                          v1.label)))\n" +
-                                            "\n" +
-                                            "    from \"_platform.lookup\".\"LookupValue\" v0\n" +
-                                            "    join \"_platform.lookup\".\"Lookup\" lookup on (v0.lookup_id=lookup._id and lookup.name=@Lookup)\n" +
-                                            "\n" +
-                                            "    join \"_platform.lookup\".\"LookupValueLink\" lk0 on (v0._id=lk0.source_lookup_value_id and lk0.lookup_link=@Link1)\n" +
-                                            "    join \"_platform.lookup\".\"LookupValue\" v1 on v1._id=lk0.target_lookup_value_id\n" +
-                                            "\n" +
-                                            "   where v0.code=@Code;\n" +
-                                            "  return @Result;\n" +
-                                            "end;");
-
-      c.createStatement().executeUpdate("create or alter function _core.lookup_label2(@Code nvarchar(max),\n" +
-                                            "                                             @Lookup nvarchar(max),\n" +
-                                            "                                             @ShowCode bit,\n" +
-                                            "                                             @ShowLabel bit,\n" +
-                                            "                                             @Link1 nvarchar(max),\n" +
-                                            "                                             @Link2 nvarchar(max)) returns nvarchar(max) as\n" +
-                                            "begin\n" +
-                                            "  declare @LinkCursor Cursor;\n" +
-                                            "  declare @Result nvarchar(max);\n" +
-                                            "\n" +
-                                            "  select @Result=(iif(coalesce(@ShowCode, 0)=coalesce(@ShowLabel, 0),\n" +
-                                            "                      v2.code + ' - '+ v2.label,\n" +
-                                            "                      iif(coalesce(@ShowCode, 0)=1,\n" +
-                                            "                          v2.code,\n" +
-                                            "                          v2.label)))\n" +
-                                            "\n" +
-                                            "    from \"_platform.lookup\".\"LookupValue\" v0\n" +
-                                            "    join \"_platform.lookup\".\"Lookup\" lookup on (v0.lookup_id=lookup._id and lookup.name=@Lookup)\n" +
-                                            "\n" +
-                                            "    join \"_platform.lookup\".\"LookupValueLink\" lk0 on (v0._id=lk0.source_lookup_value_id and lk0.lookup_link=@Link1)\n" +
-                                            "    join \"_platform.lookup\".\"LookupValue\" v1 on v1._id=lk0.target_lookup_value_id\n" +
-                                            "\n" +
-                                            "    join \"_platform.lookup\".\"LookupValueLink\" lk1 on (v1._id=lk1.source_lookup_value_id and lk1.lookup_link=@Link2)\n" +
-                                            "    join \"_platform.lookup\".\"LookupValue\" v2 on v2._id=lk1.target_lookup_value_id\n" +
-                                            "\n" +
-                                            "   where v0.code=@Code;\n" +
-                                            "  return @Result;\n" +
-                                            "end;");
-
-      c.createStatement().executeUpdate("create or alter function _core.lookup_label3(@Code nvarchar(max),\n" +
-                                            "                                             @Lookup nvarchar(max),\n" +
-                                            "                                             @ShowCode bit,\n" +
-                                            "                                             @ShowLabel bit,\n" +
-                                            "                                             @Link1 nvarchar(max),\n" +
-                                            "                                             @Link2 nvarchar(max),\n" +
-                                            "                                             @Link3 nvarchar(max)) returns nvarchar(max) as\n" +
-                                            "begin\n" +
-                                            "  declare @LinkCursor Cursor;\n" +
-                                            "  declare @Result nvarchar(max);\n" +
-                                            "\n" +
-                                            "  select @Result=(iif(coalesce(@ShowCode, 0)=coalesce(@ShowLabel, 0),\n" +
-                                            "                      v3.code + ' - '+ v3.label,\n" +
-                                            "                      iif(coalesce(@ShowCode, 0)=1,\n" +
-                                            "                          v3.code,\n" +
-                                            "                          v3.label)))\n" +
-                                            "\n" +
-                                            "    from \"_platform.lookup\".\"LookupValue\" v0\n" +
-                                            "    join \"_platform.lookup\".\"Lookup\" lookup on (v0.lookup_id=lookup._id and lookup.name=@Lookup)\n" +
-                                            "\n" +
-                                            "    join \"_platform.lookup\".\"LookupValueLink\" lk0 on (v0._id=lk0.source_lookup_value_id and lk0.lookup_link=@Link1)\n" +
-                                            "    join \"_platform.lookup\".\"LookupValue\" v1 on v1._id=lk0.target_lookup_value_id\n" +
-                                            "\n" +
-                                            "    join \"_platform.lookup\".\"LookupValueLink\" lk1 on (v1._id=lk1.source_lookup_value_id and lk1.lookup_link=@Link2)\n" +
-                                            "    join \"_platform.lookup\".\"LookupValue\" v2 on v2._id=lk1.target_lookup_value_id\n" +
-                                            "\n" +
-                                            "    join \"_platform.lookup\".\"LookupValueLink\" lk2 on (v2._id=lk2.source_lookup_value_id and lk2.lookup_link=@Link3)\n" +
-                                            "    join \"_platform.lookup\".\"LookupValue\" v3 on v3._id=lk2.target_lookup_value_id\n" +
-                                            "\n" +
-                                            "   where v0.code=@Code;\n" +
-                                            "  return @Result;\n" +
-                                            "end;");
-
-      c.createStatement().executeUpdate("create or alter function _core.lookup_label4(@Code nvarchar(max),\n" +
-                                            "                                             @Lookup nvarchar(max),\n" +
-                                            "                                             @ShowCode bit,\n" +
-                                            "                                             @ShowLabel bit,\n" +
-                                            "                                             @Link1 nvarchar(max),\n" +
-                                            "                                             @Link2 nvarchar(max),\n" +
-                                            "                                             @Link3 nvarchar(max),\n" +
-                                            "                                             @Link4 nvarchar(max)) returns nvarchar(max) as\n" +
-                                            "begin\n" +
-                                            "  declare @LinkCursor Cursor;\n" +
-                                            "  declare @Result nvarchar(max);\n" +
-                                            "\n" +
-                                            "  select @Result=(iif(coalesce(@ShowCode, 0)=coalesce(@ShowLabel, 0),\n" +
-                                            "                      v4.code + ' - '+ v4.label,\n" +
-                                            "                      iif(coalesce(@ShowCode, 0)=1,\n" +
-                                            "                          v4.code,\n" +
-                                            "                          v4.label)))\n" +
-                                            "\n" +
-                                            "    from \"_platform.lookup\".\"LookupValue\" v0\n" +
-                                            "    join \"_platform.lookup\".\"Lookup\" lookup on (v0.lookup_id=lookup._id and lookup.name=@Lookup)\n" +
-                                            "\n" +
-                                            "    join \"_platform.lookup\".\"LookupValueLink\" lk0 on (v0._id=lk0.source_lookup_value_id and lk0.lookup_link=@Link1)\n" +
-                                            "    join \"_platform.lookup\".\"LookupValue\" v1 on v1._id=lk0.target_lookup_value_id\n" +
-                                            "\n" +
-                                            "    join \"_platform.lookup\".\"LookupValueLink\" lk1 on (v1._id=lk1.source_lookup_value_id and lk1.lookup_link=@Link2)\n" +
-                                            "    join \"_platform.lookup\".\"LookupValue\" v2 on v2._id=lk1.target_lookup_value_id\n" +
-                                            "\n" +
-                                            "    join \"_platform.lookup\".\"LookupValueLink\" lk2 on (v2._id=lk2.source_lookup_value_id and lk2.lookup_link=@Link3)\n" +
-                                            "    join \"_platform.lookup\".\"LookupValue\" v3 on v3._id=lk2.target_lookup_value_id\n" +
-                                            "\n" +
-                                            "    join \"_platform.lookup\".\"LookupValueLink\" lk3 on (v3._id=lk3.source_lookup_value_id and lk3.lookup_link=@Link4)\n" +
-                                            "    join \"_platform.lookup\".\"LookupValue\" v4 on v4._id=lk3.target_lookup_value_id\n" +
-                                            "\n" +
-                                            "   where v0.code=@Code;\n" +
-                                            "  return @Result;\n" +
-                                            "end;");
-
-      c.createStatement().executeUpdate("create or alter function _core.lookup_label5(@Code nvarchar(max),\n" +
-                                            "                                             @Lookup nvarchar(max),\n" +
-                                            "                                             @ShowCode bit,\n" +
-                                            "                                             @ShowLabel bit,\n" +
-                                            "                                             @Link1 nvarchar(max),\n" +
-                                            "                                             @Link2 nvarchar(max),\n" +
-                                            "                                             @Link3 nvarchar(max),\n" +
-                                            "                                             @Link4 nvarchar(max),\n" +
-                                            "                                             @Link5 nvarchar(max)) returns nvarchar(max) as\n" +
-                                            "begin\n" +
-                                            "  declare @LinkCursor Cursor;\n" +
-                                            "  declare @Result nvarchar(max);\n" +
-                                            "\n" +
-                                            "  select @Result=(iif(coalesce(@ShowCode, 0)=coalesce(@ShowLabel, 0),\n" +
-                                            "                      v5.code + ' - '+ v5.label,\n" +
-                                            "                      iif(coalesce(@ShowCode, 0)=1,\n" +
-                                            "                          v5.code,\n" +
-                                            "                          v5.label)))\n" +
-                                            "\n" +
-                                            "    from \"_platform.lookup\".\"LookupValue\" v0\n" +
-                                            "    join \"_platform.lookup\".\"Lookup\" lookup on (v0.lookup_id=lookup._id and lookup.name=@Lookup)\n" +
-                                            "\n" +
-                                            "    join \"_platform.lookup\".\"LookupValueLink\" lk0 on (v0._id=lk0.source_lookup_value_id and lk0.lookup_link=@Link1)\n" +
-                                            "    join \"_platform.lookup\".\"LookupValue\" v1 on v1._id=lk0.target_lookup_value_id\n" +
-                                            "\n" +
-                                            "    join \"_platform.lookup\".\"LookupValueLink\" lk1 on (v1._id=lk1.source_lookup_value_id and lk1.lookup_link=@Link2)\n" +
-                                            "    join \"_platform.lookup\".\"LookupValue\" v2 on v2._id=lk1.target_lookup_value_id\n" +
-                                            "\n" +
-                                            "    join \"_platform.lookup\".\"LookupValueLink\" lk2 on (v2._id=lk2.source_lookup_value_id and lk2.lookup_link=@Link3)\n" +
-                                            "    join \"_platform.lookup\".\"LookupValue\" v3 on v3._id=lk2.target_lookup_value_id\n" +
-                                            "\n" +
-                                            "    join \"_platform.lookup\".\"LookupValueLink\" lk3 on (v3._id=lk3.source_lookup_value_id and lk3.lookup_link=@Link4)\n" +
-                                            "    join \"_platform.lookup\".\"LookupValue\" v4 on v4._id=lk3.target_lookup_value_id\n" +
-                                            "\n" +
-                                            "    join \"_platform.lookup\".\"LookupValueLink\" lk4 on (v4._id=lk4.source_lookup_value_id and lk4.lookup_link=@Link5)\n" +
-                                            "    join \"_platform.lookup\".\"LookupValue\" v5 on v5._id=lk4.target_lookup_value_id\n" +
-                                            "\n" +
-                                            "   where v0.code=@Code;\n" +
-                                            "  return @Result;\n" +
-                                            "end;\n");
+      // @todo: move to platform project
+//      // function to find value from lookups
+//      c.createStatement().executeUpdate(
+//          "create or alter function _core.lookup_label0(@Code nvarchar(max),\n" +
+//              "                                             @Lookup nvarchar(max),\n" +
+//              "                                             @ShowCode bit,\n" +
+//              "                                             @ShowLabel bit) returns nvarchar(max) as\n" +
+//              "begin\n" +
+//              "  declare @Result nvarchar(max);\n" +
+//              "  select @Result=(iif(coalesce(@ShowCode, 0)=coalesce(@ShowLabel, 0),\n" +
+//              "                      code + ' - '+ label,\n" +
+//              "                      iif(coalesce(@ShowCode, 0)=1,\n" +
+//              "                          code,\n" +
+//              "                          label)))\n" +
+//              "    from \"_platform.lookup\".\"LookupValue\" v\n" +
+//              "    join \"_platform.lookup\".\"Lookup\" l on v.lookup_id=l._id\n" +
+//              "  where l.name=@Lookup and v.code=@Code;\n" +
+//              "  return @Result;\n" +
+//              "end;");
+//
+//      c.createStatement().executeUpdate("create or alter function _core.lookup_label1(@Code nvarchar(max),\n" +
+//                                            "                                             @Lookup nvarchar(max),\n" +
+//                                            "                                             @ShowCode bit,\n" +
+//                                            "                                             @ShowLabel bit,\n" +
+//                                            "                                             @Link1 nvarchar(max)) returns nvarchar(max) as\n" +
+//                                            "begin\n" +
+//                                            "  declare @LinkCursor Cursor;\n" +
+//                                            "  declare @Result nvarchar(max);\n" +
+//                                            "\n" +
+//                                            "  select @Result=(iif(coalesce(@ShowCode, 0)=coalesce(@ShowLabel, 0),\n" +
+//                                            "                      v1.code + ' - '+ v1.label,\n" +
+//                                            "                      iif(coalesce(@ShowCode, 0)=1,\n" +
+//                                            "                          v1.code,\n" +
+//                                            "                          v1.label)))\n" +
+//                                            "\n" +
+//                                            "    from \"_platform.lookup\".\"LookupValue\" v0\n" +
+//                                            "    join \"_platform.lookup\".\"Lookup\" lookup on (v0.lookup_id=lookup._id and lookup.name=@Lookup)\n" +
+//                                            "\n" +
+//                                            "    join \"_platform.lookup\".\"LookupValueLink\" lk0 on (v0._id=lk0.source_lookup_value_id and lk0.lookup_link=@Link1)\n" +
+//                                            "    join \"_platform.lookup\".\"LookupValue\" v1 on v1._id=lk0.target_lookup_value_id\n" +
+//                                            "\n" +
+//                                            "   where v0.code=@Code;\n" +
+//                                            "  return @Result;\n" +
+//                                            "end;");
+//
+//      c.createStatement().executeUpdate("create or alter function _core.lookup_label2(@Code nvarchar(max),\n" +
+//                                            "                                             @Lookup nvarchar(max),\n" +
+//                                            "                                             @ShowCode bit,\n" +
+//                                            "                                             @ShowLabel bit,\n" +
+//                                            "                                             @Link1 nvarchar(max),\n" +
+//                                            "                                             @Link2 nvarchar(max)) returns nvarchar(max) as\n" +
+//                                            "begin\n" +
+//                                            "  declare @LinkCursor Cursor;\n" +
+//                                            "  declare @Result nvarchar(max);\n" +
+//                                            "\n" +
+//                                            "  select @Result=(iif(coalesce(@ShowCode, 0)=coalesce(@ShowLabel, 0),\n" +
+//                                            "                      v2.code + ' - '+ v2.label,\n" +
+//                                            "                      iif(coalesce(@ShowCode, 0)=1,\n" +
+//                                            "                          v2.code,\n" +
+//                                            "                          v2.label)))\n" +
+//                                            "\n" +
+//                                            "    from \"_platform.lookup\".\"LookupValue\" v0\n" +
+//                                            "    join \"_platform.lookup\".\"Lookup\" lookup on (v0.lookup_id=lookup._id and lookup.name=@Lookup)\n" +
+//                                            "\n" +
+//                                            "    join \"_platform.lookup\".\"LookupValueLink\" lk0 on (v0._id=lk0.source_lookup_value_id and lk0.lookup_link=@Link1)\n" +
+//                                            "    join \"_platform.lookup\".\"LookupValue\" v1 on v1._id=lk0.target_lookup_value_id\n" +
+//                                            "\n" +
+//                                            "    join \"_platform.lookup\".\"LookupValueLink\" lk1 on (v1._id=lk1.source_lookup_value_id and lk1.lookup_link=@Link2)\n" +
+//                                            "    join \"_platform.lookup\".\"LookupValue\" v2 on v2._id=lk1.target_lookup_value_id\n" +
+//                                            "\n" +
+//                                            "   where v0.code=@Code;\n" +
+//                                            "  return @Result;\n" +
+//                                            "end;");
+//
+//      c.createStatement().executeUpdate("create or alter function _core.lookup_label3(@Code nvarchar(max),\n" +
+//                                            "                                             @Lookup nvarchar(max),\n" +
+//                                            "                                             @ShowCode bit,\n" +
+//                                            "                                             @ShowLabel bit,\n" +
+//                                            "                                             @Link1 nvarchar(max),\n" +
+//                                            "                                             @Link2 nvarchar(max),\n" +
+//                                            "                                             @Link3 nvarchar(max)) returns nvarchar(max) as\n" +
+//                                            "begin\n" +
+//                                            "  declare @LinkCursor Cursor;\n" +
+//                                            "  declare @Result nvarchar(max);\n" +
+//                                            "\n" +
+//                                            "  select @Result=(iif(coalesce(@ShowCode, 0)=coalesce(@ShowLabel, 0),\n" +
+//                                            "                      v3.code + ' - '+ v3.label,\n" +
+//                                            "                      iif(coalesce(@ShowCode, 0)=1,\n" +
+//                                            "                          v3.code,\n" +
+//                                            "                          v3.label)))\n" +
+//                                            "\n" +
+//                                            "    from \"_platform.lookup\".\"LookupValue\" v0\n" +
+//                                            "    join \"_platform.lookup\".\"Lookup\" lookup on (v0.lookup_id=lookup._id and lookup.name=@Lookup)\n" +
+//                                            "\n" +
+//                                            "    join \"_platform.lookup\".\"LookupValueLink\" lk0 on (v0._id=lk0.source_lookup_value_id and lk0.lookup_link=@Link1)\n" +
+//                                            "    join \"_platform.lookup\".\"LookupValue\" v1 on v1._id=lk0.target_lookup_value_id\n" +
+//                                            "\n" +
+//                                            "    join \"_platform.lookup\".\"LookupValueLink\" lk1 on (v1._id=lk1.source_lookup_value_id and lk1.lookup_link=@Link2)\n" +
+//                                            "    join \"_platform.lookup\".\"LookupValue\" v2 on v2._id=lk1.target_lookup_value_id\n" +
+//                                            "\n" +
+//                                            "    join \"_platform.lookup\".\"LookupValueLink\" lk2 on (v2._id=lk2.source_lookup_value_id and lk2.lookup_link=@Link3)\n" +
+//                                            "    join \"_platform.lookup\".\"LookupValue\" v3 on v3._id=lk2.target_lookup_value_id\n" +
+//                                            "\n" +
+//                                            "   where v0.code=@Code;\n" +
+//                                            "  return @Result;\n" +
+//                                            "end;");
+//
+//      c.createStatement().executeUpdate("create or alter function _core.lookup_label4(@Code nvarchar(max),\n" +
+//                                            "                                             @Lookup nvarchar(max),\n" +
+//                                            "                                             @ShowCode bit,\n" +
+//                                            "                                             @ShowLabel bit,\n" +
+//                                            "                                             @Link1 nvarchar(max),\n" +
+//                                            "                                             @Link2 nvarchar(max),\n" +
+//                                            "                                             @Link3 nvarchar(max),\n" +
+//                                            "                                             @Link4 nvarchar(max)) returns nvarchar(max) as\n" +
+//                                            "begin\n" +
+//                                            "  declare @LinkCursor Cursor;\n" +
+//                                            "  declare @Result nvarchar(max);\n" +
+//                                            "\n" +
+//                                            "  select @Result=(iif(coalesce(@ShowCode, 0)=coalesce(@ShowLabel, 0),\n" +
+//                                            "                      v4.code + ' - '+ v4.label,\n" +
+//                                            "                      iif(coalesce(@ShowCode, 0)=1,\n" +
+//                                            "                          v4.code,\n" +
+//                                            "                          v4.label)))\n" +
+//                                            "\n" +
+//                                            "    from \"_platform.lookup\".\"LookupValue\" v0\n" +
+//                                            "    join \"_platform.lookup\".\"Lookup\" lookup on (v0.lookup_id=lookup._id and lookup.name=@Lookup)\n" +
+//                                            "\n" +
+//                                            "    join \"_platform.lookup\".\"LookupValueLink\" lk0 on (v0._id=lk0.source_lookup_value_id and lk0.lookup_link=@Link1)\n" +
+//                                            "    join \"_platform.lookup\".\"LookupValue\" v1 on v1._id=lk0.target_lookup_value_id\n" +
+//                                            "\n" +
+//                                            "    join \"_platform.lookup\".\"LookupValueLink\" lk1 on (v1._id=lk1.source_lookup_value_id and lk1.lookup_link=@Link2)\n" +
+//                                            "    join \"_platform.lookup\".\"LookupValue\" v2 on v2._id=lk1.target_lookup_value_id\n" +
+//                                            "\n" +
+//                                            "    join \"_platform.lookup\".\"LookupValueLink\" lk2 on (v2._id=lk2.source_lookup_value_id and lk2.lookup_link=@Link3)\n" +
+//                                            "    join \"_platform.lookup\".\"LookupValue\" v3 on v3._id=lk2.target_lookup_value_id\n" +
+//                                            "\n" +
+//                                            "    join \"_platform.lookup\".\"LookupValueLink\" lk3 on (v3._id=lk3.source_lookup_value_id and lk3.lookup_link=@Link4)\n" +
+//                                            "    join \"_platform.lookup\".\"LookupValue\" v4 on v4._id=lk3.target_lookup_value_id\n" +
+//                                            "\n" +
+//                                            "   where v0.code=@Code;\n" +
+//                                            "  return @Result;\n" +
+//                                            "end;");
+//
+//      c.createStatement().executeUpdate("create or alter function _core.lookup_label5(@Code nvarchar(max),\n" +
+//                                            "                                             @Lookup nvarchar(max),\n" +
+//                                            "                                             @ShowCode bit,\n" +
+//                                            "                                             @ShowLabel bit,\n" +
+//                                            "                                             @Link1 nvarchar(max),\n" +
+//                                            "                                             @Link2 nvarchar(max),\n" +
+//                                            "                                             @Link3 nvarchar(max),\n" +
+//                                            "                                             @Link4 nvarchar(max),\n" +
+//                                            "                                             @Link5 nvarchar(max)) returns nvarchar(max) as\n" +
+//                                            "begin\n" +
+//                                            "  declare @LinkCursor Cursor;\n" +
+//                                            "  declare @Result nvarchar(max);\n" +
+//                                            "\n" +
+//                                            "  select @Result=(iif(coalesce(@ShowCode, 0)=coalesce(@ShowLabel, 0),\n" +
+//                                            "                      v5.code + ' - '+ v5.label,\n" +
+//                                            "                      iif(coalesce(@ShowCode, 0)=1,\n" +
+//                                            "                          v5.code,\n" +
+//                                            "                          v5.label)))\n" +
+//                                            "\n" +
+//                                            "    from \"_platform.lookup\".\"LookupValue\" v0\n" +
+//                                            "    join \"_platform.lookup\".\"Lookup\" lookup on (v0.lookup_id=lookup._id and lookup.name=@Lookup)\n" +
+//                                            "\n" +
+//                                            "    join \"_platform.lookup\".\"LookupValueLink\" lk0 on (v0._id=lk0.source_lookup_value_id and lk0.lookup_link=@Link1)\n" +
+//                                            "    join \"_platform.lookup\".\"LookupValue\" v1 on v1._id=lk0.target_lookup_value_id\n" +
+//                                            "\n" +
+//                                            "    join \"_platform.lookup\".\"LookupValueLink\" lk1 on (v1._id=lk1.source_lookup_value_id and lk1.lookup_link=@Link2)\n" +
+//                                            "    join \"_platform.lookup\".\"LookupValue\" v2 on v2._id=lk1.target_lookup_value_id\n" +
+//                                            "\n" +
+//                                            "    join \"_platform.lookup\".\"LookupValueLink\" lk2 on (v2._id=lk2.source_lookup_value_id and lk2.lookup_link=@Link3)\n" +
+//                                            "    join \"_platform.lookup\".\"LookupValue\" v3 on v3._id=lk2.target_lookup_value_id\n" +
+//                                            "\n" +
+//                                            "    join \"_platform.lookup\".\"LookupValueLink\" lk3 on (v3._id=lk3.source_lookup_value_id and lk3.lookup_link=@Link4)\n" +
+//                                            "    join \"_platform.lookup\".\"LookupValue\" v4 on v4._id=lk3.target_lookup_value_id\n" +
+//                                            "\n" +
+//                                            "    join \"_platform.lookup\".\"LookupValueLink\" lk4 on (v4._id=lk4.source_lookup_value_id and lk4.lookup_link=@Link5)\n" +
+//                                            "    join \"_platform.lookup\".\"LookupValue\" v5 on v5._id=lk4.target_lookup_value_id\n" +
+//                                            "\n" +
+//                                            "   where v0.code=@Code;\n" +
+//                                            "  return @Result;\n" +
+//                                            "end;\n");
 
       c.createStatement().executeUpdate("create or alter function _core.rpad(@Str nvarchar(max), @Length int, @Pad nvarchar=' ') returns nvarchar(max)\n" +
                                             "begin\n" +

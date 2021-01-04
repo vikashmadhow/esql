@@ -35,8 +35,8 @@ public class SelectTest {
   static void setup() {
     databases = new Database[] {
         Databases.Postgresql(),
-//        Databases.SqlServer(),
-//        Databases.HSqlDb(),
+        Databases.SqlServer(),
+        Databases.HSqlDb(),
     };
 
     for (Database db: databases) {
@@ -195,7 +195,7 @@ public class SelectTest {
                     "  }," +
                     "  foreign key(s_id) references S(_id)," +
                     "  foreign key(t_id) references a.b.T(_id) on update cascade on delete cascade," +
-                    "  foreign key(x_id) references a.b.X(_id) on update cascade on delete cascade," +
+                    "  foreign key(x_id) references a.b.X(_id)," +
                     "  primary key(_id)" +
                     ")");
         con.exec(s);

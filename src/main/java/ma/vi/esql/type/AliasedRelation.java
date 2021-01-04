@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 import static java.util.stream.Collectors.toList;
+import static ma.vi.esql.parser.expression.ColumnRef.qualify;
 
 /**
  * @author Vikash Madhow (vikash.madhow@gmail.com)
@@ -53,29 +54,22 @@ public class AliasedRelation extends Relation {
     if (columns == null) {
       columns = relation.columns()
                         .stream()
-                        .map(c -> ColumnRef.qualify(c.copy(), alias, null, true))
+                        .map(c -> qualify(c.copy(), alias, null, true))
                         .collect(toList());
     }
     return columns;
   }
 
   @Override
-  public List<Column> columns(String name) {
-    return relation.columns(name);
+  public List<Column> columns(String relationAlias, String prefix) {
+    return relation.columns(relationAlias, prefix)
+                   .stream()
+                   .map(c -> qualify(c, alias, null, true))
+                   .collect(toList());
   }
 
   @Override
-  public List<Column> columns(String relationAlias, String name) {
-    return relation.columns(relationAlias, name);
-  }
-
-  @Override
-  public List<Column> columnsPrefixedBy(String relationAlias, String prefix) {
-    return relation.columnsPrefixedBy(relationAlias, prefix);
-  }
-
-  @Override
-  protected Column findColumn(String relationAlias, String name) {
+  public Column findColumn(String relationAlias, String name) {
     return relation.findColumn(relationAlias, name);
   }
 

@@ -19,13 +19,13 @@ public abstract class Relation extends AbstractType {
    * Relation type.
    */
   public enum RelationType {
-    TABLE('T'),
-    VIEW('V'),
-    INDEX('I'),
-    SEQUENCE('S'),
+    TABLE         ('T'),
+    VIEW          ('V'),
+    INDEX         ('I'),
+    SEQUENCE      ('S'),
     COMPOSITE_TYPE('C'),
-    PROJECTION('P'),
-    JOIN('J');
+    PROJECTION    ('P'),
+    JOIN          ('J');
 
     public final char marker;
 
@@ -76,23 +76,22 @@ public abstract class Relation extends AbstractType {
     return columns(null, name);
   }
 
-  /**
-   * Returns any column that has the specified name as
-   * a prefix. This includes, for instance, a, a[x], a[y], a[x][m], ...
-   */
-  public List<Column> columns(String relationAlias, String name) {
-    List<Column> cols = new ArrayList<>();
+  public List<Column> columns(String relationAlias, String prefix) {
     Relation rel = this;
     if (relationAlias != null) {
       rel = forAlias(relationAlias);
+      if (rel == null) {
+        throw new NotFoundException("Relation with alias " + relationAlias + " could not be found");
+      }
     }
+    List<Column> cols = new ArrayList<>();
     for (Column c: rel.columns()) {
       String alias = c.alias();
       if (alias != null
-          && (alias.equals(name)
-          || (alias.startsWith(name)
-          && alias.length() > name.length()
-          && alias.charAt(name.length()) == '/'))) {
+          && (alias.equals(prefix)
+           || (alias.startsWith(prefix)
+            && alias.length() > prefix.length()
+            && alias.charAt(prefix.length()) == '/'))) {
         cols.add(c);
       }
     }
@@ -120,7 +119,7 @@ public abstract class Relation extends AbstractType {
     return col;
   }
 
-  protected Column findColumn(String relationAlias, String name) {
+  public Column findColumn(String relationAlias, String name) {
     Relation rel = this;
     if (relationAlias != null) {
       rel = forAlias(relationAlias);
@@ -138,23 +137,6 @@ public abstract class Relation extends AbstractType {
       }
     }
     return col;
-  }
-
-  public List<Column> columnsPrefixedBy(String relationAlias, String prefix) {
-    Relation rel = this;
-    if (relationAlias != null) {
-      rel = forAlias(relationAlias);
-      if (rel == null) {
-        throw new NotFoundException("Relation with alias " + relationAlias + " could not be found");
-      }
-    }
-    List<Column> cols = new ArrayList<>();
-    for (Column c: rel.columns()) {
-      if (c.alias() != null && c.alias().startsWith(prefix)) {
-        cols.add(c);
-      }
-    }
-    return cols;
   }
 
   @Override

@@ -678,7 +678,7 @@ public abstract class AbstractDatabase implements Database {
       List<String> columns = new ArrayList<>();
       while (r.next()) {
         if (table == null) {
-          table = r.getString("table_schema") + '.' + r.getString("table_name");
+          table = Type.esqlTableName(r.getString("table_schema"), r.getString("table_name"), target());
         }
         columns.add(r.getString("column_name"));
       }
@@ -847,8 +847,8 @@ public abstract class AbstractDatabase implements Database {
           targetRelation.name(),
           targetColumns,
           forwardCost, reverseCost,
-          onUpdate == null ? NO_ACTION : ConstraintDefinition.ForeignKeyChangeAction.fromMarker(onUpdate.charAt(0)),
-          onDelete == null ? NO_ACTION : ConstraintDefinition.ForeignKeyChangeAction.fromMarker(onDelete.charAt(0)));
+          onUpdate == null ? null : ConstraintDefinition.ForeignKeyChangeAction.fromMarker(onUpdate.charAt(0)),
+          onDelete == null ? null : ConstraintDefinition.ForeignKeyChangeAction.fromMarker(onDelete.charAt(0)));
     };
     c.table(relation.name());
     relation.constraint(c);

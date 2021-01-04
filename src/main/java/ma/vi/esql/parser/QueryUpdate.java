@@ -69,7 +69,7 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
          * Add all relation-level metadata columns defined on the tables
          * being queried.
          */
-        for (Column column: fromType.columnsPrefixedBy(null, "/")) {
+        for (Column column: fromType.columns(null, "/")) {
           columns.put(column.alias(), column.copy());
           columnNames.add(column.alias());
         }
@@ -115,7 +115,7 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
             column.type(refCol.type());
 
             if (!grouped()) {
-              for (Column col: fromType.columnsPrefixedBy(ref.qualifier(), refName)) {
+              for (Column col: fromType.columns(ref.qualifier(), refName)) {
                 String colAlias = col.alias();
                 if (!refName.equals(colAlias)) {
                   col = col.copy();

@@ -5,6 +5,7 @@
 package ma.vi.esql.type;
 
 import ma.vi.base.lang.NotFoundException;
+import ma.vi.base.string.Strings;
 import ma.vi.esql.parser.expression.Expression;
 import ma.vi.esql.parser.query.Column;
 
@@ -14,9 +15,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.stream.Collectors;
 
-import static java.util.stream.Collectors.toSet;
+import static java.util.stream.Collectors.toCollection;
 
 /**
  * @author Vikash Madhow (vikash.madhow@gmail.com)
@@ -69,7 +69,33 @@ public class Join extends Relation {
   }
 
   @Override
-  protected Column findColumn(String relationAlias,
+  public List<Column> columns(String alias, String prefix) {
+    List<Column> cols = new ArrayList<>();
+    Relation leftRel = left.forAlias(alias);
+    if (leftRel != null) {
+      cols.addAll(leftRel.columns(alias, prefix));
+    }
+    Relation rightRel = right.forAlias(alias);
+    if (rightRel != null) {
+      Set<String> columnNames = cols.stream()
+                                    .map(Column::alias)
+                                    .collect(toCollection(HashSet::new));
+      for (Column col: rightRel.columns(alias, prefix)) {
+        if (!columnNames.contains(col.alias())) {
+          cols.add(col);
+          columnNames.add(col.alias());
+        } else {
+          String newName = Strings.makeUnique(columnNames, col.alias());
+          col.alias(newName);
+          cols.add(col);
+        }
+      }
+    }
+    return cols;
+  }
+
+  @Override
+  public Column findColumn(String relationAlias,
                               String name) throws NotFoundException, AmbiguousColumnException {
     if (relationAlias == null) {
       Column col = left.column(name);
@@ -82,7 +108,7 @@ public class Join extends Relation {
            * Ambiguous column as existing in both left and right relations.
            */
           throw new AmbiguousColumnException("Ambiguous column " + name +
-              " exists in both " + left + " and " + right);
+                                                 " exists in both " + left + " and " + right);
         }
       }
       return col;
@@ -93,19 +119,6 @@ public class Join extends Relation {
       }
       return rel.findColumn(relationAlias, name);
     }
-  }
-
-  @Override
-  public List<Column> columnsPrefixedBy(String relationAlias, String prefix) {
-    List<Column> leftCols = left.columnsPrefixedBy(relationAlias, prefix);
-    List<Column> cols = new ArrayList<>(leftCols);
-    Set<String> columnNames = leftCols.stream().map(Column::alias).collect(toSet());
-    for (Column col: right.columnsPrefixedBy(relationAlias, prefix)) {
-      if (!columnNames.contains(col.alias())) {
-        cols.add(col);
-      }
-    }
-    return cols;
   }
 
   @Override

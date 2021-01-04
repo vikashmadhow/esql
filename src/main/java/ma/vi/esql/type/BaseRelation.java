@@ -26,6 +26,7 @@ import static java.util.stream.Collectors.toSet;
 import static ma.vi.base.string.Strings.makeUnique;
 import static ma.vi.base.string.Strings.random;
 import static ma.vi.esql.builder.Attributes.DERIVED;
+import static ma.vi.esql.parser.expression.ColumnRef.qualify;
 
 /**
  * A relation is a composite type with a qualified name (i.e. with a schema name included).
@@ -126,7 +127,7 @@ public class BaseRelation extends Relation {
     return columns;
   }
 
-  protected Column findColumn(String relationAlias, String name) {
+  public Column findColumn(String relationAlias, String name) {
     return columnsByAlias.get(name);
   }
 
@@ -145,9 +146,13 @@ public class BaseRelation extends Relation {
   }
 
   @Override
-  public List<Column> columnsPrefixedBy(String relationAlias, String prefix) {
+  public List<Column> columns(String alias, String prefix) {
     List<T2<String, Column>> cols = columnsByAlias.getPrefixed(prefix);
-    return cols.stream().map(T2::b).collect(toList());
+    return cols.stream()
+               .map(t -> alias == null
+                            ? t.b().copy()
+                            : qualify(t.b().copy(), alias, null, true))
+               .collect(toList());
   }
 
   public static Expression<?> expandDerived(Expression<?> derivedExpression,
