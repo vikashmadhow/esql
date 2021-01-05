@@ -5,6 +5,7 @@
 package ma.vi.esql.parser;
 
 import ma.vi.base.tuple.T2;
+import ma.vi.esql.database.Database;
 import ma.vi.esql.database.Structure;
 import ma.vi.esql.exec.Result;
 import ma.vi.esql.translator.TranslatorFactory;
@@ -224,9 +225,7 @@ public class  Esql<V, R> implements Close, Copy<Esql<V, R>>, Translatable<R> {
     return TranslatorFactory.get(target).translate(this);
   }
 
-  public Result execute(Connection connection,
-                        Structure structure,
-                        Target target) {
+  public Result execute(Database db, Connection con) {
     return Result.Nothing;
   }
 

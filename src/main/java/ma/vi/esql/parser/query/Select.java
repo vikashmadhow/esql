@@ -5,6 +5,7 @@
 package ma.vi.esql.parser.query;
 
 import ma.vi.base.string.Strings;
+import ma.vi.esql.database.Structure;
 import ma.vi.esql.function.Function;
 import ma.vi.esql.parser.Context;
 import ma.vi.esql.parser.Esql;
@@ -546,7 +547,28 @@ public class Select extends QueryUpdate implements Macro {
   }
 
   @Override protected boolean grouped() {
-    return groupBy() != null;
+    if (groupBy() != null) {
+      return true;
+
+    } else if (columns().size() == 1) {
+      /*
+       * A select is also grouped if its single column is an aggregate function
+       * such as count or max.
+       */
+      Column col = columns().get(0);
+      Expression<?> expr = col.expr();
+      if (expr instanceof FunctionCall) {
+        FunctionCall fc = (FunctionCall)expr;
+        String functionName = fc.functionName();
+        Structure s = context.structure;
+        Function function = s.function(functionName);
+        if (function == null) {
+          function = s.UnknownFunction;
+        }
+        return function.aggregate;
+      }
+    }
+    return false;
   }
 
   /**

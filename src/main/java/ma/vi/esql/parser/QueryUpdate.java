@@ -8,6 +8,7 @@ import ma.vi.base.string.Strings;
 import ma.vi.base.tuple.T2;
 import ma.vi.base.tuple.T3;
 import ma.vi.esql.builder.Attr;
+import ma.vi.esql.database.Database;
 import ma.vi.esql.database.Structure;
 import ma.vi.esql.exec.ColumnMapping;
 import ma.vi.esql.exec.Result;
@@ -511,14 +512,14 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
   }
 
   @Override
-  public Result execute(Connection con, Structure structure, Target target) {
-    QueryTranslation translation = translate(target);
+  public Result execute(Database db, Connection con) {
+    QueryTranslation translation = translate(db.target());
     try {
       Selection selection = type();
       if (!selection.columns().isEmpty()) {
         ResultSet rs = con.createStatement(TYPE_SCROLL_INSENSITIVE, CONCUR_READ_ONLY)
                           .executeQuery(translation.statement);
-        return new Result(structure, rs,
+        return new Result(db.structure(), rs,
                           selection,
                           translation.columns,
                           translation.columnToIndex,
@@ -526,7 +527,7 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
                           translation.resultAttributes);
       } else {
         con.createStatement().executeUpdate(translation.statement);
-        return new Result(structure, null,
+        return new Result(db.structure(), null,
                           selection,
                           translation.columns,
                           translation.columnToIndex,

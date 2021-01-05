@@ -86,7 +86,7 @@ public class PostgresqlTranslator extends AbstractTranslator {
         st.append(" where ").append(update.where().translate(target()));
       }
       QueryTranslation q = null;
-      if (update.columns() != null) {
+      if (update.columns() != null && !update.columns().isEmpty()) {
         st.append(" returning ");
         q = update.constructResult(st, target(), null, true, true);
       }
@@ -176,7 +176,7 @@ public class PostgresqlTranslator extends AbstractTranslator {
         .append("\".ctid=").append(withAlias).append(".id");
 
       QueryTranslation q = null;
-      if (update.columns() != null) {
+      if (update.columns() != null && !update.columns().isEmpty()) {
         st.append(" returning ");
         q = update.constructResult(st, target(), null, true, true);
       }
@@ -230,7 +230,7 @@ public class PostgresqlTranslator extends AbstractTranslator {
       st.append(" where ").append(delete.where().translate(target()));
     }
 
-    if (delete.columns() != null) {
+    if (delete.columns() != null && !delete.columns().isEmpty()) {
       st.append(" returning ");
       QueryTranslation q = delete.constructResult(st, target(), null, true, true);
       return new QueryTranslation(st.toString(), q.columns, q.columnToIndex,

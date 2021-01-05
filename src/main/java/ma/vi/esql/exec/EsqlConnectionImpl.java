@@ -6,6 +6,7 @@ package ma.vi.esql.exec;
 
 import ma.vi.base.collections.Maps;
 import ma.vi.base.tuple.T2;
+import ma.vi.esql.database.Database;
 import ma.vi.esql.parser.*;
 import ma.vi.esql.parser.expression.Literal;
 import ma.vi.esql.parser.expression.NamedParameter;
@@ -23,8 +24,8 @@ import static ma.vi.base.lang.Errors.unchecked;
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 public class EsqlConnectionImpl implements EsqlConnection {
-  public EsqlConnectionImpl(Connection con, Translatable.Target target) {
-    this.target = target;
+  public EsqlConnectionImpl(Database db, Connection con) {
+    this.db = db;
     this.con = con;
   }
 
@@ -33,8 +34,8 @@ public class EsqlConnectionImpl implements EsqlConnection {
   }
 
   @Override
-  public Translatable.Target target() {
-    return target;
+  public Database database() {
+    return db;
   }
 
   @Override
@@ -143,7 +144,7 @@ public class EsqlConnectionImpl implements EsqlConnection {
        */
       expand(st);
     }
-    return st.execute(con, statement.context.structure, target);
+    return st.execute(db, con);
   }
 
   private static void expand(Esql<?, ?> esql) {
@@ -249,7 +250,7 @@ public class EsqlConnectionImpl implements EsqlConnection {
     }
   }
 
-  protected final Translatable.Target target;
+  protected final Database db;
 
   private boolean rollbackOnly;
 

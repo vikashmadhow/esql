@@ -4,6 +4,7 @@
 
 package ma.vi.esql.parser.define;
 
+import ma.vi.esql.database.Database;
 import ma.vi.esql.database.Structure;
 import ma.vi.esql.exec.Result;
 import ma.vi.esql.parser.Context;
@@ -47,10 +48,10 @@ public class DropTable extends Define<String> {
    * Drops a table, removing dependent tables in cascade, if necessary.
    */
   @Override
-  public Result execute(Connection con, Structure structure, Target target) {
+  public Result execute(Database db, Connection con) {
     try {
       // execute drop cascading to dependents and updating internal structures
-      cascadeDrop(this, con, structure, target);
+      cascadeDrop(this, con, db.structure(), db.target());
       return Result.Nothing;
     } catch (SQLException e) {
       throw new RuntimeException(e);

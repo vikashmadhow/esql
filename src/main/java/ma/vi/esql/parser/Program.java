@@ -4,6 +4,7 @@
 
 package ma.vi.esql.parser;
 
+import ma.vi.esql.database.Database;
 import ma.vi.esql.database.Structure;
 import ma.vi.esql.exec.Result;
 
@@ -48,10 +49,10 @@ public class Program extends Esql<String, List<?>> {
   }
 
   @Override
-  public Result execute(Connection connection, Structure structure, Target target) {
+  public Result execute(Database database, Connection connection) {
     Result result = Result.Nothing;
     for (Statement<?, ?> st: statements()) {
-      Result r = st.execute(connection, structure, target);
+      Result r = st.execute(database, connection);
       if (r != Result.Nothing) {
         result = r;
       }

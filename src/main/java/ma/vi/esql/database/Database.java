@@ -86,10 +86,9 @@ public interface Database {
                 boolean createCoreTables);
 
   /**
-   * Returns the target for this database.
+   * Returns the translation target for this database.
    */
   Translatable.Target target();
-
 
   // Connections
   //////////////////////////////////////////////////////
@@ -146,7 +145,7 @@ public interface Database {
    * Returns a connection through which Esql commands can be executed.
    */
   default EsqlConnection esql(Connection con) {
-    return new EsqlConnectionImpl(con, target());
+    return new EsqlConnectionImpl(this, con);
   }
 
   /**

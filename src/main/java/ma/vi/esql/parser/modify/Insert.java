@@ -83,7 +83,7 @@ public class Insert extends QueryUpdate {
 
     // output clause for SQL Server if specified
     QueryTranslation q = null;
-    if (target == Target.SQLSERVER && columns() != null) {
+    if (target == Target.SQLSERVER && columns() != null && !columns().isEmpty()) {
       st.append(" output ");
       q = constructResult(st, target, "inserted", true, true);
     }
@@ -101,7 +101,7 @@ public class Insert extends QueryUpdate {
       st.append(' ').append(select().translate(target, false).statement);
     }
 
-    if (target == Target.POSTGRESQL && columns() != null) {
+    if (target == Target.POSTGRESQL && columns() != null && !columns().isEmpty()) {
       st.append(" returning ");
       q = constructResult(st, target, null, true, true);
     }

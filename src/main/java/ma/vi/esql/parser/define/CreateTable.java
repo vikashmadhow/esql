@@ -5,7 +5,7 @@
 package ma.vi.esql.parser.define;
 
 import ma.vi.base.tuple.T2;
-import ma.vi.esql.database.Structure;
+import ma.vi.esql.database.Database;
 import ma.vi.esql.exec.Result;
 import ma.vi.esql.parser.Context;
 import ma.vi.esql.parser.Esql;
@@ -91,16 +91,14 @@ public class CreateTable extends Define<String> {
   }
 
   @Override
-  public Result execute(Connection con,
-                        Structure structure,
-                        Target target) {
+  public Result execute(Database db, Connection con) {
     try {
       // create schema if it does not exist already
       String tableName = name();
       T2<String, String> splitName = Type.splitName(tableName);
       String schema = splitName.a;
       if (schema != null) {
-        if (target == SQLSERVER) {
+        if (db.target() == SQLSERVER) {
           try (ResultSet rs = con.createStatement().executeQuery(
               "select name from sys.schemas where name='" + schema + "'")) {
             if (!rs.next()) {
@@ -115,7 +113,7 @@ public class CreateTable extends Define<String> {
       // create or alter table
       // update structure if this was not a system table creation and
       // the table did not exist before
-      if (!structure.relationExists(tableName)) {
+      if (!db.structure().relationExists(tableName)) {
 
         /*
          * Get table name and description from table attributes if specified.
@@ -138,14 +136,14 @@ public class CreateTable extends Define<String> {
         /*
          * Does not exist and valid: create
          */
-        con.createStatement().executeUpdate(translate(target));
-        structure.relation(table);
-        structure.database.table(con, table);
+        con.createStatement().executeUpdate(translate(db.target()));
+        db.structure().relation(table);
+        db.structure().database.table(con, table);
       } else {
         /*
          * already exists: alter
          */
-        BaseRelation table = structure.relation(tableName);
+        BaseRelation table = db.structure().relation(tableName);
         AlterTable alter;
 
         if (metadata() != null
@@ -157,7 +155,7 @@ public class CreateTable extends Define<String> {
           alter = new AlterTable(context,
                                  tableName,
                                  singletonList(new AddTableDefinition(context, metadata())));
-          alter.execute(con, structure, target);
+          alter.execute(db, con);
         }
 
         // add missing columns and alter existing ones if needed
@@ -172,7 +170,7 @@ public class CreateTable extends Define<String> {
             alter = new AlterTable(context,
                                    tableName,
                                    singletonList(new AddTableDefinition(context, column)));
-            alter.execute(con, structure, target);
+            alter.execute(db, con);
           } else {
             /*
              * alter existing field
@@ -214,7 +212,7 @@ public class CreateTable extends Define<String> {
                                                                                              setDefault,
                                                                                              dropDefault,
                                                                                              metadata))));
-              alter.execute(con, structure, target);
+              alter.execute(db, con);
             }
           }
         }
@@ -227,7 +225,7 @@ public class CreateTable extends Define<String> {
              * A constraint same as this one does not exist;: add it
              */
             new AlterTable(context, tableName,
-                                   singletonList(new AddTableDefinition(context, constraint))).execute(con, structure, target);
+                                   singletonList(new AddTableDefinition(context, constraint))).execute(db, con);
           } else {
             /*
              * There is a similar constraint. For foreign keys check that the cascading
@@ -241,9 +239,9 @@ public class CreateTable extends Define<String> {
                || !Objects.equals(fk.onUpdate(), existing.onUpdate())) {
 
                 new AlterTable(context, tableName,
-                               singletonList(new DropConstraint(context, tableConstraint.name()))).execute(con, structure, target);
+                               singletonList(new DropConstraint(context, tableConstraint.name()))).execute(db, con);
                 new AlterTable(context, tableName,
-                               singletonList(new AddTableDefinition(context, constraint))).execute(con, structure, target);
+                               singletonList(new AddTableDefinition(context, constraint))).execute(db, con);
               }
             }
           }
@@ -266,7 +264,7 @@ public class CreateTable extends Define<String> {
                */
               alter = new AlterTable(context, tableName,
                                      singletonList(new DropColumn(context, columnName)));
-              alter.execute(con, structure, target);
+              alter.execute(db, con);
             }
           }
 
@@ -290,7 +288,7 @@ public class CreateTable extends Define<String> {
             }
           }
           for (String c: toDrop) {
-            new AlterTable(context, tableName, singletonList(new DropConstraint(context, c))).execute(con, structure, target);
+            new AlterTable(context, tableName, singletonList(new DropConstraint(context, c))).execute(db, con);
           }
 
           /*
@@ -300,7 +298,7 @@ public class CreateTable extends Define<String> {
            || metadata().attributes() == null
            || metadata().attributes().isEmpty()) {
             alter = new AlterTable(context, tableName, singletonList(new DropMetadata(context)));
-            alter.execute(con, structure, target);
+            alter.execute(db, con);
           }
         }
       }

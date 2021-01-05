@@ -586,6 +586,11 @@ public class Analyser extends EsqlBaseListener {
   }
 
   @Override
+  public void exitStarExpr(StarExprContext ctx) {
+    put(ctx, new StarExpression(context));
+  }
+
+  @Override
   public void exitColumnExpr(ColumnExprContext ctx) {
     ColumnReferenceContext ref = ctx.columnReference();
     String qualifier = null;

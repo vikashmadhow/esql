@@ -4,12 +4,13 @@
 
 package ma.vi.esql.exec;
 
+import ma.vi.esql.database.Database;
 import ma.vi.esql.parser.Esql;
+import ma.vi.esql.parser.Parser;
 
 import java.sql.Connection;
 
 import static ma.vi.base.lang.Errors.unchecked;
-import static ma.vi.esql.parser.Esql.Target;
 
 /**
  * An interface representing a connection to the database through which ESQL
@@ -33,10 +34,14 @@ public interface EsqlConnection extends AutoCloseable {
    */
   Result exec(Esql<?, ?> esql, Param... params);
 
+  default Result exec(String esql, Param... params) {
+    return exec(new Parser(database().structure()).parse(esql), params);
+  }
+
   /**
    * @return The database that this connection works on.
    */
-  Target target();
+  Database database();
 
   /**
    * Commits the current transaction on this connection.

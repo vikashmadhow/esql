@@ -293,7 +293,7 @@ public class SqlServerTranslator extends AbstractTranslator {
 
     // output clause for SQL Server if specified
     QueryTranslation q = null;
-    if (update.columns() != null) {
+    if (update.columns() != null && !update.columns().isEmpty()) {
       st.append(" output ");
       q = update.constructResult(st, target(), "inserted", true, true);
     }
@@ -317,7 +317,7 @@ public class SqlServerTranslator extends AbstractTranslator {
     QueryTranslation q = null;
 
     TableExpr from = delete.tables();
-    if (delete.columns() != null) {
+    if (delete.columns() != null && !delete.columns().isEmpty()) {
       st.append(" output ");
       q = delete.constructResult(st, target(), "deleted", true, true);
     }
