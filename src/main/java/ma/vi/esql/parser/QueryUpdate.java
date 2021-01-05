@@ -98,21 +98,13 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
           if (alias == null) {
             alias = makeUnique(columnNames, "col");
           }
-          column = column.copy();
-          column.alias(alias);
-          columns.put(alias, column);
-          columnNames.add(alias);
-
           if (colExpr instanceof ColumnRef) {
             ColumnRef ref = (ColumnRef)colExpr;
             String refName = ref.name();
             if (!refName.equals(alias)) {
               aliased.put(refName, alias);
             }
-
-            Column refCol = fromType.column(ref.qualifier(), refName);
-            column.id(refCol.id());
-            column.type(refCol.type());
+            column = fromType.column(ref.qualifier(), refName).copy();
 
             if (!grouped()) {
               for (Column col: fromType.columns(ref.qualifier(), refName)) {
@@ -129,10 +121,16 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
                 }
               }
             }
+          } else {
+            column = column.copy();
           }
 
+          column.alias(alias);
+          columns.put(alias, column);
+          columnNames.add(alias);
+
           /*
-           * Override with explicit result metadata defined in select
+           * Override with explicit result metadata defined in select.
            */
           if (!grouped()) {
             if (column.metadata() != null && column.metadata().attributes() != null) {
@@ -147,8 +145,10 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
         }
       }
 
-      // replace column names with their aliases in uncomputed forms intended
-      // to be run on client-side
+      /*
+       * Replace column names with their aliases in uncomputed forms intended.
+       * to be run on client-side.
+       */
       if (!aliased.isEmpty()) {
         for (Column c: columns.values()) {
           if (c.expr() instanceof UncomputedExpression) {
@@ -156,6 +156,7 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
           }
         }
       }
+      columns(new ArrayList<>(columns.values()));
       type = new Selection(new ArrayList<>(columns.values()), from);
       context.type(type);
     }

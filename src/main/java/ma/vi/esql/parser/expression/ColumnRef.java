@@ -5,10 +5,7 @@
 package ma.vi.esql.parser.expression;
 
 import ma.vi.base.tuple.T2;
-import ma.vi.esql.parser.Context;
-import ma.vi.esql.parser.Esql;
-import ma.vi.esql.parser.QueryUpdate;
-import ma.vi.esql.parser.TranslationException;
+import ma.vi.esql.parser.*;
 import ma.vi.esql.parser.define.AlterTable;
 import ma.vi.esql.parser.define.ColumnDefinition;
 import ma.vi.esql.parser.define.CreateTable;
@@ -22,7 +19,7 @@ import ma.vi.esql.type.Type;
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public class ColumnRef extends Expression<String> { // implements Macro {
+public class ColumnRef extends Expression<String> implements Macro {
   public ColumnRef(Context context, String qualifier, String name) {
     super(context, name, T2.of("qualifier", new Esql<>(context, qualifier)));
   }
@@ -106,92 +103,33 @@ public class ColumnRef extends Expression<String> { // implements Macro {
     return column;
   }
 
-//  @Override
-//  public int expansionOrder() {
-//    return HIGH;
-//  }
-//
-//  /**
-//   * Expands derived columns to their base expressions and add
-//   * missing metadata in cases where the column ref is specified
-//   * on its own (i.e. without being part of an expression).
-//   */
-//  @Override
-//  public boolean expand(String name, Esql<?, ?> esql) {
-//    QueryUpdate stmt = ancestor(QueryUpdate.class);
-//    if (stmt != null) {
-//      if (ancestor(Metadata.class) != null
-//          && ancestorDistance(Metadata.class) < ancestorDistance(QueryUpdate.class)) {
-//        /*
-//         * Field is part of Metadata which might have been copied from
-//         * another part of the query. Ensure that the qualifier used in
-//         * the expression is the same as the column for this metadata.
-//         */
-//        Column column = ancestor(Column.class);
-//        if (column != null) {
-//          Expression<?> colExpr = column.expr();
-//          ColumnRef col = colExpr.firstChild(ColumnRef.class);
-//          if (col != null && col.qualifier() != null) {
-//            qualify(this, col.qualifier(), null, true);
-//          }
-//        }
-//      }
-//      Field field = field(stmt);
-//      if (field == null) {
-//        throw new TranslationException(qualifiedName() + " could not be found in the tables of query");
-//      }
-//      if (field.typeOfField() == DERIVED) {
-//        Expression<?> expr = field.expression().expression();
-//        if (qualifier() != null) {
-//          qualify(expr, qualifier(), null, true);
-//        }
-//        expr.basedOn(field);
-//        parent.replaceWith(name, new GroupedExpression(context, expr));
-//        if (parent instanceof Column && ((Column)parent).alias() == null) {
-//          ((Column)parent).alias(name());
-//        }
-//        // more expansion may be needed for derived field referring
-//        // to other derived fields
-//        return true;
-//
-//      } else if (parent instanceof Column) {
-//        Column column = (Column)parent;
-//        if (column.expr() instanceof ColumnRef) {
-//          List<Attribute> attributes = new ArrayList<>();
-//          if (column.metadata() != null && column.metadata().attributes() != null) {
-//            attributes.addAll(column.metadata().attributes());
-//          }
-//          Map<String, Attribute> colMetadata = new HashMap<>();
-//          for (Attribute a: attributes) {
-//            colMetadata.put(a.name(), a);
-//          }
-//
-//          /*
-//           * Add missing metadata when the column reference is the sole
-//           * element of the column (i.e. it is not part of a larger expression)
-//           * if select is not set to explicit mode (in explicit mode only
-//           * expressions specified explicitly are computed, no implicit
-//           * expressions are added to the query).
-//           */
-//          if (!(stmt instanceof Select) || !((Select)stmt).explicit()) {
-//            boolean added = false;
-//            Map<String, DbExpression> fieldMetadata = field.attributes();
-//            for (String attr: fieldMetadata.keySet()) {
-//              if (!colMetadata.containsKey(attr)) {
-//                colMetadata.put(attr, new Attribute(context, attr, fieldMetadata.get(attr).expression()));
-//                added = true;
-//              }
-//            }
-//            if (added) {
-//              column.metadata(new Metadata(context, new ArrayList<>(colMetadata.values())));
-//            }
-//            return added;
-//          }
-//        }
-//      }
-//    }
-//    return false;
-//  }
+  @Override
+  public int expansionOrder() {
+    return HIGH;
+  }
+
+  /**
+   * Expand derived columns to their base expressions.
+   */
+  @Override
+  public boolean expand(String name, Esql<?, ?> esql) {
+    QueryUpdate stmt = ancestor(QueryUpdate.class);
+    if (stmt != null) {
+      Column column = column(stmt);
+      if (column == null) {
+        throw new TranslationException(qualifiedName() + " could not be found in the tables of query");
+      }
+      if (column.derived()) {
+        Expression<?> expr = column.expr().copy();
+        if (qualifier() != null) {
+          qualify(expr, qualifier(), null, true);
+        }
+        parent.replaceWith(name, new GroupedExpression(context, expr));
+        return true;
+      }
+    }
+    return false;
+  }
 
   @Override
   public String translate(Target target) {

@@ -82,8 +82,6 @@ public class Structure {
                                singletonList(new FunctionParameter("count", TopType)),
                                true, null));
 
-//    functions.put("countdistinct", new CountDistinctFunction(this));
-
     functions.put("sum",
                   new Function("sum", AsParameterType,
                                singletonList(new FunctionParameter("sum", NumberType)),
@@ -98,32 +96,32 @@ public class Structure {
                                singletonList(new FunctionParameter("var", NumberType)),
                                true,
                                Map.of(POSTGRESQL, "var_pop",
-                                      HSQLDB, "var_pop",
-                                      SQLSERVER, "varp")));
+                                      HSQLDB,     "var_pop",
+                                      SQLSERVER,  "varp")));
 
     functions.put("varsamp",
                   new Function("var_samp", FractionalType,
                                singletonList(new FunctionParameter("var", NumberType)),
                                true,
                                Map.of(POSTGRESQL, "var_samp",
-                                      HSQLDB, "var_samp",
-                                      SQLSERVER, "var")));
+                                      HSQLDB,     "var_samp",
+                                      SQLSERVER,  "var")));
 
     functions.put("stddevpop",
                   new Function("stddev_pop", FractionalType,
                                singletonList(new FunctionParameter("stddev", NumberType)),
                                true,
                                Map.of(POSTGRESQL, "stddev_pop",
-                                      HSQLDB, "stddev_pop",
-                                      SQLSERVER, "stddevp")));
+                                      HSQLDB,     "stddev_pop",
+                                      SQLSERVER,  "stddevp")));
 
     functions.put("stddevsamp",
                   new Function("stddev_samp", FractionalType,
                                singletonList(new FunctionParameter("stddev", NumberType)),
                                true,
                                Map.of(POSTGRESQL, "stddev_samp",
-                                      HSQLDB, "stddev_samp",
-                                      SQLSERVER, "stddev")));
+                                      HSQLDB,     "stddev_samp",
+                                      SQLSERVER,  "stddev")));
 
     functions.put("max",
                   new Function("max", AsParameterType,
@@ -140,18 +138,18 @@ public class Structure {
                                asList(new FunctionParameter("val", TopType),
                                       new FunctionParameter("delimiter", TextType)),
                                true,
-                                Map.of(POSTGRESQL, "string_agg",
-                                       HSQLDB, "group_concat",
-                                       SQLSERVER, "string_agg")));
+                                Map.of(POSTGRESQL,  "string_agg",
+                                       HSQLDB,      "group_concat",
+                                       SQLSERVER,   "string_agg")));
 
     functions.put("arrayagg",
                   new Function("array_agg", TextType,
                                asList(new FunctionParameter("val", TopType),
                                       new FunctionParameter("delimiter", TextType)),
                                true,
-                                Map.of(POSTGRESQL, "array_agg",
-                                       HSQLDB, "array_agg",
-                                       SQLSERVER, "string_agg")));
+                                Map.of(POSTGRESQL,  "array_agg",
+                                       HSQLDB,      "array_agg",
+                                       SQLSERVER,   "string_agg")));
 
     // mathematical
     //////////////////////
@@ -169,9 +167,9 @@ public class Structure {
     functions.put("atan2", new Function("atan2", FractionalType,
         singletonList(new FunctionParameter("stddev", NumberType)),
         false,
-        Map.of(POSTGRESQL, "atan2",
-               HSQLDB, "atan2",
-               SQLSERVER, "atn2")));
+        Map.of(POSTGRESQL,  "atan2",
+               HSQLDB,      "atan2",
+               SQLSERVER,   "atn2")));
 
     functions.put("cos", new Function("cos", FloatType,
         singletonList(new FunctionParameter("p", NumberType))));
@@ -212,23 +210,23 @@ public class Structure {
     functions.put("ln", new Function("ln", FloatType,
         singletonList(new FunctionParameter("p", NumberType)),
         false,
-        Map.of(POSTGRESQL, "ln",
-               HSQLDB, "ln",
-               SQLSERVER, "log")));
+        Map.of(POSTGRESQL,  "ln",
+               HSQLDB,      "ln",
+               SQLSERVER,   "log")));
 
     functions.put("log", new Function("log", FloatType,
         singletonList(new FunctionParameter("p", NumberType)),
         false,
-        Map.of(POSTGRESQL, "log",
-               HSQLDB, "log10",
-               SQLSERVER, "log10")));
+        Map.of(POSTGRESQL,  "log",
+               HSQLDB,      "log10",
+               SQLSERVER,   "log10")));
 
     functions.put("floormod", new Function("floormod", NumberType,
         Arrays.asList(new FunctionParameter("dividend", NumberType),
             new FunctionParameter("divider", NumberType)),
         false,
-        Map.of(POSTGRESQL, "_core.floormod",
-               SQLSERVER, "_core.floormod")));
+        Map.of(POSTGRESQL,  "_core.floormod",
+               SQLSERVER,   "_core.floormod")));
 
     functions.put("exp", new Function("exp", FloatType,
                   singletonList(new FunctionParameter("p", NumberType))));
@@ -278,8 +276,8 @@ public class Structure {
     functions.put("chr", new Function("chr", IntType,
         singletonList(new FunctionParameter("p", StringType)),
         false,
-        Map.of(POSTGRESQL, "chr",
-               SQLSERVER, "char")));
+        Map.of(POSTGRESQL,  "chr",
+               SQLSERVER,   "char")));
 
     functions.put("trim",  new TrimFunction(this));
     functions.put("ltrim", new RightTrimFunction(this));

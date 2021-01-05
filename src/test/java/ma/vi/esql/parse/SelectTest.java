@@ -225,6 +225,30 @@ public class SelectTest {
   }
 
   @TestFactory
+  Stream<DynamicTest> selectDerivedColumn() {
+    return Stream.of(databases)
+                 .map(db -> dynamicTest(db.target().toString(), () -> {
+                   System.out.println(db.target());
+                   Parser p = new Parser(db.structure());
+                   try (EsqlConnection con = db.esql(db.pooledConnection())) {
+                     Select select = p.parse("select a, b, c from s:S where c > 1000 order by c asc, a desc", SELECT);
+                     Context context = new Context(db.structure());
+                     assertEquals(new SelectBuilder(context)
+                                        .column("a", null)
+                                        .column("b", null)
+                                        .column("c", null)
+                                        .from("S", "s")
+                                        .where("c>1000")
+                                        .orderBy("c", "asc")
+                                        .orderBy("a", "desc")
+                                        .build(),
+                                  select);
+                     con.exec(select);
+                   }
+                 }));
+  }
+
+  @TestFactory
   Stream<DynamicTest> joinSelect() {
     return Stream.of(databases)
                  .map(db -> dynamicTest(db.target().toString(), () -> {

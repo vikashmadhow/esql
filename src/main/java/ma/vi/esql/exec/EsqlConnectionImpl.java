@@ -99,7 +99,9 @@ public class EsqlConnectionImpl implements EsqlConnection {
   private Result exec(Statement<?, ?> statement, Param... params) {
     Statement<?, ?> st = statement;
     if (params.length > 0) {
-      // substitute parameters into statement
+      /*
+       * Substitute parameters into statement.
+       */
       final Map<String, Param> parameters = new HashMap<>();
       for (Param p: params) {
         parameters.put(p.a, p);
@@ -133,31 +135,40 @@ public class EsqlConnectionImpl implements EsqlConnection {
       });
     }
     if (st instanceof QueryUpdate) {
-      // macro expansion for queries only (for ddl, macro expansion would expand expressions
-      // without any contextual information such as the current query which is needed for
-      // some cases, such as when computing derived expressions)
+      /*
+       * Macro expansion for queries only (for ddl, macro expansion would expand
+       * expressions without any contextual information such as the current
+       * query which is needed for some cases, such as when computing derived
+       * expressions)
+       */
       expand(st);
     }
     return st.execute(con, statement.context.structure, target);
   }
 
   private static void expand(Esql<?, ?> esql) {
-    // The result of the expansion of the macros in a previous iteration of this
-    // method. This is used to exclude from subsequent request for expansion macros
-    // which have not expanded previously, indicating (most probably) that their
-    // expansion is complete or not necessary.
+    /*
+     * The result of the expansion of the macros in a previous iteration of this
+     * method. This is used to exclude from subsequent request for expansion
+     * macros which have not expanded previously, indicating (most probably)
+     * that their expansion is complete or not necessary.
+     */
     IdentityHashMap<Macro, Boolean> previousExpansionResult = new IdentityHashMap<>();
     while (_expand(esql, previousExpansionResult));
   }
 
   private static boolean _expand(Esql<?, ?> esql,
                                  IdentityHashMap<Macro, Boolean> previousExpansionResult) {
-    // first collect macros in terms of priority
+    /*
+     * First collect macros in terms of priority.
+     */
     PriorityQueue<Integer> orders = new PriorityQueue<>();
     Map<Integer, List<T2<String, Macro>>> macros = new HashMap<>();
     loadMacros(null, esql, 0, orders, macros, previousExpansionResult, new IdentityHashMap<>());
 
-    // expand in priority order
+    /*
+     * Expand in priority order.
+     */
     Set<Macro> executed = new HashSet<>();
     boolean changed = false;
     while (!orders.isEmpty()) {
@@ -186,23 +197,18 @@ public class EsqlConnectionImpl implements EsqlConnection {
       if (cycleDetector.containsKey(child)) {
         if (child instanceof Esql) {
           Esql<?, ?> esql = (Esql<?, ?>)child;
-          throw new TranslationException("Cycle detected during macro expansion with the following Esql element " +
-                                             "present in the cycle: " + esql.getClass() + " {value: " +
-                                             esql.value + ", parent: " + esql.parent +
-                                             (esql.parent == null ? "" : " of class " + esql.parent.getClass()) +
-                                             ", children: " + Maps.toString(esql.children) + "}");
+          throw new TranslationException("Cycle detected during macro expansion with the following Esql element "
+                                       + "present in the cycle: " + esql.getClass() + " {value: " + esql.value
+                                       + ", parent: " + esql.parent + (esql.parent == null ? "" : " of class "
+                                       + esql.parent.getClass()) + ", children: " + Maps.toString(esql.children) + "}");
         } else {
-          throw new TranslationException("Cycle detected during macro expansion with the following object " +
-                                             "present in the cycle: " + child.getClass() + " {value: " +
-                                             child + "}");
+          throw new TranslationException("Cycle detected during macro expansion with the following object "
+                                       + "present in the cycle: " + child.getClass() + " {value: " + child + "}");
         }
       }
       try {
         cycleDetector.put(child, child);
         if (child instanceof Esql<?, ?>) {
-          //        loadMacros((Esql<?, ?>)child, level, orders, macros,
-          //                   previousExpansionResult, cycleDetector);
-
           Esql<?, ?> esql = (Esql<?, ?>)child;
           loadMacros(null, esql.value, level + 1, orders,
                      macros, previousExpansionResult, cycleDetector);
@@ -223,8 +229,10 @@ public class EsqlConnectionImpl implements EsqlConnection {
         if (child instanceof Macro) {
           Macro macro = (Macro)child;
 
-          // only add this macro for expansion if it has not been seen before
-          // or it was expanded before (which means that it could expand more).
+          /*
+           * Only add this macro for expansion if it has not been seen before
+           * or it was expanded before (which means that it could expand more).
+           */
           if (previousExpansionResult.getOrDefault(macro, true)) {
             int order = macro.expansionOrder() - level;
             if (macros.containsKey(order)) {
