@@ -11,7 +11,6 @@ import ma.vi.esql.parser.define.Attribute;
 import ma.vi.esql.parser.define.GroupBy;
 import ma.vi.esql.parser.define.Metadata;
 import ma.vi.esql.parser.expression.Expression;
-import ma.vi.esql.parser.query.StarColumn;
 import ma.vi.esql.parser.query.*;
 
 import java.util.ArrayList;
@@ -22,7 +21,7 @@ import static java.util.stream.Collectors.toList;
 import static ma.vi.esql.parser.define.GroupBy.Type.*;
 
 /**
- * A builder for directly constructing Select statement.
+ * A builder for directly constructing select statements.
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
@@ -197,10 +196,10 @@ public class SelectBuilder implements Builder<Select> {
   private final List<Column> columns = new ArrayList<>();
   private TableExpr from;
   private Expression<?> where;
+  private final List<Order> orderBy = new ArrayList<>();
   private final List<Expression<?>> groupBy = new ArrayList<>();
   private GroupBy.Type groupType = Simple;
   private Expression<?> having;
-  private final List<Order> orderBy = new ArrayList<>();
   private Expression<?> offset;
   private Expression<?> limit;
 
