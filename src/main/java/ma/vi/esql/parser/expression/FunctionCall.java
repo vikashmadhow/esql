@@ -10,6 +10,7 @@ import ma.vi.esql.parser.Context;
 import ma.vi.esql.parser.Esql;
 import ma.vi.esql.parser.Macro;
 import ma.vi.esql.parser.query.Order;
+import ma.vi.esql.parser.query.Select;
 import ma.vi.esql.type.Type;
 import ma.vi.esql.type.Types;
 
@@ -29,12 +30,14 @@ public class FunctionCall extends Expression<String> implements Macro {
                       boolean             distinct,
                       List<Expression<?>> distinctOn,
                       List<Expression<?>> arguments,
+                      Select              select,
                       List<Expression<?>> partitions,
                       List<Order>         orderBy) {
     super(context, functionName,
           of("distinct",   new Esql<>(context, distinct)),
           of("distinctOn", new Esql<>(context, "distinctOn", distinctOn)),
           of("arguments",  new Esql<>(context, "arguments", arguments)),
+          of("select",     select),
           of("partitions", new Esql<>(context, "partitions", partitions)),
           of("orderBy",    new Esql<>(context, "orderBy", orderBy)));
   }
@@ -205,6 +208,10 @@ public class FunctionCall extends Expression<String> implements Macro {
 
   public List<Expression<?>> arguments() {
     return child("arguments").childrenList();
+  }
+
+  public Select select() {
+    return child("select");
   }
 
   public List<Expression<?>> partitions() {

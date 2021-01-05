@@ -714,18 +714,6 @@ public interface EsqlListener extends ParseTreeListener {
 	 */
 	void exitMultiplicationExpr(EsqlParser.MultiplicationExprContext ctx);
 	/**
-	 * Enter a parse tree produced by the {@code Existence}
-	 * labeled alternative in {@link EsqlParser#expr}.
-	 * @param ctx the parse tree
-	 */
-	void enterExistence(EsqlParser.ExistenceContext ctx);
-	/**
-	 * Exit a parse tree produced by the {@code Existence}
-	 * labeled alternative in {@link EsqlParser#expr}.
-	 * @param ctx the parse tree
-	 */
-	void exitExistence(EsqlParser.ExistenceContext ctx);
-	/**
 	 * Enter a parse tree produced by the {@code UncomputedExpr}
 	 * labeled alternative in {@link EsqlParser#expr}.
 	 * @param ctx the parse tree

@@ -11,7 +11,7 @@ import static ma.vi.esql.parser.Translatable.Target.JSON;
 
 /**
  * A named argument to a function. The name is dropped when this is translated
- * to SQL as most databases does not support named arguments yet. This is
+ * to SQL as most databases do not support named arguments yet. This is
  * however useful for macro expansions.
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)

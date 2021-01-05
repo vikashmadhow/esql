@@ -7,6 +7,8 @@ package ma.vi.esql.function;
 import ma.vi.esql.parser.Translatable;
 import ma.vi.esql.parser.expression.Expression;
 import ma.vi.esql.parser.expression.FunctionCall;
+import ma.vi.esql.parser.query.QueryTranslation;
+import ma.vi.esql.parser.query.Select;
 import ma.vi.esql.type.Type;
 
 import java.util.List;
@@ -54,6 +56,11 @@ public class Function {
           .append(distinctOn.stream().map(e -> e.translate(target)).collect(joining(", ")))
           .append(") ");
       }
+    }
+    Select select = call.select();
+    if (select != null) {
+      QueryTranslation t = select.translate(target);
+      st.append(t.statement).append(' ');
     }
     List<Expression<?>> arguments = call.arguments();
     if (arguments != null) {

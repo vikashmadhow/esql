@@ -98,60 +98,6 @@ public class Parser {
     return (Expression<?>)parse(structure, parser(expression).expr());
   }
 
-//  /**
-//   * Interprets the expression as an ESQL expression if it is surrounded by parenthesis.
-//   * otherwise interprets it as a literal. This is useful when parsing query parameters where,
-//   * for instance, an update parameter could be a literal (x=5) as well as an expression (x=y+5).
-//   * In the first case, the expression sent for the parameter will be the integer 5; in the second
-//   * case the string "`y+5" (without the double-quote) will be sent and processed as the correct
-//   * expression.
-//   */
-//  public static Expression<?> parseLiteralOrExpression(Structure structure,
-//                                                       Object expression) {
-//    if (expression instanceof String
-//     && ((String)expression).startsWith("(")
-//     && ((String)expression).endsWith(")")) {
-//      /*
-//       * Parse as expression
-//       */
-//      return parseExpression(structure, (String)expression);
-//
-//    } else {
-//      return Literal.makeLiteral(new Context(structure), expression);
-//    }
-//  }
-//
-//    /**
-//     * Interprets the expression as an ESQL expression if it starts with a single backquote (`),
-//     * otherwise interprets it as a literal. This is useful when parsing query parameters where,
-//     * for instance, an update parameter could be a literal (x=5) as well as an expression (x=y+5).
-//     * In the first case, the expression sent for the parameter will be the integer 5; in the second
-//     * case the string "`y+5" (without the double-quote) will be sent and processed as the correct
-//     * expression.
-//     */
-//    default Expression<?> parseLiteralOrExpression(Object expression) {
-//        Context context = new Context(this);
-//        if (expression instanceof String) {
-//            String exp = (String)expression;
-//            if (exp.length() > 0 && exp.charAt(0) == '`') {
-//                /*
-//                 * Back-quoted: process as expression
-//                 */
-//                return (Expression<?>) parse(this, fromString(exp.substring(1)), false);
-//            } else {
-//                /*
-//                 * No starting backquote: literal string
-//                 */
-//                return Literal.makeLiteral(context, expression);
-//            }
-//        } else {
-//            /*
-//             * Other type than string: literal
-//             */
-//            return Literal.makeLiteral(context, expression);
-//        }
-//    }
-
   public interface Rules {
     String PROGRAM = "program";
     String STATEMENT = "statement";
@@ -172,7 +118,6 @@ public class Parser {
     String LITERAL = "literal";
 
     String METADATA = "metadata";
-
   }
 
   public final Structure structure;

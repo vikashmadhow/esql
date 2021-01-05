@@ -75,6 +75,13 @@ public class Structure {
       }
     };
 
+    // existence
+    /////////////////////////////////////
+    functions.put("exists",
+                  new Function("exists", BoolType,
+                               singletonList(new FunctionParameter("exists", Relation)),
+                               false, null));
+
     // aggregates
     //////////////////////////
     functions.put("count",

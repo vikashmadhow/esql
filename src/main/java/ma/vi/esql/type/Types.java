@@ -5,10 +5,12 @@
 package ma.vi.esql.type;
 
 import ma.vi.esql.parser.Translatable;
+import ma.vi.esql.parser.query.Column;
 
 import java.sql.Date;
 import java.sql.Time;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -263,6 +265,20 @@ public class Types {
 
   // Generic and special types
   ///////////////////////////////////
+
+  // The theoretical ancestor type of all Relations
+  public static final Type Relation =
+      new Relation("__rel__") {
+        @Override
+        public ma.vi.esql.type.Relation copy() {
+          return null;
+        }
+
+        @Override
+        public List<Column> columns() {
+          return null;
+        }
+      };
 
   // The theoretical type of the null value (the bottom type)
   public static final Type NullType =

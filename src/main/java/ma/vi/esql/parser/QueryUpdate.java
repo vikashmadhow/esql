@@ -9,7 +9,6 @@ import ma.vi.base.tuple.T2;
 import ma.vi.base.tuple.T3;
 import ma.vi.esql.builder.Attr;
 import ma.vi.esql.database.Database;
-import ma.vi.esql.database.Structure;
 import ma.vi.esql.exec.ColumnMapping;
 import ma.vi.esql.exec.Result;
 import ma.vi.esql.parser.define.Attribute;

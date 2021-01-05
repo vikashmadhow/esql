@@ -74,14 +74,14 @@ queryUpdate
  * be used to compose more complex `selects` in the same statement.
  */
 select
-    : 'select'  (metadata ','?)? distinct? explicit? columns
-      ('from'   tableExpr)?
-      ('where'  where=expr)?
-      ('order'  'by' orderByList)?
-      ('group'  'by' groupByList)?
+    :  'select' (metadata ','?)? distinct? explicit? columns
+      (  'from' tableExpr)?
+      ( 'where' where=expr)?
+      ( 'order' 'by' orderByList)?
+      ( 'group' 'by' groupByList)?
       ('having' having=expr)?
       ('offset' offset=expr)?
-      ('limit'  limit=expr)?                #BaseSelection
+      ( 'limit' limit=expr)?                #BaseSelection
 
     | select setop select                   #CompositeSelection
 
@@ -233,7 +233,6 @@ column
  *    /country/city/street
  *    /"level 1"/"level 2"
  *    x.y.z/"intermediate level"/b.y/"another level"/"yet another level"
- *
  */
 alias
     : (root='/')? aliasPart ('/' aliasPart)*
@@ -255,7 +254,6 @@ alias
  *    "Level 1"
  *    "!$$#42everything after$$#"
  *    ".a.b."
- *
  */
 aliasPart
     : EscapedIdentifier                 #EscapedAliasPart
@@ -269,7 +267,6 @@ aliasPart
  *    "Level 1"
  *    "!$$#42everything after$$#"
  *    ".a.b."
- *
  */
 EscapedIdentifier
     : '"' ~["]+ '"'
@@ -283,7 +280,6 @@ EscapedIdentifier
  *    a
  *    b.x
  *    a.b.c
- *
  */
 qualifiedName
     : Identifier ('.' Identifier)*
@@ -318,25 +314,25 @@ tableExpr
     ;
 
 /**
- * The definition of a dynamic table expression is a set of column names with optional
- * metadata attached to each column.
+ * A dynamic table expression is a set of column names with optional metadata
+ * attached to each column.
  */
 dynamicColumns
     : '(' nameWithMetadata (',' nameWithMetadata)* ')'
     ;
 
 /**
- * A column in the definition of the type of a dynamic table expression consists of an
- * identifier and followed optionally by metadata for the column.
+ * A column in the definition of the type of a dynamic table expression consists
+ * of an identifier and followed optionally by metadata for the column.
  */
 nameWithMetadata
     : Identifier metadata?
     ;
 
 /**
- * 4 join types are available in ESQL: `left`, `right` and `full` joins are built with these
- * respective keywords before the `join` keyword in a table expression; when none of those is
- * provided, an inner join is assumed.
+ * 4 join types are available in ESQL: `left`, `right` and `full` joins are
+ * built with these respective keywords before the `join` keyword in a table
+ * expression; when none of those is provided, an inner join is assumed.
  */
 joinType
     : 'left'
@@ -345,10 +341,10 @@ joinType
     ;
 
 /**
- * The `group by` clause of a select consists of a subset of expressions
- * present in the columns of select. 3 types of groupings are supported:
- * simple, rollup and cube. The latter two are indicated by surrounding
- * the group list with the keword `rollup` and `cube` respectively.
+ * The `group by` clause of a select consists of a subset of expressions present
+ * in the columns of select. 3 types of groupings are supported: simple, rollup
+ * and cube. The latter two are indicated by surrounding the group list with the
+ * keword `rollup` and `cube` respectively.
  */
 groupByList
     : expressionList                        #SimpleGroup
@@ -357,8 +353,8 @@ groupByList
     ;
 
 /**
- * The `order by` clause of a `select` statement is a comma-separated list
- * or expression by which the select must order its result.
+ * The `order by` clause of a `select` statement is a comma-separated list or
+ * expression by which the select must order its result.
  */
 orderByList
     : orderBy (',' orderBy)*
@@ -366,16 +362,16 @@ orderByList
 
 /**
  * An order expression in the `order by` list of a `select` is an expression
- * which can be followed optionally by a direction: `asc` (default) for ascending
- * or `desc` for descending.
+ * which can be followed optionally by a direction: `asc` (default) for
+ * ascending or `desc` for descending.
  */
 orderBy
     : expr direction?
     ;
 
 /**
- * Directions of order by expressions: `asc` (default) for ascending
- * or `desc` for descending.
+ * Directions of order by expressions: `asc` (default) for ascending or `desc`
+ * for descending.
  */
 direction
     : 'asc'
@@ -384,10 +380,11 @@ direction
 
 /**
  * `select`s can be combined with the following set operations:
- *  1. `union`: returns the union of two selects removing all duplicate rows;
+ *  1. `union`:     returns the union of two selects removing all duplicate rows;
  *  2. `union all`: returns the union of two selects without removing any duplicate rows;
  *  3. `intersect`: returns the intersection of two selects;
- *  4. `except`: returns the set difference between two selects (i.e. `A except B` returns all rows in A which are not also in B).
+ *  4. `except`:    returns the set difference between two selects
+ *                  (i.e. `A except B` returns all rows in A which are not also in B).
  */
 setop
     : 'union'
@@ -397,18 +394,21 @@ setop
     ;
 
 /**
- * `with` queries combine `select` and `modify` queries such that the result of one query
- * can be used in subsequent queries in the same `with` query. Not all databases support the
- * use of the result of modification queries in subsequent query in the same `with` query
- * (e.g. Postgresql does, SQL Server does not). Some databases also do not support return values
- * on modification queries. In some cases, ESQL will simulate the feature in translated SQL
- * but, in most cases, the translated SQL will fail when executed on the database; therefore
- * the supported features of the underlying database must be known and ESQL commands limited
- * to the supported subset.
+ * `with` queries combine `select` and `modify` queries such that the result of
+ * one query can be used in subsequent queries in the same `with` query. Not all
+ * databases support the use of the result of modification queries in subsequent
+ * query in the same `with` query (e.g. Postgresql does, SQL Server does not).
+ * Some databases also do not support return values on modification queries.
  *
- * `with` queries consist of a list of common-table-expressions (CTE, i.e. a selection or
- * modification query) followed by a final selection/modification query. The first CTE can
- * be recursive and refer to itself (check SQL specification on recursive with queries).
+ * In some cases, ESQL will simulate the feature in translated SQL but, in most
+ * cases, the translated SQL will fail when executed on the database; therefore
+ * the supported features of the underlying database must be known and ESQL
+ * commands limited to the supported subset.
+ *
+ * `with` queries consist of a list of common-table-expressions (CTE, i.e. a
+ * selection or modification query) followed by a final selection/modification
+ * query. The first CTE can be recursive and refer to itself (check SQL
+ * specification on recursive with queries).
  *
  * Example with query (an example upsert query):
  *
@@ -419,7 +419,6 @@ setop
  *        select 3, 4
  *          from X left join modify on X.id=modify.id
  *         where modify.id is null
- *
  */
 with
     : 'with' recursive='recursive'? cteList queryUpdate
@@ -436,8 +435,8 @@ cteList
 /**
  * A common-table-expression (CTE) consists of an identifier which names the CTE
  * followed by an optional list of column names that will be returned by the CTE
- * and the select/modify query that will be executed to produce the result of the
- * CTE.
+ * and the select/modify query that will be executed to produce the result of
+ * the CTE.
  */
 cte
     : Identifier names? '(' queryUpdate ')'
@@ -451,14 +450,13 @@ names
     : '(' Identifier (',' Identifier)* ')'
     ;
 
-
 /**
  * Rows can be inserted in a table with the `insert` statement which takes a
- * table name, an optional list of column names (if not provided, all the columns
- * in the given table are assumed in the same order that they were defined when
- * the table was created), definition for the rows to insert and, optionally,
- * a list of columns from the affected rows to return as the result of the
- * statement.
+ * table name, an optional list of column names (if not provided, all the
+ * columns in the given table are assumed in the same order that they were
+ * defined when the table was created), definition for the rows to insert and,
+ * optionally, a list of columns from the affected rows to return as the result
+ * of the statement.
  *
  * Rows to insert are provided as one of:
  * 1. a comma-separated list of row values; or
@@ -488,6 +486,11 @@ row
     : '(' expressionList ')'
     ;
 
+/**
+ * The keywords `default` `values` can be provided in an `insert` statement
+ * to insert a row in the table with all columns set to their default values
+ * or null if they do not have any default.
+ */
 defaultValues
     : 'default' 'values'
     ;
@@ -496,14 +499,16 @@ defaultValues
  *
  */
 update
-    : 'update'  alias
-      'from'    tableExpr
-      'set'     setList
-      ('where'  expr)?
+    :  'update' alias
+         'from' tableExpr
+          'set' setList
+      ( 'where' expr)?
       ('return' metadata? columns)?
     ;
 
-
+/**
+ *
+ */
 setList
     : set (',' set)*
     ;
@@ -527,91 +532,216 @@ delete
       ('return' metadata? columns)?
     ;
 
-
 /**
- * An expression in ESQL which can be computed to return a single-value.
+ * An expression in ESQL is a sequence of valid ESQL keywords, symbols and other
+ * tokens which can be computed to return a single-value.
  */
 expr
-    /*
-     * Parentheses controls the order in which expressions are computed when
-     * they are part of larger expressions.
-     */
-    : '(' expr ')'                                          #GroupingExpr
+      /*
+       * Parentheses controls the order in which expressions are computed when
+       * they are part of larger expressions.
+       */
+    : '(' expr ')'                                              #GroupingExpr
 
+      /*
+       * An expression surrounded by '$(' and ')' is known as an uncomputed
+       * expression in that it is not computed by the interpreter and sent to
+       * the database (or client) as a string. Uncomputed expressions are
+       * useful when the expressions need to be computed outside of the
+       * database (e.g., validation check that can be executed on a client
+       * to the check the validity of a value before sending to the database).
+       */
+    | '$(' expr ')'                                             #UncomputedExpr
 
-    | '$(' expr ')'                                         #UncomputedExpr
+      /*
+       * Refers to the default value applicable in certain context such as when
+       * inserting values and updating columns (to their defaults)
+       */
+    | type '<' expr '>'                                         #CastExpr
 
-    | type '<' expr '>'                                     #CastExpr
-
-
-    /*
-     * refers to the default value, only applicable
-     * in certain context, such as for inserting values
-     * and updating columns (to their defaults)
-     */
+      /*
+       * The default value applicable in certain context such as when inserting
+       * values and updating columns (to their defaults)
+       */
     | 'default'                                                 #DefaultValue
 
-    // literals
+      /*
+       * Any literal (such as a number or string) is a valid expression.
+       */
     | literal                                                   #LiteralExpr
 
-    | expr ('?' expr)+                                          #CoalesceExpr   // x?0 == | x if x is not null
-                                                                                //        | 0 if x is null
-                                                                                //
-                                                                                // x?y?z == | x if x is not null
-                                                                                //          | y if x is null and y is not null
-                                                                                //          | otherwise z
+      /*
+       * Coalesce is a '?'-separated list of expressions returning the value of
+       * the first non-null expression in the list. E.g. `x?0` is evaluated as
+       * `x` if `x` is not null, 0 otherwise. `x?y?z` is evaluated as the `x` if
+       * it is not null, `y` if `x` is null and `y` is not null, `z` otherwise.
+       */
+    | expr ('?' expr)+                                          #CoalesceExpr
 
+      /*
+       * `||` is the concatenation operator.
+       */
     | left=expr '||' right=expr                                 #ConcatenationExpr
+
+      /*
+       * Any numeric expression can be negated by prefixing it with `-`.
+       */
     | '-' expr                                                  #NegationExpr
+
+      /*
+       * `^` is the exponentiation operator in ESQL and it is right-associative.
+       */
     | <assoc=right> left=expr '^' right=expr                    #ExponentiationExpr
+
+      /*
+       * Multiplicative operators include `*`, `/` and `%` to calculate the
+       * multiplication, division and modulus of two operands. They are at the
+       * same precedence level.
+       */
     | left=expr op=('*' | '/' | '%') right=expr                 #MultiplicationExpr
+
+      /*
+       * Additive operators include `+` and `-` to calculate the addition and
+       * subtraction of two operands. They are at the same precedence level.
+       */
     | left=expr op=('+' | '-') right=expr                       #AdditionExpr
 
-    | '*'                                                       #StarExpr           // Only valid as an argument to
-                                                                                    // certain functions such as count
+      /*
+       * The `*` character can be provided as an argument to certain functions
+       * such as the count aggregate function.
+       */
+    | '*'                                                       #StarExpr
 
+      /*
+       * A named parameter consists of a name preceded with a colon (:). Values
+       * for named parameters must be provided when a statement containing them
+       * is executed.
+       */
     | ':' Identifier                                            #NamedParameter
-    | Identifier ':=' expr                                      #NamedArgument      // A named argument to a function. The name
-                                                                                    // is dropped when this is translated to SQL
-                                                                                    // as most databases does not support named
-                                                                                    // arguments yet. This is however useful for
-                                                                                    // macro expansions.
 
-    | selectExpression                                          #SelectExpr         // single-column, single-row only when used
-                                                                                    // as an expresion
+      /*
+       * A named argument to a function. The name is dropped when this is
+       * translated to SQL as most databases do not support named arguments yet.
+       * This is however useful for macro expansions.
+       */
+    | Identifier ':=' expr                                      #NamedArgument
+
+      /*
+       * A single-column, single-row only select used as an expression.
+       */
+    | selectExpression                                          #SelectExpr
+
+      /*
+       * The logical not of a boolean expression.
+       */
     | Not expr                                                  #NotExpr
-    | qualifiedName '(' distinct? expressionList? ')' window?   #FunctionInvocation
-    | 'exists' '(' select ')'                                   #Existence
 
-    | left=expr leftCompare=ordering
-      mid=simpleExpr
-      rightCompare=ordering right=expr                      #RangeExpr
+      /*
+       * A function call consists of the function name (which can be qualified)
+       * followed by an optional comma-separated list of zero or more
+       * expressions as arguments to the function (or a single select to cover
+       * certain special function such as exists which check whether a select
+       * has returned one or more rows), followed optionally by a window
+       * characterisation (applicable only to window functions). The start of
+       * the argument list may contain a `distinct` definition which is
+       * applicable to certain aggregate functions (such as `count`).
+       */
+    | qualifiedName
+      '(' distinct? (expressionList | select)? ')'
+      window?                                                   #FunctionInvocation
 
-    | left=expr compare right=expr                          #Comparison
-    | expr compare Quantifier '(' select ')'                #QuantifiedComparison
-    | expr Not? 'in' '(' (expressionList | select) ')'      #InExpression
-    | left=expr Not? 'between' mid=expr 'and' right=expr    #BetweenExpr
-    | left=expr Not? 'like' right=expr                      #LikeExpr
-    | left=expr Not? 'ilike' right=expr                     #ILikeExpr
-    | expr 'is' Not? NullLiteral                            #NullCheckExpr
+//      /*
+//       * Boolean expression returning true if the select returns one or more rows.
+//       */
+//    | 'exists' '(' select ')'                                   #Existence
 
-    | columnReference                                       #ColumnExpr
+      /*
+       * Two-sided comparison similar to what is present in the Python language
+       * and similar to (but more powerful than) the `between` operator in SQL.
+       * E.g., this is a valid such expression:  `min_age <= age < max_age`.
+       * The expression consists of three operands and two comparison operators
+       * simultaneously comparing the middle operand to the left and right ones.
+       * All three operands can be expressions with the middle one limited to
+       * certain type of expressions to allow for correct syntactic parsing. All
+       * 4 comparison operators (<, <=, >, >=) are allowed in any combination.
+       */
+    |         left = expr
+       leftCompare = ordering
+               mid = simpleExpr
+      rightCompare = ordering
+             right = expr                                       #RangeExpr
 
-    | left=expr 'and' right=expr                            #LogicalAndExpr
-    | left=expr 'or'  right=expr                            #LogicalOrExpr
+      /*
+       * Binary comparison of two expressions.
+       */
+    | left=expr compare right=expr                              #Comparison
 
-    // a -> b : (c -> d : (e -> f : g))
-//    | <assoc=right> expr ('?' expr ':' expr)+
+      /*
+       * Compare an expression to the values returned by a single-column select
+       * using either one of two quantifiers: `any` or `all`; for `any` the
+       * the comparison must be true between the expression and at least one
+       * value in the result of the select. for `all` the comparison must be
+       * true for all values for the whole expression to be true.
+       */
+    | expr compare Quantifier '(' select ')'                    #QuantifiedComparison
 
-    /*
-        'a' if x else
-        'b' if y else
-        'c' if z else 'e'
-    */
-    | <assoc=right> expr ('if' expr 'else' expr)+           #CaseExpr
+      /*
+       * True if the expression matches one of the expression in the `in` list
+       * or a value returned by the `select`.
+       */
+    | expr Not? 'in' '(' (expressionList | select) ')'          #InExpression
 
-    | simpleExpr                                            #SimpleExpression
+      /*
+       * True if a comparable expression is in the range provided in the
+       * `between` expressions (inclusive).
+       */
+    | left=expr Not? 'between' mid=expr 'and' right=expr        #BetweenExpr
 
+      /*
+       * Like comparison operator.
+       */
+    | left=expr Not? 'like' right=expr                          #LikeExpr
+
+      /*
+       * Case-insensitive like comparison operator.
+       */
+    | left=expr Not? 'ilike' right=expr                         #ILikeExpr
+
+      /*
+       * True if the expression is null (or not null).
+       */
+    | expr 'is' Not? NullLiteral                                #NullCheckExpr
+
+      /*
+       * A reference to a column.
+       */
+    | columnReference                                           #ColumnExpr
+
+      /*
+       * Logical and.
+       */
+    | left=expr 'and' right=expr                                #LogicalAndExpr
+
+      /*
+       * Logical or.
+       */
+    | left=expr 'or'  right=expr                                #LogicalOrExpr
+
+      /*
+       * Ternary `if` following the same syntax as in Python:
+       *    <true result> if <condition> else <expression if condition is false>
+       * E.g.:
+       *    'a' if x else
+       *    'b' if y else
+       *    'c' if z else 'e'
+       */
+    | <assoc=right> expr ('if' expr 'else' expr)+               #CaseExpr
+
+      /*
+       * A restricted expression that can be used as the middle expression in
+       * range comparison (limited to avoid ambiguity in the parser).
+       */
+    | simpleExpr                                                #SimpleExpression
     ;
 
 /**
@@ -619,32 +749,27 @@ expr
  * and can be used as the middle expression of a range (e.g a > simpleExpr > b)
  */
 simpleExpr
-    : '(' simpleExpr ')'                                            #SimpleGroupingExpr
-    | type '<' simpleExpr '>'                                       #SimpleCastExpr
-    | literal                                                       #SimpleLiteralExpr
-    | simpleExpr ('?' simpleExpr)+                                  #SimpleCoalesceExpr
-    | left=simpleExpr '||' right=simpleExpr                         #SimpleConcatenationExpr
-    | '-' simpleExpr                                                #SimpleNegationExpr
-    | <assoc=right> left=simpleExpr '^' right=simpleExpr            #SimpleExponentiationExpr
-    | left=simpleExpr op=('*' | '/' | '%') right=simpleExpr         #SimpleMultiplicationExpr
-    | left=simpleExpr op=('+' | '-') right=simpleExpr               #SimpleAdditionExpr
-
-    | selectExpression                                              #SimpleSelectExpr   // single-column, single-row only when used
-                                                                                        // as an expresion
-    | qualifiedName '(' distinct? expressionList? ')' window?       #SimpleFunctionInvocation
-
-    | columnReference                                               #SimpleColumnExpr
-
-    // a -> b : c -> d : e -> f : g
-    | <assoc=right> simpleExpr ('if' simpleExpr 'else' simpleExpr)+ #SimpleCaseExpr
+    : '(' simpleExpr ')'                                                    #SimpleGroupingExpr
+    | type '<' simpleExpr '>'                                               #SimpleCastExpr
+    | literal                                                               #SimpleLiteralExpr
+    | simpleExpr ('?' simpleExpr)+                                          #SimpleCoalesceExpr
+    | left=simpleExpr '||' right=simpleExpr                                 #SimpleConcatenationExpr
+    | '-' simpleExpr                                                        #SimpleNegationExpr
+    | <assoc=right> left=simpleExpr '^' right=simpleExpr                    #SimpleExponentiationExpr
+    | left=simpleExpr op=('*' | '/' | '%') right=simpleExpr                 #SimpleMultiplicationExpr
+    | left=simpleExpr op=('+' | '-') right=simpleExpr                       #SimpleAdditionExpr
+    | selectExpression                                                      #SimpleSelectExpr
+    | qualifiedName '(' distinct? (expressionList | select)? ')' window?    #SimpleFunctionInvocation
+    | columnReference                                                       #SimpleColumnExpr
+    | <assoc=right> simpleExpr ('if' simpleExpr 'else' simpleExpr)+         #SimpleCaseExpr
     ;
 
 selectExpression
     : '(' distinct?
           (alias ':')? col=expr
-          'from'   tableExpr
-         ('where'  where=expr)?
-         ('order' 'by' orderByList)?
+            'from' tableExpr
+         ( 'where' where=expr)?
+         ( 'order' 'by' orderByList)?
          ('offset' offset=expr)?
       ')'
     ;
@@ -878,7 +1003,6 @@ type
 arrayType
     : BaseType '[' ']'
     ;
-
 
 Quantifier
     : 'all' | 'any'

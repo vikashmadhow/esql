@@ -653,6 +653,7 @@ public class Analyser extends EsqlBaseListener {
         distinct != null && distinct.getText().startsWith("distinct"),
         distinct != null && distinct.expressionList() != null ? value(distinct.expressionList()) : null,
         value(ctx.expressionList()),
+        ctx.select() != null ? get(ctx.select()) : null,
         window != null ? value(window.partition() != null ? window.partition().expressionList() : null) : null,
         window != null ? value(window.orderByList()) : null));
   }
@@ -666,6 +667,7 @@ public class Analyser extends EsqlBaseListener {
         distinct != null && distinct.getText().startsWith("distinct"),
         distinct != null && distinct.expressionList() != null ? value(distinct.expressionList()) : null,
         value(ctx.expressionList()),
+        ctx.select() != null ? get(ctx.select()) : null,
         window != null ? value(window.partition() != null ? window.partition().expressionList() : null) : null,
         window != null ? value(window.orderByList()) : null));
   }
@@ -677,10 +679,10 @@ public class Analyser extends EsqlBaseListener {
                                     .collect(toList())));
   }
 
-  @Override
-  public void exitExistence(ExistenceContext ctx) {
-    put(ctx, new Exists(context, get(ctx.select())));
-  }
+//  @Override
+//  public void exitExistence(ExistenceContext ctx) {
+//    put(ctx, new Exists(context, get(ctx.select())));
+//  }
 
   @Override
   public void exitComparison(ComparisonContext ctx) {
