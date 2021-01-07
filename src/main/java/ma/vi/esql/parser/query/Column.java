@@ -25,6 +25,7 @@ import java.util.UUID;
 
 import static ma.vi.esql.builder.Attributes.*;
 import static ma.vi.esql.parser.Translatable.Target.ESQL;
+import static ma.vi.esql.type.Types.BoolType;
 
 /**
  * A column in a select statement.
@@ -128,7 +129,7 @@ public class Column extends MetadataContainer<Expression<?>, String> {
     } else if (target == Target.SQLSERVER) {
       StringBuilder st = new StringBuilder();
       Type type = type();
-      if (type.equals(Types.BoolType)) {
+      if (type == BoolType && !(expr() instanceof ColumnRef)) {
         /*
          * SQL Server does not have a boolean type; work-around using an IIF
          */

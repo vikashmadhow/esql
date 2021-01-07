@@ -92,12 +92,14 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
        * Add columns and metadata
        */
       if (columns() != null) {
-        for (Column column: columns()) {
-          Expression<?> colExpr = column.expr();
-          String alias = column.alias();
+        for (Column queryColumn: columns()) {
+          Expression<?> colExpr = queryColumn.expr();
+          String alias = queryColumn.alias();
           if (alias == null) {
             alias = makeUnique(columnNames, "col");
           }
+
+          Column column;
           if (colExpr instanceof ColumnRef) {
             ColumnRef ref = (ColumnRef)colExpr;
             String refName = ref.name();
@@ -122,7 +124,7 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
               }
             }
           } else {
-            column = column.copy();
+            column = queryColumn.copy();
           }
 
           column.alias(alias);
@@ -133,8 +135,8 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
            * Override with explicit result metadata defined in select.
            */
           if (!grouped()) {
-            if (column.metadata() != null && column.metadata().attributes() != null) {
-              for (Attribute a: column.metadata().attributes().values()) {
+            if (queryColumn.metadata() != null && queryColumn.metadata().attributes() != null) {
+              for (Attribute a: queryColumn.metadata().attributes().values()) {
                 for (Column c: BaseRelation.columnsForAttribute(a, alias + '/', aliased)) {
                   columns.put(c.alias(), c.copy());
                   columnNames.add(c.alias());
@@ -244,11 +246,13 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
     /*
      * Output columns.
      */
+    int columnIndex = 0;
     for (Column column: selection.columns()
                                  .stream()
                                  .filter(c -> !c.alias().contains("/"))
                                  .collect(toList())) {
       itemIndex++;
+      columnIndex++;
       if (itemIndex > 1) {
         query.append(", ");
       }
@@ -259,7 +263,7 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
       }
       query.append(column.translate(target));
       String colName = column.alias();
-      columnToIndex.put(colName, itemIndex);
+      columnToIndex.put(colName, columnIndex);
       columnMappings.put(colName, new ColumnMapping(itemIndex,
                                                     column.type(),
                                                     new ArrayList<>(),
@@ -314,7 +318,9 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
       ColumnRef.qualify(expression, qualifier, null, true);
     }
     Type type = expression.type();
-    if (target == Target.SQLSERVER && type == Types.BoolType) {
+    if (target == Target.SQLSERVER
+     && type == Types.BoolType
+     && !(expression instanceof ColumnRef)) {
       /*
        * SQL Server does not have a boolean type; work-around using an IIF
        */

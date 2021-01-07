@@ -846,7 +846,7 @@ columnReference
     ;
 
 qualifier
-    : (Identifier '.')
+    : Identifier '.'
     ;
 
 define
@@ -964,18 +964,18 @@ constraintDefinition
        * being referred (the forward path) or in the reverse direction (the
        * reverse path).
        *
-       * The following attribute sets a cost for following this foreign key
-       * in the forward and reverse path. If only the forward path cost is
+       * The following attribute sets a cost for following this foreign key in
+       * the forward and reverse path. If only the forward path cost is
        * specified, twice its value is assigned to the reverse path cost to
        * provide a preference for forward paths over reverse ones.
        *
-       * A negative cost prevents the respective path (forward or reverse)
-       * to be followed effectively removing that link from any path that
-       * a search algorithm will return.
+       * A negative cost prevents the respective path (forward or reverse) to be
+       * followed effectively removing that link from any path that a search
+       * algorithm will return.
        *
        * A zero or positive value is the cost for following the link and a
-       * uniform cost search (such as Djikstra shortest path algorithm) can
-       * be used to find shortest path by cost between tables.
+       * uniform cost search (such as Djikstra shortest path algorithm) can be
+       * used to find shortest path by cost between tables.
        *
        * A forward cost of 1 and a reverse cost of 2 is assumed when not
        * specified, making forward paths preferable to reverse ones.

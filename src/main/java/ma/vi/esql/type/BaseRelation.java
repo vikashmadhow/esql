@@ -81,7 +81,8 @@ public class BaseRelation extends Relation {
      *      is expanded to {a:a, b:a+5, c:a+a+5, d:a+a+5+a+5}
      */
     for (Column column: this.columns) {
-      if (!(column.expr() instanceof ColumnRef)) {
+      if (!(column.expr() instanceof ColumnRef)
+       || !column.expr().value.equals(column.alias())) {
         column.expr(expandDerived(column.expr(),
                                   columnsByAlias,
                                   column.alias(),

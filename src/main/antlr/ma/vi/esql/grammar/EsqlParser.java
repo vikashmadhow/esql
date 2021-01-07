@@ -5721,12 +5721,10 @@ public class EsqlParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			{
 			setState(828);
 			match(Identifier);
 			setState(829);
 			match(T__22);
-			}
 			}
 		}
 		catch (RecognitionException re) {
