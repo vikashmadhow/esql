@@ -50,7 +50,7 @@ public class DataTest {
                                 "  d=b+c {" +
                                 "    m1: 10" +
                                 "  }," +
-                                "  e int {" +
+                                "  e bool {" +
                                 "    m1: c" +
                                 "  }," +
                                 "  f=(max(a) from S) {" +
@@ -59,7 +59,7 @@ public class DataTest {
                                 "  g=(distinct c from S where d>5) {" +
                                 "    m1: (min(a) from a.b.T)" +
                                 "  }," +
-                                "  h text {" +
+                                "  h text[] {" +
                                 "    m1: 5" +
                                 "  }," +
                                 "  i string {" +
@@ -68,6 +68,8 @@ public class DataTest {
                                 "                                  and l.name='City'" +
                                 "                    where lv.code=i)" +
                                 "  }," +
+                                "  j int[], " +
+                                "  k interval, " +
                                 "  primary key(_id)" +
                                 ")");
         con.exec(s);

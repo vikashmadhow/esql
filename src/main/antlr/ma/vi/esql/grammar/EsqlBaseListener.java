@@ -1,4 +1,4 @@
-// Generated from ma\vi\esql\grammar\Esql.g4 by ANTLR 4.9
+// Generated from ma\vi\esql\grammar\Esql.g4 by ANTLR 4.9.1
 
     package ma.vi.esql.grammar;
 
@@ -601,18 +601,6 @@ public class EsqlBaseListener implements EsqlListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitQuantifiedComparison(EsqlParser.QuantifiedComparisonContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterStarExpr(EsqlParser.StarExprContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitStarExpr(EsqlParser.StarExprContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *

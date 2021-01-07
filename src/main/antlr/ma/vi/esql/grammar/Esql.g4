@@ -3,9 +3,9 @@
  */
 
 /**
- * ANTLR4 grammar for a SQL-like language which can be translated to
- * SQL commands specific to a physical database (PostgreSql, SQL Server,
- * Oracle, MySQL, etc.)
+ * ANTLR4 grammar for a SQL-like language which can be translated to SQL
+ * commands specific to a physical database (PostgreSql, SQL Server, Oracle,
+ * MySQL, etc.)
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
@@ -24,19 +24,19 @@ program
 
 /**
  * A semi-colon can also be interpreted as a silent no-operation (noop)
- * statement. Noops can be used to disable certain part of a program
- * dynamically (by replacing the statement with a noop) without having
- * to remove the statement which can be harder in some cases.
+ * statement. Noops can be used to disable certain part of a program dynamically
+ * (by replacing the statement with a noop) without having to remove the
+ * statement which can be harder in some cases.
  */
 noop
     : ';'
     ;
 
 /**
- * ESQL statements can be divided into two groups: statements for defining
- * and altering database structures (such as tables and columns) and those
- * for querying and manipulating the data in those structures (select, insert, etc.).
- * select is the only statement for querying data while there are 3 different
+ * ESQL statements can be divided into two groups: statements for defining and
+ * altering database structures (such as tables and columns) and those for
+ * querying and manipulating the data in those structures (select, insert, etc.).
+ * `select` is the only statement for querying data while there are 3 different
  * statements for modifying data (insert, update and delete) which are grouped
  * into modify statements.
  */
@@ -65,13 +65,13 @@ queryUpdate
     ;
 
 /**
- * A `select` statement extracts rows with a set columns (and metadata)
- * from a one or more joined tables and optionally subject to filters,
- * groupings, limits and orderings.
+ * A `select` statement extracts rows with a set columns (and metadata) from a
+ * one or more joined tables and optionally subject to filters, groupings,
+ * limits and orderings.
  *
  * Selects can also be combined with set operators (union, intersection, etc.)
- * or through `with` statements which creates temporary selects that can
- * be used to compose more complex `selects` in the same statement.
+ * or through `with` statements which creates temporary selects that can be used
+ * to compose more complex `selects` in the same statement.
  */
 select
     :  'select' (metadata ','?)? distinct? explicit? columns
@@ -92,8 +92,8 @@ select
  * Metadata in ESQL is a comma-separated list of attributes surrounded by curly
  * parentheses ({}) with each attribute consisting of a name-expression pair.
  * Metadata can beattached to a table and to its columns. For instance this is
- * a `create table` statement which defines metadata attributes on both the table
- * and its columns:
+ * a `create table` statement which defines metadata attributes on both the
+ * table and its columns:
  *
  *      create table com.example.S(
  *        {
@@ -137,8 +137,9 @@ select
  *        }
  *      )
  *
- * When a table is queried, its metadata and those on its queried columns are also added
- * to the query and can be overridden by attributes provided in the query.
+ * When a table is queried, its metadata and those on its queried columns are
+ * also added to the query and can be overridden by attributes provided in the
+ * query.
  */
 metadata
     : '{' attributeList '}'
@@ -152,19 +153,20 @@ attributeList
     ;
 
 /**
- * Each attribute consists of a simple name and an expression which must be valid
- * in the query that will be executed over the table where the metadata attribute
- * is specified.
+ * Each attribute consists of a simple name and an expression which must be
+ * valid in the query that will be executed over the table where the metadata
+ * attribute is specified.
  */
 attribute
     : Identifier ':' expr
     ;
 
 /**
- * The optional distinct clause in `select` can be `all` which is the default where
- * all matching records are returned or `distinct` which means that only unique records
- * are returned with duplicates eliminated. `distinct` can optionally be followed by
- * by an expression list which is used to identify duplicates.
+ * The optional distinct clause in `select` can be `all` which is the default
+ * where all matching records are returned or `distinct` which means that only
+ * unique records are returned with duplicates eliminated. `distinct` can
+ * optionally be followed by an expression list which is used to identify
+ * duplicates.
  */
 distinct
     : 'all'
@@ -172,35 +174,35 @@ distinct
     ;
 
 /**
- * The optional `explicit` keyword, when specified, disable the automatic addition and
- * expansion of metadata in a query and returns a resultset consisting only of the
- * explicitly specified columns.
+ * The optional `explicit` keyword, when specified, disable the automatic
+ * addition and expansion of metadata in a query and returns a resultset
+ * consisting only of the explicitly specified columns.
  */
 explicit
     : 'explicit'
     ;
 
 /**
- * The `select` keyword is followed by the `columns` clause which is a comma-separated
- * sequence of columns to select into the result, with each column being an expression
- * which can refer to columns in the tables specified in the `from` clause of the select
- * query.
+ * The `select` keyword is followed by the `columns` clause which is a
+ * comma-separated sequence of columns to select into the result, with each
+ * column being an expression which can refer to columns in the tables specified
+ * in the `from` clause of the select query.
  */
 columns
     : column (',' column)*
     ;
 
 /**
- * A column in a select statement consists of a expression which will be executed
- * in the context of the tables in the `from` clause of the select. The column can
- * be given an alias which will be the name of that column in the result of the query.
- * Metadata can also be associated to the column and will override any metadata
- * defined for that column in the table (this only applies when the columns refers
- * exactly to a column in a table).
+ * A column in a select statement consists of a expression which will be
+ * executed in the context of the tables in the `from` clause of the select. The
+ * column can be given an alias which will be the name of that column in the
+ * result of the query. Metadata can also be associated to the column and will
+ * override any metadata defined for that column in the table (this only applies
+ * when the columns refers exactly to a column in a table).
  *
  * A column can also be the asterisk (*) character, optionally qualified, and is
- * expanded to all the columns in the tables joined for the query, or, if qualified,
- * all the columns in table referred to by the qualifier.
+ * expanded to all the columns in the tables joined for the query, or, if
+ * qualified, all the columns in table referred to by the qualifier.
  */
 column
     : (alias ':')? expr metadata?       #SingleColumn
@@ -208,18 +210,19 @@ column
     ;
 
 /**
- * An alias consists of one or more alias parts separated by the front slash ('/'), and,
- * optionally, starting with a front slash. An alias part can be a qualified identifier
- * or an escaped identifier. Qualified identifiers are one or more identifiers (an identifier
- * is a name starting with [$_a-zA-Z] and optionally followed by zero or more [$_a-zA-Z0-9])
- * joined together with periods. For instance, these are valid qualified identifiers:
+ * An alias consists of one or more alias parts separated by the front slash
+ * ('/'), and, optionally, starting with a front slash. An alias part can be a
+ * qualified identifier or an escaped identifier. Qualified identifiers are one
+ * or more identifiers (an identifier is a name starting with [$_a-zA-Z] and
+ * optionally followed by zero or more [$_a-zA-Z0-9]) joined together with
+ * periods. For instance, these are valid qualified identifiers:
  *
  *    a
  *    b.x
  *    a.b.c
  *
- * An escaped identifier is a sequence of one or more characters surrounded by double quotes.
- * These are all valid escaped identifiers:
+ * An escaped identifier is a sequence of one or more characters surrounded by
+ * double quotes. These are all valid escaped identifiers:
  *
  *    "Level 1"
  *    "!$$#42everything after$$#"
@@ -239,17 +242,18 @@ alias
     ;
 
 /**
- * An alias part can be a qualified identifier or an escaped identifier. Qualified identifiers
- * are one or more identifiers (an identifier is a name starting with [$_a-zA-Z] and optionally
- * followed by zero or more [$_a-zA-Z0-9]) joined together with periods. For instance, these
- * are valid qualified identifiers:
+ * An alias part can be a qualified identifier or an escaped identifier.
+ * Qualified identifiers are one or more identifiers (an identifier is a name
+ * starting with [$_a-zA-Z] and optionally followed by zero or more
+ * [$_a-zA-Z0-9]) joined together with periods. For instance, these are valid
+ * qualified identifiers:
  *
  *    a
  *    b.x
  *    a.b.c
  *
- * An escaped identifier is a sequence of one or more characters surrounded by double quotes.
- * These are all valid escaped identifiers:
+ * An escaped identifier is a sequence of one or more characters surrounded by
+ * double quotes. These are all valid escaped identifiers:
  *
  *    "Level 1"
  *    "!$$#42everything after$$#"
@@ -261,8 +265,8 @@ aliasPart
     ;
 
 /**
- * An escaped identifier is a sequence of one or more characters surrounded by double quotes.
- * These are all valid escaped identifiers:
+ * An escaped identifier is a sequence of one or more characters surrounded by
+ * double quotes. These are all valid escaped identifiers:
  *
  *    "Level 1"
  *    "!$$#42everything after$$#"
@@ -273,9 +277,10 @@ EscapedIdentifier
     ;
 
 /**
- * Qualified identifiers are one or more identifiers (an identifier is a name starting with
- * [$_a-zA-Z] and optionally followed by zero or more [$_a-zA-Z0-9]) joined together with
- * periods. For instance, these are valid qualified identifiers:
+ * Qualified identifiers are one or more identifiers (an identifier is a name
+ * starting with [$_a-zA-Z] and optionally followed by zero or more
+ * [$_a-zA-Z0-9]) joined together with periods. For instance, these are valid
+ * qualified identifiers:
  *
  *    a
  *    b.x
@@ -286,14 +291,17 @@ qualifiedName
     ;
 
 /**
- * The `from` clause of a `select` contains a table expression which can be one of these:
- * 1. A single table optionally aliased. If an alias is not provided, a default one with the
- *    the table name (without schema) will be used. I.e. `a.b.X` is equivalent to `X:a.b.X`.
+ * The `from` clause of a `select` contains a table expression which can be one
+ * of these:
+ * 1. A single table optionally aliased. If an alias is not provided, a default
+ *    one with the table name (without schema) will be used. I.e. `a.b.X` is
+ *    equivalent to `X:a.b.X`.
  *
- * 2. An aliased select statement: E.g. `select t.x, t.y from t:(select x, y, z from T)`.
+ * 2. An aliased select statement: E.g. `select t.x, t.y from
+ *    t:(select x, y, z from T)`.
  *
- * 3. A dynamic table expression which creates a named temporary table with rows as part of
- *    the query and allow selection from it. E.g.:
+ * 3. A dynamic table expression which creates a named temporary table with rows
+ *    as part of the query and allow selection from it. E.g.:
  *          `select a, b from X(a, b):((1, 'One'), (2, 'Two'), ('3, 'Three'))
  *
  * 4. Cartesian product of any two table expressions: E.g.:
@@ -302,8 +310,9 @@ qualifiedName
  * 5. A join (inner, left, right, full) of any two table expressions:
  *          `select x.a, x.b, y.c, z.d from x:X join y:Y on x.a=y.b left join z:Z on y.c=z.c`
  *
- * Cartesian products and joins can combine any table expression types (including themselves)
- * to form more complex table expressions through composition.
+ * Cartesian products and joins can combine any table expression types
+ * (including themselves) to form more complex table expressions through
+ * composition.
  */
 tableExpr
     : (alias ':')? qualifiedName                                 #SingleTableExpr
@@ -332,7 +341,7 @@ nameWithMetadata
 /**
  * 4 join types are available in ESQL: `left`, `right` and `full` joins are
  * built with these respective keywords before the `join` keyword in a table
- * expression; when none of those is provided, an inner join is assumed.
+ * expression; when none of those are provided, an inner join is assumed.
  */
 joinType
     : 'left'
@@ -379,7 +388,7 @@ direction
     ;
 
 /**
- * `select`s can be combined with the following set operations:
+ * `select` can be combined with the following set operations:
  *  1. `union`:     returns the union of two selects removing all duplicate rows;
  *  2. `union all`: returns the union of two selects without removing any duplicate rows;
  *  3. `intersect`: returns the intersection of two selects;
@@ -606,11 +615,11 @@ expr
        */
     | left=expr op=('+' | '-') right=expr                       #AdditionExpr
 
-      /*
-       * The `*` character can be provided as an argument to certain functions
-       * such as the count aggregate function.
-       */
-    | '*'                                                       #StarExpr
+//      /*
+//       * The `*` character can be provided as an argument to certain functions
+//       * such as the count aggregate function.
+//       */
+//    | '*'                                                       #StarExpr
 
       /*
        * A named parameter consists of a name preceded with a colon (:). Values
@@ -647,7 +656,7 @@ expr
        * applicable to certain aggregate functions (such as `count`).
        */
     | qualifiedName
-      '(' distinct? (expressionList | select)? ')'
+      '(' distinct? (expressionList | select | star='*')? ')'
       window?                                                   #FunctionInvocation
 
 //      /*
@@ -749,23 +758,24 @@ expr
  * and can be used as the middle expression of a range (e.g a > simpleExpr > b)
  */
 simpleExpr
-    : '(' simpleExpr ')'                                                    #SimpleGroupingExpr
-    | type '<' simpleExpr '>'                                               #SimpleCastExpr
-    | literal                                                               #SimpleLiteralExpr
-    | simpleExpr ('?' simpleExpr)+                                          #SimpleCoalesceExpr
-    | left=simpleExpr '||' right=simpleExpr                                 #SimpleConcatenationExpr
-    | '-' simpleExpr                                                        #SimpleNegationExpr
-    | <assoc=right> left=simpleExpr '^' right=simpleExpr                    #SimpleExponentiationExpr
-    | left=simpleExpr op=('*' | '/' | '%') right=simpleExpr                 #SimpleMultiplicationExpr
-    | left=simpleExpr op=('+' | '-') right=simpleExpr                       #SimpleAdditionExpr
-    | selectExpression                                                      #SimpleSelectExpr
-    | qualifiedName '(' distinct? (expressionList | select)? ')' window?    #SimpleFunctionInvocation
-    | columnReference                                                       #SimpleColumnExpr
-    | <assoc=right> simpleExpr ('if' simpleExpr 'else' simpleExpr)+         #SimpleCaseExpr
+    : '(' simpleExpr ')'                                                              #SimpleGroupingExpr
+    | type '<' simpleExpr '>'                                                         #SimpleCastExpr
+    | literal                                                                         #SimpleLiteralExpr
+    | simpleExpr ('?' simpleExpr)+                                                    #SimpleCoalesceExpr
+    | left=simpleExpr '||' right=simpleExpr                                           #SimpleConcatenationExpr
+    | '-' simpleExpr                                                                  #SimpleNegationExpr
+    | <assoc=right> left=simpleExpr '^' right=simpleExpr                              #SimpleExponentiationExpr
+    | left=simpleExpr op=('*' | '/' | '%') right=simpleExpr                           #SimpleMultiplicationExpr
+    | left=simpleExpr op=('+' | '-') right=simpleExpr                                 #SimpleAdditionExpr
+    | selectExpression                                                                #SimpleSelectExpr
+    | qualifiedName '(' distinct? (expressionList | select | star='*')? ')' window?   #SimpleFunctionInvocation
+    | columnReference                                                                 #SimpleColumnExpr
+    | <assoc=right> simpleExpr ('if' simpleExpr 'else' simpleExpr)+                   #SimpleCaseExpr
     ;
 
 selectExpression
-    : '(' distinct?
+    : '(' 'select'?
+          distinct?
           (alias ':')? col=expr
             'from' tableExpr
          ( 'where' where=expr)?
@@ -843,23 +853,31 @@ define
     : createTable
     | alterTable
     | dropTable
-//    | createView
-//    | dropView
-//    | alterView
-//    | createIndex
+
 //    | createSequence
+//    | alterSequence
+//    | dropSequence
+
+//    | createView
+//    | alterView
+//    | dropView
+
+//    | createIndex
+
 //    | createFunction
 //    | createTrigger
     ;
 
-// Creates or alters a table.
+/**
+ * Creates or alters a table.
+ */
 createTable
     : 'create' 'table' qualifiedName dropUndefined? '(' tableDefinitions ')'
     ;
 
 /**
  * Removes any excess definitions (columns, constraints, etc.)
- * when automatically updating the table
+ * when automatically updating the table.
  */
 dropUndefined
     : 'drop' 'undefined'
@@ -1141,12 +1159,16 @@ Identifier
     : [$_a-zA-Z][$_a-zA-Z0-9]*
     ;
 
-// ignore comments
+/**
+ * Comments in ESQL start with '#' and goes to the end of the line.
+ */
 Comment
     : '#' ~[\r\n]* -> skip
     ;
 
-// ignore white-spaces
+/**
+ * white-spaces are ignored in ESQL.
+ */
 Whitespace
     : [ \t\r\n]+ -> skip
     ;

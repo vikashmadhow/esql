@@ -53,7 +53,7 @@ public class InMonthMacroFunction extends Function implements Macro {
 
     if (arguments.isEmpty()) {
       throw new TranslationException("inmonth function needs at 3 arguments (the date to check and " +
-          "the month and year that the date must fall in)");
+                                         "the month and year that the date must fall in)");
     }
 
     /*
@@ -67,36 +67,38 @@ public class InMonthMacroFunction extends Function implements Macro {
       String prefix = year.translate(ESQL) + '-' + StringUtils.leftPad(month.translate(ESQL), 2, '0') + '-';
       String startDate = prefix + "01";
       LocalDate end = LocalDate.of(((IntegerLiteral)year).value.intValue(),
-          ((IntegerLiteral)month).value.intValue(), 1);
+                                   ((IntegerLiteral)month).value.intValue(), 1);
       String endDate = prefix + end.lengthOfMonth();
       call.parent.replaceWith(name,
-          new Between(ctx,
-              date,
-              new DateLiteral(ctx, startDate),
-              new DateLiteral(ctx, endDate)));
+                              new Between(ctx,
+                                          date,
+                                          new DateLiteral(ctx, startDate),
+                                          new DateLiteral(ctx, endDate)));
     } else {
       List<Expression<?>> funcArgs = singletonList(date);
       call.parent.replaceWith(name,
-          new GroupedExpression(
-              ctx,
-              new LogicalAnd(
-                  ctx,
-                  new Equality(
-                      ctx,
-                      new FunctionCall(ctx, "month",
-                                       false, null,
-                                       funcArgs, null, null),
-                      month
-                  ),
-                  new Equality(
-                      ctx,
-                      new FunctionCall(ctx, "year",
-                                       false, null,
-                                       funcArgs, null, null),
-                      year
-                  )
-              )
-          ));
+                              new GroupedExpression(
+                                  ctx,
+                                  new LogicalAnd(
+                                      ctx,
+                                      new Equality(
+                                          ctx,
+                                          new FunctionCall(ctx, "month",
+                                                           false, null,
+                                                           funcArgs, null, false,
+                                                           null, null),
+                                          month
+                                      ),
+                                      new Equality(
+                                          ctx,
+                                          new FunctionCall(ctx, "year",
+                                                           false, null,
+                                                           funcArgs, null, false,
+                                                           null, null),
+                                          year
+                                      )
+                                  )
+                              ));
     }
     return true;
   }

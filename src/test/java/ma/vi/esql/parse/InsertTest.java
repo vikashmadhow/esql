@@ -30,15 +30,15 @@ public class InsertTest extends DataTest {
                      con.exec("delete s from s:S");
                      Insert insert = p.parse(
                          "insert into S(_id, a, b, e, h, i) values "
-                            + "(newid(), 1, 2, 3, 'Four', 'Five'),"
-                            + "(newid(), 6, 7, 8, 'Nine', 'Ten')",
+                            + "(newid(), 1, 2, true, text['Four', 'Quatre'], 'Five'),"
+                            + "(newid(), 6, 7, false, text['Nine', 'Neuf'], 'Ten')",
                          INSERT);
                      Context context = new Context(db.structure());
                      assertEquals(new InsertBuilder(context)
                                         .in("S", null)
                                         .insertColumns("_id", "a", "b", "e", "h", "i")
-                                        .insertRow("newid()", "1", "2", "3", "'Four'", "'Five'")
-                                        .insertRow("newid()", "6", "7", "8", "'Nine'", "'Ten'")
+                                        .insertRow("newid()", "1", "2", "true",  "text['Four', 'Quatre']", "'Five'")
+                                        .insertRow("newid()", "6", "7", "false", "text['Nine', 'Neuf']", "'Ten'")
                                         .build(),
                                   insert);
                      for (int i = 0; i < 10; i++) {

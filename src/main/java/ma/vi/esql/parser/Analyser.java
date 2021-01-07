@@ -32,6 +32,7 @@ import java.util.*;
 
 import static java.lang.Boolean.parseBoolean;
 import static java.lang.Long.parseLong;
+import static java.lang.System.Logger.Level.ERROR;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static ma.vi.esql.grammar.EsqlParser.*;
@@ -54,8 +55,10 @@ public class Analyser extends EsqlBaseListener {
   @Override
   public void visitErrorNode(ErrorNode node) {
     Token token = node.getSymbol();
-    System.out.println("ERROR in " + token.getTokenSource().getInputStream().toString()
+    log.log(ERROR, "ERROR in " + token.getTokenSource().getInputStream().toString()
                            + " at " + token.getLine() + ':' + token.getCharPositionInLine());
+    throw new SyntaxException("ERROR in " + token.getTokenSource().getInputStream().toString()
+                                  + " at " + token.getLine() + ':' + token.getCharPositionInLine());
   }
 
   @Override
@@ -585,10 +588,10 @@ public class Analyser extends EsqlBaseListener {
     }
   }
 
-  @Override
-  public void exitStarExpr(StarExprContext ctx) {
-    put(ctx, new StarExpression(context));
-  }
+//  @Override
+//  public void exitStarExpr(StarExprContext ctx) {
+//    put(ctx, new StarExpression(context));
+//  }
 
   @Override
   public void exitColumnExpr(ColumnExprContext ctx) {
@@ -654,6 +657,7 @@ public class Analyser extends EsqlBaseListener {
         distinct != null && distinct.expressionList() != null ? value(distinct.expressionList()) : null,
         value(ctx.expressionList()),
         ctx.select() != null ? get(ctx.select()) : null,
+        ctx.star != null,
         window != null ? value(window.partition() != null ? window.partition().expressionList() : null) : null,
         window != null ? value(window.orderByList()) : null));
   }
@@ -668,6 +672,7 @@ public class Analyser extends EsqlBaseListener {
         distinct != null && distinct.expressionList() != null ? value(distinct.expressionList()) : null,
         value(ctx.expressionList()),
         ctx.select() != null ? get(ctx.select()) : null,
+        ctx.star != null,
         window != null ? value(window.partition() != null ? window.partition().expressionList() : null) : null,
         window != null ? value(window.orderByList()) : null));
   }
@@ -1228,4 +1233,6 @@ public class Analyser extends EsqlBaseListener {
   private final Context context;
 
   public Esql<?, ?> lastRecognised;
+
+  private static final System.Logger log = System.getLogger(Analyser.class.getName());
 }

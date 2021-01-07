@@ -48,24 +48,27 @@ public class Function {
       functionName = Type.dbTableName(functionName, target);
     }
     StringBuilder st = new StringBuilder(functionName).append('(');
-    if (aggregate && call.distinct()) {
+    if (call.distinct()) {
       st.append("distinct ");
       List<Expression<?>> distinctOn = call.distinctOn();
       if (distinctOn != null && !distinctOn.isEmpty()) {
         st.append(target != HSQLDB ? "on (" : "(")
-          .append(distinctOn.stream().map(e -> e.translate(target)).collect(joining(", ")))
+          .append(distinctOn.stream()
+                            .map(e -> e.translate(target))
+                            .collect(joining(", ")))
           .append(") ");
       }
     }
     Select select = call.select();
     if (select != null) {
-      QueryTranslation t = select.translate(target);
-      st.append(t.statement).append(' ');
-    }
-    List<Expression<?>> arguments = call.arguments();
-    if (arguments != null) {
+      st.append(select.translate(target).statement);
+
+    } else if (call.star()) {
+      st.append('*');
+
+    } else if (call.arguments() != null) {
       boolean first = true;
-      for (Expression<?> e: arguments) {
+      for (Expression<?> e: call.arguments()) {
         if (first) {
           first = false;
         } else {

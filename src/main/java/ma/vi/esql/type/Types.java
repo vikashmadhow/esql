@@ -220,7 +220,7 @@ public class Types {
   public static final Type IntervalType =
       new BaseType("interval", 32, false,
                    Map.of(POSTGRESQL, "interval",
-                          HSQLDB, "interval",
+                          HSQLDB, "nvarchar(200)",
                           SQLSERVER, "nvarchar(200)"));
 
   public static final Type TimeType = 

@@ -31,6 +31,7 @@ public class FunctionCall extends Expression<String> implements Macro {
                       List<Expression<?>> distinctOn,
                       List<Expression<?>> arguments,
                       Select              select,
+                      boolean             star,
                       List<Expression<?>> partitions,
                       List<Order>         orderBy) {
     super(context, functionName,
@@ -38,6 +39,7 @@ public class FunctionCall extends Expression<String> implements Macro {
           of("distinctOn", new Esql<>(context, "distinctOn", distinctOn)),
           of("arguments",  new Esql<>(context, "arguments", arguments)),
           of("select",     select),
+          of("star",       new Esql<>(context, star)),
           of("partitions", new Esql<>(context, "partitions", partitions)),
           of("orderBy",    new Esql<>(context, "orderBy", orderBy)));
   }
@@ -130,7 +132,7 @@ public class FunctionCall extends Expression<String> implements Macro {
   @Override
   public void _toString(StringBuilder st, int level, int indent) {
     st.append(functionName()).append('(');
-    if (distinct() != null && distinct()) {
+    if (distinct()) {
       st.append("distinct ");
       if (distinctOn() != null && !distinctOn().isEmpty()) {
         boolean first = true;
@@ -148,6 +150,12 @@ public class FunctionCall extends Expression<String> implements Macro {
       if (first) { first = false; }
       else       { st.append(", "); }
       e._toString(st, level, indent);
+    }
+    if (select() != null) {
+      select()._toString(st, level, indent);
+    }
+    if (star()) {
+      st.append('*');
     }
     st.append(')');
 
@@ -188,11 +196,11 @@ public class FunctionCall extends Expression<String> implements Macro {
     return value;
   }
 
-  public Boolean distinct() {
+  public boolean distinct() {
     return childValue("distinct");
   }
 
-  public FunctionCall distinct(Boolean distinct) {
+  public FunctionCall distinct(boolean distinct) {
     childValue("distinct", distinct);
     return this;
   }
@@ -212,6 +220,10 @@ public class FunctionCall extends Expression<String> implements Macro {
 
   public Select select() {
     return child("select");
+  }
+
+  public boolean star() {
+    return childValue("star");
   }
 
   public List<Expression<?>> partitions() {

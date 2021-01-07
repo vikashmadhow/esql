@@ -40,7 +40,7 @@ public abstract class Relation extends AbstractType {
         case 'I' -> INDEX;
         case 'S' -> SEQUENCE;
         case 'C' -> COMPOSITE_TYPE;
-        default -> throw new IllegalArgumentException("Unknown relation type: " + marker);
+        default  -> throw new IllegalArgumentException("Unknown relation type: " + marker);
       };
     }
   }
@@ -150,15 +150,3 @@ public abstract class Relation extends AbstractType {
     return st.toString();
   }
 }
-
-/*
-    select a.x, b.x, a.x+b.x from A a, B b
-
-    A: BaseRelation
-    A a: AliasedRelation(BaseRelation(A), a)
-    B: BaseRelation
-    B b: AliasedRelation(BaseRelation(B), b)
-
-    A a, B b: Join(AliasedRelation(BaseRelation(B), b), AliasedRelation(BaseRelation(B), b))
-
- */

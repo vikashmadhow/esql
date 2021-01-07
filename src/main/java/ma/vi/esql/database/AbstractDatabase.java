@@ -327,13 +327,12 @@ public abstract class AbstractDatabase implements Database {
          */
         if (hasCoreTables && !toSave.isEmpty()) {
           for (BaseRelation rel: toSave) {
-            String schema = Type.schema(rel.name()).toUpperCase();
-            if (!ignoredSchemas.contains(schema)) {
+            String schema = Type.schema(rel.name());
+            if (schema != null && !ignoredSchemas.contains(schema.toUpperCase())) {
               table(con, rel);
             }
           }
         }
-
 
 //        // load indices and link to covered tables
 //        try (ResultSet rs = stmt.executeQuery("select _id, name, relation_id, unique_index, " +

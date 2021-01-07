@@ -1,4 +1,4 @@
-// Generated from ma\vi\esql\grammar\Esql.g4 by ANTLR 4.9
+// Generated from ma\vi\esql\grammar\Esql.g4 by ANTLR 4.9.1
 
     package ma.vi.esql.grammar;
 
@@ -533,18 +533,6 @@ public interface EsqlListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitQuantifiedComparison(EsqlParser.QuantifiedComparisonContext ctx);
-	/**
-	 * Enter a parse tree produced by the {@code StarExpr}
-	 * labeled alternative in {@link EsqlParser#expr}.
-	 * @param ctx the parse tree
-	 */
-	void enterStarExpr(EsqlParser.StarExprContext ctx);
-	/**
-	 * Exit a parse tree produced by the {@code StarExpr}
-	 * labeled alternative in {@link EsqlParser#expr}.
-	 * @param ctx the parse tree
-	 */
-	void exitStarExpr(EsqlParser.StarExprContext ctx);
 	/**
 	 * Enter a parse tree produced by the {@code BetweenExpr}
 	 * labeled alternative in {@link EsqlParser#expr}.
