@@ -16,7 +16,10 @@ import ma.vi.esql.parser.define.ForeignKeyConstraint;
 import ma.vi.esql.parser.define.Metadata;
 import ma.vi.esql.parser.expression.*;
 import ma.vi.esql.parser.query.*;
-import ma.vi.esql.type.*;
+import ma.vi.esql.type.BaseRelation;
+import ma.vi.esql.type.Relation;
+import ma.vi.esql.type.Selection;
+import ma.vi.esql.type.Type;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -27,11 +30,9 @@ import static java.lang.System.Logger.Level.ERROR;
 import static java.sql.ResultSet.CONCUR_READ_ONLY;
 import static java.sql.ResultSet.TYPE_SCROLL_INSENSITIVE;
 import static java.util.Collections.emptyMap;
-import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static ma.vi.base.string.Strings.makeUnique;
 import static ma.vi.base.string.Strings.random;
-import static ma.vi.esql.parser.Translatable.Target.ESQL;
 
 /**
  * The parent of all query (select) and update (update, insert and delete)
@@ -317,28 +318,28 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
     if (qualifier != null) {
       ColumnRef.qualify(expression, qualifier, null, true);
     }
-    Type type = expression.type();
-    if (target == Target.SQLSERVER
-     && type == Types.BoolType
-     && !(expression instanceof ColumnRef)) {
-      /*
-       * SQL Server does not have a boolean type; work-around using an IIF
-       */
-      String boolValue = expression.translate(target);
-      if (boolValue.equals("0") || boolValue.equals("1")) {
-        /*
-         * a boolean literal was specified: no need to use IIF
-         */
-        query.append(boolValue);
-      } else {
-        /*
-         * otherwise, turn into a boolean expression using IIF
-         */
-        query.append("iif(").append(boolValue).append(", 1, 0)");
-      }
-    } else {
+//    Type type = expression.type();
+//    if (target == Target.SQLSERVER
+//     && type == Types.BoolType
+//     && !(expression instanceof ColumnRef)) {
+//      /*
+//       * SQL Server does not have a boolean type; work-around using an IIF
+//       */
+//      String boolValue = expression.translate(target);
+//      if (boolValue.equals("0") || boolValue.equals("1")) {
+//        /*
+//         * a boolean literal was specified: no need to use IIF
+//         */
+//        query.append(boolValue);
+//      } else {
+//        /*
+//         * otherwise, turn into a boolean expression using IIF
+//         */
+//        query.append("iif(").append(boolValue).append(", 1, 0)");
+//      }
+//    } else {
       query.append(expression.translate(target));
-    }
+//    }
   }
 
   /**
@@ -402,12 +403,6 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
                           null));
     }
     columns(cols);
-  }
-
-  public String columnsAsString() {
-    return columns().stream()
-                    .map(c -> c.translate(ESQL))
-                    .collect(joining(", "));
   }
 
   /**

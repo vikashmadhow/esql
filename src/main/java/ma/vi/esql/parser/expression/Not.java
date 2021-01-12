@@ -40,13 +40,25 @@ public class Not extends SingleSubExpression {
   @Override
   public String translate(Target target) {
     switch (target) {
-      case JSON:
-      case JAVASCRIPT:
+      case JSON, JAVASCRIPT -> {
         String e = "!" + expr().translate(target);
         return target == JSON ? '"' + escapeJsonString(e) + '"' : e;
-
-      default:
+      }
+      case SQLSERVER -> {
+        if (ancestor("where") == null
+         && ancestor("having") == null) {
+          /*
+           * For SQL Server, boolean expressions outside of where and having
+           * clauses are not allowed and we simulate it with bitwise operations.
+           */
+          return "cast(~(" + expr() + ") as bit)";
+        } else {
+          return "not " + expr().translate(target);
+        }
+      }
+      default -> {
         return "not " + expr().translate(target);
+      }
     }
   }
 

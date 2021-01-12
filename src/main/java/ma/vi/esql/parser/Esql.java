@@ -6,7 +6,6 @@ package ma.vi.esql.parser;
 
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.database.Database;
-import ma.vi.esql.database.Structure;
 import ma.vi.esql.exec.Result;
 import ma.vi.esql.translator.TranslatorFactory;
 import ma.vi.esql.type.Type;
@@ -386,6 +385,21 @@ public class  Esql<V, R> implements Close, Copy<Esql<V, R>>, Translatable<R> {
       }
     } else {
       return MAX_VALUE;
+    }
+  }
+
+  /**
+   * Returns the ancestor by the specified name if this esql is a
+   * descendant of that ancestor.
+   */
+  public <T extends Esql<?, ?>> T ancestor(String name) {
+    if (parent == null) {
+      return null;
+    } else if (parent.children.containsKey(name)
+            && parent.children.get(name).equals(this)) {
+      return (T)this;
+    } else {
+      return parent.ancestor(name);
     }
   }
 

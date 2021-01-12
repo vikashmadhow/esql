@@ -71,6 +71,7 @@ public class InMonthMacroFunction extends Function implements Macro {
       String endDate = prefix + end.lengthOfMonth();
       call.parent.replaceWith(name,
                               new Between(ctx,
+                                          false,
                                           date,
                                           new DateLiteral(ctx, startDate),
                                           new DateLiteral(ctx, endDate)));

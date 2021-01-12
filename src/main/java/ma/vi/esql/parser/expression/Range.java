@@ -57,22 +57,24 @@ public class Range extends Expression<Expression<?>> {
   @Override
   public String translate(Target target) {
     switch (target) {
-      case JSON:
-      case JAVASCRIPT:
-        String e = '(' + leftExpression().translate(target) + ' ' + leftCompare() + ' ' +
-            compareExpression().translate(target) + " && " +
-            compareExpression().translate(target) + ' ' + rightCompare() + ' ' +
-            rightExpression().translate(target) +
-            ')';
+      case JSON, JAVASCRIPT -> {
+        String e = '(' + leftExpression().translate(target) + ' '
+                 + leftCompare() + ' ' + compareExpression().translate(target) + " && "
+                 + compareExpression().translate(target) + ' ' + rightCompare() + ' '
+                 + rightExpression().translate(target) + ')';
         return target == JSON ? '"' + escapeJsonString(e) + '"' : e;
-
-      default:
-        return '(' +
-            leftExpression().translate(target) + ' ' + leftCompare() + ' ' +
-            compareExpression().translate(target) + " and " +
-            compareExpression().translate(target) + ' ' + rightCompare() + ' ' +
-            rightExpression().translate(target) +
-            ')';
+      }
+      default -> {
+        boolean sqlServerBool = target == Target.SQLSERVER
+                             && ancestor("where") == null
+                             && ancestor("having") == null;
+        return (sqlServerBool ? "iif" : "") + '('
+             + leftExpression().translate(target) + ' ' + leftCompare() + ' '
+             + compareExpression().translate(target) + " and "
+             + compareExpression().translate(target) + ' ' + rightCompare() + ' '
+             + rightExpression().translate(target)
+             + (sqlServerBool ? ", 1, 0" : "") + ')';
+      }
     }
   }
 

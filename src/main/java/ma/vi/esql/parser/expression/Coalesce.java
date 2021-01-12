@@ -5,6 +5,7 @@
 package ma.vi.esql.parser.expression;
 
 import ma.vi.esql.parser.Context;
+import ma.vi.esql.type.Types;
 
 import java.util.List;
 
@@ -67,17 +68,25 @@ public class Coalesce extends MultipleSubExpressions<String> {
       }
 
       default -> {
+        boolean sqlServerBool = target == Target.SQLSERVER
+                             && type() == Types.BoolType
+                             && ancestor("where") != null
+                             && (parent == null || parent.ancestor(Coalesce.class) == null);
+        StringBuilder st = new StringBuilder();
+        if (sqlServerBool) {
+          st.append('(');
+        }
+        st.append("coalesce(");
         boolean first = true;
-        StringBuilder st = new StringBuilder("coalesce(");
         for (Expression<?> e: expressions()) {
-          if (first) {
-            first = false;
-          } else {
-            st.append(", ");
-          }
+          if (first) { first = false;   }
+          else       { st.append(", "); }
           st.append(e.translate(target));
         }
         st.append(')');
+        if (sqlServerBool) {
+          st.append("=1)");
+        }
         return st.toString();
       }
     }

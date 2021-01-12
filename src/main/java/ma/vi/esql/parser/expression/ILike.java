@@ -5,6 +5,7 @@
 package ma.vi.esql.parser.expression;
 
 import ma.vi.esql.parser.Context;
+import ma.vi.esql.parser.Esql;
 
 import static ma.vi.esql.parser.Translatable.Target.SQLSERVER;
 
@@ -14,8 +15,12 @@ import static ma.vi.esql.parser.Translatable.Target.SQLSERVER;
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 public class ILike extends RelationalOperator {
-  public ILike(Context context, Expression<?> expr1, Expression<?> expr2) {
+  public ILike(Context context,
+               boolean not,
+               Expression<?> expr1,
+               Expression<?> expr2) {
     super(context, "ilike", expr1, expr2);
+    child("not", new Esql<>(context, not));
   }
 
   public ILike(ILike other) {
@@ -40,11 +45,21 @@ public class ILike extends RelationalOperator {
   public String translate(Target target) {
     if (target == SQLSERVER) {
       /*
-       * SQL Server does not support ilike, hack it.
+       * SQL Server requires collation for case-insensitive like.
        */
-      return "lower(" + expr1().translate(target) + ") like lower(" + expr2().translate(target) + ')';
+      String e = '(' + expr1().translate(target) + ") collate Latin1_General_CI_AS"
+          + (not() ? " not" : "")
+          + " like (" + expr2().translate(target) + ") collate Latin1_General_CI_AS";
+      if (ancestor("where") == null && ancestor("having") == null) {
+        e = "iif(" + e + ", 1, 0)";
+      }
+      return e;
     } else {
       return super.translate(target);
     }
+  }
+
+  public boolean not() {
+    return childValue("not");
   }
 }

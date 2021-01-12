@@ -733,10 +733,12 @@ public class Analyser extends EsqlBaseListener {
 
   @Override
   public void exitBetweenExpr(BetweenExprContext ctx) {
-    put(ctx, ctx.Not() != null
-             ? new NotBetween(context, get(ctx.left), get(ctx.mid), get(ctx.right))
-             : new Between(context, get(ctx.left), get(ctx.mid), get(ctx.right)));
-   }
+    put(ctx, new Between(context,
+                         ctx.Not() != null,
+                         get(ctx.left),
+                         get(ctx.mid),
+                         get(ctx.right)));
+  }
 
   @Override
   public void exitLogicalAndExpr(LogicalAndExprContext ctx) {
@@ -750,23 +752,23 @@ public class Analyser extends EsqlBaseListener {
 
   @Override
   public void exitLikeExpr(LikeExprContext ctx) {
-    put(ctx, ctx.Not() != null
-             ? new NotLike(context, get(ctx.left), get(ctx.right))
-             : new Like(context, get(ctx.left), get(ctx.right)));
+    put(ctx, new Like(context,
+                      ctx.Not() != null,
+                      get(ctx.left),
+                      get(ctx.right)));
    }
 
   @Override
   public void exitILikeExpr(ILikeExprContext ctx) {
-    put(ctx, ctx.Not() != null
-             ? new NotILike(context, get(ctx.left), get(ctx.right))
-             : new ILike(context, get(ctx.left), get(ctx.right)));
+    put(ctx, new ILike(context,
+                       ctx.Not() != null,
+                       get(ctx.left),
+                       get(ctx.right)));
   }
 
   @Override
   public void exitNullCheckExpr(NullCheckExprContext ctx) {
-    put(ctx, ctx.Not() == null
-             ? new IsNull(context, get(ctx.expr()))
-             : new IsNotNull(context, get(ctx.expr())));
+    put(ctx, new IsNull(context, ctx.Not() == null, get(ctx.expr())));
    }
 
 //  @Override
@@ -779,6 +781,14 @@ public class Analyser extends EsqlBaseListener {
     List<ExprContext> expressions = ctx.expr();
     boolean optimised = false;
     if (expressions.size() == 2) {
+      /*
+       * Chained coalesced statements are broken in 2-parts corresponding to
+       * (expr '?' expr). If the first expr is a coalesce expression, we can
+       * optimise the whole coalesce function by combining it into a single one.
+       *
+       * Thus (coalesce ? e3) where coalesce is (e1 ? e2) is combined into
+       * (e1 ? e2 ? e3)
+       */
       Esql<?, ?> first = get(expressions.get(0));
       if (first instanceof Coalesce) {
         Coalesce firstCoalesce = (Coalesce)first;
@@ -801,6 +811,14 @@ public class Analyser extends EsqlBaseListener {
     List<SimpleExprContext> expressions = ctx.simpleExpr();
     boolean optimised = false;
     if (expressions.size() == 2) {
+      /*
+       * Chained coalesced statements are broken in 2-parts corresponding to
+       * (expr '?' expr). If the first expr is a coalesce expression, we can
+       * optimise the whole coalesce function by combining it into a single one.
+       *
+       * Thus (coalesce ? e3) where coalesce is (e1 ? e2) is combined into
+       * (e1 ? e2 ? e3)
+       */
       Esql<?, ?> first = get(expressions.get(0));
       if (first instanceof Coalesce) {
         Coalesce firstCoalesce = (Coalesce)first;

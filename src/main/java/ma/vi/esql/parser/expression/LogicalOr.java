@@ -40,13 +40,25 @@ public class LogicalOr extends RelationalOperator {
   @Override
   public String translate(Target target) {
     switch (target) {
-      case JSON:
-      case JAVASCRIPT:
+      case JSON, JAVASCRIPT -> {
         String e = expr1().translate(target) + " || " + expr2().translate(target);
         return target == JSON ? '"' + escapeJsonString(e) + '"' : e;
-
-      default:
+      }
+      case SQLSERVER -> {
+        if (ancestor("where") == null
+         && ancestor("having") == null) {
+          /*
+           * For SQL Server, boolean expressions outside of where and having
+           * clauses are not allowed and we simulate it with bitwise operations.
+           */
+          return "cast(" + expr1().translate(target) + " | " + expr2().translate(target) + " as bit)";
+        } else {
+          return super.translate(target);
+        }
+      }
+      default -> {
         return super.translate(target);
+      }
     }
   }
 }

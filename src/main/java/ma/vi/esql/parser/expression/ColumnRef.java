@@ -13,6 +13,7 @@ import ma.vi.esql.parser.define.DerivedColumnDefinition;
 import ma.vi.esql.parser.query.Column;
 import ma.vi.esql.type.BaseRelation;
 import ma.vi.esql.type.Type;
+import ma.vi.esql.type.Types;
 
 /**
  * Reference to a column.
@@ -133,10 +134,17 @@ public class ColumnRef extends Expression<String> implements Macro {
 
   @Override
   public String translate(Target target) {
+    boolean sqlServerBool = target == Target.SQLSERVER
+                         && type() == Types.BoolType
+                         && ancestor("where") != null
+                         && (parent == null || parent.ancestor(Coalesce.class) == null);
     return switch (target) {
       case ESQL, JAVASCRIPT -> qualifiedName();
       case JSON             -> '"' + qualifiedName() + '"';
-      default               -> (qualifier() != null ? '"' + qualifier() + "\"." : "") + '"' + name() + "\"";
+      default               ->
+          (sqlServerBool ? "(" : "")
+        + (qualifier() != null ? '"' + qualifier() + "\"." : "") + '"' + name() + "\""
+        + (sqlServerBool ? "=1)" : "");
     };
   }
 

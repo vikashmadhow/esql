@@ -100,6 +100,8 @@ dependencies {
 
   implementation("com.vikmad:base:latest.release")
 
+  implementation("org.apache.zookeeper:zookeeper:3.6.2")
+
   // Use JUnit test framework
   testImplementation(platform('org.junit:junit-bom:5.7.0'))
   testImplementation('org.junit.jupiter:junit-jupiter:5.7.0')
@@ -115,7 +117,7 @@ test {
 group = 'com.vikmad'
 archivesBaseName = 'esql'
 sourceCompatibility = JavaVersion.VERSION_14
-version = "0.1.8"
+version = "0.1.9"
 ext.isReleaseVersion = !version.endsWith("SNAPSHOT")
 
 java {

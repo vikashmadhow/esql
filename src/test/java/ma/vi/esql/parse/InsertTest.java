@@ -62,10 +62,12 @@ public class InsertTest extends DataTest {
                    try (EsqlConnection con = db.esql(db.pooledConnection())) {
                      con.exec("delete s from s:S");
                      UUID id1 = UUID.randomUUID(),
-                          id2 = UUID.randomUUID();
+                          id2 = UUID.randomUUID(),
+                          id3 = UUID.randomUUID();
                      con.exec("insert into S(_id, e) values "
                             + "(u'" + id1 + "', true),"
-                            + "(u'" + id2 + "', false)");
+                            + "(u'" + id2 + "', false),"
+                            + "(u'" + id3 + "', null)");
                      Result rs = con.exec("select e from S where _id=u'" + id1 + "'");
                      assertTrue(rs.next());
                      assertEquals(rs.get("e").value, true);
@@ -73,6 +75,18 @@ public class InsertTest extends DataTest {
                      rs = con.exec("select e from S where _id=u'" + id2 + "'");
                      assertTrue(rs.next());
                      assertEquals(rs.get("e").value, false);
+
+                     rs = con.exec("select _id, e from S where e");
+                     assertTrue(rs.next());
+                     assertEquals(rs.get("_id").value, id1);
+
+                     rs = con.exec("select _id, e?false from S where e?false");
+                     assertTrue(rs.next());
+                     assertEquals(rs.get("_id").value, id1);
+
+                     rs = con.exec("select not e from S where _id=u'" + id2 + "' and not e");
+                     assertTrue(rs.next());
+                     assertEquals(rs.get(1).value, true);
                    }
                  }));
   }

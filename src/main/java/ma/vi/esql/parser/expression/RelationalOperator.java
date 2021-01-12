@@ -41,4 +41,14 @@ public class RelationalOperator extends BinaryOperator {
   public Type type() {
     return Types.BoolType;
   }
+
+  @Override
+  public String translate(Target target) {
+    boolean sqlServerBool = target == Target.SQLSERVER
+                         && ancestor("where") == null
+                         && ancestor("having") == null;
+    return (sqlServerBool ? "iif" : "") + '('
+         + super.translate(target)
+         + (sqlServerBool ? ", 1, 0" : "") + ')';
+  }
 }
