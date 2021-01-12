@@ -43,15 +43,6 @@ public class ArrayType extends AbstractType {
       case HSQLDB -> componentType.translate(target) + " array";
       default -> componentType.translate(target) + "[]";
     };
-//    if (componentType instanceof BaseType) {
-//      if (target == SQLSERVER) {
-//        return "nvarchar(max)";
-//      } else {
-//        return componentType.translate(target) + "[]";
-//      }
-//    } else {
-//      return componentType.translate(target) + "[]";
-//    }
   }
 
   public static String arrayTypeName(Type componentType) {

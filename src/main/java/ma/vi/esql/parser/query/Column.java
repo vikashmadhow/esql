@@ -25,7 +25,6 @@ import java.util.UUID;
 
 import static ma.vi.esql.builder.Attributes.*;
 import static ma.vi.esql.parser.Translatable.Target.ESQL;
-import static ma.vi.esql.type.Types.BoolType;
 
 /**
  * A column in a select statement.
@@ -123,33 +122,6 @@ public class Column extends MetadataContainer<Expression<?>, String> {
           st.append(attr.attributeValue().translate(target));
         }
         st.append('}');
-      }
-      return st.toString();
-
-    } else if (target == Target.SQLSERVER) {
-      StringBuilder st = new StringBuilder();
-//      Type type = type();
-//      if (type == BoolType && !(expr() instanceof ColumnRef)) {
-//        /*
-//         * SQL Server does not have a boolean type; work-around using an IIF
-//         */
-//        String boolValue = expr().translate(target);
-//        if (boolValue.equals("0") || boolValue.equals("1")) {
-//          /*
-//           * a boolean literal was specified: no need to use IIF
-//           */
-//          st.append(boolValue);
-//        } else {
-//          /*
-//           * otherwise, turn into a boolean expression using IIF
-//           */
-//          st.append("iif(").append(boolValue).append(", 1, 0)");
-//        }
-//      } else {
-        st.append(expr().translate(target));
-//      }
-      if (alias() != null) {
-        st.append(" \"").append(alias()).append('"');
       }
       return st.toString();
 

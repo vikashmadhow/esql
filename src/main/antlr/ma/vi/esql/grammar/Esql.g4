@@ -641,7 +641,7 @@ expr
     | selectExpression                                          #SelectExpr
 
       /*
-       * The logical not of a boolean expression.
+       * The inverse of a boolean expression.
        */
     | Not expr                                                  #NotExpr
 

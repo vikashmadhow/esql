@@ -234,7 +234,17 @@ public class HSqlDb extends AbstractDatabase {
     } else {
       T[] a = (T[])sqlArray.getArray();
       T[] converted = (T[])java.lang.reflect.Array.newInstance(componentType, a.length);
-      System.arraycopy(a, 0, converted, 0, a.length);
+      if (String.class.isAssignableFrom(componentType)) {
+        for (int i = 0; i < a.length; i++) {
+          if (a[i] == null) {
+            converted[i] = null;
+          } else {
+            converted[i] = (T)((String)a[i]).trim();
+          }
+        }
+      } else {
+        System.arraycopy(a, 0, converted, 0, a.length);
+      }
       return converted;
     }
   }

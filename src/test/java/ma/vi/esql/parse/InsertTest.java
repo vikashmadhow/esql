@@ -13,12 +13,11 @@ import ma.vi.esql.parser.modify.Insert;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
 
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Stream;
 
 import static ma.vi.esql.parser.Parser.Rules.INSERT;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.DynamicTest.dynamicTest;
 
 public class InsertTest extends DataTest {
@@ -87,6 +86,36 @@ public class InsertTest extends DataTest {
                      rs = con.exec("select not e from S where _id=u'" + id2 + "' and not e");
                      assertTrue(rs.next());
                      assertEquals(rs.get(1).value, true);
+                   }
+                 }));
+  }
+
+  @TestFactory
+  Stream<DynamicTest> insertAndReadArray() {
+    return Stream.of(databases)
+                 .map(db -> dynamicTest(db.target().toString(), () -> {
+                   System.out.println(db.target());
+                   Parser p = new Parser(db.structure());
+                   try (EsqlConnection con = db.esql(db.pooledConnection())) {
+                     con.exec("delete s from s:S");
+                     Insert insert = p.parse(
+                         "insert into S(_id, a, b, e, h, j) values "
+                             + "(newid(), 1, 2, true, text['Four', 'Quatre'], int[1, 2, 3]),"
+                             + "(newid(), 6, 7, false, text['Nine', 'Neuf', 'X'], int[5, 6, 7, 8])",
+                         INSERT);
+                     con.exec(insert);
+
+                     Result rs = con.exec("select _id, a, b, e, h, j from S");
+                     Set<List<String>> stringArray = new HashSet<>();
+                     Set<List<Integer>> intArray = new HashSet<>();
+                     rs.next(); stringArray.add(Arrays.asList(rs.value("h"))); intArray.add(Arrays.asList(rs.value("j")));
+                     rs.next(); stringArray.add(Arrays.asList(rs.value("h"))); intArray.add(Arrays.asList(rs.value("j")));
+
+                     assertEquals(Set.of(Arrays.asList("Four", "Quatre"),
+                                         Arrays.asList("Nine", "Neuf", "X")), stringArray);
+
+                     assertEquals(Set.of(Arrays.asList(1, 2, 3),
+                                         Arrays.asList(5, 6, 7, 8)), intArray);
                    }
                  }));
   }

@@ -318,28 +318,7 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
     if (qualifier != null) {
       ColumnRef.qualify(expression, qualifier, null, true);
     }
-//    Type type = expression.type();
-//    if (target == Target.SQLSERVER
-//     && type == Types.BoolType
-//     && !(expression instanceof ColumnRef)) {
-//      /*
-//       * SQL Server does not have a boolean type; work-around using an IIF
-//       */
-//      String boolValue = expression.translate(target);
-//      if (boolValue.equals("0") || boolValue.equals("1")) {
-//        /*
-//         * a boolean literal was specified: no need to use IIF
-//         */
-//        query.append(boolValue);
-//      } else {
-//        /*
-//         * otherwise, turn into a boolean expression using IIF
-//         */
-//        query.append("iif(").append(boolValue).append(", 1, 0)");
-//      }
-//    } else {
-      query.append(expression.translate(target));
-//    }
+    query.append(expression.translate(target));
   }
 
   /**
