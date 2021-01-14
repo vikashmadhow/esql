@@ -17,7 +17,8 @@ import java.util.*;
 import java.util.stream.Stream;
 
 import static ma.vi.esql.parser.Parser.Rules.INSERT;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.DynamicTest.dynamicTest;
 
 public class InsertTest extends DataTest {
@@ -57,7 +58,6 @@ public class InsertTest extends DataTest {
     return Stream.of(databases)
                  .map(db -> dynamicTest(db.target().toString(), () -> {
                    System.out.println(db.target());
-                   Parser p = new Parser(db.structure());
                    try (EsqlConnection con = db.esql(db.pooledConnection())) {
                      con.exec("delete s from s:S");
                      UUID id1 = UUID.randomUUID(),

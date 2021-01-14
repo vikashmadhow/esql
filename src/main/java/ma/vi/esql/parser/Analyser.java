@@ -1219,7 +1219,9 @@ public class Analyser extends EsqlBaseListener {
 
   @Override
   public void exitAttribute(AttributeContext ctx) {
-    put(ctx, new Attribute(context, ctx.Identifier().getText(), get(ctx.expr())));
+    if (ctx.Identifier() != null) {
+      put(ctx, new Attribute(context, ctx.Identifier().getText(), get(ctx.expr())));
+    }
   }
 
   // internal state methods

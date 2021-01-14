@@ -72,7 +72,9 @@ public class Metadata extends TableDefinition {
   public Metadata attributes(List<Attribute> attributes) {
     Map<String, Attribute> attributeMap = new HashMap<>();
     for (Attribute attr: attributes) {
-      attributeMap.put(attr.name(), attr);
+      if (attr != null) {
+        attributeMap.put(attr.name(), attr);
+      }
     }
     childValue("attributes", attributeMap);
     return this;

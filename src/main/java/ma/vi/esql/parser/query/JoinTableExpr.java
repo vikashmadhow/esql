@@ -58,7 +58,8 @@ public class JoinTableExpr extends AbstractJoinTableExpr {
 
   @Override
   public String toString() {
-    return left() + (joinType() == null ? "": joinType())
+    return left()
+         + (joinType() == null ? "": ' ' + joinType())
          + " join " + right() + " on " + on();
   }
 
