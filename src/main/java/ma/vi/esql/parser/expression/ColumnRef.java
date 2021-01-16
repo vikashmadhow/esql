@@ -98,7 +98,7 @@ public class ColumnRef extends Expression<String> implements Macro {
   private Column column(QueryUpdate qu) {
     Column column = null;
     while (column == null && qu != null) {
-      column = qu.tables().type().column(qualifier(), name());
+      column = qu.tables().type().findColumn(qualifier(), name());
       qu = qu.parent() == null ? null : qu.parent().ancestor(QueryUpdate.class);
     }
     return column;
@@ -136,7 +136,7 @@ public class ColumnRef extends Expression<String> implements Macro {
   public String translate(Target target) {
     boolean sqlServerBool = target == Target.SQLSERVER
                          && type() == Types.BoolType
-                         && ancestor("where") != null
+                         && (ancestor("on") != null || ancestor("where") != null || ancestor("having") != null)
                          && (parent == null || parent.ancestor(Coalesce.class) == null);
     return switch (target) {
       case ESQL, JAVASCRIPT -> qualifiedName();
@@ -195,7 +195,7 @@ public class ColumnRef extends Expression<String> implements Macro {
     esql.forEach(e -> {
       if (e instanceof ColumnRef) {
         SelectExpression selExpr = e.ancestor(SelectExpression.class);
-        if (selExpr == null || e.ancestorDistance(SelectExpression.class) > e.ancestorDistance(QueryUpdate.class)) {
+        if (selExpr == null) {
           changeQualifierInColumnRef((ColumnRef)e, qualifier, suffix, replaceExistingQualifier);
         }
       }

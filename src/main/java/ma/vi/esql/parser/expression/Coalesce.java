@@ -70,7 +70,7 @@ public class Coalesce extends MultipleSubExpressions<String> {
       default -> {
         boolean sqlServerBool = target == Target.SQLSERVER
                              && type() == Types.BoolType
-                             && ancestor("where") != null
+                             && (ancestor("on") != null || ancestor("where") != null || ancestor("having") != null)
                              && (parent == null || parent.ancestor(Coalesce.class) == null);
         StringBuilder st = new StringBuilder();
         if (sqlServerBool) {

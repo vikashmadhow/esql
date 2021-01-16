@@ -98,17 +98,17 @@ public class Join extends Relation {
   public Column findColumn(String relationAlias,
                               String name) throws NotFoundException, AmbiguousColumnException {
     if (relationAlias == null) {
-      Column col = left.column(name);
+      Column col = left.findColumn(relationAlias, name);
       if (col == null) {
-        col = right.column(name);
+        col = right.findColumn(relationAlias, name);
       } else {
-        Column rightCol = right.column(name);
+        Column rightCol = right.findColumn(relationAlias, name);
         if (rightCol != null) {
           /*
            * Ambiguous column as existing in both left and right relations.
            */
-          throw new AmbiguousColumnException("Ambiguous column " + name +
-                                                 " exists in both " + left + " and " + right);
+          throw new AmbiguousColumnException("Ambiguous column " + name + " exists in both "
+                                           + left.name() + " and " + right.name());
         }
       }
       return col;

@@ -45,7 +45,8 @@ public class Not extends SingleSubExpression {
         return target == JSON ? '"' + escapeJsonString(e) + '"' : e;
       }
       case SQLSERVER -> {
-        if (ancestor("where") == null
+        if (ancestor("on") == null
+         && ancestor("where") == null
          && ancestor("having") == null) {
           /*
            * For SQL Server, boolean expressions outside of where and having

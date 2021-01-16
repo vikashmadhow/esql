@@ -66,6 +66,7 @@ public class Range extends Expression<Expression<?>> {
       }
       default -> {
         boolean sqlServerBool = target == Target.SQLSERVER
+                             && ancestor("on") == null
                              && ancestor("where") == null
                              && ancestor("having") == null;
         return (sqlServerBool ? "iif" : "") + '('

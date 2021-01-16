@@ -18,8 +18,8 @@ public class DataTest {
   static void setup() {
     databases = new Database[] {
         Databases.Postgresql(),
-//        Databases.SqlServer(),
-//        Databases.HSqlDb(),
+        Databases.SqlServer(),
+        Databases.HSqlDb(),
     };
 
     for (Database db: databases) {
@@ -63,10 +63,10 @@ public class DataTest {
                                 "    m1: 5" +
                                 "  }," +
                                 "  i string {" +
-//                                "    label: (lv.label from lv:_platform.lookup.LookupValue" +
-//                                "                     join l:_platform.lookup.Lookup on lv.lookup_id=l._id" +
-//                                "                                  and l.name='City'" +
-//                                "                    where lv.code=i)" +
+                                "    label: (lv.label from lv:_platform.lookup.LookupValue" +
+                                "                     join l:_platform.lookup.Lookup on lv.lookup_id=l._id" +
+                                "                                  and l.name='City'" +
+                                "                    where lv.code=i)" +
                                 "  }," +
                                 "  j int[], " +
                                 "  k interval, " +

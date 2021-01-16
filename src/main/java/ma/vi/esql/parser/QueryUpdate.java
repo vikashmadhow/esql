@@ -61,9 +61,51 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
       TableExpr from = tables();
       Relation fromType = from.type();
 
+      /*
+       * Add selected columns and metadata
+       */
       Map<String, Column> columns = new LinkedHashMap<>();
-      Set<String> columnNames = new HashSet<>();
       Map<String, String> aliased = new HashMap<>();
+      if (columns() != null) {
+        for (Column column: columns()) {
+          String alias = column.alias();
+          if (alias == null) {
+            alias = makeUnique(columns.keySet(), "col", false);
+            column.alias(alias);
+          }
+
+          if (!grouped()
+           && column.expr() instanceof ColumnRef
+           && alias.indexOf('/') == -1) {
+            ColumnRef ref = (ColumnRef)column.expr();
+            String refName = ref.name();
+            if (!refName.equals(alias)) {
+              aliased.put(refName, alias);
+            }
+            for (Column col: fromType.columns(ref.qualifier(), refName)) {
+              String colAlias = col.alias();
+              col = col.copy();
+              col.alias(alias + colAlias.substring(refName.length()));
+              columns.put(col.alias(), col);
+            }
+          } else {
+            columns.put(alias, column);
+          }
+
+          /*
+           * Override with explicit result metadata defined in select.
+           */
+          if (!grouped()) {
+            if (column.metadata() != null && column.metadata().attributes() != null) {
+              for (Attribute a: column.metadata().attributes().values()) {
+                for (Column c: BaseRelation.columnsForAttribute(a, alias + '/', aliased)) {
+                  columns.put(c.alias(), c.copy());
+                }
+              }
+            }
+          }
+        }
+      }
 
       if (!grouped() && !modifying()) {
         /*
@@ -71,8 +113,10 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
          * being queried.
          */
         for (Column column: fromType.columns(null, "/")) {
-          columns.put(column.alias(), column.copy());
-          columnNames.add(column.alias());
+          String alias = column.alias();
+          if (!columns.containsKey(alias)) {
+            columns.put(alias, column.copy());
+          }
         }
 
         /*
@@ -82,71 +126,70 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
         if (metadata != null && metadata.attributes() != null) {
           for (Attribute a: metadata.attributes().values()) {
             for (Column column: BaseRelation.columnsForAttribute(a, "/", emptyMap())) {
-              columns.put(column.alias(), column.copy());
-              columnNames.add(column.alias());
-            }
-          }
-        }
-      }
-
-      /*
-       * Add columns and metadata
-       */
-      if (columns() != null) {
-        for (Column queryColumn: columns()) {
-          Expression<?> colExpr = queryColumn.expr();
-          String alias = queryColumn.alias();
-          if (alias == null) {
-            alias = makeUnique(columnNames, "col");
-          }
-
-          Column column;
-          if (colExpr instanceof ColumnRef) {
-            ColumnRef ref = (ColumnRef)colExpr;
-            String refName = ref.name();
-            if (!refName.equals(alias)) {
-              aliased.put(refName, alias);
-            }
-            column = fromType.column(ref.qualifier(), refName).copy();
-
-            if (!grouped()) {
-              for (Column col: fromType.columns(ref.qualifier(), refName)) {
-                String colAlias = col.alias();
-                if (!refName.equals(colAlias)) {
-                  col = col.copy();
-                  if (colAlias == null) {
-                    col.alias(alias);
-                  } else {
-                    col.alias(alias + colAlias.substring(refName.length()));
-                  }
-                  columns.put(col.alias(), col);
-                  columnNames.add(col.alias());
-                }
-              }
-            }
-          } else {
-            column = queryColumn.copy();
-          }
-
-          column.alias(alias);
-          columns.put(alias, column);
-          columnNames.add(alias);
-
-          /*
-           * Override with explicit result metadata defined in select.
-           */
-          if (!grouped()) {
-            if (queryColumn.metadata() != null && queryColumn.metadata().attributes() != null) {
-              for (Attribute a: queryColumn.metadata().attributes().values()) {
-                for (Column c: BaseRelation.columnsForAttribute(a, alias + '/', aliased)) {
-                  columns.put(c.alias(), c.copy());
-                  columnNames.add(c.alias());
-                }
+              String alias = column.alias();
+              if (!columns.containsKey(alias)) {
+                columns.put(alias, column.copy());
               }
             }
           }
         }
       }
+
+//      if (columns() != null) {
+//        for (Column queryColumn: columns()) {
+//          Expression<?> colExpr = queryColumn.expr();
+//          String alias = queryColumn.alias();
+//          if (alias == null) {
+//            alias = makeUnique(columns.keySet(), "col", false);
+//            queryColumn.alias(alias);
+//          }
+//          Column c = queryColumn.copy();
+//          columns.put(c.alias(), c);
+//
+//          if (colExpr instanceof ColumnRef) {
+//            ColumnRef ref = (ColumnRef)colExpr;
+//            String refName = ref.name();
+//            if (!refName.equals(alias)) {
+//              aliased.put(refName, alias);
+//            }
+//            Column c = fromType.column(ref.qualifier(), refName);
+//
+//            if (!grouped()) {
+//              for (Column col: fromType.columns(ref.qualifier(), refName)) {
+//                String colAlias = col.alias();
+//                if (!refName.equals(colAlias)) {
+//                  col = col.copy();
+//                  if (colAlias == null) {
+//                    col.alias(alias);
+//                  } else {
+//                    col.alias(alias + colAlias.substring(refName.length()));
+//                  }
+//                  columns.put(col.alias(), col);
+//                  columnNames.add(col.alias());
+//                }
+//              }
+//            }
+//          }
+//
+////          column.alias(alias);
+////          columns.put(alias, column);
+////          columnNames.add(alias);
+//
+//          /*
+//           * Override with explicit result metadata defined in select.
+//           */
+//          if (!grouped()) {
+//            if (queryColumn.metadata() != null && queryColumn.metadata().attributes() != null) {
+//              for (Attribute a: queryColumn.metadata().attributes().values()) {
+//                for (Column c: BaseRelation.columnsForAttribute(a, alias + '/', aliased)) {
+//                  columns.put(c.alias(), c.copy());
+//                  columnNames.add(c.alias());
+//                }
+//              }
+//            }
+//          }
+//        }
+//      }
 
       /*
        * Replace column names with their aliases in uncomputed forms intended.
@@ -159,8 +202,9 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
           }
         }
       }
-      columns(new ArrayList<>(columns.values()));
-      type = new Selection(new ArrayList<>(columns.values()), from);
+      List<Column> cols = new ArrayList<>(columns.values());
+      columns(cols);
+      type = new Selection(cols, from);
       context.type(type);
     }
     return type;

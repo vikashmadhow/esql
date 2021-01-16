@@ -142,12 +142,11 @@ public class Select extends QueryUpdate implements Macro {
           }
           Column col;
           if (rel instanceof BaseRelation
-              || (rel instanceof AliasedRelation && ((AliasedRelation)rel).relation instanceof BaseRelation)) {
+           || (rel instanceof AliasedRelation && ((AliasedRelation)rel).relation instanceof BaseRelation)) {
             col = relCol.copy();
             if (qualifier != null) {
-              ColumnRef.qualify(col.expr(), qualifier, null, false);
+              ColumnRef.qualify(col.expr(), qualifier, null, true);
             }
-
           } else {
             col = new Column(context,
                              alias,

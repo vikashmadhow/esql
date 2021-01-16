@@ -41,7 +41,9 @@ public class Like extends RelationalOperator {
       String e = '(' + expr1().translate(target) + ") collate Latin1_General_CS_AS"
                + (not() ? " not" : "")
                + " like (" + expr2().translate(target) + ") collate Latin1_General_CS_AS";
-      if (ancestor("where") == null && ancestor("having") == null) {
+      if (ancestor("on") == null
+       && ancestor("where") == null
+       && ancestor("having") == null) {
         e = "iif(" + e + ", 1, 0)";
       }
       return e;

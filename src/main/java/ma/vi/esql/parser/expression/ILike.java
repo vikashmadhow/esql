@@ -50,7 +50,9 @@ public class ILike extends RelationalOperator {
       String e = '(' + expr1().translate(target) + ") collate Latin1_General_CI_AS"
           + (not() ? " not" : "")
           + " like (" + expr2().translate(target) + ") collate Latin1_General_CI_AS";
-      if (ancestor("where") == null && ancestor("having") == null) {
+      if (ancestor("on") == null
+       && ancestor("where") == null
+       && ancestor("having") == null) {
         e = "iif(" + e + ", 1, 0)";
       }
       return e;

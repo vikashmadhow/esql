@@ -45,6 +45,7 @@ public class RelationalOperator extends BinaryOperator {
   @Override
   public String translate(Target target) {
     boolean sqlServerBool = target == Target.SQLSERVER
+                         && ancestor("on") == null
                          && ancestor("where") == null
                          && ancestor("having") == null;
     return (sqlServerBool ? "iif" : "") + '('

@@ -14,6 +14,7 @@ import ma.vi.esql.parser.Parser;
 import ma.vi.esql.parser.Program;
 import ma.vi.esql.parser.Statement;
 import ma.vi.esql.parser.query.Select;
+import ma.vi.esql.type.AmbiguousColumnException;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestFactory;
@@ -22,8 +23,7 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import static ma.vi.esql.parser.Parser.Rules.SELECT;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.DynamicTest.dynamicTest;
 
 public class SelectTest extends DataTest {
@@ -74,6 +74,36 @@ public class SelectTest extends DataTest {
 
   @TestFactory
   Stream<DynamicTest> joinSelect() {
+    return Stream.of(databases)
+                 .map(db -> dynamicTest(db.target().toString(), () -> {
+                   System.out.println(db.target());
+                   Parser p = new Parser(db.structure());
+                   try (EsqlConnection con = db.esql(db.pooledConnection())) {
+                     assertThrows(AmbiguousColumnException.class,
+                                  () -> con.exec("select a, b " +
+                                                     "  from s:S " +
+                                                     "  left join a.b.T on s._id=T.s_id " +
+                                                     "  join x:a.b.X on x.t_id=T._id " +
+                                                     " times y:b.Y " +
+                                                     " order by s.a desc," +
+                                                     "          y.b," +
+                                                     "          T.b asc"));
+
+                     con.exec(
+                         "select s.a, T.b, T.c, s.c, s.a + T.c + s.d " +
+                         "  from s:S " +
+                         "  left join a.b.T on s._id=T.s_id " +
+                         "  join x:a.b.X on x.t_id=T._id " +
+                         " times y:b.Y " +
+                         " order by s.a desc," +
+                         "          y.b," +
+                         "          T.b asc");
+                   }
+                 }));
+  }
+
+  @TestFactory
+  Stream<DynamicTest> joinStarSelect() {
     return Stream.of(databases)
                  .map(db -> dynamicTest(db.target().toString(), () -> {
                    System.out.println(db.target());

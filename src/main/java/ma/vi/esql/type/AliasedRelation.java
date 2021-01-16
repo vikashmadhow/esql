@@ -45,7 +45,7 @@ public class AliasedRelation extends Relation {
 
   @Override
   public Relation forAlias(String alias) {
-    return alias.equals(this.alias) ? relation : null;
+    return this.alias.equals(alias) ? relation : null;
   }
 
   @Override

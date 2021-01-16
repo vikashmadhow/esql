@@ -52,7 +52,7 @@ public class UncomputedExpression extends SingleSubExpression {
     return switch (target) {
       case JAVASCRIPT -> '`' + expr().translate(target) + '`';
       case ESQL       -> "$(" + expr().translate(target) + ')';
-      default         -> '\'' + expr().translate(target).replace("'", "''") + '\'';
+      default         -> '\'' + expr().translate(Target.ESQL).replace("'", "''") + '\'';
     };
   }
 

@@ -17,7 +17,6 @@ import ma.vi.esql.parser.query.Column;
 import ma.vi.esql.parser.query.Select;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.unmodifiableList;
@@ -173,7 +172,7 @@ public class BaseRelation extends Relation {
             } else if (seen.contains(colName)) {
               Set<String> otherColumns = seen.stream()
                                              .filter(c -> !c.equals(colName) && !c.contains("/"))
-                                             .collect(Collectors.toSet());
+                                             .collect(toSet());
               throw new CircularReferenceException(
                 "A circular definition was detected in the expression "
                 + derivedExpression + " consisting of the column "
