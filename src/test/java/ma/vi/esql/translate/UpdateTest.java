@@ -29,7 +29,7 @@ public class UpdateTest {
       Assertions.assertEquals(
           "update \"_platform.user\".\"User\" \"usr\" " +
               "set \"username\"='xyz', \"realname\"='yxz' " +
-              "where \"email\" = 'xyz@yxz.com'",
+              "where (\"email\" = 'xyz@yxz.com')",
           q.statement);
       con.exec(s);
     }
@@ -50,7 +50,7 @@ public class UpdateTest {
           "update \"usr\" " +
               "set \"username\"=N'xyz', \"realname\"=N'yxz' " +
               "from \"_platform.user\".\"User\" \"usr\" " +
-              "where \"email\" = N'xyz@yxz.com'",
+              "where (\"email\" = N'xyz@yxz.com')",
           q.statement);
       con.exec(s);
     }
@@ -70,7 +70,7 @@ public class UpdateTest {
       Assertions.assertEquals(
           "update \"_platform.user\".\"User\" \"usr\" " +
               "set \"username\"='xyz', \"realname\"='yxz' " +
-              "where \"email\" = 'xyz@yxz.com'",
+              "where (\"email\" = 'xyz@yxz.com')",
           q.statement);
       con.exec(s);
     }
@@ -94,9 +94,9 @@ public class UpdateTest {
           "with \"!!\"(id, v1, v2) as (" +
                     "select \"usr\".ctid, 'xyz', 'yxz' " +
                     "from \"_platform.user\".\"User\" \"usr\" " +
-                    "join \"_platform.user\".\"UserRole\" \"usr_role\" on \"usr_role\".\"user_id\" = \"usr\".\"_id\" " +
-                    "join \"_platform.user\".\"Role\" \"role\" on \"usr_role\".\"role_id\" = \"role\".\"_id\" " +
-                    "where \"email\" = 'xyz@yxz.com') " +
+                    "join \"_platform.user\".\"UserRole\" \"usr_role\" on (\"usr_role\".\"user_id\" = \"usr\".\"_id\") " +
+                    "join \"_platform.user\".\"Role\" \"role\" on (\"usr_role\".\"role_id\" = \"role\".\"_id\") " +
+                    "where (\"email\" = 'xyz@yxz.com')) " +
                   "update \"_platform.user\".\"User\" \"usr\" " +
                   "set username=\"!!\".v1, realname=\"!!\".v2 " +
                   "from \"!!\" where \"usr\".ctid=\"!!\".id",
@@ -115,9 +115,9 @@ public class UpdateTest {
           "with \"!!\"(id, v1) as (" +
               "select \"usr_role\".ctid, \"role\".\"_id\" " +
               "from \"_platform.user\".\"User\" \"usr\" " +
-              "join \"_platform.user\".\"UserRole\" \"usr_role\" on \"usr_role\".\"user_id\" = \"usr\".\"_id\" " +
-              "join \"_platform.user\".\"Role\" \"role\" on \"usr_role\".\"role_id\" = \"role\".\"_id\" " +
-              "where \"usr\".\"email\" = 'xyz@yxz.com') " +
+              "join \"_platform.user\".\"UserRole\" \"usr_role\" on (\"usr_role\".\"user_id\" = \"usr\".\"_id\") " +
+              "join \"_platform.user\".\"Role\" \"role\" on (\"usr_role\".\"role_id\" = \"role\".\"_id\") " +
+              "where (\"usr\".\"email\" = 'xyz@yxz.com')) " +
               "update \"_platform.user\".\"UserRole\" \"usr_role\" " +
               "set role_id=\"!!\".v1 " +
               "from \"!!\" " +
