@@ -2,7 +2,7 @@
  * Copyright (c) 2020 Vikash Madhow
  */
 
-package ma.vi.esql.parse;
+package ma.vi.esql;
 
 import ma.vi.esql.Databases;
 import ma.vi.esql.database.Database;
@@ -12,7 +12,7 @@ import ma.vi.esql.parser.Program;
 import org.junit.jupiter.api.BeforeAll;
 
 public class DataTest {
-  static Database[] databases;
+  public static Database[] databases;
 
   @BeforeAll
   static void setup() {

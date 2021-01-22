@@ -4,6 +4,7 @@
 
 package ma.vi.esql.parse;
 
+import ma.vi.esql.DataTest;
 import ma.vi.esql.builder.InsertBuilder;
 import ma.vi.esql.exec.EsqlConnection;
 import ma.vi.esql.exec.Result;
@@ -116,6 +117,33 @@ public class InsertTest extends DataTest {
 
                      assertEquals(Set.of(Arrays.asList(1, 2, 3),
                                          Arrays.asList(5, 6, 7, 8)), intArray);
+                   }
+                 }));
+  }
+
+  @TestFactory
+  Stream<DynamicTest> insertFromSelect() {
+    return Stream.of(databases)
+                 .map(db -> dynamicTest(db.target().toString(), () -> {
+                   System.out.println(db.target());
+                   Parser p = new Parser(db.structure());
+                   try (EsqlConnection con = db.esql(db.pooledConnection())) {
+                     con.exec("delete s from s:S");
+                     con.exec(
+                         "insert into S(_id, a, b, e, h, j) values "
+                             + "(newid(), 1, 2, true, text['Four', 'Quatre'], int[1, 2, 3]),"
+                             + "(newid(), 6, 7, false, text['Nine', 'Neuf', 'X'], int[5, 6, 7, 8])");
+
+                     con.exec(
+                         "insert into S(_id, a, b, e, h, j) " +
+                             "select newid(), 7, b, e, h, j from S");
+
+                     Result rs = con.exec("select _id, a, b, e, h, j from S order by a");
+
+                     rs.next(); assertEquals(rs.get("a").value, 1);
+                     rs.next(); assertEquals(rs.get("a").value, 6);
+                     rs.next(); assertEquals(rs.get("a").value, 7);
+                     rs.next(); assertEquals(rs.get("a").value, 7);
                    }
                  }));
   }

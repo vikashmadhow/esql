@@ -1,4 +1,4 @@
-package ma.vi.esql.translate;
+package ma.vi.esql.parse;
 
 import ma.vi.esql.Databases;
 import ma.vi.esql.database.Database;
