@@ -10,8 +10,6 @@ import ma.vi.esql.type.Types;
 
 import java.util.UUID;
 
-import static ma.vi.esql.parser.Translatable.Target.ESQL;
-
 /**
  * A UUID literal in ESQL.
  *
@@ -47,10 +45,10 @@ public class UuidLiteral extends BaseLiteral<UUID> {
 
   @Override
   public String translate(Target target) {
-    if (target == ESQL) {
-      return "u'" + value + "'";
-    } else {
-      return '\'' + value.toString() + '\'';
-    }
+    return switch(target) {
+      case ESQL       -> "u'" + value + "'";
+      case POSTGRESQL -> "'" + value + "'::uuid";
+      default         -> '\'' + value.toString() + '\'';
+    };
   }
 }

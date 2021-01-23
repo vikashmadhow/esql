@@ -1,20 +1,29 @@
 package ma.vi.esql.parse;
 
+import ma.vi.esql.DataTest;
 import ma.vi.esql.Databases;
 import ma.vi.esql.database.Database;
 import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.exec.Result;
 import ma.vi.esql.parser.Parser;
 import ma.vi.esql.parser.modify.Update;
 import ma.vi.esql.parser.query.QueryTranslation;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestFactory;
+
+import java.util.UUID;
+import java.util.stream.Stream;
 
 import static ma.vi.esql.parser.Parser.Rules.UPDATE;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.DynamicTest.dynamicTest;
 
 /**
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public class UpdateTest {
+public class UpdateTest extends DataTest {
   @Test
   void simpleUpdatePostgresql() {
     Database db = Databases.Postgresql();
@@ -127,4 +136,49 @@ public class UpdateTest {
       con.exec(s);
     }
   }
+
+  @TestFactory
+  Stream<DynamicTest> updateUsingMultipleTables() {
+    return Stream.of(databases)
+                 .map(db -> dynamicTest(db.target().toString(), () -> {
+                   System.out.println(db.target());
+                   Parser p = new Parser(db.structure());
+                   try (EsqlConnection con = db.esql(db.pooledConnection())) {
+                     con.exec("delete T from a.b.T");
+                     con.exec("delete s from s:S");
+
+                     UUID id1 = UUID.randomUUID(), id2 = UUID.randomUUID();
+                     con.exec("insert into S(_id, a, b, e, h, j) values "
+                            + "(u'" + id1 + "', 1, 2, true, text['Four', 'Quatre'], int[1, 2, 3]),"
+                            + "(u'" + id2 + "', 6, 7, false, text['Nine', 'Neuf', 'X'], int[5, 6, 7, 8])");
+
+                     con.exec("insert into a.b.T(_id, a, b, s_id) "
+                                  + "select newid(), a, 1, u'" + id1 + "' from S union all "
+                                  + "select newid(), a, 2, u'" + id2 + "' from S ");
+
+                     Result rs = con.exec("select _id, a, b, s_id from a.b.T order by b, a");
+                     rs.next(); assertEquals(rs.get("a").value, 1);
+                                assertEquals(rs.get("b").value, 1);
+                                assertEquals(rs.get("s_id").value, id1);
+                     rs.next(); assertEquals(rs.get("a").value, 6);
+                                assertEquals(rs.get("b").value, 1);
+                                assertEquals(rs.get("s_id").value , id1);
+                     rs.next(); assertEquals(rs.get("a").value, 1);
+                                assertEquals(rs.get("b").value, 2);
+                                assertEquals(rs.get("s_id").value, id2);
+                     rs.next(); assertEquals(rs.get("a").value, 6);
+                                assertEquals(rs.get("b").value, 2);
+                                assertEquals(rs.get("s_id").value , id2);
+
+                     con.exec("update s " +
+                                  "  from s:S " +
+                                  "  join t:a.b.T on t.s_id=s._id " +
+                                  "   set a=t.a + t.b" +
+                                  " where t.b >= 2");
+                     rs = con.exec("select sum(a) from S");
+//                     rs.next(); assertEquals(rs.get(1).value, );
+                   }
+                 }));
+  }
+
 }

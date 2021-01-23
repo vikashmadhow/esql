@@ -134,9 +134,8 @@ public class InsertTest extends DataTest {
                              + "(newid(), 1, 2, true, text['Four', 'Quatre'], int[1, 2, 3]),"
                              + "(newid(), 6, 7, false, text['Nine', 'Neuf', 'X'], int[5, 6, 7, 8])");
 
-                     con.exec(
-                         "insert into S(_id, a, b, e, h, j) " +
-                             "select newid(), 7, b, e, h, j from S");
+                     con.exec("insert into S(_id, a, b, e, h, j) "
+                            + "select newid(), 7, b, e, h, j from S");
 
                      Result rs = con.exec("select _id, a, b, e, h, j from S order by a");
 

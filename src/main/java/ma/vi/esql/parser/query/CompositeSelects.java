@@ -27,7 +27,7 @@ public class CompositeSelects extends Select {
         selects.get(0).distinct(),
         selects.get(0).distinctOn(),
         selects.get(0).explicit(),
-        null,
+        selects.get(0).columns(),
         selects.get(0).tables() == null ? null : selects.get(0).tables().copy(),
         selects.get(0).where(),
         selects.get(0).groupBy(),

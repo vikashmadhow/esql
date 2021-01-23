@@ -23,8 +23,15 @@ import static java.util.stream.Collectors.joining;
  */
 public class Metadata extends TableDefinition {
   public Metadata(Context context, List<Attribute> attributes) {
-    super(context, null);
-    attributes(attributes);
+    super(context, "Metadata");
+    Map<String, Attribute> attributeMap = new HashMap<>();
+    for (Attribute attr: attributes) {
+      if (attr != null) {
+        attr.parent = this;
+        attributeMap.put(attr.name(), attr);
+      }
+    }
+    childValue("attributes", attributeMap);
   }
 
   public Metadata(Metadata other) {
@@ -67,17 +74,6 @@ public class Metadata extends TableDefinition {
 
   public Map<String, Attribute> attributes() {
     return childValue("attributes");
-  }
-
-  public Metadata attributes(List<Attribute> attributes) {
-    Map<String, Attribute> attributeMap = new HashMap<>();
-    for (Attribute attr: attributes) {
-      if (attr != null) {
-        attributeMap.put(attr.name(), attr);
-      }
-    }
-    childValue("attributes", attributeMap);
-    return this;
   }
 
   public Attribute attribute(String name) {
