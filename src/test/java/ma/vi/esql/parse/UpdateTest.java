@@ -6,6 +6,8 @@ import ma.vi.esql.database.Database;
 import ma.vi.esql.exec.EsqlConnection;
 import ma.vi.esql.exec.Result;
 import ma.vi.esql.parser.Parser;
+import ma.vi.esql.parser.Translatable;
+import ma.vi.esql.parser.TranslationException;
 import ma.vi.esql.parser.modify.Update;
 import ma.vi.esql.parser.query.QueryTranslation;
 import org.junit.jupiter.api.Assertions;
@@ -18,6 +20,7 @@ import java.util.stream.Stream;
 
 import static ma.vi.esql.parser.Parser.Rules.UPDATE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.DynamicTest.dynamicTest;
 
 /**
@@ -170,13 +173,24 @@ public class UpdateTest extends DataTest {
                                 assertEquals(rs.get("b").value, 2);
                                 assertEquals(rs.get("s_id").value , id2);
 
-                     con.exec("update s " +
-                                  "  from s:S " +
-                                  "  join t:a.b.T on t.s_id=s._id " +
-                                  "   set a=t.a + t.b" +
-                                  " where t.b >= 2");
-                     rs = con.exec("select sum(a) from S");
-//                     rs.next(); assertEquals(rs.get(1).value, );
+                     if (db.target() == Translatable.Target.HSQLDB) {
+                       assertThrows(TranslationException.class, () -> {
+                         con.exec("update s " +
+                                      "  from s:S " +
+                                      "  join t:a.b.T on t.s_id=s._id " +
+                                      "   set a=t.a + t.b" +
+                                      " where t.a=6 and t.b=2");
+                       });
+                     } else {
+                       con.exec("update s " +
+                                    "  from s:S " +
+                                    "  join t:a.b.T on t.s_id=s._id " +
+                                    "   set a=t.a + t.b" +
+                                    " where t.a=6 and t.b=2");
+                       rs = con.exec("select sum(a) from S");
+                       rs.next();
+                       assertEquals(9L, ((Number)rs.get(1).value).longValue());
+                     }
                    }
                  }));
   }

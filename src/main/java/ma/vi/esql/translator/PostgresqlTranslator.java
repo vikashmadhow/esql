@@ -11,7 +11,6 @@ import ma.vi.esql.parser.query.*;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static java.util.Collections.emptyList;
@@ -141,14 +140,14 @@ public class PostgresqlTranslator extends AbstractTranslator {
                                     + IntStream.rangeClosed(1, update.set().attributes().size())
                                                .boxed()
                                                .map(i -> "v" + i)
-                                               .collect(Collectors.joining(", "))
+                                               .collect(joining(", "))
                                     + ") as (");
 
       List<Attribute> set = new ArrayList<>(update.set().attributes().values());
       st.append("select \"").append(update.updateTableAlias()).append("\".ctid, ")
         .append(set.stream()
                    .map(a -> a.attributeValue().translate(target()))
-                   .collect(Collectors.joining(", ")))
+                   .collect(joining(", ")))
         .append(" from ").append(from.translate(target()));
 
       if (update.where() != null) {

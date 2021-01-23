@@ -10,6 +10,9 @@ import ma.vi.esql.parser.Esql;
 import ma.vi.esql.parser.Statement;
 
 /**
+ * A Define statement alters the structure of objects in the database
+ * (e.g. create and alter tables statements).
+ *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 public abstract class Define<V> extends Statement<V, String> {

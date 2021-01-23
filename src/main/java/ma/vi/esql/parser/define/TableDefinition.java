@@ -12,6 +12,11 @@ import java.util.List;
 
 import static java.util.stream.Collectors.joining;
 
+/**
+ * The abstract parent of table definitions (such as columns, constraints, etc.).
+ *
+ * @author Vikash Madhow (vikash.madhow@gmail.com)
+ */
 public abstract class TableDefinition extends Define<String> {
   public TableDefinition(Context context,
                          String name,

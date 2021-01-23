@@ -12,6 +12,7 @@ import ma.vi.esql.parser.TranslationException;
 import ma.vi.esql.parser.define.Attribute;
 import ma.vi.esql.parser.define.ConstraintDefinition;
 import ma.vi.esql.parser.define.ForeignKeyConstraint;
+import ma.vi.esql.parser.define.PrimaryKeyConstraint;
 import ma.vi.esql.parser.expression.*;
 import ma.vi.esql.parser.query.Column;
 import ma.vi.esql.parser.query.Select;
@@ -331,6 +332,15 @@ public class BaseRelation extends Relation {
       }
     }
     return aliased;
+  }
+
+  public PrimaryKeyConstraint primaryKey() {
+    for (ConstraintDefinition c: constraints) {
+      if (c instanceof PrimaryKeyConstraint) {
+        return (PrimaryKeyConstraint)c;
+      }
+    }
+    return null;
   }
 
   public List<ConstraintDefinition> constraints() {

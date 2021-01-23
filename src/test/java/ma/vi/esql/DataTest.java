@@ -19,7 +19,7 @@ public class DataTest {
     databases = new Database[] {
         Databases.Postgresql(),
         Databases.SqlServer(),
-//        Databases.HSqlDb(),
+        Databases.HSqlDb(),
     };
 
     for (Database db: databases) {

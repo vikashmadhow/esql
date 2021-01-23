@@ -14,6 +14,11 @@ import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toSet;
 
+/**
+ * A unique constraint over one or more columns of a table.
+ *
+ * @author Vikash Madhow (vikash.madhow@gmail.com)
+ */
 public class UniqueConstraint extends ConstraintDefinition {
   public UniqueConstraint(Context context, String name, List<String> columns) {
     super(context, name, T2.of("columns", new Esql<>(context, columns)));

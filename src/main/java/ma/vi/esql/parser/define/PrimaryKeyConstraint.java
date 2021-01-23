@@ -14,6 +14,11 @@ import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toSet;
 
+/**
+ * A primary key constraint on a table.
+ *
+ * @author Vikash Madhow (vikash.madhow@gmail.com)
+ */
 public class PrimaryKeyConstraint extends ConstraintDefinition {
   public PrimaryKeyConstraint(Context context, String name, List<String> columns) {
     super(context, name, T2.of("columns", new Esql<>(context, columns)));

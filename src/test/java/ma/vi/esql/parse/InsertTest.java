@@ -30,6 +30,7 @@ public class InsertTest extends DataTest {
                    System.out.println(db.target());
                    Parser p = new Parser(db.structure());
                    try (EsqlConnection con = db.esql(db.pooledConnection())) {
+                     con.exec("delete t from t:a.b.T");
                      con.exec("delete s from s:S");
                      Insert insert = p.parse(
                          "insert into S(_id, a, b, e, h, i) values "
@@ -60,6 +61,7 @@ public class InsertTest extends DataTest {
                  .map(db -> dynamicTest(db.target().toString(), () -> {
                    System.out.println(db.target());
                    try (EsqlConnection con = db.esql(db.pooledConnection())) {
+                     con.exec("delete t from t:a.b.T");
                      con.exec("delete s from s:S");
                      UUID id1 = UUID.randomUUID(),
                           id2 = UUID.randomUUID(),
@@ -98,6 +100,7 @@ public class InsertTest extends DataTest {
                    System.out.println(db.target());
                    Parser p = new Parser(db.structure());
                    try (EsqlConnection con = db.esql(db.pooledConnection())) {
+                     con.exec("delete t from t:a.b.T");
                      con.exec("delete s from s:S");
                      Insert insert = p.parse(
                          "insert into S(_id, a, b, e, h, j) values "
@@ -128,6 +131,7 @@ public class InsertTest extends DataTest {
                    System.out.println(db.target());
                    Parser p = new Parser(db.structure());
                    try (EsqlConnection con = db.esql(db.pooledConnection())) {
+                     con.exec("delete t from t:a.b.T");
                      con.exec("delete s from s:S");
                      con.exec(
                          "insert into S(_id, a, b, e, h, j) values "

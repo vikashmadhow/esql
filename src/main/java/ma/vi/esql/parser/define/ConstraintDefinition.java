@@ -12,6 +12,11 @@ import java.util.List;
 
 import static ma.vi.base.lang.Errors.checkArgument;
 
+/**
+ * Represent a constraint (primary key, foreign key, etc.) on a table.
+ *
+ * @author Vikash Madhow (vikash.madhow@gmail.com)
+ */
 public abstract class ConstraintDefinition extends TableDefinition {
   public ConstraintDefinition(Context context,
                               String name,
