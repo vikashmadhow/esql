@@ -5,17 +5,17 @@
 package ma.vi.esql.parser.modify;
 
 import ma.vi.base.tuple.T2;
-import ma.vi.esql.parser.*;
+import ma.vi.esql.parser.Context;
+import ma.vi.esql.parser.Esql;
+import ma.vi.esql.parser.QueryUpdate;
+import ma.vi.esql.parser.Restriction;
 import ma.vi.esql.parser.define.Metadata;
-import ma.vi.esql.parser.query.*;
-import ma.vi.esql.type.Type;
+import ma.vi.esql.parser.query.Column;
+import ma.vi.esql.parser.query.Select;
+import ma.vi.esql.parser.query.SingleTableExpr;
 
 import java.util.List;
-import java.util.Map;
 
-import static java.util.Collections.emptyList;
-import static java.util.Collections.emptyMap;
-import static java.util.stream.Collectors.joining;
 import static ma.vi.base.tuple.T2.of;
 
 /**
@@ -63,56 +63,6 @@ public class Insert extends QueryUpdate {
   @Override
   public boolean modifying() {
     return true;
-  }
-
-  @Override
-  public QueryTranslation translate(Target target, Map<String, Object> parameters) {
-    StringBuilder st = new StringBuilder("insert into ");
-    TableExpr table = tables();
-    if (!(table instanceof SingleTableExpr)) {
-      throw new TranslationException("Insert only works with single tables. A " + table.getClass().getSimpleName()
-          + " was found instead.");
-    }
-    st.append(Type.dbTableName(((SingleTableExpr)table).tableName(), target));
-
-    List<String> fields = fields();
-    if (fields != null && !fields.isEmpty()) {
-      st.append(fields.stream()
-                      .map(f -> '"' + f + '"')
-                      .collect(joining(", ", "(", ")")));
-    }
-
-    // output clause for SQL Server if specified
-    QueryTranslation q = null;
-    if (target == Target.SQLSERVER && columns() != null && !columns().isEmpty()) {
-      st.append(" output ");
-      q = constructResult(st, target, "inserted", true, true);
-    }
-
-    List<InsertRow> rows = rows();
-    if (rows != null && !rows.isEmpty()) {
-      st.append(rows.stream()
-                    .map(row -> row.translate(target, parameters))
-                    .collect(joining(", ", " values", "")));
-
-    } else if (defaultValues()) {
-      st.append(" default values");
-
-    } else {
-      st.append(' ').append(select().translate(target, Map.of("addAttributes", false)).statement);
-    }
-
-    if (target == Target.POSTGRESQL && columns() != null && !columns().isEmpty()) {
-      st.append(" returning ");
-      q = constructResult(st, target, null, true, true);
-    }
-
-    if (q == null) {
-      return new QueryTranslation(st.toString(), emptyList(), emptyMap(), emptyList(), emptyMap());
-    } else {
-      return new QueryTranslation(st.toString(), q.columns, q.columnToIndex,
-          q.resultAttributeIndices, q.resultAttributes);
-    }
   }
 
   @Override

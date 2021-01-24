@@ -198,8 +198,6 @@ public class Select extends QueryUpdate implements Macro {
 
   @Override
   public QueryTranslation translate(Target target, Map<String, Object> parameters) {
-    boolean addAttributes = (Boolean)parameters.getOrDefault("addAttributes", true);
-    boolean optimiseAttributesLoading = (Boolean)parameters.getOrDefault("optimiseAttributesLoading", true);
     if (target == Target.SQLSERVER) {
       List<Expression<?>> distinctOn = distinctOn();
       if (distinct() && distinctOn != null && !distinctOn.isEmpty()) {
@@ -209,8 +207,7 @@ public class Select extends QueryUpdate implements Macro {
 
         // add output clause
         StringBuilder columns = new StringBuilder();
-        QueryTranslation q = constructResult(columns, target, null,
-                                             addAttributes, optimiseAttributesLoading);
+        QueryTranslation q = constructResult(columns, target, null, parameters);
 
         st.append(columns);
         st.append(", ").append("row_number() over (partition by ");
@@ -409,8 +406,7 @@ public class Select extends QueryUpdate implements Macro {
             st.append("distinct ");
           }
           // add output clause
-          QueryTranslation q = constructResult(st, target, null,
-                                               addAttributes, optimiseAttributesLoading);
+          QueryTranslation q = constructResult(st, target, null, parameters);
           if (tables() != null) {
             st.append(" from ").append(tables().translate(target, parameters));
           }
@@ -505,8 +501,7 @@ public class Select extends QueryUpdate implements Macro {
       }
 
       // add output clause
-      QueryTranslation q = constructResult(st, target, null,
-                                           addAttributes, optimiseAttributesLoading);
+      QueryTranslation q = constructResult(st, target, null, parameters);
       if (tables() != null) {
         st.append(" from ").append(tables().translate(target, parameters));
       }

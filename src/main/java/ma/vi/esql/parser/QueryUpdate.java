@@ -246,8 +246,11 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
   public QueryTranslation constructResult(StringBuilder query,
                                           Target target,
                                           String qualifier,
-                                          boolean addAttributes,
-                                          boolean optimiseAttributesLoading) {
+                                          Map<String, Object> parameters) {
+
+    boolean addAttributes = (Boolean)parameters.getOrDefault("addAttributes", true);
+    boolean optimiseAttributesLoading = (Boolean)parameters.getOrDefault("optimiseAttributesLoading", true);
+
     /*
      * Do not expand column list of selects inside expressions as the
      * whole expression is a single-value and expanding the column list

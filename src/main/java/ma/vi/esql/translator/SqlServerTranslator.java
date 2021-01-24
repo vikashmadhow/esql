@@ -3,14 +3,18 @@ package ma.vi.esql.translator;
 import ma.vi.base.string.Strings;
 import ma.vi.esql.function.Function;
 import ma.vi.esql.parser.Translatable;
+import ma.vi.esql.parser.TranslationException;
 import ma.vi.esql.parser.define.GroupBy;
 import ma.vi.esql.parser.expression.ColumnRef;
 import ma.vi.esql.parser.expression.Expression;
 import ma.vi.esql.parser.expression.FunctionCall;
 import ma.vi.esql.parser.expression.IntegerLiteral;
 import ma.vi.esql.parser.modify.Delete;
+import ma.vi.esql.parser.modify.Insert;
+import ma.vi.esql.parser.modify.InsertRow;
 import ma.vi.esql.parser.modify.Update;
 import ma.vi.esql.parser.query.*;
+import ma.vi.esql.type.Type;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -38,8 +42,7 @@ public class SqlServerTranslator extends AbstractTranslator {
 
       // add output clause
       StringBuilder columns = new StringBuilder();
-      QueryTranslation q = select.constructResult(columns, target(), null,
-                                                  true, true);
+      QueryTranslation q = select.constructResult(columns, target(), null, parameters);
 
       st.append(columns);
       st.append(", ").append("row_number() over (partition by ");
@@ -244,8 +247,7 @@ public class SqlServerTranslator extends AbstractTranslator {
           st.append("distinct ");
         }
         // add output clause
-        QueryTranslation q = select.constructResult(st, target(), null,
-                                                    true, true);
+        QueryTranslation q = select.constructResult(st, target(), null, parameters);
         if (select.tables() != null) {
           st.append(" from ").append(select.tables().translate(target(), parameters));
         }
@@ -295,7 +297,7 @@ public class SqlServerTranslator extends AbstractTranslator {
     QueryTranslation q = null;
     if (update.columns() != null && !update.columns().isEmpty()) {
       st.append(" output ");
-      q = update.constructResult(st, target(), "inserted", true, true);
+      q = update.constructResult(st, target(), "inserted", parameters);
     }
     st.append(" from ").append(from.translate(target(), parameters));
 
@@ -319,7 +321,7 @@ public class SqlServerTranslator extends AbstractTranslator {
     TableExpr from = delete.tables();
     if (delete.columns() != null && !delete.columns().isEmpty()) {
       st.append(" output ");
-      q = delete.constructResult(st, target(), "deleted", true, true);
+      q = delete.constructResult(st, target(), "deleted", parameters);
     }
     st.append(" from ").append(from.translate(target(), parameters));
 
@@ -329,6 +331,51 @@ public class SqlServerTranslator extends AbstractTranslator {
     if (q == null) {
       return new QueryTranslation(st.toString(), emptyList(), emptyMap(),
                                   emptyList(), emptyMap());
+    } else {
+      return new QueryTranslation(st.toString(), q.columns, q.columnToIndex,
+                                  q.resultAttributeIndices, q.resultAttributes);
+    }
+  }
+
+  @Override
+  protected QueryTranslation translate(Insert insert, Map<String, Object> parameters) {
+    StringBuilder st = new StringBuilder("insert into ");
+    TableExpr table = insert.tables();
+    if (!(table instanceof SingleTableExpr)) {
+      throw new TranslationException("Insert only works with single tables. A " + table.getClass().getSimpleName()
+                                         + " was found instead.");
+    }
+    st.append(Type.dbTableName(((SingleTableExpr)table).tableName(), target()));
+
+    List<String> fields = insert.fields();
+    if (fields != null && !fields.isEmpty()) {
+      st.append(fields.stream()
+                      .map(f -> '"' + f + '"')
+                      .collect(joining(", ", "(", ")")));
+    }
+
+    // output clause for SQL Server if specified
+    QueryTranslation q = null;
+    if (insert.columns() != null && !insert.columns().isEmpty()) {
+      st.append(" output ");
+      q = insert.constructResult(st, target(), "inserted", parameters);
+    }
+
+    List<InsertRow> rows = insert.rows();
+    if (rows != null && !rows.isEmpty()) {
+      st.append(rows.stream()
+                    .map(row -> row.translate(target(), parameters))
+                    .collect(joining(", ", " values", "")));
+
+    } else if (insert.defaultValues()) {
+      st.append(" default values");
+
+    } else {
+      st.append(' ').append(insert.select().translate(target(), Map.of("addAttributes", false)).statement);
+    }
+
+    if (q == null) {
+      return new QueryTranslation(st.toString(), emptyList(), emptyMap(), emptyList(), emptyMap());
     } else {
       return new QueryTranslation(st.toString(), q.columns, q.columnToIndex,
                                   q.resultAttributeIndices, q.resultAttributes);
