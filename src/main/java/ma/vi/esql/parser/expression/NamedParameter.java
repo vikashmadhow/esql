@@ -6,6 +6,8 @@ package ma.vi.esql.parser.expression;
 
 import ma.vi.esql.parser.Context;
 
+import java.util.Map;
+
 /**
  * A named parameter in ESQL consists of a name preceded with a colon (:).
  * Values for named parameters must be provided when the statement is executed.
@@ -36,7 +38,7 @@ public class NamedParameter extends Expression<String> {
   }
 
   @Override
-  public String translate(Target target) {
+  public String translate(Target target, Map<String, Object> parameters) {
     return ':' + name();
   }
 

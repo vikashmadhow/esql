@@ -9,6 +9,8 @@ import ma.vi.esql.type.Interval;
 import ma.vi.esql.type.Type;
 import ma.vi.esql.type.Types;
 
+import java.util.Map;
+
 import static ma.vi.base.string.Escape.escapeJsonString;
 import static ma.vi.esql.parser.Translatable.Target.JSON;
 
@@ -46,8 +48,7 @@ public class IntervalLiteral extends BaseLiteral<String> {
   }
 
   @Override
-  public String translate(Target target) {
-    Type type = type();
+  public String translate(Target target, Map<String, Object> parameters) {
     switch (target) {
       case POSTGRESQL:
         return '\'' + value + "'::interval";

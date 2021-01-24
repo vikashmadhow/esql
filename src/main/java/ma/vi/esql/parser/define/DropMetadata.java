@@ -6,6 +6,8 @@ package ma.vi.esql.parser.define;
 
 import ma.vi.esql.parser.Context;
 
+import java.util.Map;
+
 public class DropMetadata extends AlterTableAction {
   public DropMetadata(Context context) {
     super(context);
@@ -30,7 +32,7 @@ public class DropMetadata extends AlterTableAction {
   }
 
   @Override
-  public String translate(Target target) {
+  public String translate(Target target, Map<String, Object> parameters) {
     return "drop metadata";
   }
 }

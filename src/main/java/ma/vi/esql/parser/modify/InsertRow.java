@@ -10,6 +10,7 @@ import ma.vi.esql.type.Type;
 import ma.vi.esql.type.Types;
 
 import java.util.List;
+import java.util.Map;
 
 import static java.util.stream.Collectors.joining;
 
@@ -42,9 +43,9 @@ public class InsertRow extends Expression<List<Expression<?>>> {
   }
 
   @Override
-  public String translate(Target target) {
+  public String translate(Target target, Map<String, Object> parameters) {
     return values().stream()
-                   .map(e -> e.translate(target))
+                   .map(e -> e.translate(target, parameters))
                    .collect(joining(", ", "(", ")"));
   }
 

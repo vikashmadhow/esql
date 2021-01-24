@@ -7,6 +7,8 @@ package ma.vi.esql.parser.define;
 import ma.vi.esql.parser.Context;
 import ma.vi.esql.parser.expression.Expression;
 
+import java.util.Map;
+
 /**
  * The definition of a derived column in a create table statement.
  *
@@ -39,9 +41,9 @@ public class DerivedColumnDefinition extends ColumnDefinition {
   }
 
   @Override
-  public String translate(Target target) {
+  public String translate(Target target, Map<String, Object> parameters) {
     if (target == Target.ESQL) {
-      StringBuilder st = new StringBuilder("derived \"" + name() + "\" " + expression().translate(target));
+      StringBuilder st = new StringBuilder("derived \"" + name() + "\" " + expression().translate(target, parameters));
       addMetadata(st, target);
       return st.toString();
     }

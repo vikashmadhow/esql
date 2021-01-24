@@ -7,6 +7,8 @@ package ma.vi.esql.parser.expression;
 import ma.vi.esql.parser.Context;
 import ma.vi.esql.parser.Esql;
 
+import java.util.Map;
+
 import static ma.vi.esql.parser.Translatable.Target.SQLSERVER;
 
 /**
@@ -33,14 +35,14 @@ public class Like extends RelationalOperator {
   }
 
   @Override
-  public String translate(Target target) {
+  public String translate(Target target, Map<String, Object> parameters) {
     if (target == SQLSERVER) {
       /*
        * SQL Server requires collation for case-sensitive like.
        */
-      String e = '(' + expr1().translate(target) + ") collate Latin1_General_CS_AS"
+      String e = '(' + expr1().translate(target, parameters) + ") collate Latin1_General_CS_AS"
                + (not() ? " not" : "")
-               + " like (" + expr2().translate(target) + ") collate Latin1_General_CS_AS";
+               + " like (" + expr2().translate(target, parameters) + ") collate Latin1_General_CS_AS";
       if (ancestor("on") == null
        && ancestor("where") == null
        && ancestor("having") == null) {
@@ -48,7 +50,7 @@ public class Like extends RelationalOperator {
       }
       return e;
     } else {
-      return super.translate(target);
+      return super.translate(target, parameters);
     }
   }
 

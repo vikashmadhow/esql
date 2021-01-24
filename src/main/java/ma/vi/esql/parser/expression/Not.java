@@ -6,6 +6,8 @@ package ma.vi.esql.parser.expression;
 
 import ma.vi.esql.parser.Context;
 
+import java.util.Map;
+
 import static ma.vi.base.string.Escape.escapeJsonString;
 import static ma.vi.esql.parser.Translatable.Target.JSON;
 
@@ -38,10 +40,10 @@ public class Not extends SingleSubExpression {
   }
 
   @Override
-  public String translate(Target target) {
+  public String translate(Target target, Map<String, Object> parameters) {
     switch (target) {
       case JSON, JAVASCRIPT -> {
-        String e = "!" + expr().translate(target);
+        String e = "!" + expr().translate(target, parameters);
         return target == JSON ? '"' + escapeJsonString(e) + '"' : e;
       }
       case SQLSERVER -> {
@@ -54,11 +56,11 @@ public class Not extends SingleSubExpression {
            */
           return "cast(~(" + expr() + ") as bit)";
         } else {
-          return "not " + expr().translate(target);
+          return "not " + expr().translate(target, parameters);
         }
       }
       default -> {
-        return "not " + expr().translate(target);
+        return "not " + expr().translate(target, parameters);
       }
     }
   }

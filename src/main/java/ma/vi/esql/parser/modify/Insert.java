@@ -11,6 +11,7 @@ import ma.vi.esql.parser.query.*;
 import ma.vi.esql.type.Type;
 
 import java.util.List;
+import java.util.Map;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
@@ -65,7 +66,7 @@ public class Insert extends QueryUpdate {
   }
 
   @Override
-  public QueryTranslation translate(Target target) {
+  public QueryTranslation translate(Target target, Map<String, Object> parameters) {
     StringBuilder st = new StringBuilder("insert into ");
     TableExpr table = tables();
     if (!(table instanceof SingleTableExpr)) {
@@ -91,14 +92,14 @@ public class Insert extends QueryUpdate {
     List<InsertRow> rows = rows();
     if (rows != null && !rows.isEmpty()) {
       st.append(rows.stream()
-                    .map(row -> row.translate(target))
+                    .map(row -> row.translate(target, parameters))
                     .collect(joining(", ", " values", "")));
 
     } else if (defaultValues()) {
       st.append(" default values");
 
     } else {
-      st.append(' ').append(select().translate(target, false).statement);
+      st.append(' ').append(select().translate(target, Map.of("addAttributes", false)).statement);
     }
 
     if (target == Target.POSTGRESQL && columns() != null && !columns().isEmpty()) {

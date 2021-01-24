@@ -40,7 +40,7 @@ public class BaseType extends AbstractType {
   }
 
   @Override
-  public String translate(Target target) {
+  public String translate(Target target, Map<String, Object> parameters) {
     return target == Target.ESQL             ? name() :
             translations.containsKey(target) ? translations.get(target) : translations.get(Target.ALL);
   }

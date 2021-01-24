@@ -10,6 +10,7 @@ import ma.vi.esql.parser.Esql;
 import ma.vi.esql.parser.expression.Expression;
 
 import java.util.List;
+import java.util.Map;
 
 import static java.util.stream.Collectors.joining;
 
@@ -53,14 +54,14 @@ public class GroupBy extends Esql<String, String> {
   }
 
   @Override
-  public String translate(Target target) {
+  public String translate(Target target, Map<String, Object> parameters) {
     Type type = groupType();
     return " group by "
         + (type == Type.Rollup ? "rollup(" :
            type == Type.Cube   ? "cube("   : "")
 
         + groupBy().stream()
-                   .map(a -> a.translate(target))
+                   .map(a -> a.translate(target, parameters))
                    .collect(joining(", "))
 
         + (type != Type.Simple ? ")" : "");

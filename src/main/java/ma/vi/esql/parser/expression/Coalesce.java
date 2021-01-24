@@ -8,6 +8,7 @@ import ma.vi.esql.parser.Context;
 import ma.vi.esql.type.Types;
 
 import java.util.List;
+import java.util.Map;
 
 import static ma.vi.base.string.Escape.escapeJsonString;
 import static ma.vi.esql.parser.Translatable.Target.JSON;
@@ -41,7 +42,7 @@ public class Coalesce extends MultipleSubExpressions<String> {
   }
 
   @Override
-  public String translate(Target target) {
+  public String translate(Target target, Map<String, Object> parameters) {
     switch (target) {
       case JSON, JAVASCRIPT -> {
         StringBuilder st = new StringBuilder();
@@ -49,7 +50,7 @@ public class Coalesce extends MultipleSubExpressions<String> {
           if (st.length() > 0) {
             st.append(" || ");
           }
-          String t = e.translate(target);
+          String t = e.translate(target, parameters);
           st.append("((" + t + ") || (" + t + ") === 0 || (" + t + ") === '' ? " + t + " : null)");
         }
         String translation = "(" + st.toString() + ")";
@@ -62,7 +63,7 @@ public class Coalesce extends MultipleSubExpressions<String> {
       case ESQL -> {
         StringBuilder st = new StringBuilder();
         for (Expression<?> e: expressions()) {
-          st.append(st.length() == 0 ? "" : "?").append(e.translate(target));
+          st.append(st.length() == 0 ? "" : "?").append(e.translate(target, parameters));
         }
         return st.toString();
       }
@@ -81,7 +82,7 @@ public class Coalesce extends MultipleSubExpressions<String> {
         for (Expression<?> e: expressions()) {
           if (first) { first = false;   }
           else       { st.append(", "); }
-          st.append(e.translate(target));
+          st.append(e.translate(target, parameters));
         }
         st.append(')');
         if (sqlServerBool) {

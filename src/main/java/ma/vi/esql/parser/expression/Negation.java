@@ -6,6 +6,8 @@ package ma.vi.esql.parser.expression;
 
 import ma.vi.esql.parser.Context;
 
+import java.util.Map;
+
 /**
  * Arithmetic negation (-) in ESQL.
  *
@@ -35,8 +37,8 @@ public class Negation extends SingleSubExpression {
   }
 
   @Override
-  public String translate(Target target) {
-    return '-' + expr().translate(target);
+  public String translate(Target target, Map<String, Object> parameters) {
+    return '-' + expr().translate(target, parameters);
   }
 
   @Override

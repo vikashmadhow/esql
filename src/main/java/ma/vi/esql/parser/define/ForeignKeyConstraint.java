@@ -10,6 +10,7 @@ import ma.vi.esql.parser.Context;
 import ma.vi.esql.parser.Esql;
 
 import java.util.List;
+import java.util.Map;
 
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toSet;
@@ -94,7 +95,7 @@ public class ForeignKeyConstraint extends ConstraintDefinition {
   }
 
   @Override
-  public String translate(Target target) {
+  public String translate(Target target, Map<String, Object> parameters) {
     return "constraint "
         + '"' + (name() != null ? name() : defaultConstraintName()) + '"'
         + " foreign key(" + quotedColumnsList(sourceColumns()) + ") "

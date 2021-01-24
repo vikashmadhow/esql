@@ -6,6 +6,8 @@ package ma.vi.esql.parser.expression;
 
 import ma.vi.esql.parser.Context;
 
+import java.util.Map;
+
 import static ma.vi.base.string.Escape.escapeJsonString;
 import static ma.vi.esql.parser.Translatable.Target.JSON;
 
@@ -38,14 +40,12 @@ public class Exponentiation extends ArithmeticOperator {
   }
 
   @Override
-  public String translate(Target target) {
-    switch (target) {
-      case SQLSERVER:
-        return "POWER(" + expr1().translate(target) + ", " + expr2().translate(target) + ")";
-
-      default:
-        String e = expr1().translate(target) + " ^ " + expr2().translate(target);
-        return target == JSON ? '"' + escapeJsonString(e) + '"' : e;
+  public String translate(Target target, Map<String, Object> parameters) {
+    if (target == Target.SQLSERVER) {
+      return "POWER(" + expr1().translate(target, parameters) + ", " + expr2().translate(target, parameters) + ")";
+    } else {
+      String e = expr1().translate(target, parameters) + " ^ " + expr2().translate(target, parameters);
+      return target == JSON ? '"' + escapeJsonString(e) + '"' : e;
     }
   }
 }

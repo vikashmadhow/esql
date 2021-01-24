@@ -8,6 +8,8 @@ import ma.vi.base.tuple.T2;
 import ma.vi.esql.parser.Context;
 import ma.vi.esql.type.Type;
 
+import java.util.Map;
+
 /**
  * Casts an expression to a given type.
  *
@@ -42,13 +44,13 @@ public class Cast extends Expression<Type> {
   }
 
   @Override
-  public String translate(Target target) {
+  public String translate(Target target, Map<String, Object> parameters) {
     return switch (target) {
-      case ESQL       -> toType().translate(target) + '<' + expr().translate(target) + '>';
-      case POSTGRESQL -> expr().translate(target) + "::" + toType().translate(target);
+      case ESQL       -> toType().translate(target, parameters) + '<' + expr().translate(target, parameters) + '>';
+      case POSTGRESQL -> expr().translate(target, parameters) + "::" + toType().translate(target, parameters);
       case JSON,
-          JAVASCRIPT  -> expr().translate(target);    // ignore cast for Javascript
-      default         -> "cast(" + expr().translate(target) + " as " + toType().translate(target) + ')';
+          JAVASCRIPT  -> expr().translate(target, parameters);    // ignore cast for Javascript
+      default         -> "cast(" + expr().translate(target, parameters) + " as " + toType().translate(target, parameters) + ')';
     };
   }
 

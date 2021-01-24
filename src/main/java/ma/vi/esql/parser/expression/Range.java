@@ -10,6 +10,8 @@ import ma.vi.esql.parser.Esql;
 import ma.vi.esql.type.Type;
 import ma.vi.esql.type.Types;
 
+import java.util.Map;
+
 import static ma.vi.base.string.Escape.escapeJsonString;
 import static ma.vi.esql.parser.Translatable.Target.JSON;
 
@@ -55,13 +57,13 @@ public class Range extends Expression<Expression<?>> {
   }
 
   @Override
-  public String translate(Target target) {
+  public String translate(Target target, Map<String, Object> parameters) {
     switch (target) {
       case JSON, JAVASCRIPT -> {
-        String e = '(' + leftExpression().translate(target) + ' '
-                 + leftCompare() + ' ' + compareExpression().translate(target) + " && "
-                 + compareExpression().translate(target) + ' ' + rightCompare() + ' '
-                 + rightExpression().translate(target) + ')';
+        String e = '(' + leftExpression().translate(target, parameters) + ' '
+                 + leftCompare() + ' ' + compareExpression().translate(target, parameters) + " && "
+                 + compareExpression().translate(target, parameters) + ' ' + rightCompare() + ' '
+                 + rightExpression().translate(target, parameters) + ')';
         return target == JSON ? '"' + escapeJsonString(e) + '"' : e;
       }
       default -> {
@@ -70,10 +72,10 @@ public class Range extends Expression<Expression<?>> {
                              && ancestor("where") == null
                              && ancestor("having") == null;
         return (sqlServerBool ? "iif" : "") + '('
-             + leftExpression().translate(target) + ' ' + leftCompare() + ' '
-             + compareExpression().translate(target) + " and "
-             + compareExpression().translate(target) + ' ' + rightCompare() + ' '
-             + rightExpression().translate(target)
+             + leftExpression().translate(target, parameters) + ' ' + leftCompare() + ' '
+             + compareExpression().translate(target, parameters) + " and "
+             + compareExpression().translate(target, parameters) + ' ' + rightCompare() + ' '
+             + rightExpression().translate(target, parameters)
              + (sqlServerBool ? ", 1, 0" : "") + ')';
       }
     }

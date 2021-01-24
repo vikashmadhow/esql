@@ -7,6 +7,8 @@ package ma.vi.esql.parser.define;
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.parser.Context;
 
+import java.util.Map;
+
 public class AddTableDefinition extends AlterTableAction {
   public AddTableDefinition(Context context, TableDefinition def) {
     super(context, T2.of("definition", def));
@@ -31,8 +33,8 @@ public class AddTableDefinition extends AlterTableAction {
   }
 
   @Override
-  public String translate(Target target) {
-    return "add " + definition().translate(target);
+  public String translate(Target target, Map<String, Object> parameters) {
+    return "add " + definition().translate(target, parameters);
   }
 
   public TableDefinition definition() {

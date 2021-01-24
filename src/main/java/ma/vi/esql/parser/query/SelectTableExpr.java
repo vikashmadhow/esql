@@ -7,6 +7,8 @@ package ma.vi.esql.parser.query;
 import ma.vi.esql.parser.Context;
 import ma.vi.esql.type.AliasedRelation;
 
+import java.util.Map;
+
 /**
  * Represents a select in a from clause:
  *
@@ -50,8 +52,8 @@ public class SelectTableExpr extends AbstractAliasTableExpr {
   }
 
   @Override
-  public String translate(Target target) {
-    return '(' + select().translate(target).statement + ") \"" + alias() + '"';
+  public String translate(Target target, Map<String, Object> parameters) {
+    return '(' + select().translate(target, parameters).statement + ") \"" + alias() + '"';
   }
 
   @Override

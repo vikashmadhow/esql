@@ -84,8 +84,7 @@ public class CompositeSelects extends Select {
     }
   }
 
-  public QueryTranslation translate(Target target, boolean addAttributes,
-                                    boolean optimiseAttributesLoading) {
+  public QueryTranslation translate(Target target, Map<String, Object> parameters) {
     boolean first = true;
     StringBuilder st = new StringBuilder();
     QueryTranslation q = null;
@@ -95,7 +94,10 @@ public class CompositeSelects extends Select {
       } else {
         st.append(' ').append(operator()).append(' ');
       }
-      QueryTranslation trans = select.translate(target, addAttributes, false);
+      Map<String, Object> params = Map.of(
+          "addAttributes", parameters.getOrDefault("addAttributes", true),
+          "optimiseAttributesLoading", false);
+      QueryTranslation trans = select.translate(target, params);
       st.append(trans.statement);
       if (q == null) {
         q = trans;
@@ -108,10 +110,10 @@ public class CompositeSelects extends Select {
   /**
    * Merge (union) metadata over several selects or columns (metadata containers).
    */
-  private void mergeMetadata(List<? extends MetadataContainer> containers) {
+  private void mergeMetadata(List<? extends MetadataContainer<?, ?>> containers) {
     // first, split each set of metadata attributes into a map for faster comparison
-    Map<MetadataContainer, Map<String, Expression<?>>> containerAttrs = new HashMap<>();
-    for (MetadataContainer container: containers) {
+    Map<MetadataContainer<?, ?>, Map<String, Expression<?>>> containerAttrs = new HashMap<>();
+    for (MetadataContainer<?, ?> container: containers) {
       Map<String, Expression<?>> attrMap = new HashMap<>();
       containerAttrs.put(container, attrMap);
       if (container.metadata() != null) {
@@ -142,8 +144,8 @@ public class CompositeSelects extends Select {
     }
 
     // repack select attributes into metadata (list of attributes)
-    for (Map.Entry<MetadataContainer, Map<String, Expression<?>>> e: containerAttrs.entrySet()) {
-      MetadataContainer container = e.getKey();
+    for (Map.Entry<MetadataContainer<?, ?>, Map<String, Expression<?>>> e: containerAttrs.entrySet()) {
+      MetadataContainer<?, ?> container = e.getKey();
       Map<String, Expression<?>> containerAttr = e.getValue();
       List<Attribute> attrs = new ArrayList<>();
       for (Map.Entry<String, Expression<?>> a: containerAttr.entrySet()) {

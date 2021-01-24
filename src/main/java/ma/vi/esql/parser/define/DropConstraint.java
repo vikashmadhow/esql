@@ -8,6 +8,8 @@ import ma.vi.base.tuple.T2;
 import ma.vi.esql.parser.Context;
 import ma.vi.esql.parser.Esql;
 
+import java.util.Map;
+
 public class DropConstraint extends AlterTableAction {
   public DropConstraint(Context context, String constraintName) {
     super(context, T2.of("constraintName", new Esql<>(context, constraintName)));
@@ -32,7 +34,7 @@ public class DropConstraint extends AlterTableAction {
   }
 
   @Override
-  public String translate(Target target) {
+  public String translate(Target target, Map<String, Object> parameters) {
     return "drop constraint " + constraintName();
   }
 

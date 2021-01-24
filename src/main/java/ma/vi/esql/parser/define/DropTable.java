@@ -12,6 +12,7 @@ import ma.vi.esql.type.BaseRelation;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.Map;
 
 import static ma.vi.esql.parser.Translatable.Target.ESQL;
 import static ma.vi.esql.type.Type.dbTableName;
@@ -40,7 +41,7 @@ public class DropTable extends Define<String> {
   }
 
   @Override
-  public String translate(Target target) {
+  public String translate(Target target, Map<String, Object> parameters) {
     return "drop table " + (target == ESQL ? name() : dbTableName(name(), target));
   }
 
@@ -50,7 +51,9 @@ public class DropTable extends Define<String> {
   @Override
   public Result execute(Database db, Connection con) {
     try {
-      // execute drop cascading to dependents and updating internal structures
+      /*
+       * Execute drop cascading to dependents and updating internal structures.
+       */
       cascadeDrop(this, con, db.structure(), db.target());
       return Result.Nothing;
     } catch (SQLException e) {

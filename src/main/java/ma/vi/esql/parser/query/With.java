@@ -12,6 +12,7 @@ import ma.vi.esql.parser.QueryUpdate;
 import ma.vi.esql.parser.Restriction;
 
 import java.util.List;
+import java.util.Map;
 
 import static ma.vi.base.tuple.T2.of;
 import static ma.vi.esql.parser.Translatable.Target.HSQLDB;
@@ -54,8 +55,10 @@ public class With extends QueryUpdate {
   }
 
   @Override
-  public QueryTranslation translate(Target target) {
-    // ensure all CTE types are added to context-specific (local) type registry
+  public QueryTranslation translate(Target target, Map<String, Object> parameters) {
+    /*
+     * Ensure all CTE types are added to context-specific (local) type registry.
+     */
     for (Cte cte: ctes()) {
       cte.type();
     }
@@ -72,10 +75,10 @@ public class With extends QueryUpdate {
       } else {
         st.append(", ");
       }
-      st.append(cte.translate(target).statement);
+      st.append(cte.translate(target, parameters).statement);
     }
 
-    QueryTranslation q = query().translate(target);
+    QueryTranslation q = query().translate(target, parameters);
     st.append(' ').append(q.statement);
     return new QueryTranslation(st.toString(), q.columns, q.columnToIndex,
         q.resultAttributeIndices, q.resultAttributes);

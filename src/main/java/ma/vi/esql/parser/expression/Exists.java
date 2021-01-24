@@ -9,6 +9,8 @@ import ma.vi.esql.parser.query.Select;
 import ma.vi.esql.type.Type;
 import ma.vi.esql.type.Types;
 
+import java.util.Map;
+
 /**
  * The exists operator in ESQL.
  *
@@ -43,8 +45,8 @@ public class Exists extends Expression<Select> {
   }
 
   @Override
-  public String translate(Target target) {
-    return "exists(" + select().translate(target) + ")";
+  public String translate(Target target, Map<String, Object> parameters) {
+    return "exists(" + select().translate(target, parameters) + ")";
   }
 
   @Override

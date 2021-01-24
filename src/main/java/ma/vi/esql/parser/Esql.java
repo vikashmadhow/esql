@@ -220,8 +220,8 @@ public class  Esql<V, R> implements Close, Copy<Esql<V, R>>, Translatable<R> {
   }
 
   @Override
-  public R translate(Target target) {
-    return TranslatorFactory.get(target).translate(this);
+  public R translate(Target target, Map<String, Object> parameters) {
+    return TranslatorFactory.get(target).translate(this, parameters);
   }
 
   public Result execute(Database db, Connection con) {

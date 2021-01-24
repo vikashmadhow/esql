@@ -21,7 +21,7 @@ import static ma.vi.esql.parser.Translatable.Target.JAVASCRIPT;
  */
 public class LeftTrimFunction extends Function {
   public LeftTrimFunction() {
-    super("ltrim", Types.TextType,
+    super("ltrim", Types.StringType,
           singletonList(new FunctionParameter("text", Types.StringType)));
   }
 

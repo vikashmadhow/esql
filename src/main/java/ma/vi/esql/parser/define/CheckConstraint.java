@@ -12,6 +12,7 @@ import ma.vi.esql.parser.expression.Expression;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -60,10 +61,10 @@ public class CheckConstraint extends ConstraintDefinition {
   }
 
   @Override
-  public String translate(Target target) {
+  public String translate(Target target, Map<String, Object> parameters) {
     return "constraint "
         + '"' + (name() != null ? name() : defaultConstraintName()) + '"'
-        + " check(" + expr().translate(target) + ')';
+        + " check(" + expr().translate(target, parameters) + ')';
   }
 
   @Override

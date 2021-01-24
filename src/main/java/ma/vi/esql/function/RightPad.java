@@ -21,10 +21,10 @@ import static ma.vi.esql.parser.Translatable.Target.*;
  */
 public class RightPad extends Function {
   public RightPad() {
-    super("rpad", Types.TextType,
-          Arrays.asList(new FunctionParameter("str", Types.TextType),
+    super("rpad", Types.StringType,
+          Arrays.asList(new FunctionParameter("str", Types.StringType),
             new FunctionParameter("length", Types.IntType),
-            new FunctionParameter("pad", Types.TextType)));
+            new FunctionParameter("pad", Types.StringType)));
   }
 
   @Override

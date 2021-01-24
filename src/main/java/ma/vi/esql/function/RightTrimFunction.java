@@ -21,7 +21,7 @@ import static ma.vi.esql.parser.Translatable.Target.JAVASCRIPT;
  */
 public class RightTrimFunction extends Function {
   public RightTrimFunction() {
-    super("rtrim", Types.TextType,
+    super("rtrim", Types.StringType,
           singletonList(new FunctionParameter("text", Types.StringType)));
   }
 

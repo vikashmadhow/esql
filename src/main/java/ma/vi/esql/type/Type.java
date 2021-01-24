@@ -68,7 +68,7 @@ public interface Type extends Close, Copy<Type>, Translatable<String> {
   }
 
   @Override
-  default String translate(Target target) {
+  default String translate(Target target, Map<String, Object> parameters) {
     return name();
   }
 

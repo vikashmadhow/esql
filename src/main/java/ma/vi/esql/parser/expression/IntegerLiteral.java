@@ -8,6 +8,8 @@ import ma.vi.esql.parser.Context;
 import ma.vi.esql.type.Type;
 import ma.vi.esql.type.Types;
 
+import java.util.Map;
+
 /**
  * An integer in ESQL.
  *
@@ -42,7 +44,7 @@ public class IntegerLiteral extends BaseLiteral<Long> {
   }
 
   @Override
-  public String translate(Target target) {
+  public String translate(Target target, Map<String, Object> parameters) {
     return String.valueOf(value);
   }
 }

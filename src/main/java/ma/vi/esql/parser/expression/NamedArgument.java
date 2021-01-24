@@ -7,6 +7,8 @@ package ma.vi.esql.parser.expression;
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.parser.Context;
 
+import java.util.Map;
+
 import static ma.vi.esql.parser.Translatable.Target.JSON;
 
 /**
@@ -40,17 +42,19 @@ public class NamedArgument extends Expression<String> {
   }
 
   @Override
-  public String translate(Target target) {
+  public String translate(Target target, Map<String, Object> parameters) {
     switch (target) {
       case ESQL:
-        return name() + ":=" + arg().translate(target);
+        return name() + ":=" + arg().translate(target, parameters);
       case JSON:
       case JAVASCRIPT:
-        String translation = name() + '=' + arg().translate(target);
+        String translation = name() + '=' + arg().translate(target, parameters);
         return target == JSON ? '"' + translation + '"' : translation;
       default:
-        // for databases drop name as it is not supported in most cases
-        return arg().translate(target);
+        /*
+         * for databases drop name as it is not supported in most cases
+         */
+        return arg().translate(target, parameters);
     }
   }
 

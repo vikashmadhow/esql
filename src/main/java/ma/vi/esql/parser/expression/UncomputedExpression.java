@@ -8,6 +8,8 @@ import ma.vi.esql.parser.Context;
 import ma.vi.esql.type.Type;
 import ma.vi.esql.type.Types;
 
+import java.util.Map;
+
 /**
  * A wrapped expression which is not computed but sent to the client in a form
  * (such as text) that it can be interpreted there.
@@ -48,11 +50,11 @@ public class UncomputedExpression extends SingleSubExpression {
   }
 
   @Override
-  public String translate(Target target) {
+  public String translate(Target target, Map<String, Object> parameters) {
     return switch (target) {
-      case JAVASCRIPT -> '`' + expr().translate(target) + '`';
-      case ESQL       -> "$(" + expr().translate(target) + ')';
-      default         -> '\'' + expr().translate(Target.ESQL).replace("'", "''") + '\'';
+      case JAVASCRIPT -> '`' + expr().translate(target, parameters) + '`';
+      case ESQL       -> "$(" + expr().translate(target, parameters) + ')';
+      default         -> '\'' + expr().translate(Target.ESQL, parameters).replace("'", "''") + '\'';
     };
   }
 

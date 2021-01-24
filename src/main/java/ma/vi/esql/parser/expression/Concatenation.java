@@ -6,6 +6,8 @@ package ma.vi.esql.parser.expression;
 
 import ma.vi.esql.parser.Context;
 
+import java.util.Map;
+
 import static ma.vi.base.string.Escape.escapeJsonString;
 import static ma.vi.esql.parser.Translatable.Target.JSON;
 
@@ -38,11 +40,11 @@ public class Concatenation extends DoubleSubExpressions<String> {
   }
 
   @Override
-  public String translate(Target target) {
+  public String translate(Target target, Map<String, Object> parameters) {
     switch (target) {
       case POSTGRESQL:
       case ESQL:
-        return expr1().translate(target) + " || " + expr2().translate(target);
+        return expr1().translate(target, parameters) + " || " + expr2().translate(target, parameters);
 
 //            case SQLSERVER:
 //                StringBuilder st = new StringBuilder();
@@ -70,7 +72,7 @@ public class Concatenation extends DoubleSubExpressions<String> {
 
       default:
         // Sql server, javascript
-        String e = expr1().translate(target) + " + " + expr2().translate(target);
+        String e = expr1().translate(target, parameters) + " + " + expr2().translate(target, parameters);
         return target == JSON ? '"' + escapeJsonString(e) + '"' : e;
     }
   }

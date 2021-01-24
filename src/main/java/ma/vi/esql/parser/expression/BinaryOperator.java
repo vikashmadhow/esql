@@ -6,6 +6,8 @@ package ma.vi.esql.parser.expression;
 
 import ma.vi.esql.parser.Context;
 
+import java.util.Map;
+
 import static ma.vi.base.string.Escape.escapeJsonString;
 import static ma.vi.esql.parser.Translatable.Target.JSON;
 
@@ -30,8 +32,8 @@ abstract class BinaryOperator extends DoubleSubExpressions<String> {
   public abstract BinaryOperator copy();
 
   @Override
-  public String translate(Target target) {
-    String e = expr1().translate(target) + ' ' + op() + ' ' + expr2().translate(target);
+  public String translate(Target target, Map<String, Object> parameters) {
+    String e = expr1().translate(target, parameters) + ' ' + op() + ' ' + expr2().translate(target, parameters);
     return target == JSON ? '"' + escapeJsonString(e) + '"' : e;
   }
 

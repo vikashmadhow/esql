@@ -15,6 +15,7 @@ import ma.vi.esql.type.Type;
 import ma.vi.esql.type.Types;
 
 import java.util.List;
+import java.util.Map;
 
 import static java.util.stream.Collectors.joining;
 import static ma.vi.base.tuple.T2.of;
@@ -89,7 +90,7 @@ public class FunctionCall extends Expression<String> implements Macro {
   }
 
   @Override
-  public String translate(Target target) {
+  public String translate(Target target, Map<String, Object> parameters) {
     String functionName = functionName();
     Structure s = context.structure;
     Function function = s.function(functionName);
@@ -109,7 +110,7 @@ public class FunctionCall extends Expression<String> implements Macro {
       if (partitions != null && !partitions.isEmpty()) {
         translation += " over (partition by " +
             partitions.stream()
-                      .map(p -> p.translate(target))
+                      .map(p -> p.translate(target, parameters))
                       .collect(joining(", "));
         overAdded = true;
       }
@@ -121,7 +122,7 @@ public class FunctionCall extends Expression<String> implements Macro {
         }
         translation += "order by " +
             orderBy.stream()
-                   .map(o -> o.translate(target))
+                   .map(o -> o.translate(target, parameters))
                    .collect(joining(", "));
       }
       translation += ')';

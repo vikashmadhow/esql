@@ -11,6 +11,7 @@ import ma.vi.esql.type.Types;
 import org.json.JSONObject;
 
 import java.util.List;
+import java.util.Map;
 
 import static java.util.stream.Collectors.joining;
 
@@ -51,9 +52,9 @@ public class JsonObjectLiteral extends Literal<List<Attribute>> {
   }
 
   @Override
-  public String translate(Target target) {
+  public String translate(Target target, Map<String, Object> parameters) {
     return members().stream()
-                    .map(e -> e.translate(target))
+                    .map(e -> e.translate(target, parameters))
                     .collect(joining(",", "{", "}"));
   }
 

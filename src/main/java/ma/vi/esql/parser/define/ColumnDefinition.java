@@ -10,6 +10,8 @@ import ma.vi.esql.parser.Esql;
 import ma.vi.esql.parser.expression.Expression;
 import ma.vi.esql.type.Type;
 
+import java.util.Map;
+
 import static ma.vi.esql.parser.Translatable.Target.ESQL;
 import static ma.vi.esql.parser.Translatable.Target.HSQLDB;
 
@@ -51,26 +53,26 @@ public class ColumnDefinition extends TableDefinition {
   }
 
   @Override
-  public String translate(Target target) {
+  public String translate(Target target, Map<String, Object> parameters) {
     if (target == ESQL) {
       StringBuilder st = new StringBuilder('"' + name() + "\" "
-                                               + type().translate(target)
+                                               + type().translate(target, parameters)
                                                + (notNull() ? " not null" : "")
-                                               + (expression() != null ? " default " + expression().translate(target) : ""));
+                                               + (expression() != null ? " default " + expression().translate(target, parameters) : ""));
       addMetadata(st, target);
       return st.toString();
 
     } else if (target== HSQLDB) {
       return '"' + name() + "\" "
-          + type().translate(target)
-          + (expression() != null ? " default " + expression().translate(target) : "")
+          + type().translate(target, parameters)
+          + (expression() != null ? " default " + expression().translate(target, parameters) : "")
           + (notNull() ? " not null" : "");
 
     } else {
       return '"' + name() + "\" "
-           + type().translate(target)
+           + type().translate(target, parameters)
            + (notNull() ? " not null" : "")
-           + (expression() != null ? " default " + expression().translate(target) : "");
+           + (expression() != null ? " default " + expression().translate(target, parameters) : "");
     }
   }
 

@@ -7,6 +7,8 @@ package ma.vi.esql.parser.define;
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.parser.Context;
 
+import java.util.Map;
+
 public class NameWithMetadata extends TableDefinition {
   public NameWithMetadata(Context context, String name, Metadata metadata) {
     super(context, name, T2.of("metadata", metadata));
@@ -31,16 +33,14 @@ public class NameWithMetadata extends TableDefinition {
   }
 
   @Override
-  public String translate(Target target) {
+  public String translate(Target target, Map<String, Object> parameters) {
     String sql = '"' + name() + "\" ";
-    switch (target) {
-      case ESQL:
-        StringBuilder st = new StringBuilder(sql);
-        addMetadata(st, target);
-        return st.toString();
-
-      default:
-        return sql;
+    if (target == Target.ESQL) {
+      StringBuilder st = new StringBuilder(sql);
+      addMetadata(st, target);
+      return st.toString();
+    } else {
+      return sql;
     }
   }
 

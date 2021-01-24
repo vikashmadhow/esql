@@ -10,6 +10,8 @@ import ma.vi.esql.type.AliasedRelation;
 import ma.vi.esql.type.BaseRelation;
 import ma.vi.esql.type.Type;
 
+import java.util.Map;
+
 /**
  * Represents a single table in the from clause; a single table can either refer
  * to a table in the database or a common table expression (CTE) defined in a
@@ -90,7 +92,7 @@ public class SingleTableExpr extends AbstractAliasTableExpr {
   }
 
   @Override
-  public String translate(Target target) {
+  public String translate(Target target, Map<String, Object> parameters) {
     String table = tableName();
     String alias = alias();
     if (target == Target.ESQL) {

@@ -21,10 +21,10 @@ import static ma.vi.esql.parser.Translatable.Target.*;
  */
 public class LeftPad extends Function {
   public LeftPad() {
-    super("lpad", Types.TextType,
-          Arrays.asList(new FunctionParameter("str", Types.TextType),
+    super("lpad", Types.StringType,
+          Arrays.asList(new FunctionParameter("str", Types.StringType),
             new FunctionParameter("length", Types.IntType),
-            new FunctionParameter("pad", Types.TextType)));
+            new FunctionParameter("pad", Types.StringType)));
   }
 
   @Override

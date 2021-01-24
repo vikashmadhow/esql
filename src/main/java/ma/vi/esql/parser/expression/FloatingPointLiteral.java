@@ -8,6 +8,8 @@ import ma.vi.esql.parser.Context;
 import ma.vi.esql.type.Type;
 import ma.vi.esql.type.Types;
 
+import java.util.Map;
+
 import static java.lang.Double.parseDouble;
 
 /**
@@ -45,7 +47,7 @@ public class FloatingPointLiteral extends BaseLiteral<String> {
   }
 
   @Override
-  public String translate(Target target) {
+  public String translate(Target target, Map<String, Object> parameters) {
     return value;
   }
 

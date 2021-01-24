@@ -17,6 +17,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Map;
 
 import static java.util.Collections.singletonList;
 import static ma.vi.esql.parser.Translatable.Target.*;
@@ -48,7 +49,7 @@ public class AlterTable extends Define<String> {
   }
 
   @Override
-  public String translate(Target target) {
+  public String translate(Target target, Map<String, Object> parameters) {
     StringBuilder st = new StringBuilder("alter table ");
     st.append(dbTableName(name(), target)).append(' ');
 
@@ -59,7 +60,7 @@ public class AlterTable extends Define<String> {
       } else {
         st.append(", ");
       }
-      st.append(alteration.translate(target));
+      st.append(alteration.translate(target, parameters));
     }
     return st.toString();
   }

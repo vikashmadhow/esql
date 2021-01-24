@@ -11,6 +11,8 @@ import ma.vi.esql.parser.query.Select;
 import ma.vi.esql.type.Type;
 import ma.vi.esql.type.Types;
 
+import java.util.Map;
+
 /**
  * The quantified comparison operator in ESQL takes the form of
  * <pre>
@@ -52,9 +54,9 @@ public class QuantifiedComparison extends Expression<Expression<?>> {
   }
 
   @Override
-  public String translate(Target target) {
-    return expr().translate(target) + ' ' + compareOp() + ' ' + quantifier() +
-        select().translate(target);
+  public String translate(Target target, Map<String, Object> parameters) {
+    return expr().translate(target, parameters) + ' ' + compareOp() + ' ' + quantifier() +
+        select().translate(target, parameters);
   }
 
   @Override

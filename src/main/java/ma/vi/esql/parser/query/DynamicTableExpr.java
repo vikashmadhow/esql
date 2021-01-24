@@ -17,6 +17,7 @@ import ma.vi.esql.type.Type;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 import static java.util.stream.Collectors.joining;
@@ -79,7 +80,7 @@ public class DynamicTableExpr extends AbstractAliasTableExpr {
       List<InsertRow> rows = rows();
       for (int i = 0, rowsChecked = 0;
            rowsChecked < Math.min(100, rows.size());
-           i = rows.size() <= 10 ? i + 1 : random.nextInt(rows.size()), rowsChecked++) {
+           i = rows.size() <= 100 ? i + 1 : random.nextInt(rows.size()), rowsChecked++) {
         InsertRow row = rows.get(i);
         boolean hasAbstractTypes = false;
         List<Expression<?>> values = row.values();
@@ -122,14 +123,14 @@ public class DynamicTableExpr extends AbstractAliasTableExpr {
   }
 
   @Override
-  public String translate(Target target) {
+  public String translate(Target target, Map<String, Object> parameters) {
     return "(values "
          + rows().stream()
-                 .map(r -> r.translate(target))
+                 .map(r -> r.translate(target, parameters))
                  .collect(joining(", "))
          + ") as \"" + alias() + '"'
          + "(" + columns().stream()
-                          .map(c -> c.translate(target))
+                          .map(c -> c.translate(target, parameters))
                           .collect(joining(", "))
          + ")";
   }
@@ -168,5 +169,5 @@ public class DynamicTableExpr extends AbstractAliasTableExpr {
     return childValue("metadata");
   }
 
-  private volatile AliasedRelation type;
+  private transient volatile AliasedRelation type;
 }

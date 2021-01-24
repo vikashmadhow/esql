@@ -10,6 +10,8 @@ import ma.vi.esql.parser.Esql;
 import ma.vi.esql.parser.expression.Expression;
 import ma.vi.esql.type.Type;
 
+import java.util.Map;
+
 import static ma.vi.esql.parser.Translatable.Target.ESQL;
 
 public class AlterColumnDefinition extends Define<String> {
@@ -46,14 +48,14 @@ public class AlterColumnDefinition extends Define<String> {
   }
 
   @Override
-  public String translate(Target target) {
+  public String translate(Target target, Map<String, Object> parameters) {
     return (toName() == null ? "" : toName() + ' ') +
-        (toType() == null ? "" : type().translate(target) + ' ') +
+        (toType() == null ? "" : type().translate(target, parameters) + ' ') +
         (setNotNull() ? "null " : "") +
         (dropNotNull() ? "not null " : "") +
-        (setDefault() != null ? "default " + setDefault().translate(target) + ' ' : "") +
+        (setDefault() != null ? "default " + setDefault().translate(target, parameters) + ' ' : "") +
         (dropDefault() ? "no default " : "") +
-        (target == ESQL ? (metadata() != null ? metadata().translate(target) : "") : "");
+        (target == ESQL ? (metadata() != null ? metadata().translate(target, parameters) : "") : "");
   }
 
   public String toName() {

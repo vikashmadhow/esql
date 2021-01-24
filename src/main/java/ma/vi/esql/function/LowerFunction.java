@@ -21,7 +21,7 @@ import static ma.vi.esql.parser.Translatable.Target.JAVASCRIPT;
  */
 public class LowerFunction extends Function {
   public LowerFunction() {
-    super("lower", Types.IntType,
+    super("lower", Types.StringType,
           singletonList(new FunctionParameter("text", Types.StringType)));
   }
 

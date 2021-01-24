@@ -9,6 +9,8 @@ import ma.vi.esql.parser.Esql;
 import ma.vi.esql.type.Type;
 import ma.vi.esql.type.Types;
 
+import java.util.Map;
+
 import static ma.vi.base.string.Escape.escapeJsonString;
 import static ma.vi.esql.parser.Translatable.Target.JSON;
 
@@ -49,14 +51,14 @@ public class IsNull extends SingleSubExpression {
   }
 
   @Override
-  public String translate(Target target) {
+  public String translate(Target target, Map<String, Object> parameters) {
     switch (target) {
       case JSON:
       case JAVASCRIPT:
-        String e = expr().translate(target) + (not() ? " !== null" : " === null");
+        String e = expr().translate(target, parameters) + (not() ? " !== null" : " === null");
         return target == JSON ? '"' + escapeJsonString(e) + '"' : e;
       default:
-        return expr().translate(target) + " is" + (not() ? " not" : "") + " null";
+        return expr().translate(target, parameters) + " is" + (not() ? " not" : "") + " null";
     }
   }
 

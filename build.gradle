@@ -93,7 +93,7 @@ dependencies {
   implementation("org.postgresql:postgresql:42.2.18.jre7")
   implementation("com.microsoft.sqlserver:mssql-jdbc:8.4.0.jre14")
   implementation("org.hsqldb:hsqldb:2.5.1")
-  implementation("com.zaxxer:HikariCP:latest.release")
+  implementation("com.zaxxer:HikariCP:3.4.5")
 
   implementation("org.json:json:latest.release")
   implementation("org.yaml:snakeyaml:latest.release")

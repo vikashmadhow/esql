@@ -6,6 +6,8 @@ package ma.vi.esql.parser.query;
 
 import ma.vi.esql.parser.Context;
 
+import java.util.Map;
+
 /**
  * Represents a cross-product (cartesian product) over two table expressions.
  *
@@ -35,10 +37,10 @@ public class CrossProductTableExpr extends AbstractJoinTableExpr {
   }
 
   @Override
-  public String translate(Target target) {
-    return left().translate(target)
+  public String translate(Target target, Map<String, Object> parameters) {
+    return left().translate(target, parameters)
          + " cross join "
-         + right().translate(target);
+         + right().translate(target, parameters);
   }
 
   @Override

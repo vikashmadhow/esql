@@ -7,6 +7,8 @@ package ma.vi.esql.parser.query;
 import ma.vi.esql.parser.Context;
 import ma.vi.esql.parser.Esql;
 
+import java.util.Map;
+
 import static ma.vi.base.string.Escape.escapeJsonString;
 import static ma.vi.esql.parser.Translatable.Target.JSON;
 
@@ -45,7 +47,7 @@ public class StarColumn extends Column { // implements Macro {
 //  }
 
   @Override
-  public String translate(Target target) {
+  public String translate(Target target, Map<String, Object> parameters) {
     switch (target) {
       case JSON:
       case JAVASCRIPT:

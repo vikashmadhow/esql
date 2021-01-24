@@ -10,6 +10,7 @@ import ma.vi.esql.parser.query.Select;
 import ma.vi.esql.type.Type;
 
 import java.util.List;
+import java.util.Map;
 
 import static java.util.stream.Collectors.joining;
 import static ma.vi.esql.parser.Translatable.Target.ESQL;
@@ -48,7 +49,7 @@ public class SelectExpression extends Expression<Select> {
   }
 
   @Override
-  public String translate(Target target) {
+  public String translate(Target target, Map<String, Object> parameters) {
     if (target == Target.ESQL) {
       Select sel = select();
       StringBuilder st = new StringBuilder("(");
@@ -57,36 +58,36 @@ public class SelectExpression extends Expression<Select> {
         List<Expression<?>> distinctOn = sel.distinctOn();
         if (distinctOn != null && !distinctOn.isEmpty()) {
           st.append("on (")
-            .append(distinctOn.stream().map(e -> e.translate(target)).collect(joining(", ")))
+            .append(distinctOn.stream().map(e -> e.translate(target, parameters)).collect(joining(", ")))
             .append(") ");
         }
       }
 
-      st.append(sel.columns().get(0).translate(ESQL));
+      st.append(sel.columns().get(0).translate(ESQL, parameters));
 
       if (sel.tables() != null) {
-        st.append(" from ").append(sel.tables().translate(target));
+        st.append(" from ").append(sel.tables().translate(target, parameters));
       }
       if (sel.where() != null) {
-        st.append(" where ").append(sel.where().translate(target));
+        st.append(" where ").append(sel.where().translate(target, parameters));
       }
       if (sel.orderBy() != null && !sel.orderBy().isEmpty()) {
         st.append(" order by ")
           .append(sel.orderBy().stream()
-                     .map(e -> e.translate(target))
+                     .map(e -> e.translate(target, parameters))
                      .collect(joining(", ")));
       }
       if (sel.offset() != null) {
-        st.append(" offset ").append(sel.offset().translate(target));
+        st.append(" offset ").append(sel.offset().translate(target, parameters));
       }
       if (sel.limit() != null) {
-        st.append(" limit ").append(sel.limit().translate(target));
+        st.append(" limit ").append(sel.limit().translate(target, parameters));
       }
       st.append(')');
       return st.toString();
 
     } else {
-      return '(' + select().translate(target).statement + ')';
+      return '(' + select().translate(target, parameters).statement + ')';
     }
   }
 

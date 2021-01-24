@@ -9,6 +9,7 @@ import ma.vi.esql.parser.*;
 import ma.vi.esql.type.Selection;
 
 import java.util.List;
+import java.util.Map;
 
 import static java.util.stream.Collectors.joining;
 import static ma.vi.base.tuple.T2.of;
@@ -81,9 +82,11 @@ public class Cte extends QueryUpdate {
   }
 
   @Override
-  public QueryTranslation translate(Target target) {
-    // translate query and surround by CTE fields definition
-    QueryTranslation q = query().translate(target);
+  public QueryTranslation translate(Target target, Map<String, Object> parameters) {
+    /*
+     * translate query and surround by CTE fields definition
+     */
+    QueryTranslation q = query().translate(target, parameters);
     String s = name()
         + (fields() == null
            ? ""

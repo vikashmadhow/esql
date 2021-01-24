@@ -22,7 +22,7 @@ import static ma.vi.esql.parser.Translatable.Target.JAVASCRIPT;
  */
 public class LeftFunction extends Function {
   public LeftFunction() {
-    super("left", Types.IntType,
+    super("left", Types.StringType,
           asList(new FunctionParameter("s", Types.StringType),
             new FunctionParameter("count", Types.IntType)));
   }

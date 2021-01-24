@@ -197,17 +197,9 @@ public class Select extends QueryUpdate implements Macro {
   }
 
   @Override
-  public QueryTranslation translate(Target target) {
-    return translate(target, true);
-  }
-
-  public QueryTranslation translate(Target target, boolean addAttributes) {
-    return translate(target, addAttributes, true);
-  }
-
-  public QueryTranslation translate(Target target,
-                                    boolean addAttributes,
-                                    boolean optimiseAttributesLoading) {
+  public QueryTranslation translate(Target target, Map<String, Object> parameters) {
+    boolean addAttributes = (Boolean)parameters.getOrDefault("addAttributes", true);
+    boolean optimiseAttributesLoading = (Boolean)parameters.getOrDefault("optimiseAttributesLoading", true);
     if (target == Target.SQLSERVER) {
       List<Expression<?>> distinctOn = distinctOn();
       if (distinct() && distinctOn != null && !distinctOn.isEmpty()) {
@@ -222,12 +214,12 @@ public class Select extends QueryUpdate implements Macro {
 
         st.append(columns);
         st.append(", ").append("row_number() over (partition by ");
-        String partition = distinctOn.stream().map(e -> e.translate(target)).collect(joining(", "));
+        String partition = distinctOn.stream().map(e -> e.translate(target, parameters)).collect(joining(", "));
         st.append(partition);
         st.append(" order by ");
         if (orderBy() != null && !orderBy().isEmpty()) {
           st.append(orderBy().stream()
-                             .map(e -> e.translate(target))
+                             .map(e -> e.translate(target, parameters))
                              .collect(joining(", ")));
         } else {
           st.append(partition);
@@ -235,16 +227,16 @@ public class Select extends QueryUpdate implements Macro {
         st.append(") ").append(rank);
 
         if (tables() != null) {
-          st.append(" from ").append(tables().translate(target));
+          st.append(" from ").append(tables().translate(target, parameters));
         }
         if (where() != null) {
-          st.append(" where ").append(where().translate(target));
+          st.append(" where ").append(where().translate(target, parameters));
         }
         if (groupBy() != null) {
-          st.append(groupBy().translate(target));
+          st.append(groupBy().translate(target, parameters));
         }
         if (having() != null) {
-          st.append(" having ").append(having().translate(target));
+          st.append(" having ").append(having().translate(target, parameters));
         }
 //                if (orderBy() != null && !orderBy().isEmpty()) {
 //                    st.append(" order by ")
@@ -253,14 +245,14 @@ public class Select extends QueryUpdate implements Macro {
 //                                       .collect(joining(", ")));
 //                }
         if (offset() != null) {
-          st.append(" offset ").append(offset().translate(target)).append(" rows");
+          st.append(" offset ").append(offset().translate(target, parameters)).append(" rows");
         }
         if (limit() != null) {
           if (offset() == null) {
             // offset clause is mandatory with SQL Server when limit is specified
             st.append(" offset 0 rows");
           }
-          st.append(" fetch next ").append(limit().translate(target)).append(" rows only");
+          st.append(" fetch next ").append(limit().translate(target, parameters)).append(" rows only");
         }
         String query = "select " + subquery + ".*"
             + "  from (" + st.toString() + ") " + subquery
@@ -409,7 +401,7 @@ public class Select extends QueryUpdate implements Macro {
               null,
               null
           );
-          return outerSelect.translate(target, addAttributes, optimiseAttributesLoading);
+          return outerSelect.translate(target, parameters);
 
         } else {
           StringBuilder st = new StringBuilder("select ");
@@ -420,32 +412,32 @@ public class Select extends QueryUpdate implements Macro {
           QueryTranslation q = constructResult(st, target, null,
                                                addAttributes, optimiseAttributesLoading);
           if (tables() != null) {
-            st.append(" from ").append(tables().translate(target));
+            st.append(" from ").append(tables().translate(target, parameters));
           }
           if (where() != null) {
-            st.append(" where ").append(where().translate(target));
+            st.append(" where ").append(where().translate(target, parameters));
           }
           if (groupBy() != null) {
-            st.append(groupBy().translate(target));
+            st.append(groupBy().translate(target, parameters));
           }
           if (having() != null) {
-            st.append(" having ").append(having().translate(target));
+            st.append(" having ").append(having().translate(target, parameters));
           }
           if (orderBy() != null && !orderBy().isEmpty()) {
             st.append(" order by ")
               .append(orderBy().stream()
-                               .map(e -> e.translate(target))
+                               .map(e -> e.translate(target, parameters))
                                .collect(joining(", ")));
           }
           if (offset() != null) {
-            st.append(" offset ").append(offset().translate(target)).append(" rows");
+            st.append(" offset ").append(offset().translate(target, parameters)).append(" rows");
           }
           if (limit() != null) {
             if (offset() == null) {
               // offset clause is mandatory with SQL Server when limit is specified
               st.append(" offset 0 rows");
             }
-            st.append(" fetch next ").append(limit().translate(target)).append(" rows only");
+            st.append(" fetch next ").append(limit().translate(target, parameters)).append(" rows only");
           }
           return new QueryTranslation(st.toString(),
                                       q.columns,
@@ -461,7 +453,7 @@ public class Select extends QueryUpdate implements Macro {
         List<Expression<?>> distinctOn = distinctOn();
         if (distinctOn != null && !distinctOn.isEmpty()) {
           st.append("on (")
-            .append(distinctOn.stream().map(e -> e.translate(target)).collect(joining(", ")))
+            .append(distinctOn.stream().map(e -> e.translate(target, parameters)).collect(joining(", ")))
             .append(") ");
         }
       }
@@ -471,32 +463,32 @@ public class Select extends QueryUpdate implements Macro {
       }
 
       st.append(columns().stream()
-                         .map(c -> c.translate(ESQL))
+                         .map(c -> c.translate(ESQL, parameters))
                          .collect(joining(", ")));
 
       if (tables() != null) {
-        st.append(" from ").append(tables().translate(target));
+        st.append(" from ").append(tables().translate(target, parameters));
       }
       if (where() != null) {
-        st.append(" where ").append(where().translate(target));
+        st.append(" where ").append(where().translate(target, parameters));
       }
       if (groupBy() != null) {
-        st.append(groupBy().translate(target));
+        st.append(groupBy().translate(target, parameters));
       }
       if (having() != null) {
-        st.append(" having ").append(having().translate(target));
+        st.append(" having ").append(having().translate(target, parameters));
       }
       if (orderBy() != null && !orderBy().isEmpty()) {
         st.append(" order by ")
           .append(orderBy().stream()
-                           .map(e -> e.translate(target))
+                           .map(e -> e.translate(target, parameters))
                            .collect(joining(", ")));
       }
       if (offset() != null) {
-        st.append(" offset ").append(offset().translate(target));
+        st.append(" offset ").append(offset().translate(target, parameters));
       }
       if (limit() != null) {
-        st.append(" limit ").append(limit().translate(target));
+        st.append(" limit ").append(limit().translate(target, parameters));
       }
       return new QueryTranslation(st.toString(), null, null, null, null);
 
@@ -507,7 +499,7 @@ public class Select extends QueryUpdate implements Macro {
         List<Expression<?>> distinctOn = distinctOn();
         if (distinctOn != null && !distinctOn.isEmpty()) {
           st.append(target != HSQLDB ? "on (" : "(")
-            .append(distinctOn.stream().map(e -> e.translate(target)).collect(joining(", ")))
+            .append(distinctOn.stream().map(e -> e.translate(target, parameters)).collect(joining(", ")))
             .append(") ");
         }
       }
@@ -516,28 +508,28 @@ public class Select extends QueryUpdate implements Macro {
       QueryTranslation q = constructResult(st, target, null,
                                            addAttributes, optimiseAttributesLoading);
       if (tables() != null) {
-        st.append(" from ").append(tables().translate(target));
+        st.append(" from ").append(tables().translate(target, parameters));
       }
       if (where() != null) {
-        st.append(" where ").append(where().translate(target));
+        st.append(" where ").append(where().translate(target, parameters));
       }
       if (groupBy() != null) {
-        st.append(groupBy().translate(target));
+        st.append(groupBy().translate(target, parameters));
       }
       if (having() != null) {
-        st.append(" having ").append(having().translate(target));
+        st.append(" having ").append(having().translate(target, parameters));
       }
       if (orderBy() != null && !orderBy().isEmpty()) {
         st.append(" order by ")
           .append(orderBy().stream()
-                           .map(e -> e.translate(target))
+                           .map(e -> e.translate(target, parameters))
                            .collect(joining(", ")));
       }
       if (offset() != null) {
-        st.append(" offset ").append(offset().translate(target));
+        st.append(" offset ").append(offset().translate(target, parameters));
       }
       if (limit() != null) {
-        st.append(" limit ").append(limit().translate(target));
+        st.append(" limit ").append(limit().translate(target, parameters));
       }
       return new QueryTranslation(st.toString(),
                                   q.columns,

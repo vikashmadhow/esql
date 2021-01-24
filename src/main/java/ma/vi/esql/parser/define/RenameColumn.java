@@ -8,6 +8,8 @@ import ma.vi.base.tuple.T2;
 import ma.vi.esql.parser.Context;
 import ma.vi.esql.parser.Esql;
 
+import java.util.Map;
+
 public class RenameColumn extends AlterTableAction {
   public RenameColumn(Context context, String from, String to) {
     super(context,
@@ -34,7 +36,7 @@ public class RenameColumn extends AlterTableAction {
   }
 
   @Override
-  public String translate(Target target) {
+  public String translate(Target target, Map<String, Object> parameters) {
     return "rename column \"" + from() + "\" to \"" + to() + '"';
   }
 

@@ -7,6 +7,8 @@ package ma.vi.esql.parser.expression;
 import ma.vi.esql.parser.Context;
 import ma.vi.esql.type.Type;
 
+import java.util.Map;
+
 import static ma.vi.esql.type.Types.BoolType;
 
 /**
@@ -43,7 +45,7 @@ public class BooleanLiteral extends BaseLiteral<Boolean> {
   }
 
   @Override
-  public String translate(Target target) {
+  public String translate(Target target, Map<String, Object> parameters) {
     if (target == Target.SQLSERVER) {
       return value ? "1" : "0";
     }

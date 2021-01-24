@@ -21,6 +21,7 @@ import ma.vi.esql.type.Type;
 import ma.vi.esql.type.Types;
 
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.UUID;
 
 import static ma.vi.esql.builder.Attributes.*;
@@ -105,13 +106,13 @@ public class Column extends MetadataContainer<Expression<?>, String> {
   }
 
   @Override
-  public String translate(Target target) {
+  public String translate(Target target, Map<String, Object> parameters) {
     if (target == ESQL) {
       StringBuilder st = new StringBuilder();
       if (alias() != null) {
         st.append(alias()).append(':');
       }
-      st.append(expr().translate(target));
+      st.append(expr().translate(target, parameters));
       Metadata metadata = metadata();
       if (metadata != null && !metadata.attributes().isEmpty()) {
         st.append(" {");
@@ -119,14 +120,14 @@ public class Column extends MetadataContainer<Expression<?>, String> {
         for (Attribute attr: metadata.attributes().values()) {
           if (first) { first = false; }
           else       { st.append(", "); }
-          st.append(attr.attributeValue().translate(target));
+          st.append(attr.attributeValue().translate(target, parameters));
         }
         st.append('}');
       }
       return st.toString();
 
     } else {
-      StringBuilder st = new StringBuilder(expr().translate(target));
+      StringBuilder st = new StringBuilder(expr().translate(target, parameters));
       if (alias() != null) {
         st.append(" \"").append(alias()).append('"');
       }

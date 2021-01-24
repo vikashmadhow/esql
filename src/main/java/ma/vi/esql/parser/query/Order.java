@@ -11,6 +11,8 @@ import ma.vi.esql.parser.expression.Expression;
 import ma.vi.esql.type.Type;
 import ma.vi.esql.type.Types;
 
+import java.util.Map;
+
 /**
  * Order by clause in ESQL.
  *
@@ -45,9 +47,9 @@ public class Order extends Esql<Expression<?>, String> {
   }
 
   @Override
-  public String translate(Target target) {
+  public String translate(Target target, Map<String, Object> parameters) {
     String dir = dir();
-    return order().translate(target) + (dir == null ? "" : ' ' + dir);
+    return order().translate(target, parameters) + (dir == null ? "" : ' ' + dir);
   }
 
   @Override

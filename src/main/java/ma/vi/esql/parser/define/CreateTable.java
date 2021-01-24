@@ -64,7 +64,7 @@ public class CreateTable extends Define<String> {
   }
 
   @Override
-  public String translate(Target target) {
+  public String translate(Target target, Map<String, Object> parameters) {
     StringBuilder st = new StringBuilder("create table ");
     if (target != SQLSERVER) {
       st.append("if not exists ");
@@ -84,7 +84,7 @@ public class CreateTable extends Define<String> {
       }
     }
     for (ConstraintDefinition constraint: constraints()) {
-      st.append(", ").append(constraint.translate(target));
+      st.append(", ").append(constraint.translate(target, parameters));
     }
     st.append(')');
     return st.toString();

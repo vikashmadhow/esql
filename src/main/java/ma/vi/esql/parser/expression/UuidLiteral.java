@@ -8,6 +8,7 @@ import ma.vi.esql.parser.Context;
 import ma.vi.esql.type.Type;
 import ma.vi.esql.type.Types;
 
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -44,7 +45,7 @@ public class UuidLiteral extends BaseLiteral<UUID> {
   }
 
   @Override
-  public String translate(Target target) {
+  public String translate(Target target, Map<String, Object> parameters) {
     return switch(target) {
       case ESQL       -> "u'" + value + "'";
       case POSTGRESQL -> "'" + value + "'::uuid";

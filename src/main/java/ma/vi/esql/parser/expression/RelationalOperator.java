@@ -8,6 +8,8 @@ import ma.vi.esql.parser.Context;
 import ma.vi.esql.type.Type;
 import ma.vi.esql.type.Types;
 
+import java.util.Map;
+
 /**
  * A relational expression (such as comparison) always has a
  * {@link Types#BoolType} type.
@@ -43,13 +45,13 @@ public class RelationalOperator extends BinaryOperator {
   }
 
   @Override
-  public String translate(Target target) {
+  public String translate(Target target, Map<String, Object> parameters) {
     boolean sqlServerBool = target == Target.SQLSERVER
                          && ancestor("on") == null
                          && ancestor("where") == null
                          && ancestor("having") == null;
     return (sqlServerBool ? "iif" : "") + '('
-         + super.translate(target)
+         + super.translate(target, parameters)
          + (sqlServerBool ? ", 1, 0" : "") + ')';
   }
 }

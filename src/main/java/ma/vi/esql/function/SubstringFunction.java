@@ -22,7 +22,7 @@ import static ma.vi.esql.parser.Translatable.Target.POSTGRESQL;
  */
 public class SubstringFunction extends Function {
   public SubstringFunction() {
-    super("substring", Types.IntType,
+    super("substring", Types.StringType,
           asList(new FunctionParameter("s", Types.StringType),
             new FunctionParameter("from", Types.IntType),
             new FunctionParameter("count", Types.IntType)));

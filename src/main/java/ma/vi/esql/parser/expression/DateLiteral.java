@@ -12,6 +12,7 @@ import ma.vi.esql.type.Types;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Map;
 
 import static ma.vi.base.string.Escape.escapeJsonString;
 import static ma.vi.esql.parser.Translatable.Target.JSON;
@@ -61,14 +62,14 @@ public class DateLiteral extends BaseLiteral<String> {
   }
 
   @Override
-  public String translate(Target target) {
+  public String translate(Target target, Map<String, Object> parameters) {
     Type type = type();
     switch (target) {
       case POSTGRESQL:
-        return '\'' + value + "'::" + type().translate(target);
+        return '\'' + value + "'::" + type().translate(target, parameters);
 
       case SQLSERVER:
-        return "cast('" + value + "' as " + type().translate(target) + ')';
+        return "cast('" + value + "' as " + type().translate(target, parameters) + ')';
 
       case JSON:
       case JAVASCRIPT:

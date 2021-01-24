@@ -10,6 +10,8 @@ import ma.vi.esql.parser.Esql;
 import ma.vi.esql.type.Type;
 import ma.vi.esql.type.Types;
 
+import java.util.Map;
+
 import static ma.vi.base.string.Escape.escapeJsonString;
 import static ma.vi.esql.parser.Translatable.Target.JSON;
 
@@ -54,19 +56,19 @@ public class Between extends Expression<Expression<?>> {
   }
 
   @Override
-  public String translate(Target target) {
+  public String translate(Target target, Map<String, Object> parameters) {
     switch (target) {
       case JSON, JAVASCRIPT:
         String e = (not() ? "!" : "") + '('
-                 + compare().translate(target) + " >= " + from().translate(target) + " && "
-                 + compare().translate(target) + " <= " + to().translate(target) + ')';
+                 + compare().translate(target, parameters) + " >= " + from().translate(target, parameters) + " && "
+                 + compare().translate(target, parameters) + " <= " + to().translate(target, parameters) + ')';
         return target == JSON ? '"' + escapeJsonString(e) + '"' : e;
 
       default:
-        return compare().translate(target)
+        return compare().translate(target, parameters)
              + (not() ? " not" : "") + " between "
-             + from().translate(target) + " and "
-             + to().translate(target);
+             + from().translate(target, parameters) + " and "
+             + to().translate(target, parameters);
     }
   }
 

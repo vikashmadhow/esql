@@ -5,6 +5,7 @@
 package ma.vi.esql.parser;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * No-operation; can be used by macros to remove a statement in a program.
@@ -43,7 +44,7 @@ public class NoOp extends Esql<Void, Void> {
   }
 
   @Override
-  public Void translate(Target target) {
+  public Void translate(Target target, Map<String, Object> parameters) {
     return null;
   }
 }

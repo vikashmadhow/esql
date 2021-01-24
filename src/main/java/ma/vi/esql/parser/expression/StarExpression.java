@@ -6,6 +6,8 @@ package ma.vi.esql.parser.expression;
 
 import ma.vi.esql.parser.Context;
 
+import java.util.Map;
+
 /**
  * The star symbol (*) which is only valid as an argument to
  * certain functions such as count.
@@ -36,7 +38,7 @@ public class StarExpression extends Expression<String> {
   }
 
   @Override
-  public String translate(Target target) {
+  public String translate(Target target, Map<String, Object> parameters) {
     return "*";
   }
 

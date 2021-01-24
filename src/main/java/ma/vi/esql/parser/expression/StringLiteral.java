@@ -8,6 +8,8 @@ import ma.vi.esql.parser.Context;
 import ma.vi.esql.type.Type;
 import ma.vi.esql.type.Types;
 
+import java.util.Map;
+
 import static ma.vi.base.string.Escape.escapeJsonString;
 
 /**
@@ -44,7 +46,7 @@ public class StringLiteral extends BaseLiteral<String> {
   }
 
   @Override
-  public String translate(Target target) {
+  public String translate(Target target, Map<String, Object> parameters) {
     /*
      * In sql server special characters can be sent as-is
      * to the database. Sql server has no support for escape

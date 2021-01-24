@@ -9,6 +9,7 @@ import ma.vi.esql.parser.query.*;
 import ma.vi.esql.type.Type;
 
 import java.util.List;
+import java.util.Map;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
@@ -24,7 +25,7 @@ public class MariaDbTranslator extends AbstractTranslator {
   }
 
   @Override
-  protected QueryTranslation translate(Select select) {
+  protected QueryTranslation translate(Select select, Map<String, Object> parameters) {
     StringBuilder st = new StringBuilder("select ");
     if (select.distinct()) {
       st.append("distinct ");
@@ -38,28 +39,28 @@ public class MariaDbTranslator extends AbstractTranslator {
     QueryTranslation q = select.constructResult(st, target(), null,
                                                 true, true);
     if (select.tables() != null) {
-      st.append(" from ").append(select.tables().translate(target()));
+      st.append(" from ").append(select.tables().translate(target(), parameters));
     }
     if (select.where() != null) {
-      st.append(" where ").append(select.where().translate(target()));
+      st.append(" where ").append(select.where().translate(target(), parameters));
     }
     if (select.groupBy() != null) {
-      st.append(select.groupBy().translate(target()));
+      st.append(select.groupBy().translate(target(), parameters));
     }
     if (select.having() != null) {
-      st.append(" having ").append(select.having().translate(target()));
+      st.append(" having ").append(select.having().translate(target(), parameters));
     }
     if (select.orderBy() != null && !select.orderBy().isEmpty()) {
       st.append(" order by ")
         .append(select.orderBy().stream()
-                      .map(e -> e.translate(target()))
+                      .map(e -> e.translate(target(), parameters))
                       .collect(joining(", ")));
     }
     if (select.limit() != null) {
-      st.append(" limit ").append(select.limit().translate(target()));
+      st.append(" limit ").append(select.limit().translate(target(), parameters));
     }
     if (select.offset() != null) {
-      st.append(" offset ").append(select.offset().translate(target()));
+      st.append(" offset ").append(select.offset().translate(target(), parameters));
     }
     return new QueryTranslation(st.toString(),
                                 q.columns,
@@ -69,15 +70,15 @@ public class MariaDbTranslator extends AbstractTranslator {
   }
 
   @Override
-  protected QueryTranslation translate(Update update) {
+  protected QueryTranslation translate(Update update, Map<String, Object> parameters) {
     StringBuilder st = new StringBuilder("update ");
 
     TableExpr from = update.tables();
-    st.append(from.translate(target()));
+    st.append(from.translate(target(), parameters));
     Update.addSet(st, update.set(), target(), false);
 
     if (update.where() != null) {
-      st.append(" where ").append(update.where().translate(target()));
+      st.append(" where ").append(update.where().translate(target(), parameters));
     }
     if (update.columns() != null) {
       throw new TranslationException(target() + " does not support return values in updates");
@@ -87,13 +88,13 @@ public class MariaDbTranslator extends AbstractTranslator {
   }
 
   @Override
-  protected QueryTranslation translate(Delete delete) {
+  protected QueryTranslation translate(Delete delete, Map<String, Object> parameters) {
     StringBuilder st = new StringBuilder("delete ");
     QueryTranslation q = null;
 
     TableExpr from = delete.tables();
     if (from instanceof SingleTableExpr) {
-      st.append(" from ").append(from.translate(target()));
+      st.append(" from ").append(from.translate(target(), parameters));
 
     } else if (from instanceof AbstractJoinTableExpr) {
       /*
@@ -105,14 +106,14 @@ public class MariaDbTranslator extends AbstractTranslator {
         throw new TranslationException("Could not find table with alias " + delete.deleteTableAlias());
       }
       st.append(Type.dbTableName(deleteTable.tableName(), target()));
-      st.append(" from ").append(from.translate(target()));
+      st.append(" from ").append(from.translate(target(), parameters));
 
     } else {
       throw new TranslationException("Wrong table type to delete: " + from);
     }
 
     if (delete.where() != null) {
-      st.append(" where ").append(delete.where().translate(target()));
+      st.append(" where ").append(delete.where().translate(target(), parameters));
     }
     if (delete.columns() != null) {
       st.append(" returning ");

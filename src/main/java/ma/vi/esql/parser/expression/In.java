@@ -12,6 +12,7 @@ import ma.vi.esql.type.Type;
 import ma.vi.esql.type.Types;
 
 import java.util.List;
+import java.util.Map;
 
 import static java.util.stream.Collectors.joining;
 
@@ -52,14 +53,13 @@ public class In extends Expression<Expression<?>> {
   }
 
   @Override
-  public String translate(Target target) {
-    return expr().translate(target) + (not() ? " not in (" : " in (") +
-        (select() != null
-         ? select().translate(target)
-         : list().stream()
-                 .map(e -> e.translate(target))
-                 .collect(joining(", "))
-        ) + ')';
+  public String translate(Target target, Map<String, Object> parameters) {
+    return expr().translate(target, parameters) + (not() ? " not in (" : " in (")
+        + (select() != null ? select().translate(target, parameters)
+                            : list().stream()
+                                    .map(e -> e.translate(target, parameters))
+                                    .collect(joining(", ")))
+        + ')';
   }
 
   @Override

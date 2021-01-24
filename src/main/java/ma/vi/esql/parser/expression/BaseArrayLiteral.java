@@ -11,6 +11,7 @@ import ma.vi.esql.type.Types;
 
 import java.lang.reflect.Array;
 import java.util.List;
+import java.util.Map;
 
 import static java.util.stream.Collectors.joining;
 import static ma.vi.base.collections.ArrayUtils.ARRAY_ESCAPE;
@@ -49,34 +50,34 @@ public class BaseArrayLiteral extends Literal<Type> {
   }
 
   @Override
-  public String translate(Target target) {
+  public String translate(Target target, Map<String, Object> parameters) {
     return switch (target) {
       case POSTGRESQL
           -> "array[" + items().stream()
-                               .map(e -> e.translate(target))
-                               .collect(joining(",")) + "]::" + componentType().array().translate(target);
+                               .map(e -> e.translate(target, parameters))
+                               .collect(joining(",")) + "]::" + componentType().array().translate(target, parameters);
 
       case HSQLDB
           -> "array[" + items().stream()
-                               .map(e -> e.translate(target))
+                               .map(e -> e.translate(target, parameters))
                                .collect(joining(",")) + "]";
 
       case SQLSERVER
           -> items().stream()
                     .map(e -> e instanceof StringLiteral
                                   ? ARRAY_ESCAPE.escape((String)e.value(target))
-                                  : ARRAY_ESCAPE.escape(e.translate(target)))
+                                  : ARRAY_ESCAPE.escape(e.translate(target, parameters)))
                     .collect(joining(",", "N'[", "]'"));
 
       case JSON, JAVASCRIPT
           -> items().stream()
-                    .map(e -> e.translate(target))
+                    .map(e -> e.translate(target, parameters))
                     .collect(joining(",", "[", "]"));
 
       default
-          -> componentType().translate(Target.ESQL)
+          -> componentType().translate(Target.ESQL, parameters)
                + items().stream()
-                        .map(e -> ARRAY_ESCAPE.escape(e.translate(target)))
+                        .map(e -> ARRAY_ESCAPE.escape(e.translate(target, parameters)))
                         .collect(joining(",", "[", "]"));
     };
   }

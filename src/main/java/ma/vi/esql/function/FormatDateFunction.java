@@ -46,9 +46,9 @@ import static ma.vi.esql.parser.Translatable.Target.*;
  */
 public class FormatDateFunction extends Function {
   public FormatDateFunction() {
-    super("format", Types.TextType,
+    super("format", Types.StringType,
           Arrays.asList(new FunctionParameter("date", Types.DatetimeType),
-            new FunctionParameter("format", Types.TextType)));
+            new FunctionParameter("format", Types.StringType)));
   }
 
   @Override

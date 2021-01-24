@@ -15,6 +15,8 @@ import ma.vi.esql.type.BaseRelation;
 import ma.vi.esql.type.Type;
 import ma.vi.esql.type.Types;
 
+import java.util.Map;
+
 /**
  * Reference to a column.
  *
@@ -133,7 +135,7 @@ public class ColumnRef extends Expression<String> implements Macro {
   }
 
   @Override
-  public String translate(Target target) {
+  public String translate(Target target, Map<String, Object> parameters) {
     boolean sqlServerBool = target == Target.SQLSERVER
                          && type() == Types.BoolType
                          && (ancestor("on") != null || ancestor("where") != null || ancestor("having") != null)

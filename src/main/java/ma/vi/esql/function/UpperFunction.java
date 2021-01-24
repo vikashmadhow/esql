@@ -21,7 +21,7 @@ import static ma.vi.esql.parser.Translatable.Target.JAVASCRIPT;
  */
 public class UpperFunction extends Function {
   public UpperFunction() {
-    super("upper", Types.IntType,
+    super("upper", Types.StringType,
           singletonList(new FunctionParameter("text", Types.StringType)));
   }
 

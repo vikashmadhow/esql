@@ -8,6 +8,7 @@ import ma.vi.esql.parser.Context;
 
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import static ma.vi.base.string.Escape.escapeJsonString;
 import static ma.vi.esql.parser.Translatable.Target.JSON;
@@ -46,7 +47,7 @@ public class Case extends MultipleSubExpressions<String> {
   }
 
   @Override
-  public String translate(Target target) {
+  public String translate(Target target, Map<String, Object> parameters) {
     switch (target) {
       case JSON, JAVASCRIPT -> {
         StringBuilder est = new StringBuilder();
@@ -56,10 +57,10 @@ public class Case extends MultipleSubExpressions<String> {
             est.append(" : ");
           }
           if (i.hasNext()) {
-            est.append(i.next().translate(target)).append(" ? ")
-               .append(e.translate(target));
+            est.append(i.next().translate(target, parameters)).append(" ? ")
+               .append(e.translate(target, parameters));
           } else {
-            est.append(e.translate(target));
+            est.append(e.translate(target, parameters));
           }
         }
         String ex = est.toString();
@@ -78,10 +79,10 @@ public class Case extends MultipleSubExpressions<String> {
             est.append(" else ");
           }
           if (i.hasNext()) {
-            est.append(e.translate(target)).append(" if ")
-               .append(i.next().translate(target));
+            est.append(e.translate(target, parameters)).append(" if ")
+               .append(i.next().translate(target, parameters));
           } else {
-            est.append(e.translate(target));
+            est.append(e.translate(target, parameters));
           }
         }
         return est.toString();
@@ -92,10 +93,10 @@ public class Case extends MultipleSubExpressions<String> {
         for (Iterator<Expression<?>> i = expressions().iterator(); i.hasNext(); ) {
           Expression<?> e = i.next();
           if (i.hasNext()) {
-            st.append(" when ").append(i.next().translate(target))
-              .append(" then ").append(e.translate(target));
+            st.append(" when ").append(i.next().translate(target, parameters))
+              .append(" then ").append(e.translate(target, parameters));
           } else {
-            st.append(" else ").append(e.translate(target));
+            st.append(" else ").append(e.translate(target, parameters));
           }
         }
         st.append(" end");

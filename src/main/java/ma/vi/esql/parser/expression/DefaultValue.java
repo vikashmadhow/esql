@@ -8,6 +8,8 @@ import ma.vi.esql.parser.Context;
 import ma.vi.esql.type.Type;
 import ma.vi.esql.type.Types;
 
+import java.util.Map;
+
 /**
  * Represents the default value in insert and update statements.
  *
@@ -38,14 +40,16 @@ public class DefaultValue extends Expression<String> {
 
   @Override
   public Type type() {
-    // The type of the default value will require analysis of the
-    // context, which is not necessary for the translation. TopType
-    // is a placeholder for any type.
+    /*
+     * The type of the default value will require analysis of the
+     * context, which is not necessary for the translation. TopType
+     * is a placeholder for any type.
+     */
     return Types.TopType;
   }
 
   @Override
-  public String translate(Target target) {
+  public String translate(Target target, Map<String, Object> parameters) {
     return "default";
   }
 

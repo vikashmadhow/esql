@@ -11,6 +11,7 @@ import ma.vi.esql.parser.query.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.IntStream;
 
 import static java.util.Collections.emptyList;
@@ -28,14 +29,14 @@ public class PostgresqlTranslator extends AbstractTranslator {
   }
 
   @Override
-  protected QueryTranslation translate(Select select) {
+  protected QueryTranslation translate(Select select, Map<String, Object> parameters) {
     StringBuilder st = new StringBuilder("select ");
     if (select.distinct()) {
       st.append("distinct ");
       List<Expression<?>> distinctOn = select.distinctOn();
       if (distinctOn != null && !distinctOn.isEmpty()) {
         st.append("on (")
-          .append(distinctOn.stream().map(e -> e.translate(target())).collect(joining(", ")))
+          .append(distinctOn.stream().map(e -> e.translate(target(), parameters)).collect(joining(", ")))
           .append(") ");
       }
     }
@@ -44,28 +45,28 @@ public class PostgresqlTranslator extends AbstractTranslator {
     QueryTranslation q = select.constructResult(st, target(), null,
                                                 true, true);
     if (select.tables() != null) {
-      st.append(" from ").append(select.tables().translate(target()));
+      st.append(" from ").append(select.tables().translate(target(), parameters));
     }
     if (select.where() != null) {
-      st.append(" where ").append(select.where().translate(target()));
+      st.append(" where ").append(select.where().translate(target(), parameters));
     }
     if (select.groupBy() != null) {
-      st.append(select.groupBy().translate(target()));
+      st.append(select.groupBy().translate(target(), parameters));
     }
     if (select.having() != null) {
-      st.append(" having ").append(select.having().translate(target()));
+      st.append(" having ").append(select.having().translate(target(), parameters));
     }
     if (select.orderBy() != null && !select.orderBy().isEmpty()) {
       st.append(" order by ")
         .append(select.orderBy().stream()
-                      .map(e -> e.translate(target()))
+                      .map(e -> e.translate(target(), parameters))
                       .collect(joining(", ")));
     }
     if (select.offset() != null) {
-      st.append(" offset ").append(select.offset().translate(target()));
+      st.append(" offset ").append(select.offset().translate(target(), parameters));
     }
     if (select.limit() != null) {
-      st.append(" limit ").append(select.limit().translate(target()));
+      st.append(" limit ").append(select.limit().translate(target(), parameters));
     }
     return new QueryTranslation(st.toString(),
                                 q.columns,
@@ -75,14 +76,14 @@ public class PostgresqlTranslator extends AbstractTranslator {
   }
 
   @Override
-  protected QueryTranslation translate(Update update) {
+  protected QueryTranslation translate(Update update, Map<String, Object> parameters) {
     TableExpr from = update.tables();
     if (from instanceof SingleTableExpr) {
       StringBuilder st = new StringBuilder("update ");
-      st.append(from.translate(target()));
+      st.append(from.translate(target(), parameters));
       Update.addSet(st, update.set(), target(), false);
       if (update.where() != null) {
-        st.append(" where ").append(update.where().translate(target()));
+        st.append(" where ").append(update.where().translate(target(), parameters));
       }
       QueryTranslation q = null;
       if (update.columns() != null && !update.columns().isEmpty()) {
@@ -146,12 +147,12 @@ public class PostgresqlTranslator extends AbstractTranslator {
       List<Attribute> set = new ArrayList<>(update.set().attributes().values());
       st.append("select \"").append(update.updateTableAlias()).append("\".ctid, ")
         .append(set.stream()
-                   .map(a -> a.attributeValue().translate(target()))
+                   .map(a -> a.attributeValue().translate(target(), parameters))
                    .collect(joining(", ")))
-        .append(" from ").append(from.translate(target()));
+        .append(" from ").append(from.translate(target(), parameters));
 
       if (update.where() != null) {
-        st.append(" where ").append(update.where().translate(target()));
+        st.append(" where ").append(update.where().translate(target(), parameters));
       }
       st.append(") update ");
 
@@ -160,7 +161,7 @@ public class PostgresqlTranslator extends AbstractTranslator {
       if (updateTable == null) {
         throw new TranslationException("Could not find table with alias " + update.updateTableAlias());
       }
-      st.append(updateTable.translate(target()));
+      st.append(updateTable.translate(target(), parameters));
 
       st.append(" set ");
       boolean first = true;
@@ -192,12 +193,12 @@ public class PostgresqlTranslator extends AbstractTranslator {
   }
 
   @Override
-  protected QueryTranslation translate(Delete delete) {
+  protected QueryTranslation translate(Delete delete, Map<String, Object> parameters) {
     StringBuilder st = new StringBuilder("delete ");
 
     TableExpr from = delete.tables();
     if (from instanceof SingleTableExpr) {
-      st.append(" from ").append(from.translate(target()));
+      st.append(" from ").append(from.translate(target(), parameters));
 
     } else if (from instanceof AbstractJoinTableExpr) {
       /*
@@ -218,15 +219,15 @@ public class PostgresqlTranslator extends AbstractTranslator {
         JoinTableExpr join = (JoinTableExpr)deleteTable.a;
         delete.where(join.on(), false);
       }
-      st.append(" from ").append(deleteTable.b.translate(target()));
-      st.append(" using ").append(from.translate(target()));
+      st.append(" from ").append(deleteTable.b.translate(target(), parameters));
+      st.append(" using ").append(from.translate(target(), parameters));
 
     } else {
       throw new TranslationException("Wrong table type to delete: " + from);
     }
 
     if (delete.where() != null) {
-      st.append(" where ").append(delete.where().translate(target()));
+      st.append(" where ").append(delete.where().translate(target(), parameters));
     }
 
     if (delete.columns() != null && !delete.columns().isEmpty()) {

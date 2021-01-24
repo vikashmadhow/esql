@@ -8,6 +8,8 @@ import ma.vi.esql.parser.Context;
 import ma.vi.esql.parser.Esql;
 import ma.vi.esql.parser.expression.Expression;
 
+import java.util.Map;
+
 /**
  * Represents a join between two table expressions. The join type, which can
  * be null (inner, default), 'left', 'right' or 'full' is accessible through
@@ -41,11 +43,11 @@ public class JoinTableExpr extends AbstractJoinTableExpr {
   }
 
   @Override
-  public String translate(Target target) {
-    return left().translate(target)
+  public String translate(Target target, Map<String, Object> parameters) {
+    return left().translate(target, parameters)
          + (joinType() == null ? " join " : ' ' + joinType() + " join ")
-         + right().translate(target) + " on "
-         + on().translate(target);
+         + right().translate(target, parameters) + " on "
+         + on().translate(target, parameters);
   }
 
   public String joinType() {

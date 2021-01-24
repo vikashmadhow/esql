@@ -9,6 +9,8 @@ import ma.vi.esql.parser.Context;
 import ma.vi.esql.parser.Esql;
 import ma.vi.esql.type.Type;
 
+import java.util.Map;
+
 /**
  * Renames a table. This only renames the last part of the qualified
  * name of the table as the remaining part is the schema and cannot
@@ -40,7 +42,7 @@ public class RenameTable extends AlterTableAction {
   }
 
   @Override
-  public String translate(Target target) {
+  public String translate(Target target, Map<String, Object> parameters) {
     return "rename to " + Type.dbTableName(toName(), target);
   }
 

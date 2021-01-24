@@ -9,6 +9,8 @@ import ma.vi.esql.parser.Context;
 import ma.vi.esql.parser.Esql;
 import ma.vi.esql.parser.expression.Expression;
 
+import java.util.Map;
+
 /**
  * An attribute is a named expression used as a unit of metadata.
  *
@@ -40,8 +42,8 @@ public class Attribute extends Esql<String, String> {
   }
 
   @Override
-  public String translate(Target target) {
-    return name() + ": " + (attributeValue() == null ? "null" : attributeValue().translate(target));
+  public String translate(Target target, Map<String, Object> parameters) {
+    return name() + ": " + (attributeValue() == null ? "null" : attributeValue().translate(target, parameters));
   }
 
   @Override

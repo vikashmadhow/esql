@@ -10,6 +10,7 @@ import ma.vi.esql.type.Types;
 import org.json.JSONArray;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.joining;
@@ -51,9 +52,9 @@ public class JsonArrayLiteral extends Literal<List<Literal<?>>> {
   }
 
   @Override
-  public String translate(Target target) {
+  public String translate(Target target, Map<String, Object> parameters) {
     return items().stream()
-                  .map(e -> e.translate(target))
+                  .map(e -> e.translate(target, parameters))
                   .collect(joining(",", "[", "]"));
   }
 

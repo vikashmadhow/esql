@@ -9,6 +9,7 @@ import ma.vi.esql.exec.Result;
 
 import java.sql.Connection;
 import java.util.List;
+import java.util.Map;
 
 import static java.util.stream.Collectors.toList;
 
@@ -41,9 +42,9 @@ public class Program extends Esql<String, List<?>> {
   }
 
   @Override
-  public List<?> translate(Target target) {
+  public List<?> translate(Target target, Map<String, Object> parameters) {
     return statements().stream()
-                       .map(s -> s.translate(target))
+                       .map(s -> s.translate(target, parameters))
                        .collect(toList());
   }
 

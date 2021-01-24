@@ -22,7 +22,7 @@ import static ma.vi.esql.parser.Translatable.Target.SQLSERVER;
  */
 public class TrimFunction extends Function {
   public TrimFunction() {
-    super("trim", Types.IntType,
+    super("trim", Types.StringType,
         singletonList(new FunctionParameter("text", Types.StringType)));
   }
 
@@ -33,6 +33,11 @@ public class TrimFunction extends Function {
       return "(" + args.get(0).translate(target) + ").trim()";
 
     } else if (target == SQLSERVER) {
+      /*
+       * default trim only removes space (char 32) in SQL Server, we use the
+       * special form to specify all other space characters that we want to
+       * remove.
+       */
       return name + "(nchar(0x09) + nchar(0x20) + nchar(0x0D) + nchar(0x0A) from "
           + args.get(0).translate(target) + ')';
     } else {
