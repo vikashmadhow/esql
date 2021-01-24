@@ -4,7 +4,6 @@
 
 package ma.vi.esql.function;
 
-import ma.vi.esql.database.Structure;
 import ma.vi.esql.parser.Translatable;
 import ma.vi.esql.parser.expression.Expression;
 import ma.vi.esql.parser.expression.FunctionCall;
@@ -46,7 +45,7 @@ import static ma.vi.esql.parser.Translatable.Target.*;
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 public class FormatDateFunction extends Function {
-  public FormatDateFunction(Structure structure) {
+  public FormatDateFunction() {
     super("format", Types.TextType,
           Arrays.asList(new FunctionParameter("date", Types.DatetimeType),
             new FunctionParameter("format", Types.TextType)));

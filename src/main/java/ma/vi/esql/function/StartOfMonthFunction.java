@@ -4,7 +4,6 @@
 
 package ma.vi.esql.function;
 
-import ma.vi.esql.database.Structure;
 import ma.vi.esql.parser.Translatable;
 import ma.vi.esql.parser.expression.Expression;
 import ma.vi.esql.parser.expression.FunctionCall;
@@ -21,7 +20,7 @@ import static ma.vi.esql.parser.Translatable.Target.*;
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 public class StartOfMonthFunction extends Function {
-  public StartOfMonthFunction(Structure structure) {
+  public StartOfMonthFunction() {
     super("startofmonth",
           Types.DateType,
         singletonList(new FunctionParameter("s", Types.DateType)));

@@ -4,7 +4,6 @@
 
 package ma.vi.esql.function;
 
-import ma.vi.esql.database.Structure;
 import ma.vi.esql.parser.QueryUpdate;
 import ma.vi.esql.parser.Translatable;
 import ma.vi.esql.parser.expression.ColumnRef;
@@ -37,7 +36,7 @@ import static ma.vi.esql.parser.Translatable.Target.SQLSERVER;
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 public class LookupLabel extends Function {
-  public LookupLabel(Structure structure) {
+  public LookupLabel() {
     super("lookuplabel", Types.TextType,
           Arrays.asList(new FunctionParameter("code", Types.TextType),
             new FunctionParameter("lookup", Types.TextType)));

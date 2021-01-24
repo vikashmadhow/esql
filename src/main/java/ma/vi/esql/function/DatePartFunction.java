@@ -4,7 +4,6 @@
 
 package ma.vi.esql.function;
 
-import ma.vi.esql.database.Structure;
 import ma.vi.esql.parser.Translatable;
 import ma.vi.esql.parser.expression.Expression;
 import ma.vi.esql.parser.expression.FunctionCall;
@@ -22,7 +21,7 @@ import static ma.vi.esql.parser.Translatable.Target.*;
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 public class DatePartFunction extends Function {
-  public DatePartFunction(Structure structure, String name, Part part) {
+  public DatePartFunction(String name, Part part) {
     super(name, Types.IntType,
           singletonList(new FunctionParameter("s", Types.DatetimeType)));
     this.part = part;

@@ -4,7 +4,6 @@
 
 package ma.vi.esql.function;
 
-import ma.vi.esql.database.Structure;
 import ma.vi.esql.parser.QueryUpdate;
 import ma.vi.esql.parser.Translatable;
 import ma.vi.esql.parser.expression.ColumnRef;
@@ -33,7 +32,7 @@ import static ma.vi.esql.parser.Translatable.Target.SQLSERVER;
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 public class Range extends Function {
-  public Range(Structure structure) {
+  public Range() {
     super("range", Types.TextType,
           Arrays.asList(new FunctionParameter("val", Types.TextType),
             new FunctionParameter("ranges", Types.TextType)));
@@ -55,7 +54,7 @@ public class Range extends Function {
     if (target == POSTGRESQL) {
       StringBuilder func = new StringBuilder("_core.range((" + value.translate(target) + ")::double precision");
       while (i.hasNext()) {
-        func.append(", (").append(i.next().translate(target) + ")::int");
+        func.append(", (").append(i.next().translate(target)).append(")::int");
       }
       func.append(')');
       return func.toString();

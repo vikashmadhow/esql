@@ -4,7 +4,6 @@
 
 package ma.vi.esql.function;
 
-import ma.vi.esql.database.Structure;
 import ma.vi.esql.parser.Translatable;
 import ma.vi.esql.parser.expression.Expression;
 import ma.vi.esql.parser.expression.FunctionCall;
@@ -26,7 +25,7 @@ import static ma.vi.esql.parser.Translatable.Target.SQLSERVER;
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 public class AddIntervalsFunction extends Function {
-  public AddIntervalsFunction(Structure structure) {
+  public AddIntervalsFunction() {
     super("addintervals", Types.StringType,
           Arrays.asList(new FunctionParameter("interval1", Types.StringType),
             new FunctionParameter("interval2", Types.StringType)));

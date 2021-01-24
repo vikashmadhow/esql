@@ -5,7 +5,6 @@
 package ma.vi.esql.parser.macro;
 
 import ma.vi.esql.builder.SelectBuilder;
-import ma.vi.esql.database.Structure;
 import ma.vi.esql.function.Function;
 import ma.vi.esql.parser.*;
 import ma.vi.esql.parser.define.ForeignKeyConstraint;
@@ -59,7 +58,7 @@ import static ma.vi.esql.builder.Attributes.*;
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 public class LabelMacroFunction extends Function implements Macro {
-  public LabelMacroFunction(Structure structure) {
+  public LabelMacroFunction() {
     super("label", Types.StringType, emptyList());
   }
 

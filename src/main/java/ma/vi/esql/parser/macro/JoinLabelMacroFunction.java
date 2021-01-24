@@ -6,7 +6,6 @@ package ma.vi.esql.parser.macro;
 
 import ma.vi.base.tuple.T4;
 import ma.vi.esql.builder.SelectBuilder;
-import ma.vi.esql.database.Structure;
 import ma.vi.esql.function.Function;
 import ma.vi.esql.parser.*;
 import ma.vi.esql.parser.expression.*;
@@ -40,7 +39,7 @@ import static ma.vi.esql.parser.expression.ColumnRef.qualify;
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 public class JoinLabelMacroFunction extends Function implements Macro {
-  public JoinLabelMacroFunction(Structure structure) {
+  public JoinLabelMacroFunction() {
     super("joinlabel", Types.StringType, emptyList());
   }
 

@@ -267,12 +267,12 @@ public class Structure {
 
     // string
     /////////////////////////////////
-    functions.put("length", new LengthFunction(this));
+    functions.put("length", new LengthFunction());
 
     functions.put("ascii", new Function("ascii", IntType,
         singletonList(new FunctionParameter("p", StringType))));
 
-    functions.put("concat", new ConcatFunction(this));
+    functions.put("concat", new ConcatFunction());
 
     functions.put("concatws", new Function("concatws", StringType,
         singletonList(new FunctionParameter("p", StringType)),
@@ -286,11 +286,11 @@ public class Structure {
         Map.of(POSTGRESQL,  "chr",
                SQLSERVER,   "char")));
 
-    functions.put("trim",  new TrimFunction(this));
-    functions.put("ltrim", new RightTrimFunction(this));
-    functions.put("rtrim", new LeftTrimFunction(this));
-    functions.put("lpad",  new LeftPad(this));
-    functions.put("rpad",  new RightPad(this));
+    functions.put("trim",  new TrimFunction());
+    functions.put("ltrim", new RightTrimFunction());
+    functions.put("rtrim", new LeftTrimFunction());
+    functions.put("lpad",  new LeftPad());
+    functions.put("rpad",  new RightPad());
 
     functions.put("reverse", new Function("reverse", StringType,
         singletonList(new FunctionParameter("p", StringType))));
@@ -307,18 +307,18 @@ public class Structure {
         Map.of(POSTGRESQL, "repeat",
                SQLSERVER, "replicate")));
 
-    functions.put("substring", new SubstringFunction(this));
+    functions.put("substring", new SubstringFunction());
 
     functions.put("translate", new Function("translate", StringType,
         asList(new FunctionParameter("s", StringType),
             new FunctionParameter("from", StringType),
             new FunctionParameter("to", StringType))));
 
-    functions.put("leftstr",  new LeftFunction(this));
-    functions.put("rightstr", new RightFunction(this));
-    functions.put("lower",    new LowerFunction(this));
-    functions.put("upper",    new UpperFunction(this));
-    functions.put("indexof",  new IndexOfFunction(this));
+    functions.put("leftstr",  new LeftFunction());
+    functions.put("rightstr", new RightFunction());
+    functions.put("lower",    new LowerFunction());
+    functions.put("upper",    new UpperFunction());
+    functions.put("indexof",  new IndexOfFunction());
 
     // Obfuscation
     /////////////////////////////////
@@ -336,7 +336,7 @@ public class Structure {
 
     // conversion and formatting
     /////////////////////////////////
-    functions.put("format", new FormatDateFunction(this));
+    functions.put("format", new FormatDateFunction());
 
     // date and time
     /////////////////////////////////
@@ -346,9 +346,9 @@ public class Structure {
                SQLSERVER, "getdate",
                JAVASCRIPT, "_moment")));
 
-    functions.put("incdate", new AddIntervalToDateFunction(this));
+    functions.put("incdate", new AddIntervalToDateFunction());
 
-    functions.put("addintervals", new AddIntervalsFunction(this));
+    functions.put("addintervals", new AddIntervalsFunction());
 
     functions.put("newdate", new Function("newdate", DateType,
         asList(new FunctionParameter("y", IntType),
@@ -359,40 +359,40 @@ public class Structure {
                SQLSERVER, "datefromparts",
                JAVASCRIPT, "_moment")));
 
-    functions.put("newdatetime", new NewDateTimeFunction(this));
+    functions.put("newdatetime", new NewDateTimeFunction());
 
-    functions.put("newtime", new NewTimeFunction(this));
+    functions.put("newtime", new NewTimeFunction());
 
-    functions.put("year",       new DatePartFunction(this, "year",      Year));
-    functions.put("quarter",    new DatePartFunction(this, "quarter",   Quarter));
-    functions.put("semester",   new DatePartFunction(this, "semester",  Semester));
-    functions.put("month",      new DatePartFunction(this, "month",     Month));
-    functions.put("day",        new DatePartFunction(this, "day",       Day));
-    functions.put("dayofweek",  new DatePartFunction(this, "dayofweek", DayOfWeek));
-    functions.put("dayofyear",  new DatePartFunction(this, "dayofyear", DayOfYear));
-    functions.put("week",       new DatePartFunction(this, "week",      Week));
-    functions.put("hour",       new DatePartFunction(this, "hour",      Hour));
-    functions.put("minute",     new DatePartFunction(this, "minute",    Minute));
-    functions.put("second",     new DatePartFunction(this, "second",    Second));
-    functions.put("milli",      new DatePartFunction(this, "milli",     Millisecond));
-    functions.put("micro",      new DatePartFunction(this, "micro",     Microsecond));
+    functions.put("year",       new DatePartFunction("year", Year));
+    functions.put("quarter",    new DatePartFunction("quarter", Quarter));
+    functions.put("semester",   new DatePartFunction("semester", Semester));
+    functions.put("month",      new DatePartFunction("month", Month));
+    functions.put("day",        new DatePartFunction("day", Day));
+    functions.put("dayofweek",  new DatePartFunction("dayofweek", DayOfWeek));
+    functions.put("dayofyear",  new DatePartFunction("dayofyear", DayOfYear));
+    functions.put("week",       new DatePartFunction("week", Week));
+    functions.put("hour",       new DatePartFunction("hour", Hour));
+    functions.put("minute",     new DatePartFunction("minute", Minute));
+    functions.put("second",     new DatePartFunction("second", Second));
+    functions.put("milli",      new DatePartFunction("milli", Millisecond));
+    functions.put("micro",      new DatePartFunction("micro", Microsecond));
 
-    functions.put("ageinyears", new AgeInYears(this));
+    functions.put("ageinyears", new AgeInYears());
 
-    functions.put("startofmonth", new StartOfMonthFunction(this));
-    functions.put("endofmonth",   new EndOfMonthFunction(this));
-    functions.put("inmonth",      new InMonthMacroFunction(this));
+    functions.put("startofmonth", new StartOfMonthFunction());
+    functions.put("endofmonth",   new EndOfMonthFunction());
+    functions.put("inmonth",      new InMonthMacroFunction());
 
     // Functions to compute difference between dates in years, months, days, etc, (datediff in sql server)
-    functions.put("years",    new DateDiffFunction(this, "years",   Year));
-    functions.put("months",   new DateDiffFunction(this, "months",  Month));
-    functions.put("days",     new DateDiffFunction(this, "days",    Day));
-    functions.put("weeks",    new DateDiffFunction(this, "weeks",   Week));
-    functions.put("hours",    new DateDiffFunction(this, "hours",   Hour));
-    functions.put("minutes",  new DateDiffFunction(this, "minutes", Minute));
-    functions.put("seconds",  new DateDiffFunction(this, "seconds", Second));
-    functions.put("millis",   new DateDiffFunction(this, "millis",  Millisecond));
-    functions.put("micros",   new DateDiffFunction(this, "micros",  Microsecond));
+    functions.put("years",    new DateDiffFunction("years", Year));
+    functions.put("months",   new DateDiffFunction("months", Month));
+    functions.put("days",     new DateDiffFunction("days", Day));
+    functions.put("weeks",    new DateDiffFunction("weeks", Week));
+    functions.put("hours",    new DateDiffFunction("hours", Hour));
+    functions.put("minutes",  new DateDiffFunction("minutes", Minute));
+    functions.put("seconds",  new DateDiffFunction("seconds", Second));
+    functions.put("millis",   new DateDiffFunction("millis", Millisecond));
+    functions.put("micros",   new DateDiffFunction("micros", Microsecond));
 
     // @todo all window functions
     ////////////////////////////////
@@ -406,12 +406,12 @@ public class Structure {
     ////////////////////////////////
 //        functions.put("label", new LabelMacroFunction(this));
     functions.put("label",        new LookupLabelMacroFunction());
-    functions.put("lookuplabel",  new LookupLabel(this));
-    functions.put("joinlabel",    new JoinLabelMacroFunction(this));
+    functions.put("lookuplabel",  new LookupLabel());
+    functions.put("joinlabel",    new JoinLabelMacroFunction());
 
     // Range binning
     ///////////////////////////////////
-    functions.put("range", new Range(this));
+    functions.put("range", new Range());
   }
 
   public Map<String, BaseRelation> relations() {

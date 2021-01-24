@@ -4,7 +4,6 @@
 
 package ma.vi.esql.parser.macro;
 
-import ma.vi.esql.database.Structure;
 import ma.vi.esql.function.Function;
 import ma.vi.esql.parser.Context;
 import ma.vi.esql.parser.Esql;
@@ -41,7 +40,7 @@ import static ma.vi.esql.parser.Translatable.Target.ESQL;
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 public class InMonthMacroFunction extends Function implements Macro {
-  public InMonthMacroFunction(Structure structure) {
+  public InMonthMacroFunction() {
     super("inmonth", Types.StringType, emptyList());
   }
 

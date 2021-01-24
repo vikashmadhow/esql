@@ -4,7 +4,6 @@
 
 package ma.vi.esql.function;
 
-import ma.vi.esql.database.Structure;
 import ma.vi.esql.parser.Translatable;
 import ma.vi.esql.parser.expression.Expression;
 import ma.vi.esql.parser.expression.FunctionCall;
@@ -22,7 +21,7 @@ import static ma.vi.esql.parser.Translatable.Target.JAVASCRIPT;
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 public class LeftFunction extends Function {
-  public LeftFunction(Structure structure) {
+  public LeftFunction() {
     super("left", Types.IntType,
           asList(new FunctionParameter("s", Types.StringType),
             new FunctionParameter("count", Types.IntType)));

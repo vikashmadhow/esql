@@ -4,7 +4,6 @@
 
 package ma.vi.esql.function;
 
-import ma.vi.esql.database.Structure;
 import ma.vi.esql.parser.Translatable;
 import ma.vi.esql.parser.expression.Expression;
 import ma.vi.esql.parser.expression.FunctionCall;
@@ -22,7 +21,7 @@ import static ma.vi.esql.parser.Translatable.Target.SQLSERVER;
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 public class NewDateTimeFunction extends Function {
-  public NewDateTimeFunction(Structure structure) {
+  public NewDateTimeFunction() {
     super("newdatetime", Types.DatetimeType,
         Arrays.asList(new FunctionParameter("y", Types.IntType),
             new FunctionParameter("m", Types.IntType),

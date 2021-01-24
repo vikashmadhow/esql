@@ -4,7 +4,6 @@
 
 package ma.vi.esql.function;
 
-import ma.vi.esql.database.Structure;
 import ma.vi.esql.parser.Translatable;
 import ma.vi.esql.parser.expression.Expression;
 import ma.vi.esql.parser.expression.FunctionCall;
@@ -21,7 +20,7 @@ import static ma.vi.esql.parser.Translatable.Target.JAVASCRIPT;
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 public class ConcatFunction extends Function {
-  public ConcatFunction(Structure structure) {
+  public ConcatFunction() {
     super("concat", Types.IntType,
           asList(new FunctionParameter("a", Types.StringType),
             new FunctionParameter("b", Types.StringType)));
