@@ -773,6 +773,14 @@ simpleExpr
     | <assoc=right> simpleExpr ('if' simpleExpr 'else' simpleExpr)+                   #SimpleCaseExpr
     ;
 
+/**
+ * A select returning zero or one single row with a single column and can thus
+ * be used where an expression needs to return a single value such in metadata
+ * attributes. When used as an expression, the select keyword can be dropped.
+ * E.g.:
+ *    age_max: select max(age) from People
+ *    age_min: min(age) from People
+ */
 selectExpression
     : '(' 'select'?
           distinct?

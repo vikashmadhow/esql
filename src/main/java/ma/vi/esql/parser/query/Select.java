@@ -19,6 +19,7 @@ import ma.vi.esql.type.AliasedRelation;
 import ma.vi.esql.type.BaseRelation;
 import ma.vi.esql.type.Relation;
 
+import java.lang.invoke.MethodHandle;
 import java.util.*;
 
 import static ma.vi.base.tuple.T2.of;
