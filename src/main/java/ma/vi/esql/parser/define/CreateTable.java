@@ -24,7 +24,7 @@ import static java.lang.System.Logger.Level.ERROR;
 import static java.util.Collections.singletonList;
 import static ma.vi.esql.builder.Attributes.DESCRIPTION;
 import static ma.vi.esql.builder.Attributes.NAME;
-import static ma.vi.esql.parser.Translatable.Target.SQLSERVER;
+import static ma.vi.esql.parser.Translatable.Target.*;
 import static ma.vi.esql.type.Type.dbTableName;
 
 /**
@@ -105,7 +105,7 @@ public class CreateTable extends Define<String> {
               con.createStatement().executeUpdate("create schema \"" + schema + '"');
             }
           }
-        } else {
+        } else if (db.target() != MARIADB &&db.target() != MYSQL) {
           con.createStatement().executeUpdate("create schema if not exists \"" + schema + '"');
         }
       }

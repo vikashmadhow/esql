@@ -4,6 +4,8 @@
 
 package ma.vi.esql.type;
 
+import ma.vi.base.lang.NotFoundException;
+import ma.vi.esql.database.MariaDb;
 import ma.vi.esql.parser.Translatable;
 import ma.vi.esql.parser.query.Column;
 
@@ -27,6 +29,14 @@ import static ma.vi.esql.parser.Translatable.Target.*;
  */
 public class Types {
   public static Type typeOf(String typeName) {
+    Type type = findTypeOf(typeName);
+    if (type == null) {
+      throw new NotFoundException(typeName + " is not a known type");
+    }
+    return type;
+  }
+
+  public static Type findTypeOf(String typeName) {
     typeName = typeName.trim();
     if (typeName.endsWith("[]")) {
       return typeOf(typeName.substring(0, typeName.length() - 2)).array();
@@ -41,7 +51,6 @@ public class Types {
       if (typeSynonyms.containsKey(typeNameLower)) {
         typeName = typeSynonyms.get(typeNameLower);
       }
-      checkArgument(esqlTypes.containsKey(typeName), typeName + " is not a known type");
       return esqlTypes.get(typeName);
     }
   }
@@ -87,6 +96,7 @@ public class Types {
       case POSTGRESQL -> postgresqlToEsqlType(dbType);
       case SQLSERVER  -> sqlServerToEsqlType(dbType);
       case HSQLDB     -> hsqldbToEsqlType(dbType);
+      case MARIADB    -> mariadbToEsqlType(dbType);
       default         -> throw new IllegalArgumentException("Type conversion from " + db + " to ESQL is unsupported");
     };
   }
@@ -101,6 +111,10 @@ public class Types {
 
   public static String hsqldbToEsqlType(String hsqldbType) {
     return hsqldbTypeMapping.get(normaliseType(hsqldbType));
+  }
+
+  public static String mariadbToEsqlType(String hsqldbType) {
+    return mariadbTypeMapping.get(normaliseType(hsqldbType));
   }
 
   private static String normaliseType(String typeName) {
@@ -142,6 +156,7 @@ public class Types {
   private static final Map<String, String> sqlServerTypeMapping = new HashMap<>();
   private static final Map<String, String> postgresqlTypeMapping = new HashMap<>();
   private static final Map<String, String> hsqldbTypeMapping = new HashMap<>();
+  private static final Map<String, String> mariadbTypeMapping = new HashMap<>();
   private static final Map<Class<?>, String> javaTypeMapping = new HashMap<>();
   private static final Map<String, Class<?>> baseTypeMapping = new HashMap<>();
   private static final Map<String, String> typeSynonyms = new HashMap<>();
@@ -161,6 +176,8 @@ public class Types {
       new BaseType("int", 4, true,
           Map.of(POSTGRESQL, "integer",
                  HSQLDB, "integer",
+                 MARIADB, "int",
+                 MYSQL, "int",
                  SQLSERVER, "int"));
 
   public static final Type LongType =
@@ -175,42 +192,56 @@ public class Types {
       new BaseType("double", 8, false,
                    Map.of(POSTGRESQL, "double precision",
                           HSQLDB, "double",
+                          MARIADB, "double",
+                          MYSQL, "double",
                           SQLSERVER, "float"));
 
   public static final Type MoneyType =
       new BaseType("money", 8, false,
           Map.of(POSTGRESQL, "money",
                  HSQLDB, "double",
+                 MARIADB, "double",
+                 MYSQL, "double",
                  SQLSERVER, "money"));
 
   public static final Type BoolType =
       new BaseType("bool", 1, false,
                    Map.of(POSTGRESQL, "boolean",
                           HSQLDB, "boolean",
+                          MARIADB, "boolean",
+                          MYSQL, "boolean",
                           SQLSERVER, "bit"));
 
   public static final Type CharType =
       new BaseType("char", 1, false,
                    Map.of(POSTGRESQL, "char(1)",
                           HSQLDB, "char(1)",
+                          MARIADB, "char(1)",
+                          MYSQL, "char(1)",
                           SQLSERVER, "nchar(1)"));
 
   public static final Type StringType =
       new BaseType("string", 8000, false,
                    Map.of(POSTGRESQL, "text",
                           HSQLDB, "varchar(4000)",
+                          MARIADB, "text",
+                          MYSQL, "text",
                           SQLSERVER, "nvarchar(4000)"));
 
   public static final Type TextType =
       new BaseType("text", MAX_VALUE, false,
                    Map.of(POSTGRESQL, "text",
                           HSQLDB, "longvarchar",
+                          MARIADB, "text",
+                          MYSQL, "text",
                           SQLSERVER, "nvarchar(max)"));
 
   public static final Type BytesType =
       new BaseType("bytes", MAX_VALUE, false,
         Map.of(POSTGRESQL, "bytea",
                HSQLDB, "longvarbinary",
+               MARIADB, "longblob",
+               MYSQL, "longblob",
                SQLSERVER, "varbinary(max)"));
 
   public static final Type DateType =
@@ -220,7 +251,9 @@ public class Types {
   public static final Type IntervalType =
       new BaseType("interval", 32, false,
                    Map.of(POSTGRESQL, "interval",
-                          HSQLDB, "nvarchar(200)",
+                          HSQLDB, "varchar(200)",
+                          MARIADB, "varchar(200)",
+                          MYSQL, "varchar(200)",
                           SQLSERVER, "nvarchar(200)"));
 
   public static final Type TimeType = 
@@ -231,18 +264,24 @@ public class Types {
       new BaseType("datetime", 8, false,
                    Map.of(POSTGRESQL, "timestamp",
                           HSQLDB, "timestamp",
+                          MARIADB, "datetime",
+                          MYSQL, "datetime",
                           SQLSERVER, "datetime2"));
 
   public static final Type UuidType =
       new BaseType("uuid", 12, false,
                    Map.of(POSTGRESQL, "uuid",
                           HSQLDB, "uuid",
+                          MARIADB, "varchar(36)",
+                          MYSQL, "varchar(36)",
                           SQLSERVER, "uniqueidentifier"));
 
   public static final Type JsonType =
       new BaseType("json", MAX_VALUE, false,
                    Map.of(POSTGRESQL, "jsonb",
                           HSQLDB, "longvarchar",
+                          MARIADB, "json",
+                          MYSQL, "json",
                           SQLSERVER, "varchar(max)"));
 
   // Generic numeric types
@@ -251,6 +290,8 @@ public class Types {
       new BaseType("number", 1, false,
                    Map.of(POSTGRESQL, "double precision",
                           HSQLDB, "double",
+                          MARIADB, "double",
+                          MYSQL, "double",
                           SQLSERVER, "float"));       // Super type of all number types (integral and non-integral)
 
   public static final Type IntegralType =
@@ -261,6 +302,8 @@ public class Types {
       new BaseType("fractional", 1, false,
                    Map.of(POSTGRESQL, "double precision",
                           HSQLDB, "double",
+                          MARIADB, "double",
+                          MYSQL, "double",
                           SQLSERVER, "float"));   // Super type of non-integral (float and double) number types
 
   // Generic and special types
@@ -324,168 +367,199 @@ public class Types {
   };
 
   static {
-    esqlTypes.put("byte", ByteType);
-    esqlTypes.put("short", ShortType);
-    esqlTypes.put("int", IntType);
-    esqlTypes.put("long", LongType);
-    esqlTypes.put("float", FloatType);
-    esqlTypes.put("double", DoubleType);
-    esqlTypes.put("money", MoneyType);
-    esqlTypes.put("bool", BoolType);
-    esqlTypes.put("char", CharType);
-    esqlTypes.put("string", StringType);
-    esqlTypes.put("text", TextType);
-    esqlTypes.put("bytes", BytesType);
-    esqlTypes.put("date", DateType);
-    esqlTypes.put("time", TimeType);
+    esqlTypes.put("byte",     ByteType);
+    esqlTypes.put("short",    ShortType);
+    esqlTypes.put("int",      IntType);
+    esqlTypes.put("long",     LongType);
+    esqlTypes.put("float",    FloatType);
+    esqlTypes.put("double",   DoubleType);
+    esqlTypes.put("money",    MoneyType);
+    esqlTypes.put("bool",     BoolType);
+    esqlTypes.put("char",     CharType);
+    esqlTypes.put("string",   StringType);
+    esqlTypes.put("text",     TextType);
+    esqlTypes.put("bytes",    BytesType);
+    esqlTypes.put("date",     DateType);
+    esqlTypes.put("time",     TimeType);
     esqlTypes.put("datetime", DatetimeType);
     esqlTypes.put("interval", IntervalType);
-    esqlTypes.put("uuid", UuidType);
-    esqlTypes.put("json", JsonType);
+    esqlTypes.put("uuid",     UuidType);
+    esqlTypes.put("json",     JsonType);
 
     // abstract numeric types
-    esqlTypes.put("number", NumberType);
-    esqlTypes.put("integral", IntegralType);
+    esqlTypes.put("number",     NumberType);
+    esqlTypes.put("integral",   IntegralType);
     esqlTypes.put("fractional", FractionalType);
 
     // abstract and special types for edge-cases and completing the base type system
-    esqlTypes.put("top", TopType);
+    esqlTypes.put("top",  TopType);
     esqlTypes.put("null", NullType);
     esqlTypes.put("void", VoidType);
-    esqlTypes.put("___", AsParameterType);
+    esqlTypes.put("___",  AsParameterType);
 
-    baseTypeMapping.put("byte", Byte.class);
-    baseTypeMapping.put("short", Short.class);
-    baseTypeMapping.put("int", Integer.class);
-    baseTypeMapping.put("long", Long.class);
-    baseTypeMapping.put("float", Float.class);
-    baseTypeMapping.put("double", Double.class);
-    baseTypeMapping.put("bool", Boolean.class);
-    baseTypeMapping.put("char", Character.class);
-    baseTypeMapping.put("text", String.class);
-    baseTypeMapping.put("string", String.class);
-    baseTypeMapping.put("date", Date.class);
-    baseTypeMapping.put("time", Time.class);
+    baseTypeMapping.put("byte",     Byte.class);
+    baseTypeMapping.put("short",    Short.class);
+    baseTypeMapping.put("int",      Integer.class);
+    baseTypeMapping.put("long",     Long.class);
+    baseTypeMapping.put("float",    Float.class);
+    baseTypeMapping.put("double",   Double.class);
+    baseTypeMapping.put("bool",     Boolean.class);
+    baseTypeMapping.put("char",     Character.class);
+    baseTypeMapping.put("text",     String.class);
+    baseTypeMapping.put("string",   String.class);
+    baseTypeMapping.put("date",     Date.class);
+    baseTypeMapping.put("time",     Time.class);
     baseTypeMapping.put("datetime", java.util.Date.class);
     baseTypeMapping.put("interval", Interval.class);
-    baseTypeMapping.put("uuid", UUID.class);
+    baseTypeMapping.put("uuid",     UUID.class);
 
-    javaTypeMapping.put(byte.class, "byte");
-    javaTypeMapping.put(Byte.class, "byte");
-    javaTypeMapping.put(short.class, "short");
-    javaTypeMapping.put(Short.class, "short");
-    javaTypeMapping.put(int.class, "int");
-    javaTypeMapping.put(Integer.class, "int");
-    javaTypeMapping.put(long.class, "long");
-    javaTypeMapping.put(Long.class, "long");
-    javaTypeMapping.put(float.class, "float");
-    javaTypeMapping.put(Float.class, "float");
-    javaTypeMapping.put(double.class, "double");
-    javaTypeMapping.put(Double.class, "double");
-    javaTypeMapping.put(boolean.class, "bool");
-    javaTypeMapping.put(Boolean.class, "bool");
-    javaTypeMapping.put(char.class, "char");
-    javaTypeMapping.put(Character.class, "char");
-    javaTypeMapping.put(String.class, "text");
-    javaTypeMapping.put(Date.class, "date");
-    javaTypeMapping.put(Time.class, "time");
+    javaTypeMapping.put(byte.class,           "byte");
+    javaTypeMapping.put(Byte.class,           "byte");
+    javaTypeMapping.put(short.class,          "short");
+    javaTypeMapping.put(Short.class,          "short");
+    javaTypeMapping.put(int.class,            "int");
+    javaTypeMapping.put(Integer.class,        "int");
+    javaTypeMapping.put(long.class,           "long");
+    javaTypeMapping.put(Long.class,           "long");
+    javaTypeMapping.put(float.class,          "float");
+    javaTypeMapping.put(Float.class,          "float");
+    javaTypeMapping.put(double.class,         "double");
+    javaTypeMapping.put(Double.class,         "double");
+    javaTypeMapping.put(boolean.class,        "bool");
+    javaTypeMapping.put(Boolean.class,        "bool");
+    javaTypeMapping.put(char.class,           "char");
+    javaTypeMapping.put(Character.class,      "char");
+    javaTypeMapping.put(String.class,         "text");
+    javaTypeMapping.put(Date.class,           "date");
+    javaTypeMapping.put(Time.class,           "time");
     javaTypeMapping.put(java.util.Date.class, "datetime");
-    javaTypeMapping.put(Interval.class, "interval");
-    javaTypeMapping.put(UUID.class, "uuid");
+    javaTypeMapping.put(Interval.class,       "interval");
+    javaTypeMapping.put(UUID.class,           "uuid");
 
-    postgresqlTypeMapping.put("tinyint", "byte");
-    postgresqlTypeMapping.put("smallint", "short");
-    postgresqlTypeMapping.put("integer", "int");
-    postgresqlTypeMapping.put("bigint", "long");
-    postgresqlTypeMapping.put("real", "float");
-    postgresqlTypeMapping.put("float", "float");
-    postgresqlTypeMapping.put("double", "double");
+    postgresqlTypeMapping.put("tinyint",          "byte");
+    postgresqlTypeMapping.put("smallint",         "short");
+    postgresqlTypeMapping.put("integer",          "int");
+    postgresqlTypeMapping.put("bigint",           "long");
+    postgresqlTypeMapping.put("real",             "float");
+    postgresqlTypeMapping.put("float",            "float");
+    postgresqlTypeMapping.put("double",           "double");
     postgresqlTypeMapping.put("double precision", "double");
-    postgresqlTypeMapping.put("decimal", "double");
-    postgresqlTypeMapping.put("money", "money");
-    postgresqlTypeMapping.put("bool", "bool");
-    postgresqlTypeMapping.put("boolean", "bool");
-    postgresqlTypeMapping.put("char", "string");
-    postgresqlTypeMapping.put("varchar", "text");
-    postgresqlTypeMapping.put("text", "text");
-    postgresqlTypeMapping.put("bytea", "bytes");
-    postgresqlTypeMapping.put("date", "date");
-    postgresqlTypeMapping.put("time", "time");
-    postgresqlTypeMapping.put("timestamp", "datetime");
-    postgresqlTypeMapping.put("datetime", "datetime");
-    postgresqlTypeMapping.put("interval", "interval");
-    postgresqlTypeMapping.put("uuid", "uuid");
-    postgresqlTypeMapping.put("json", "json");
-    postgresqlTypeMapping.put("jsonb", "json");
-    postgresqlTypeMapping.put("array", "text[]");
-    postgresqlTypeMapping.put("anyarray", "text[]");
-    postgresqlTypeMapping.put("name", "text");
-    postgresqlTypeMapping.put("regproc", "long");
-    postgresqlTypeMapping.put("pg_node_tree", "text");
-    postgresqlTypeMapping.put("pg_ndistinct", "text");
-    postgresqlTypeMapping.put("pg_dependencies", "text");
-    postgresqlTypeMapping.put("pg_mcv_list", "text");
-    postgresqlTypeMapping.put("xid", "long");
-    postgresqlTypeMapping.put("pg_lsn", "long");
+    postgresqlTypeMapping.put("decimal",          "double");
+    postgresqlTypeMapping.put("money",            "money");
+    postgresqlTypeMapping.put("bool",             "bool");
+    postgresqlTypeMapping.put("boolean",          "bool");
+    postgresqlTypeMapping.put("char",             "string");
+    postgresqlTypeMapping.put("varchar",          "text");
+    postgresqlTypeMapping.put("text",             "text");
+    postgresqlTypeMapping.put("bytea",            "bytes");
+    postgresqlTypeMapping.put("date",             "date");
+    postgresqlTypeMapping.put("time",             "time");
+    postgresqlTypeMapping.put("timestamp",        "datetime");
+    postgresqlTypeMapping.put("datetime",         "datetime");
+    postgresqlTypeMapping.put("interval",         "interval");
+    postgresqlTypeMapping.put("uuid",             "uuid");
+    postgresqlTypeMapping.put("json",             "json");
+    postgresqlTypeMapping.put("jsonb",            "json");
+    postgresqlTypeMapping.put("array",            "text[]");
+    postgresqlTypeMapping.put("anyarray",         "text[]");
+    postgresqlTypeMapping.put("name",             "text");
+    postgresqlTypeMapping.put("regproc",          "long");
+    postgresqlTypeMapping.put("pg_node_tree",     "text");
+    postgresqlTypeMapping.put("pg_ndistinct",     "text");
+    postgresqlTypeMapping.put("pg_dependencies",  "text");
+    postgresqlTypeMapping.put("pg_mcv_list",      "text");
+    postgresqlTypeMapping.put("xid",              "long");
+    postgresqlTypeMapping.put("pg_lsn",           "long");
 
-    sqlServerTypeMapping.put("tinyint", "byte");
-    sqlServerTypeMapping.put("smallint", "short");
-    sqlServerTypeMapping.put("int", "int");
-    sqlServerTypeMapping.put("bigint", "long");
-    sqlServerTypeMapping.put("real", "float");
-    sqlServerTypeMapping.put("float", "double");
-    sqlServerTypeMapping.put("decimal", "double");
-    sqlServerTypeMapping.put("double", "double");
-    sqlServerTypeMapping.put("money", "money");
-    sqlServerTypeMapping.put("bit", "bool");
-    sqlServerTypeMapping.put("char", "string");
-    sqlServerTypeMapping.put("nchar", "string");
-    sqlServerTypeMapping.put("varchar", "text");
-    sqlServerTypeMapping.put("text", "text");
-    sqlServerTypeMapping.put("nvarchar", "text");
-    sqlServerTypeMapping.put("varbinary", "bytes");
-    sqlServerTypeMapping.put("date", "date");
-    sqlServerTypeMapping.put("time", "time");
-    sqlServerTypeMapping.put("datetime", "datetime");
-    sqlServerTypeMapping.put("datetime2", "datetime");
+    sqlServerTypeMapping.put("tinyint",          "byte");
+    sqlServerTypeMapping.put("smallint",         "short");
+    sqlServerTypeMapping.put("int",              "int");
+    sqlServerTypeMapping.put("bigint",           "long");
+    sqlServerTypeMapping.put("real",             "float");
+    sqlServerTypeMapping.put("float",            "double");
+    sqlServerTypeMapping.put("decimal",          "double");
+    sqlServerTypeMapping.put("double",           "double");
+    sqlServerTypeMapping.put("money",            "money");
+    sqlServerTypeMapping.put("bit",              "bool");
+    sqlServerTypeMapping.put("char",             "string");
+    sqlServerTypeMapping.put("nchar",            "string");
+    sqlServerTypeMapping.put("varchar",          "text");
+    sqlServerTypeMapping.put("text",             "text");
+    sqlServerTypeMapping.put("nvarchar",         "text");
+    sqlServerTypeMapping.put("varbinary",        "bytes");
+    sqlServerTypeMapping.put("date",             "date");
+    sqlServerTypeMapping.put("time",             "time");
+    sqlServerTypeMapping.put("datetime",         "datetime");
+    sqlServerTypeMapping.put("datetime2",        "datetime");
     sqlServerTypeMapping.put("uniqueidentifier", "uuid");
 
-    hsqldbTypeMapping.put("tinyint", "byte");
-    hsqldbTypeMapping.put("smallint", "short");
-    hsqldbTypeMapping.put("integer", "int");
-    hsqldbTypeMapping.put("bigint", "long");
-    hsqldbTypeMapping.put("real", "float");
-    hsqldbTypeMapping.put("float", "double");
-    hsqldbTypeMapping.put("decimal", "double");
-    hsqldbTypeMapping.put("double", "double");
-    hsqldbTypeMapping.put("bool", "bool");
-    hsqldbTypeMapping.put("boolean", "bool");
-    hsqldbTypeMapping.put("char", "string");
-    hsqldbTypeMapping.put("varchar", "text");
-    hsqldbTypeMapping.put("text", "text");
-    hsqldbTypeMapping.put("longvarchar", "text");
+    hsqldbTypeMapping.put("tinyint",       "byte");
+    hsqldbTypeMapping.put("smallint",      "short");
+    hsqldbTypeMapping.put("integer",       "int");
+    hsqldbTypeMapping.put("bigint",        "long");
+    hsqldbTypeMapping.put("real",          "float");
+    hsqldbTypeMapping.put("float",         "double");
+    hsqldbTypeMapping.put("decimal",       "double");
+    hsqldbTypeMapping.put("double",        "double");
+    hsqldbTypeMapping.put("bool",          "bool");
+    hsqldbTypeMapping.put("boolean",       "bool");
+    hsqldbTypeMapping.put("char",          "string");
+    hsqldbTypeMapping.put("varchar",       "text");
+    hsqldbTypeMapping.put("text",          "text");
+    hsqldbTypeMapping.put("longvarchar",   "text");
     hsqldbTypeMapping.put("longvarbinary", "bytes");
-    hsqldbTypeMapping.put("date", "date");
-    hsqldbTypeMapping.put("time", "time");
-    hsqldbTypeMapping.put("timestamp", "datetime");
-    hsqldbTypeMapping.put("interval", "interval");
-    hsqldbTypeMapping.put("uuid", "uuid");
-    hsqldbTypeMapping.put("array", "text[]");
+    hsqldbTypeMapping.put("date",          "date");
+    hsqldbTypeMapping.put("time",          "time");
+    hsqldbTypeMapping.put("timestamp",     "datetime");
+    hsqldbTypeMapping.put("interval",      "interval");
+    hsqldbTypeMapping.put("uuid",          "uuid");
+    hsqldbTypeMapping.put("array",         "text[]");
 
-    typeSynonyms.put("varchar", "text");
-    typeSynonyms.put("boolean", "bool");
-    typeSynonyms.put("oid", "integer");
-    typeSynonyms.put("int2", "smallint");
-    typeSynonyms.put("int4", "integer");
-    typeSynonyms.put("int8", "bigint");
-    typeSynonyms.put("real", "float");
-    typeSynonyms.put("float4", "float");
-    typeSynonyms.put("float8", "double");
-    typeSynonyms.put("timetz", "time");
-    typeSynonyms.put("timestamp with time zone", "datetime");
-    typeSynonyms.put("timestampwithtimezone", "datetime");
+    mariadbTypeMapping.put("tinyint",       "byte");
+    mariadbTypeMapping.put("smallint",      "short");
+    mariadbTypeMapping.put("int",           "int");
+    mariadbTypeMapping.put("integer",       "int");
+    mariadbTypeMapping.put("bigint",        "long");
+    mariadbTypeMapping.put("real",          "float");
+    mariadbTypeMapping.put("float",         "double");
+    mariadbTypeMapping.put("decimal",       "double");
+    mariadbTypeMapping.put("double",        "double");
+    mariadbTypeMapping.put("bool",          "bool");
+    mariadbTypeMapping.put("boolean",       "bool");
+    mariadbTypeMapping.put("char",          "string");
+    mariadbTypeMapping.put("varchar",       "text");
+    mariadbTypeMapping.put("text",          "text");
+    mariadbTypeMapping.put("mediumtext",    "text");
+    mariadbTypeMapping.put("longtext",      "text");
+    mariadbTypeMapping.put("longvarchar",   "text");
+    mariadbTypeMapping.put("varbinary",     "bytes");
+    mariadbTypeMapping.put("blob",          "bytes");
+    mariadbTypeMapping.put("longblob",      "bytes");
+    mariadbTypeMapping.put("date",          "date");
+    mariadbTypeMapping.put("time",          "time");
+    mariadbTypeMapping.put("datetime",      "datetime");
+    mariadbTypeMapping.put("timestamp",     "datetime");
+    mariadbTypeMapping.put("interval",      "interval");
+    mariadbTypeMapping.put("uuid",          "uuid");
+    mariadbTypeMapping.put("json",          "json");
+    mariadbTypeMapping.put("array",         "text[]");
+    mariadbTypeMapping.put("set",           "text[]");
+    mariadbTypeMapping.put("enum",          "text[]");
+
+    typeSynonyms.put("varchar",                     "text");
+    typeSynonyms.put("boolean",                     "bool");
+    typeSynonyms.put("oid",                         "integer");
+    typeSynonyms.put("int2",                        "smallint");
+    typeSynonyms.put("int4",                        "integer");
+    typeSynonyms.put("int8",                        "bigint");
+    typeSynonyms.put("real",                        "float");
+    typeSynonyms.put("float4",                      "float");
+    typeSynonyms.put("float8",                      "double");
+    typeSynonyms.put("timetz",                      "time");
+    typeSynonyms.put("timestamp with time zone",    "datetime");
+    typeSynonyms.put("timestampwithtimezone",       "datetime");
     typeSynonyms.put("timestamp without time zone", "datetime");
-    typeSynonyms.put("timestampwithouttimezone", "datetime");
-    typeSynonyms.put("timestamptz", "datetime");
+    typeSynonyms.put("timestampwithouttimezone",    "datetime");
+    typeSynonyms.put("timestamptz",                 "datetime");
   }
 }

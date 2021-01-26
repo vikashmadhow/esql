@@ -4,10 +4,7 @@
 
 package ma.vi.esql;
 
-import ma.vi.esql.database.Database;
-import ma.vi.esql.database.HSqlDb;
-import ma.vi.esql.database.Postgresql;
-import ma.vi.esql.database.SqlServer;
+import ma.vi.esql.database.*;
 import ma.vi.esql.exec.EsqlConnection;
 import ma.vi.esql.exec.Param;
 import ma.vi.esql.exec.Result;
@@ -62,6 +59,17 @@ public class Databases {
     return sqlServer;
   }
 
+  public static MariaDb MariaDb() {
+    if (mariaDb == null) {
+      mariaDb = new MariaDb(Map.of(
+          "database.name", "test",
+          "database.user.name", "test",
+          "database.user.password", "test"), true);
+      createTestTables(mariaDb);
+    }
+    return mariaDb;
+  }
+
   public static TestDatabase TestDatabase() {
     if (testDatabase == null) {
       testDatabase = new TestDatabase();
@@ -82,6 +90,7 @@ public class Databases {
     return new Database[] {
         HSqlDb(),
         Postgresql(),
+        MariaDb(),
         SqlServer()
     };
   }
@@ -3163,6 +3172,7 @@ public class Databases {
   private static TestDatabase testDatabase;
   private static HSqlDb hSqlDb;
   private static SqlServer sqlServer;
+  private static MariaDb mariaDb;
   private static Postgresql postgresql;
 
   private static final System.Logger log = System.getLogger(Databases.class.getName());

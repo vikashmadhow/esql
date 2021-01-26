@@ -32,7 +32,9 @@ public class MariaDb extends AbstractDatabase {
     if (config.containsKey("database.port")) {
       props.setProperty("dataSource.portNumber", valueOf(config.get("database.port")));
     }
-    props.setProperty("dataSource.databaseName", valueOf(config.get("database.name")));
+
+    database =  valueOf(config.get("database.name"));
+    props.setProperty("dataSource.databaseName", database);
     props.setProperty("dataSource.user", valueOf(config.get("database.user.name")));
     props.setProperty("dataSource.password", valueOf(config.get("database.user.password")));
     dataSource = new HikariDataSource(new HikariConfig(props));
@@ -60,7 +62,7 @@ public class MariaDb extends AbstractDatabase {
       // MariaDB specific
 
       // create UUID extension
-      c.createStatement().executeUpdate("CREATE SCHEMA IF NOT EXISTS \"" + CORE_SCHEMA + '"');
+//      c.createStatement().executeUpdate("CREATE SCHEMA IF NOT EXISTS \"" + CORE_SCHEMA + '"');
 //      c.createStatement().executeUpdate("CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\" SCHEMA pg_catalog");
 
 //      // function for getting type (_core.type_name(type_id))
@@ -194,16 +196,22 @@ public class MariaDb extends AbstractDatabase {
                                   String username,
                                   String password) {
     try {
+      String db = valueOf(config.get("database.name"));
       Connection con = DriverManager.getConnection(
           "jdbc:mariadb://"
               + valueOf(config.get("database.host")) + ':'
               + (config.containsKey("database.port")
                     ? ':' + valueOf(config.get("database.port"))
                     : "")
-              + '/' + valueOf(config.get("database.name")),
+              + '/' + db,
           username,
           password);
+
       con.setAutoCommit(autoCommit);
+      con.createStatement().executeUpdate("ALTER DATABASE " + db
+                                        + " CHARACTER SET = utf8mb4 "
+                                        + " COLLATE = utf8mb4_unicode_ci");
+      con.createStatement().executeUpdate("SET sql_mode='ANSI_QUOTES'");
       if (isolationLevel != -1) {
         con.setTransactionIsolation(isolationLevel);
       } else {
@@ -224,6 +232,10 @@ public class MariaDb extends AbstractDatabase {
 //      Connection con = dataSource.getConnection(username, password);
       Connection con = dataSource.getConnection();
       con.setAutoCommit(autoCommit);
+      con.createStatement().executeUpdate("ALTER DATABASE " + database
+                                              + " CHARACTER SET = utf8mb4 "
+                                              + " COLLATE = utf8mb4_unicode_ci");
+      con.createStatement().executeUpdate("SET sql_mode='ANSI_QUOTES'");
       if (isolationLevel != -1) {
         con.setTransactionIsolation(isolationLevel);
       }
@@ -260,6 +272,8 @@ public class MariaDb extends AbstractDatabase {
    * Datasource for pooled connections.
    */
   private final HikariDataSource dataSource;
+
+  private final String database;
 
   private final Map<String, Object> config;
 }

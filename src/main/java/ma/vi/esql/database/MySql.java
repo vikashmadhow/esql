@@ -10,7 +10,6 @@ import com.zaxxer.hikari.HikariDataSource;
 import ma.vi.esql.parser.Translatable;
 import ma.vi.esql.type.Type;
 import ma.vi.esql.type.Types;
-import org.mariadb.jdbc.MariaDbDataSource;
 
 import java.sql.*;
 import java.util.Map;

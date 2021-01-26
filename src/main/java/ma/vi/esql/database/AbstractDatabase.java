@@ -26,7 +26,7 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static ma.vi.base.string.Escape.escapeSqlString;
 import static ma.vi.esql.builder.Attributes.*;
-import static ma.vi.esql.parser.Translatable.Target.ESQL;
+import static ma.vi.esql.parser.Translatable.Target.*;
 import static ma.vi.esql.parser.define.ConstraintDefinition.Type.fromMarker;
 
 /**
@@ -177,6 +177,9 @@ public abstract class AbstractDatabase implements Database {
                       defaultValue = "true";
                     } else if (defaultValue.equalsIgnoreCase("false")) {
                       defaultValue = "false";
+                    }
+                    if (defaultValue.equalsIgnoreCase("null")) {
+                      defaultValue = "null";
                     }
                     attributes.add(new Attribute(context, EXPRESSION, parser.parseExpression(defaultValue)));
                   }
@@ -400,27 +403,52 @@ public abstract class AbstractDatabase implements Database {
                            "constraint _core_columns_unq_relation_name unique(relation_id, name), " +
                            "constraint _core_columns_unq_relation_seq  unique(relation_id, seq))"));
 
-        // create table for holding additional type information on tables
-        c.exec(p.parse("create table _core.relation_attributes drop undefined(" +
-                           "_id         uuid    not null, " +
-                           "relation_id uuid    not null," +
-                           "attribute   string  not null," +
-                           "value       text, " +
+        if (target() != MARIADB && target() != MYSQL) {
+          // create table for holding additional type information on tables
+          c.exec(p.parse("create table _core.relation_attributes drop undefined(" +
+                             "_id         uuid    not null, " +
+                             "relation_id uuid    not null, " +
+                             "attribute   string  not null, " +
+                             "value       text, " +
 
-                           "constraint _core_rel_attr_pk           primary key(_id), " +
-                           "constraint _core_rel_attr_rel_fk       foreign key(relation_id) references _core.relations(_id) on delete cascade on update cascade, " +
-                           "constraint _core_rel_attr_unq_rel_attr unique(relation_id, attribute))"));
+                             "constraint _core_rel_attr_pk           primary key(_id), " +
+                             "constraint _core_rel_attr_rel_fk       foreign key(relation_id) references _core.relations(_id) on delete cascade on update cascade, " +
+                             "constraint _core_rel_attr_unq_rel_attr unique(relation_id, attribute))"));
 
-        // create table for holding additional type information on columns
-        c.exec(p.parse("create table _core.column_attributes drop undefined(" +
-                           "_id       uuid    not null, " +
-                           "column_id uuid    not null, " +
-                           "attribute string  not null, " +
-                           "value     text, " +
+          // create table for holding additional type information on columns
+          c.exec(p.parse("create table _core.column_attributes drop undefined(" +
+                             "_id       uuid    not null, " +
+                             "column_id uuid    not null, " +
+                             "attribute string  not null, " +
+                             "value     text, " +
 
-                           "constraint _core_column_attr_pk              primary key(_id), " +
-                           "constraint _core_column_attr_column_fk       foreign key(column_id) references _core.columns(_id) on delete cascade on update cascade, " +
-                           "constraint _core_column_attr_unq_column_attr unique(column_id, attribute))"));
+                             "constraint _core_column_attr_pk              primary key(_id), " +
+                             "constraint _core_column_attr_column_fk       foreign key(column_id) references _core.columns(_id) on delete cascade on update cascade, " +
+                             "constraint _core_column_attr_unq_column_attr unique(column_id, attribute))"));
+
+        } else {
+          /*
+           * For some reasons, mariadb and mysql cannot create a foreign key from a
+           * a field (relation_id) that is also part of a composite unique key
+           */
+          c.exec(p.parse("create table _core.relation_attributes drop undefined(" +
+                             "_id         uuid    not null, " +
+                             "relation_id uuid    not null, " +
+                             "attribute   string  not null, " +
+                             "value       text, " +
+
+                             "constraint _core_rel_attr_pk           primary key(_id), " +
+                             "constraint _core_rel_attr_rel_fk       foreign key(relation_id) references _core.relations(_id) on delete cascade on update cascade)"));
+
+          c.exec(p.parse("create table _core.column_attributes drop undefined(" +
+                             "_id       uuid    not null, " +
+                             "column_id uuid    not null, " +
+                             "attribute string  not null, " +
+                             "value     text, " +
+
+                             "constraint _core_column_attr_pk              primary key(_id), " +
+                             "constraint _core_column_attr_column_fk       foreign key(column_id) references _core.columns(_id) on delete cascade on update cascade)"));
+        }
 
         c.exec(p.parse("create table _core.constraints drop undefined(" +
                            "_id                 uuid    not null, " +
@@ -465,21 +493,21 @@ public abstract class AbstractDatabase implements Database {
          * Manually create self-references for the core tables so that they can be
          * accessed through ESQL.
          */
-        BaseRelation relations          = structure.relation("_core.relations");
-        BaseRelation columns            = structure.relation("_core.columns");
+        BaseRelation relations = structure.relation("_core.relations");
+        BaseRelation columns = structure.relation("_core.columns");
         BaseRelation relationAttributes = structure.relation("_core.relation_attributes");
-        BaseRelation columnAttributes   = structure.relation("_core.column_attributes");
-        BaseRelation constraints        = structure.relation("_core.constraints");
-        BaseRelation sequences          = structure.relation("_core.sequences");
-        BaseRelation indices            = structure.relation("_core.indices");
+        BaseRelation columnAttributes = structure.relation("_core.column_attributes");
+        BaseRelation constraints = structure.relation("_core.constraints");
+        BaseRelation sequences = structure.relation("_core.sequences");
+        BaseRelation indices = structure.relation("_core.indices");
 
-        UUID relationsId          = relations.id();
-        UUID columnsId            = columns.id();
+        UUID relationsId = relations.id();
+        UUID columnsId = columns.id();
         UUID relationAttributesId = relationAttributes.id();
-        UUID columnAttributesId   = columnAttributes.id();
-        UUID constraintsId        = constraints.id();
-        UUID sequencesId          = sequences.id();
-        UUID indicesId            = indices.id();
+        UUID columnAttributesId = columnAttributes.id();
+        UUID constraintsId = constraints.id();
+        UUID sequencesId = sequences.id();
+        UUID indicesId = indices.id();
 
         c.exec(p.parse(
             "insert into _core.relations(_id, name, display_name, type) values " +
@@ -494,63 +522,73 @@ public abstract class AbstractDatabase implements Database {
         // add columns for all tables
         c.exec(p.parse(
             "insert into _core.columns(_id, relation_id, name, seq, type, not_null) values " +
-                "('" + relations.column("_id").id()             + "', '" + relationsId + "', '_id',             1, 'uuid',    true), " +
-                "('" + relations.column("_can_delete").id()     + "', '" + relationsId + "', '_can_delete',     2, 'bool',    false), " +
-                "('" + relations.column("_can_edit").id()       + "', '" + relationsId + "', '_can_edit',       3, 'bool',    false), " +
-                "('" + relations.column("name").id()            + "', '" + relationsId + "', 'name',            4, 'string',  true), " +
-                "('" + relations.column("display_name").id()    + "', '" + relationsId + "', 'display_name',    5, 'string',  false), " +
-                "('" + relations.column("description").id()     + "', '" + relationsId + "', 'description',     6, 'string',  false), " +
-                "('" + relations.column("type").id()            + "', '" + relationsId + "', 'type',            7, 'char',    true), " +
+                "('" + relations.column("_id").id() + "', '" + relationsId + "', '_id',             1, 'uuid',    true), " +
+                "('" + relations.column("_can_delete").id() + "', '" + relationsId + "', '_can_delete',     2, 'bool',    false), " +
+                "('" + relations.column("_can_edit").id() + "', '" + relationsId + "', '_can_edit',       3, 'bool',    false), " +
+                "('" + relations.column("name").id() + "', '" + relationsId + "', 'name',            4, 'string',  true), " +
+                "('" + relations.column("display_name").id() + "', '" + relationsId + "', 'display_name',    5, 'string',  false), " +
+                "('" + relations.column("description").id() + "', '" + relationsId + "', 'description',     6, 'string',  false), " +
+                "('" + relations.column("type").id() + "', '" + relationsId + "', 'type',            7, 'char',    true), " +
                 "('" + relations.column("view_definition").id() + "', '" + relationsId + "', 'view_definition', 8, 'text',    false), " +
 
-                "('" + columns.column("_id").id()            + "', '" + columnsId + "', '_id',             1, 'uuid',   true), " +
-                "('" + columns.column("_can_delete").id()    + "', '" + columnsId + "', '_can_delete',     2, 'bool',   false), " +
-                "('" + columns.column("_can_edit").id()      + "', '" + columnsId + "', '_can_edit',       3, 'bool',   false), " +
-                "('" + columns.column("relation_id").id()    + "', '" + columnsId + "', 'relation_id',     4, 'uuid',   true), " +
-                "('" + columns.column("name").id()           + "', '" + columnsId + "', 'name',            5, 'string', true), " +
+                "('" + columns.column("_id").id() + "', '" + columnsId + "', '_id',             1, 'uuid',   true), " +
+                "('" + columns.column("_can_delete").id() + "', '" + columnsId + "', '_can_delete',     2, 'bool',   false), " +
+                "('" + columns.column("_can_edit").id() + "', '" + columnsId + "', '_can_edit',       3, 'bool',   false), " +
+                "('" + columns.column("relation_id").id() + "', '" + columnsId + "', 'relation_id',     4, 'uuid',   true), " +
+                "('" + columns.column("name").id() + "', '" + columnsId + "', 'name',            5, 'string', true), " +
                 "('" + columns.column("derived_column").id() + "', '" + columnsId + "', 'derived_column',  6, 'bool',   false), " +
-                "('" + columns.column("type").id()           + "', '" + columnsId + "', 'type',            7, 'string', true), " +
-                "('" + columns.column("not_null").id()       + "', '" + columnsId + "', 'not_null',        8, 'bool',   false), " +
-                "('" + columns.column("expression").id()     + "', '" + columnsId + "', 'expression',      9, 'text',   false), " +
-                "('" + columns.column("seq").id()            + "', '" + columnsId + "', 'seq',            10, 'int',    true), " +
+                "('" + columns.column("type").id() + "', '" + columnsId + "', 'type',            7, 'string', true), " +
+                "('" + columns.column("not_null").id() + "', '" + columnsId + "', 'not_null',        8, 'bool',   false), " +
+                "('" + columns.column("expression").id() + "', '" + columnsId + "', 'expression',      9, 'text',   false), " +
+                "('" + columns.column("seq").id() + "', '" + columnsId + "', 'seq',            10, 'int',    true), " +
 
-                "('" + relationAttributes.column("_id").id()         + "', '" + relationAttributesId + "', '_id',         1, 'uuid',   true), " +
-                "('" + relationAttributes.column("relation_id").id() + "', '" + relationAttributesId + "', 'relation_id', 2, 'uuid',   true), " +
-                "('" + relationAttributes.column("attribute").id()   + "', '" + relationAttributesId + "', 'attribute',   3, 'string', true), " +
-                "('" + relationAttributes.column("value").id()       + "', '" + relationAttributesId + "', 'value',       4, 'text',   false), " +
+                "('" + relationAttributes.column("_id").id() + "', '" + relationAttributesId + "', '_id',         1, 'uuid',   true), " +
+                "('" + relationAttributes.column("relation_id")
+                                         .id() + "', '" + relationAttributesId + "', 'relation_id', 2, 'uuid',   true), " +
+                "('" + relationAttributes.column("attribute")
+                                         .id() + "', '" + relationAttributesId + "', 'attribute',   3, 'string', true), " +
+                "('" + relationAttributes.column("value").id() + "', '" + relationAttributesId + "', 'value',       4, 'text',   false), " +
 
-                "('" + columnAttributes.column("_id").id()       + "', '" + columnAttributesId + "', '_id',       1, 'uuid',   true), " +
+                "('" + columnAttributes.column("_id").id() + "', '" + columnAttributesId + "', '_id',       1, 'uuid',   true), " +
                 "('" + columnAttributes.column("column_id").id() + "', '" + columnAttributesId + "', 'column_id', 2, 'uuid',   true), " +
                 "('" + columnAttributes.column("attribute").id() + "', '" + columnAttributesId + "', 'attribute', 3, 'string', true), " +
-                "('" + columnAttributes.column("value").id()     + "', '" + columnAttributesId + "', 'value',     4, 'text',   false), " +
+                "('" + columnAttributes.column("value").id() + "', '" + columnAttributesId + "', 'value',     4, 'text',   false), " +
 
-                "('" + constraints.column("_id").id()                + "', '" + constraintsId + "', '_id',                 1, 'uuid',     true), " +
-                "('" + constraints.column("name").id()               + "', '" + constraintsId + "', 'name',                2, 'string',   true), " +
-                "('" + constraints.column("relation_id").id()        + "', '" + constraintsId + "', 'relation_id',         3, 'uuid',     true), " +
-                "('" + constraints.column("type").id()               + "', '" + constraintsId + "', 'type',                4, 'char',     true), " +
-                "('" + constraints.column("check_expr").id()         + "', '" + constraintsId + "', 'check_expr',          5, 'text',     false), " +
-                "('" + constraints.column("source_columns").id()     + "', '" + constraintsId + "', 'source_columns',      6, 'string[]', false), " +
-                "('" + constraints.column("target_relation_id").id() + "', '" + constraintsId + "', 'target_relation_id',  7, 'uuid',     false), " +
-                "('" + constraints.column("target_columns").id()     + "', '" + constraintsId + "', 'target_columns',      8, 'string[]', false), " +
-                "('" + constraints.column("forward_cost").id()       + "', '" + constraintsId + "', 'forward_cost',        9, 'int',      true), " +
-                "('" + constraints.column("reverse_cost").id()       + "', '" + constraintsId + "', 'reverse_cost',       10, 'int',      true), " +
-                "('" + constraints.column("on_update").id()          + "', '" + constraintsId + "', 'on_update',          11, 'char',     false), " +
-                "('" + constraints.column("on_delete").id()          + "', '" + constraintsId + "', 'on_delete',          12, 'char',     false), " +
+                "('" + constraints.column("_id").id() + "', '" + constraintsId + "', '_id',                 1, 'uuid',     true), " +
+                "('" + constraints.column("name").id() + "', '" + constraintsId + "', 'name',                2, 'string',   true), " +
+                "('" + constraints.column("relation_id")
+                                  .id() + "', '" + constraintsId + "', 'relation_id',         3, 'uuid',     true), " +
+                "('" + constraints.column("type").id() + "', '" + constraintsId + "', 'type',                4, 'char',     true), " +
+                "('" + constraints.column("check_expr")
+                                  .id() + "', '" + constraintsId + "', 'check_expr',          5, 'text',     false), " +
+                "('" + constraints.column("source_columns")
+                                  .id() + "', '" + constraintsId + "', 'source_columns',      6, 'string[]', false), " +
+                "('" + constraints.column("target_relation_id")
+                                  .id() + "', '" + constraintsId + "', 'target_relation_id',  7, 'uuid',     false), " +
+                "('" + constraints.column("target_columns")
+                                  .id() + "', '" + constraintsId + "', 'target_columns',      8, 'string[]', false), " +
+                "('" + constraints.column("forward_cost")
+                                  .id() + "', '" + constraintsId + "', 'forward_cost',        9, 'int',      true), " +
+                "('" + constraints.column("reverse_cost")
+                                  .id() + "', '" + constraintsId + "', 'reverse_cost',       10, 'int',      true), " +
+                "('" + constraints.column("on_update").id() + "', '" + constraintsId + "', 'on_update',          11, 'char',     false), " +
+                "('" + constraints.column("on_delete").id() + "', '" + constraintsId + "', 'on_delete',          12, 'char',     false), " +
 
-                "('" + sequences.column("_id").id()       + "', '" + sequencesId + "', '_id',       1, 'uuid',   true), " +
-                "('" + sequences.column("name").id()      + "', '" + sequencesId + "', 'name',      2, 'string', true), " +
-                "('" + sequences.column("start").id()     + "', '" + sequencesId + "', 'start',     3, 'long',   true), " +
+                "('" + sequences.column("_id").id() + "', '" + sequencesId + "', '_id',       1, 'uuid',   true), " +
+                "('" + sequences.column("name").id() + "', '" + sequencesId + "', 'name',      2, 'string', true), " +
+                "('" + sequences.column("start").id() + "', '" + sequencesId + "', 'start',     3, 'long',   true), " +
                 "('" + sequences.column("increment").id() + "', '" + sequencesId + "', 'increment', 4, 'long',   true), " +
-                "('" + sequences.column("maximum").id()   + "', '" + sequencesId + "', 'maximum',   5, 'long',   true), " +
-                "('" + sequences.column("cycles").id()    + "', '" + sequencesId + "', 'cycles',    6, 'bool',   true), " +
+                "('" + sequences.column("maximum").id() + "', '" + sequencesId + "', 'maximum',   5, 'long',   true), " +
+                "('" + sequences.column("cycles").id() + "', '" + sequencesId + "', 'cycles',    6, 'bool',   true), " +
 
-                "('" + indices.column("_id").id()                     + "', '" + indicesId + "', '_id',                     1, 'uuid',   true), " +
-                "('" + indices.column("name").id()                    + "', '" + indicesId + "', 'name',                    2, 'string', true), " +
-                "('" + indices.column("relation_id").id()             + "', '" + indicesId + "', 'relation_id',             3, 'uuid',   true), " +
-                "('" + indices.column("unique_index").id()            + "', '" + indicesId + "', 'unique_index',            4, 'bool',   false), " +
-                "('" + indices.column("columns").id()                 + "', '" + indicesId + "', 'columns',                 5, 'int[]',  false), " +
-                "('" + indices.column("expressions").id()             + "', '" + indicesId + "', 'expressions',             6, 'text[]', false), " +
-                "('" + indices.column("partial_index_condition").id() + "', '" + indicesId + "', 'partial_index_condition', 7, 'text',   false)"));
+                "('" + indices.column("_id").id() + "', '" + indicesId + "', '_id',                     1, 'uuid',   true), " +
+                "('" + indices.column("name").id() + "', '" + indicesId + "', 'name',                    2, 'string', true), " +
+                "('" + indices.column("relation_id").id() + "', '" + indicesId + "', 'relation_id',             3, 'uuid',   true), " +
+                "('" + indices.column("unique_index").id() + "', '" + indicesId + "', 'unique_index',            4, 'bool',   false), " +
+                "('" + indices.column("columns").id() + "', '" + indicesId + "', 'columns',                 5, 'int[]',  false), " +
+                "('" + indices.column("expressions").id() + "', '" + indicesId + "', 'expressions',             6, 'text[]', false), " +
+                "('" + indices.column("partial_index_condition")
+                              .id() + "', '" + indicesId + "', 'partial_index_condition', 7, 'text',   false)"));
 
 //      // add columns as children of relations
 //      con.createStatement().executeUpdate(
@@ -645,6 +683,8 @@ public abstract class AbstractDatabase implements Database {
                 "    }" +
                 "}')"));
 
+      } catch (RuntimeException e) {
+        throw e;
       } finally {
         if (!hasCoreTables) {
           hasCoreTables = true;
@@ -1347,6 +1387,11 @@ public abstract class AbstractDatabase implements Database {
 
   private static final System.Logger log = System.getLogger(AbstractDatabase.class.getName());
 
-  private static final Set<String> ignoredSchemas = Set.of("INFORMATION_SCHEMA", "DBO", "PUBLIC", "PG_CATALOG",
-                                                           "SYSTEM_LOBS");
+  private static final Set<String> ignoredSchemas = Set.of("INFORMATION_SCHEMA",
+                                                           "DBO",
+                                                           "PUBLIC",
+                                                           "PG_CATALOG",
+                                                           "SYSTEM_LOBS",
+                                                           "MYSQL",
+                                                           "PERFORMANCE_SCHEMA");
 }

@@ -35,6 +35,7 @@ public class Context {
       return structure.relation(name);
     } else {
       return Types.typeOf(name);
+//      return Types.findTypeOf(name);
     }
   }
 

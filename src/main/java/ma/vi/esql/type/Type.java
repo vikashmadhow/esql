@@ -13,6 +13,8 @@ import ma.vi.esql.parser.expression.Expression;
 import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
 
+import static ma.vi.esql.parser.Translatable.Target.*;
+
 /**
  * Type information on various structures stored in the database
  * including the types themselves.
@@ -199,21 +201,26 @@ public interface Type extends Close, Copy<Type>, Translatable<String> {
    */
   static String dbTableName(String name, Target target) {
     T2<String, String> q = Type.splitName(name);
-    StringBuilder st = new StringBuilder();
-    if (q.a != null) {
-      st.append('"').append(q.a).append("\".");
+    if (target == MARIADB || target == MYSQL) {
+      return '"' + (q.a != null ? q.a + '.' : "") + q.b + '"';
 
-    } else if (target == Target.HSQLDB) {
-      st.append("\"PUBLIC\".");
+    } else {
+      StringBuilder st = new StringBuilder();
+      if (q.a != null) {
+        st.append('"').append(q.a).append("\".");
 
-    } else if (target == Target.POSTGRESQL) {
-      st.append("\"public\".");
+      } else if (target == HSQLDB) {
+        st.append("\"PUBLIC\".");
 
-    } else if (target == Target.SQLSERVER) {
-      st.append("\"DBO\".");
+      } else if (target == POSTGRESQL) {
+        st.append("\"public\".");
+
+      } else if (target == SQLSERVER) {
+        st.append("\"DBO\".");
+      }
+      st.append('"').append(q.b).append('"');
+      return st.toString();
     }
-    st.append('"').append(q.b).append('"');
-    return st.toString();
   }
 
   /**
