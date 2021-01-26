@@ -4,6 +4,7 @@
 
 package ma.vi.esql.parser.define;
 
+import ma.vi.base.collections.Sets;
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.database.Database;
 import ma.vi.esql.exec.Result;
@@ -18,10 +19,11 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static java.lang.System.Logger.Level.ERROR;
 import static java.util.Collections.singletonList;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 import static ma.vi.esql.builder.Attributes.DESCRIPTION;
 import static ma.vi.esql.builder.Attributes.NAME;
 import static ma.vi.esql.parser.Translatable.Target.*;
@@ -105,7 +107,7 @@ public class CreateTable extends Define<String> {
               con.createStatement().executeUpdate("create schema \"" + schema + '"');
             }
           }
-        } else if (db.target() != MARIADB &&db.target() != MYSQL) {
+        } else if (db.target() != MARIADB && db.target() != MYSQL) {
           con.createStatement().executeUpdate("create schema if not exists \"" + schema + '"');
         }
       }
@@ -114,6 +116,27 @@ public class CreateTable extends Define<String> {
       // update structure if this was not a system table creation and
       // the table did not exist before
       if (!db.structure().relationExists(tableName)) {
+        List<ConstraintDefinition> constraints = constraints();
+        if (db.target() == MARIADB || db.target() == MYSQL) {
+          /*
+           * For some reasons, mariadb and mysql cannot create a foreign key
+           * from a field (relation_id) that is also part of a composite unique
+           * key. As a workaround, we simply drop such unique constraints.
+           */
+          Set<String> columnsInForeignKey =
+              constraints.stream()
+                         .filter(c -> c instanceof ForeignKeyConstraint)
+                         .flatMap(c -> ((ForeignKeyConstraint)c).sourceColumns().stream())
+                         .collect(toSet());
+
+          int size = constraints.size();
+          constraints.removeIf(c -> c instanceof UniqueConstraint
+                                 && !Sets.intersect(new HashSet<>(c.columns()),
+                                                    columnsInForeignKey).isEmpty());
+          if (constraints.size() != size) {
+            constraints(constraints);
+          }
+        }
 
         /*
          * Get table name and description from table attributes if specified.
@@ -131,8 +154,8 @@ public class CreateTable extends Define<String> {
                                               new ArrayList<>(metadata().attributes().values()),
                                               columns().stream()
                                                        .map(Column::fromDefinition)
-                                                       .collect(Collectors.toList()),
-                                              constraints());
+                                                       .collect(toList()),
+                                              constraints);
         /*
          * Does not exist and valid: create
          */
@@ -320,6 +343,10 @@ public class CreateTable extends Define<String> {
 
   public List<ColumnDefinition> columns() {
     return child("columns").childrenList();
+  }
+
+  public void constraints(List<ConstraintDefinition> constraints) {
+    child("constraints", new Esql<>(context, "constraints", constraints));
   }
 
   public List<ConstraintDefinition> constraints() {

@@ -263,6 +263,8 @@ public class Structure {
         Map.of(POSTGRESQL, "uuid_generate_v4",
                SQLSERVER,  "newid",
                HSQLDB,     "uuid",
+               MARIADB,    "uuid",
+               MYSQL,      "uuid",
                JAVASCRIPT, "uuidv4")));
 
     // string

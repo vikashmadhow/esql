@@ -17,10 +17,10 @@ public class DataTest {
   @BeforeAll
   static void setup() {
     databases = new Database[] {
-        Databases.MariaDb(),
-//        Databases.Postgresql(),
-//        Databases.SqlServer(),
-//        Databases.HSqlDb(),
+        Databases.Postgresql(),
+        Databases.SqlServer(),
+        Databases.HSqlDb(),
+//        Databases.MariaDb(),
     };
 
     for (Database db: databases) {

@@ -403,8 +403,10 @@ public abstract class AbstractDatabase implements Database {
                            "constraint _core_columns_unq_relation_name unique(relation_id, name), " +
                            "constraint _core_columns_unq_relation_seq  unique(relation_id, seq))"));
 
-        if (target() != MARIADB && target() != MYSQL) {
-          // create table for holding additional type information on tables
+//        if (target() != MARIADB && target() != MYSQL) {
+          /*
+           * create table for holding additional type information on tables.
+           */
           c.exec(p.parse("create table _core.relation_attributes drop undefined(" +
                              "_id         uuid    not null, " +
                              "relation_id uuid    not null, " +
@@ -415,7 +417,9 @@ public abstract class AbstractDatabase implements Database {
                              "constraint _core_rel_attr_rel_fk       foreign key(relation_id) references _core.relations(_id) on delete cascade on update cascade, " +
                              "constraint _core_rel_attr_unq_rel_attr unique(relation_id, attribute))"));
 
-          // create table for holding additional type information on columns
+          /*
+           * create table for holding additional type information on columns.
+           */
           c.exec(p.parse("create table _core.column_attributes drop undefined(" +
                              "_id       uuid    not null, " +
                              "column_id uuid    not null, " +
@@ -426,29 +430,29 @@ public abstract class AbstractDatabase implements Database {
                              "constraint _core_column_attr_column_fk       foreign key(column_id) references _core.columns(_id) on delete cascade on update cascade, " +
                              "constraint _core_column_attr_unq_column_attr unique(column_id, attribute))"));
 
-        } else {
-          /*
-           * For some reasons, mariadb and mysql cannot create a foreign key from a
-           * a field (relation_id) that is also part of a composite unique key
-           */
-          c.exec(p.parse("create table _core.relation_attributes drop undefined(" +
-                             "_id         uuid    not null, " +
-                             "relation_id uuid    not null, " +
-                             "attribute   string  not null, " +
-                             "value       text, " +
-
-                             "constraint _core_rel_attr_pk           primary key(_id), " +
-                             "constraint _core_rel_attr_rel_fk       foreign key(relation_id) references _core.relations(_id) on delete cascade on update cascade)"));
-
-          c.exec(p.parse("create table _core.column_attributes drop undefined(" +
-                             "_id       uuid    not null, " +
-                             "column_id uuid    not null, " +
-                             "attribute string  not null, " +
-                             "value     text, " +
-
-                             "constraint _core_column_attr_pk              primary key(_id), " +
-                             "constraint _core_column_attr_column_fk       foreign key(column_id) references _core.columns(_id) on delete cascade on update cascade)"));
-        }
+//        } else {
+//          /*
+//           * For some reasons, mariadb and mysql cannot create a foreign key from
+//           * a field (relation_id) that is also part of a composite unique key
+//           */
+//          c.exec(p.parse("create table _core.relation_attributes drop undefined(" +
+//                             "_id         uuid    not null, " +
+//                             "relation_id uuid    not null, " +
+//                             "attribute   string  not null, " +
+//                             "value       text, " +
+//
+//                             "constraint _core_rel_attr_pk           primary key(_id), " +
+//                             "constraint _core_rel_attr_rel_fk       foreign key(relation_id) references _core.relations(_id) on delete cascade on update cascade)"));
+//
+//          c.exec(p.parse("create table _core.column_attributes drop undefined(" +
+//                             "_id       uuid    not null, " +
+//                             "column_id uuid    not null, " +
+//                             "attribute string  not null, " +
+//                             "value     text, " +
+//
+//                             "constraint _core_column_attr_pk              primary key(_id), " +
+//                             "constraint _core_column_attr_column_fk       foreign key(column_id) references _core.columns(_id) on delete cascade on update cascade)"));
+//        }
 
         c.exec(p.parse("create table _core.constraints drop undefined(" +
                            "_id                 uuid    not null, " +

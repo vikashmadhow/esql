@@ -41,9 +41,10 @@ public class ArrayType extends AbstractType {
   @Override
   public String translate(Target target, Map<String, Object> parameters) {
     return switch (target) {
-      case SQLSERVER -> "nvarchar(max)";
-      case HSQLDB -> componentType.translate(target, parameters) + " array";
-      default -> componentType.translate(target, parameters) + "[]";
+      case SQLSERVER      -> "nvarchar(max)";
+      case MARIADB, MYSQL -> "text";
+      case HSQLDB         -> componentType.translate(target, parameters) + " array";
+      default             -> componentType.translate(target, parameters) + "[]";
     };
   }
 

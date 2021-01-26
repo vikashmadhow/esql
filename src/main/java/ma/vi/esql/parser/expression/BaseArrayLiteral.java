@@ -15,6 +15,7 @@ import java.util.Map;
 
 import static java.util.stream.Collectors.joining;
 import static ma.vi.base.collections.ArrayUtils.ARRAY_ESCAPE;
+import static ma.vi.esql.parser.Translatable.Target.SQLSERVER;
 
 /**
  * A simple array literal consisting only of items of base types.
@@ -62,12 +63,12 @@ public class BaseArrayLiteral extends Literal<Type> {
                                .map(e -> e.translate(target, parameters))
                                .collect(joining(",")) + "]";
 
-      case SQLSERVER
+      case SQLSERVER, MARIADB, MYSQL
           -> items().stream()
                     .map(e -> e instanceof StringLiteral
                                   ? ARRAY_ESCAPE.escape((String)e.value(target))
                                   : ARRAY_ESCAPE.escape(e.translate(target, parameters)))
-                    .collect(joining(",", "N'[", "]'"));
+                    .collect(joining(",", (target == SQLSERVER ? "N" : "") + "'[", "]'"));
 
       case JSON, JAVASCRIPT
           -> items().stream()

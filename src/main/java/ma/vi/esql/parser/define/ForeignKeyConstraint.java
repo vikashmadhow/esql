@@ -14,6 +14,8 @@ import java.util.Map;
 
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toSet;
+import static ma.vi.esql.parser.Translatable.Target.MARIADB;
+import static ma.vi.esql.parser.Translatable.Target.MYSQL;
 import static ma.vi.esql.type.Type.dbTableName;
 import static ma.vi.esql.type.Type.splitName;
 
@@ -97,7 +99,7 @@ public class ForeignKeyConstraint extends ConstraintDefinition {
   @Override
   public String translate(Target target, Map<String, Object> parameters) {
     return "constraint "
-        + '"' + (name() != null ? name() : defaultConstraintName()) + '"'
+        + '"' + (name() != null ? name() : defaultConstraintName(target, namePrefix())) + '"'
         + " foreign key(" + quotedColumnsList(sourceColumns()) + ") "
         + "references " + dbTableName(targetTable(), target) + '('
         + quotedColumnsList(targetColumns()) + ')'
@@ -106,16 +108,29 @@ public class ForeignKeyConstraint extends ConstraintDefinition {
   }
 
   @Override
-  protected String defaultConstraintName() {
-    return "foreign_from_"
-        + sourceColumns().stream()
+  protected String defaultConstraintName(Target target, String prefix) {
+    String name = (prefix != null ? prefix : "")
+         + sourceColumns().stream()
                          .map(String::toLowerCase)
                          .collect(joining("_"))
-        + "_to_" + splitName(targetTable()).b + '_'
-        + targetColumns().stream()
+         + "_" + splitName(targetTable()).b + '_'
+         + targetColumns().stream()
                          .map(String::toLowerCase)
                          .collect(joining("_"))
-        + '_' + Strings.random(4);
+         + '_' + Strings.random(4);
+    if (target == MARIADB || target == MYSQL) {
+      /*
+       * Identifiers in MySQL and MariaDB are limited to 64 characters.
+       */
+      return name.length() < 64 ? name : name.substring(name.length() - 64);
+    } else {
+      return name;
+    }
+  }
+
+  @Override
+  protected String namePrefix() {
+    return "fk_";
   }
 
   public List<String> sourceColumns() {

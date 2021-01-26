@@ -4,7 +4,6 @@
 
 package ma.vi.esql.parser.define;
 
-import ma.vi.base.string.Strings;
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.parser.Context;
 import ma.vi.esql.parser.expression.ColumnRef;
@@ -13,7 +12,6 @@ import ma.vi.esql.parser.expression.Expression;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * Represents a check constraint defined on a table.
@@ -63,15 +61,13 @@ public class CheckConstraint extends ConstraintDefinition {
   @Override
   public String translate(Target target, Map<String, Object> parameters) {
     return "constraint "
-        + '"' + (name() != null ? name() : defaultConstraintName()) + '"'
+        + '"' + (name() != null ? name() : defaultConstraintName(target, namePrefix())) + '"'
         + " check(" + expr().translate(target, parameters) + ')';
   }
 
   @Override
-  protected String defaultConstraintName() {
-    return "check_" + expr().columns().stream()
-                            .map(String::toLowerCase)
-                            .collect(Collectors.joining("_")) + '_' + Strings.random(4);
+  protected String namePrefix() {
+    return "ck_";
   }
 
   public Expression<?> expr() {

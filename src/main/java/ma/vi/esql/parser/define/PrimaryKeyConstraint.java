@@ -4,14 +4,12 @@
 
 package ma.vi.esql.parser.define;
 
-import ma.vi.base.string.Strings;
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.parser.Context;
 import ma.vi.esql.parser.Esql;
 
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toSet;
 
@@ -59,15 +57,12 @@ public class PrimaryKeyConstraint extends ConstraintDefinition {
   @Override
   public String translate(Target target, Map<String, Object> parameters) {
     return "constraint "
-         + '"' + (name() != null ? name() : defaultConstraintName()) + '"'
+         + '"' + (name() != null ? name() : defaultConstraintName(target, namePrefix())) + '"'
          + " primary key(" + quotedColumnsList(columns()) + ')';
   }
 
   @Override
-  protected String defaultConstraintName() {
-    return "primary_" + columns().stream()
-                                 .map(String::toLowerCase)
-                                 .collect(Collectors.joining("_")) +
-        '_' + Strings.random(4);
+  protected String namePrefix() {
+    return "pk_";
   }
 }

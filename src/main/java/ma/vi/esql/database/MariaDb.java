@@ -7,8 +7,6 @@ package ma.vi.esql.database;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import ma.vi.esql.parser.Translatable;
-import ma.vi.esql.type.Type;
-import ma.vi.esql.type.Types;
 import org.mariadb.jdbc.MariaDbDataSource;
 
 import java.sql.*;
@@ -247,25 +245,17 @@ public class MariaDb extends AbstractDatabase {
 
   @Override
   public void setArray(PreparedStatement ps, int paramIndex, Object array) throws SQLException {
-    Class<?> componentType = array.getClass().getComponentType();
-    Type type = Types.typeOf(componentType);
-    ps.setArray(paramIndex, ps.getConnection().createArrayOf(type.translate(MARIADB), (Object[]) array));
+    SqlServer._setArray(ps, paramIndex, array);
   }
 
   @Override
   public <T> T[] getArray(ResultSet rs, String index, Class<T> componentType) throws SQLException {
-    Array sqlArray = rs.getArray(index);
-    return sqlArray == null
-           ? (T[])java.lang.reflect.Array.newInstance(componentType, 0)
-           : (T[])sqlArray.getArray();
+    return SqlServer.arrayOf(rs.getString(index), componentType);
   }
 
   @Override
   public <T> T[] getArray(ResultSet rs, int index, Class<T> componentType) throws SQLException {
-    Array sqlArray = rs.getArray(index);
-    return sqlArray == null
-           ? (T[])java.lang.reflect.Array.newInstance(componentType, 0)
-           : (T[])sqlArray.getArray();
+    return SqlServer.arrayOf(rs.getString(index), componentType);
   }
 
   /**

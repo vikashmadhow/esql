@@ -4,13 +4,16 @@
 
 package ma.vi.esql.parser.define;
 
+import ma.vi.base.string.Strings;
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.parser.Context;
 import ma.vi.esql.parser.Esql;
 
 import java.util.List;
 
+import static java.util.stream.Collectors.joining;
 import static ma.vi.base.lang.Errors.checkArgument;
+import static ma.vi.esql.parser.Translatable.Target.*;
 
 /**
  * Represent a constraint (primary key, foreign key, etc.) on a table.
@@ -41,7 +44,7 @@ public abstract class ConstraintDefinition extends TableDefinition {
   @Override
   public String name() {
     if (value == null) {
-      value = defaultConstraintName();
+      value = defaultConstraintName(ESQL, namePrefix());
     }
     return value;
   }
@@ -62,7 +65,23 @@ public abstract class ConstraintDefinition extends TableDefinition {
     return childValue("columns");
   }
 
-  protected abstract String defaultConstraintName();
+  protected abstract String namePrefix();
+
+  protected String defaultConstraintName(Target target, String prefix) {
+    String name = (prefix != null ? prefix : "")
+                + columns().stream()
+                           .map(String::toLowerCase)
+                           .collect(joining("_"))
+                + '_' + Strings.random(4);
+    if (target == MARIADB || target == MYSQL) {
+      /*
+       * Identifiers in MySQL and MariaDB are limited to 64 characters.
+       */
+      return name.length() < 64 ? name : name.substring(name.length() - 64);
+    } else {
+      return name;
+    }
+  }
 
   /**
    * Supported types of constraints.

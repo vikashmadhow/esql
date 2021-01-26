@@ -620,6 +620,12 @@ public class SqlServer extends AbstractDatabase {
   public void setArray(PreparedStatement ps,
                        int paramIndex,
                        Object array) throws SQLException {
+    _setArray(ps, paramIndex, array);
+  }
+
+  protected static void _setArray(PreparedStatement ps,
+                                 int paramIndex,
+                                 Object array) throws SQLException {
     StringBuilder st = new StringBuilder();
     int length = Array.getLength(array);
     boolean first = true;
@@ -649,8 +655,8 @@ public class SqlServer extends AbstractDatabase {
     return arrayOf(rs.getString(index), componentType);
   }
 
-  private <T> T[] arrayOf(String array,
-                          Class<T> componentType) {
+  protected static <T> T[] arrayOf(String array,
+                                   Class<T> componentType) {
     if (array == null) {
       return null;
     } else {
