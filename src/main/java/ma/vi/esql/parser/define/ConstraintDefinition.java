@@ -87,10 +87,10 @@ public abstract class ConstraintDefinition extends TableDefinition {
    * Supported types of constraints.
    */
   public enum Type {
-    CHECK('C', "CHECK"),
-    UNIQUE('U', "UNIQUE"),
-    PRIMARY_KEY('P', "PRIMARY KEY"),
-    FOREIGN_KEY('F', "FOREIGN KEY");
+    CHECK       ('C', "CHECK"),
+    UNIQUE      ('U', "UNIQUE"),
+    PRIMARY_KEY ('P', "PRIMARY KEY"),
+    FOREIGN_KEY ('F', "FOREIGN KEY");
 
     Type(char marker, String keyword) {
       this.marker = marker;
@@ -101,8 +101,8 @@ public abstract class ConstraintDefinition extends TableDefinition {
       checkArgument(marker == 'C' || marker == 'U' || marker == 'P' || marker == 'F',
           "Constraint type must be C (CHECK) U (UNIQUE) P (PRIMARY KEY) " +
               "or F (FOREIGN KEY); '" + marker + "' is not recognised.");
-      return marker == 'C' ? CHECK :
-             marker == 'U' ? UNIQUE :
+      return marker == 'C' ? CHECK       :
+             marker == 'U' ? UNIQUE      :
              marker == 'P' ? PRIMARY_KEY :
              FOREIGN_KEY;
     }
@@ -128,19 +128,19 @@ public abstract class ConstraintDefinition extends TableDefinition {
       checkArgument(marker == 'A' || marker == 'R' || marker == 'C' || marker == 'N' || marker == 'D',
           "Foreign key action marker must be A = no action, R = restrict, C = cascade, " +
               "N = set null or D = set default; '" + marker + "' is not recognised.");
-      return marker == 'A' ? NO_ACTION  :
-             marker == 'R' ? RESTRICT   :
-             marker == 'C' ? CASCADE    :
-             marker == 'N' ? SET_NULL   : SET_DEFAULT;
+      return marker == 'A' ? NO_ACTION :
+             marker == 'R' ? RESTRICT  :
+             marker == 'C' ? CASCADE   :
+             marker == 'N' ? SET_NULL  : SET_DEFAULT;
     }
 
     public static ForeignKeyChangeAction fromInformationSchema(String rule) {
       return switch (rule) {
-        case "NO ACTION"  -> NO_ACTION;
-        case "RESTRICT"   -> RESTRICT;
-        case "CASCADE"    -> CASCADE;
-        case "SET NULL"   -> SET_NULL;
-        default           -> SET_DEFAULT;
+        case "NO ACTION" -> NO_ACTION;
+        case "RESTRICT"  -> RESTRICT;
+        case "CASCADE"   -> CASCADE;
+        case "SET NULL"  -> SET_NULL;
+        default          -> SET_DEFAULT;
       };
     }
 

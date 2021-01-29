@@ -9,6 +9,7 @@ import ma.vi.base.tuple.T2;
 import ma.vi.esql.parser.Context;
 import ma.vi.esql.parser.Esql;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -66,21 +67,9 @@ public class ForeignKeyConstraint extends ConstraintDefinition {
   public boolean sameAs(ConstraintDefinition def) {
     if (def instanceof ForeignKeyConstraint) {
       ForeignKeyConstraint c = (ForeignKeyConstraint)def;
-      return c.sourceColumns()
-              .stream()
-              .map(String::trim)
-              .collect(toSet()).equals(sourceColumns().stream()
-                                                      .map(String::trim)
-                                                      .collect(toSet()))
-
+      return new HashSet<>(sourceColumns()).equals(new HashSet<>(c.sourceColumns()))
           && c.targetTable().equals(targetTable())
-
-          && c.targetColumns()
-              .stream()
-              .map(String::trim)
-              .collect(toSet()).equals(targetColumns().stream()
-                                                      .map(String::trim)
-                                                      .collect(toSet()))
+          && new HashSet<>(targetColumns()).equals(new HashSet<>(c.targetColumns()))
 
 //          && c.forwardCost() == forwardCost()
 //          && c.reverseCost() == reverseCost()

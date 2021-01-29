@@ -8,10 +8,9 @@ import ma.vi.base.tuple.T2;
 import ma.vi.esql.parser.Context;
 import ma.vi.esql.parser.Esql;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-
-import static java.util.stream.Collectors.toSet;
 
 /**
  * A unique constraint over one or more columns of a table.
@@ -44,16 +43,18 @@ public class UniqueConstraint extends ConstraintDefinition {
   public boolean sameAs(ConstraintDefinition def) {
     if (def instanceof UniqueConstraint) {
       UniqueConstraint c = (UniqueConstraint)def;
-      /*
-       * Trim to work around an error (which I found only in HSQLDB for not)
-       * where the names are padded with some spaces.
-       */
-      return c.columns()
-              .stream()
-              .map(String::trim)
-              .collect(toSet()).equals(columns().stream()
-                                                .map(String::trim)
-                                                .collect(toSet()));
+//      /*
+//       * Trim to work around an error (which I found only in HSQLDB for now)
+//       * where the names are padded with some spaces.
+//       */
+//      // taken care of by array reading for HsqlDb
+//      return c.columns()
+//              .stream()
+//              .map(String::trim)
+//              .collect(toSet()).equals(columns().stream()
+//                                                .map(String::trim)
+//                                                .collect(toSet()));
+      return new HashSet<>(columns()).equals(new HashSet<>(c.columns()));
     }
     return false;
   }
