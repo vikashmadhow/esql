@@ -185,7 +185,7 @@ public class UpdateTest extends DataTest {
                        con.exec("update s " +
                                     "  from s:S " +
                                     "  join t:a.b.T on t.s_id=s._id " +
-                                    "   set a=t.a + t.b" +
+                                    "   set s.a=t.a + t.b" +
                                     " where t.a=6 and t.b=2");
                        rs = con.exec("select sum(a) from S");
                        rs.next();

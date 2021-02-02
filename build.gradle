@@ -33,6 +33,9 @@ repositories {
   mavenLocal()
   mavenCentral()
   jcenter()
+//  maven {
+//    url = uri("http://maven.cubrid.org/")
+//  }
 }
 
 generateGrammarSource {
@@ -94,6 +97,7 @@ dependencies {
   implementation("com.microsoft.sqlserver:mssql-jdbc:8.4.0.jre14")
   implementation("org.mariadb.jdbc:mariadb-java-client:2.7.1")
   implementation("mysql:mysql-connector-java:8.0.23")
+//  implementation("cubrid:cubrid-jdbc:10.2.2.8874")
   implementation("org.hsqldb:hsqldb:2.5.1")
   implementation("com.zaxxer:HikariCP:3.4.5")
 

@@ -25,10 +25,11 @@ public interface Translatable<T> {
 
     POSTGRESQL,
     SQLSERVER,
-    MARIADB,
     HSQLDB,
-    MYSQL,
+    CUBRID,
     ORACLE,
+    MARIADB,
+    MYSQL,
 
     JAVA,
     JAVASCRIPT,

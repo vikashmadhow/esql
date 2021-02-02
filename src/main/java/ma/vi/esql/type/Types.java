@@ -486,6 +486,7 @@ public class Types {
     sqlServerTypeMapping.put("varchar",          "text");
     sqlServerTypeMapping.put("text",             "text");
     sqlServerTypeMapping.put("nvarchar",         "text");
+    sqlServerTypeMapping.put("binary",           "bytes");
     sqlServerTypeMapping.put("varbinary",        "bytes");
     sqlServerTypeMapping.put("date",             "date");
     sqlServerTypeMapping.put("time",             "time");
