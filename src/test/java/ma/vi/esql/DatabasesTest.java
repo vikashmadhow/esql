@@ -26,7 +26,7 @@ public class DatabasesTest {
         Databases.Postgresql(),
         Databases.SqlServer(),
         Databases.HSqlDb(),
-        Databases.MariaDb(),
+//        Databases.MariaDb(),
     };
   }
 

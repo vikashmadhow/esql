@@ -171,7 +171,12 @@ public class PostgresqlTranslator extends AbstractTranslator {
         if (first) { first = false;   }
         else       { st.append(", "); }
         Attribute a = set.get(i);
-        st.append(a.name()).append('=').append(withAlias).append(".v").append(i+1);
+        String columnName = a.name();
+        int pos = columnName.lastIndexOf('.');
+        if (pos != -1) {
+          columnName = columnName.substring(pos + 1);
+        }
+        st.append(columnName).append('=').append(withAlias).append(".v").append(i+1);
       }
       st.append(" from ").append(withAlias)
         .append(" where \"").append(update.updateTableAlias())

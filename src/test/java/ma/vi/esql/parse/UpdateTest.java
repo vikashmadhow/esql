@@ -145,7 +145,6 @@ public class UpdateTest extends DataTest {
     return Stream.of(databases)
                  .map(db -> dynamicTest(db.target().toString(), () -> {
                    System.out.println(db.target());
-                   Parser p = new Parser(db.structure());
                    try (EsqlConnection con = db.esql(db.pooledConnection())) {
                      con.exec("delete T from a.b.T");
                      con.exec("delete s from s:S");
@@ -174,13 +173,12 @@ public class UpdateTest extends DataTest {
                                 assertEquals(rs.get("s_id").value , id2);
 
                      if (db.target() == Translatable.Target.HSQLDB) {
-                       assertThrows(TranslationException.class, () -> {
-                         con.exec("update s " +
-                                      "  from s:S " +
-                                      "  join t:a.b.T on t.s_id=s._id " +
-                                      "   set a=t.a + t.b" +
-                                      " where t.a=6 and t.b=2");
-                       });
+                       assertThrows(TranslationException.class, () ->
+                           con.exec("update s " +
+                                    "  from s:S " +
+                                    "  join t:a.b.T on t.s_id=s._id " +
+                                    "   set a=t.a + t.b" +
+                                    " where t.a=6 and t.b=2"));
                      } else {
                        con.exec("update s " +
                                     "  from s:S " +
