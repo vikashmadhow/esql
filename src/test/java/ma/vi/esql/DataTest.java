@@ -4,7 +4,6 @@
 
 package ma.vi.esql;
 
-import ma.vi.esql.Databases;
 import ma.vi.esql.database.Database;
 import ma.vi.esql.exec.EsqlConnection;
 import ma.vi.esql.parser.Parser;

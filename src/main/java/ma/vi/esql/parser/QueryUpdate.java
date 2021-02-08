@@ -225,22 +225,32 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
   public abstract boolean modifying();
 
   /**
+   * <p>
    * Adds the output clause to the query. For selects this is the selected columns. For
    * insert, update and delete this is the output clause (returning section for PostgreSql,
    * output for SQL Server).
+   * </p>
    *
-   * @param query                     The generated query result is added to this string builder.
-   * @param target                    The target database being translated to, such as Postgresql and Sql server.
-   * @param qualifier                 The qualifier to apply to the column references in the columns expressions
-   *                                  of the result.
-   * @param addAttributes             Whether to add attributes (metadata) to the query result or not.
-   * @param optimiseAttributesLoading Whether to optimise attributes loading or not. If optimised, attributes
+   * <p>
+   * The following parameters in the parameters map are used in this function:
+   * <ul>
+   * <li><b>addAttributes:</b> Whether to add attributes (metadata) to the query result or not.</li>
+   *
+   * <li><b>optimiseAttributesLoading:</b> Whether to optimise attributes loading or not. If optimised, attributes
    *                                  whose value can be determined at compile time (such as literals) will
    *                                  not be added to the query. However, for certain type of queries, such as
    *                                  unions combining several queries, the optimisation for column attributes
    *                                  assume that the value is the same for all rows but this might not be the
    *                                  case for unions, as each separate query could provide different values
    *                                  for the same attributes.
+   *                                  </li>
+   * </ul>
+   * </p>
+   *
+   * @param query                     The generated query result is added to this string builder.
+   * @param target                    The target database being translated to, such as Postgresql and Sql server.
+   * @param qualifier                 The qualifier to apply to the column references in the columns expressions
+   *                                  of the result.
    * @return The query translation along with supporting information for its execution.
    */
   public QueryTranslation constructResult(StringBuilder query,
@@ -285,7 +295,7 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
           if (itemIndex > 1) {
             query.append(", ");
           }
-          appendExpression(query, attributeValue, target, qualifier);
+          appendExpression(query, attributeValue, target, qualifier, colName);
           resultAttributeIndices.add(T3.of(itemIndex, attrName, attributeValue.type()));
         }
       }
@@ -343,7 +353,7 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
         } else if (addAttributes) {
           itemIndex += 1;
           query.append(", ");
-          appendExpression(query, attributeValue, target, qualifier);
+          appendExpression(query, attributeValue, target, qualifier, alias);
           mapping.attributeIndices.add(T3.of(itemIndex, attrName, attributeValue.type()));
         }
       }
@@ -361,11 +371,15 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
   protected void appendExpression(StringBuilder query,
                                   Expression<?> expression,
                                   Target target,
-                                  String qualifier) {
+                                  String qualifier,
+                                  String alias) {
     if (qualifier != null) {
       ColumnRef.qualify(expression, qualifier, null, true);
     }
     query.append(expression.translate(target));
+    if (alias != null) {
+      query.append(" \"").append(alias).append('"');
+    }
   }
 
   /**

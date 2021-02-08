@@ -95,8 +95,7 @@ public class Join extends Relation {
   }
 
   @Override
-  public Column findColumn(String relationAlias,
-                              String name) throws NotFoundException, AmbiguousColumnException {
+  public Column findColumn(String relationAlias, String name) throws NotFoundException, AmbiguousColumnException {
     if (relationAlias == null) {
       Column col = left.findColumn(relationAlias, name);
       if (col == null) {

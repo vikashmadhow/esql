@@ -35,6 +35,7 @@ public class SqlServerTranslator extends AbstractTranslator {
   @Override
   protected QueryTranslation translate(Select select, Map<String, Object> parameters) {
     List<Expression<?>> distinctOn = select.distinctOn();
+    boolean subSelect = select.ancestor("tables") != null;
     if (select.distinct() && distinctOn != null && !distinctOn.isEmpty()) {
       String subquery = "q_" + Strings.random();
       String rank = "r_" + Strings.random();
@@ -72,12 +73,18 @@ public class SqlServerTranslator extends AbstractTranslator {
       if (select.having() != null) {
         st.append(" having ").append(select.having().translate(target(), parameters));
       }
-//      if (orderBy() != null && !orderBy().isEmpty()) {
-//        st.append(" order by ")
-//          .append(orderBy().stream()
-//                           .map(e -> e.translate(target))
-//                           .collect(joining(", ")));
-//      }
+      if (select.orderBy() != null && !select.orderBy().isEmpty()) {
+        st.append(" order by ")
+          .append(select.orderBy().stream()
+                        .map(e -> e.translate(target()))
+                        .collect(joining(", ")));
+        if (select.offset() == null && select.limit() == null) {
+          /*
+           * Offset is required when order is specified in an inner query in SQL Server
+           */
+          st.append(" offset 0 rows");
+        }
+      }
       if (select.offset() != null) {
         st.append(" offset ")
           .append(select.offset().translate(target(), parameters))
@@ -265,6 +272,12 @@ public class SqlServerTranslator extends AbstractTranslator {
             .append(select.orderBy().stream()
                              .map(e -> e.translate(target(), parameters))
                              .collect(joining(", ")));
+          if (subSelect && select.offset() == null && select.limit() == null) {
+            /*
+             * Offset is required when order is specified in an inner query in SQL Server
+             */
+            st.append(" offset 0 rows");
+          }
         }
         if (select.offset() != null) {
           st.append(" offset ").append(select.offset().translate(target(), parameters)).append(" rows");

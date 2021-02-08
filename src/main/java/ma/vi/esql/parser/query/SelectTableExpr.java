@@ -63,7 +63,9 @@ public class SelectTableExpr extends AbstractAliasTableExpr {
 
   @Override
   public void _toString(StringBuilder st, int level, int indent) {
-    st.append(alias()).append(":(").append(select()).append(")");
+    st.append(alias()).append(":(");
+    select()._toString(st, level, indent);
+    st.append(")");
   }
 
   public Select select() {

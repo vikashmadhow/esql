@@ -25,3 +25,40 @@ select "a" > "b",
        "a" != 0, '"a" != 0', "b" < 0, '"b" < 0'
 from "public"."S" "S"
 order by "S"."a" asc;
+
+
+
+select (iif("x"."a" > "x"."b", 1, 0)),
+       (select max("b") "max" from "DBO"."S" "S"),
+       "x"."a" "a",
+       "x"."b" "b",
+       (iif("x"."b" > 5, 1, 0)),
+       (iif("x"."a" != 0, 1, 0)),
+       (iif("x"."b" < 0, 1, 0))
+from (select (iif("s"."a" > "s"."b", 1, 0)) "c1",
+             (select max("b") "max" from "DBO"."S" "S") "c2",
+             "s"."a" "a",
+             "s"."b" "b",
+             (iif("s"."b" > 5, 1, 0)) "c3",
+             (iif("s"."a" != 0, 1, 0)) "c4",
+             (iif("s"."b" < 0, 1, 0)) "c5"
+      from "DBO"."S" "s") "x"
+
+
+select (iif("x"."a" > "x"."b", 1, 0))             "/tm2",
+       (select max("b") "max" from "DBO"."S" "S") "/tm1",
+       "x"."a"                                    "a",
+       "x"."b"                                    "b",
+       (iif("x"."b" > 5, 1, 0))                   "a/m1",
+       (iif("x"."a" != 0, 1, 0))                  "a/m3",
+       (iif("x"."b" < 0, 1, 0))                   "b/m1"
+from (select (iif("s"."a" > "s"."b", 1, 0))             "/tm2",
+             (select max("b") "max" from "DBO"."S" "S") "/tm1",
+             "s"."a"                                    "a",
+             "s"."b"                                    "b",
+             (iif("s"."b" > 5, 1, 0))                   "a/m1",
+             (iif("s"."a" != 0, 1, 0))                  "a/m3",
+             (iif("s"."b" < 0, 1, 0))                   "b/m1"
+      from "DBO"."S" "s"
+      order by "s"."a" asc
+      offset 0 rows) "x"

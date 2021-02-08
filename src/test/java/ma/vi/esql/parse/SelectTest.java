@@ -10,6 +10,7 @@ import ma.vi.esql.TestDatabase;
 import ma.vi.esql.builder.Attr;
 import ma.vi.esql.builder.SelectBuilder;
 import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.exec.Result;
 import ma.vi.esql.parser.Context;
 import ma.vi.esql.parser.Parser;
 import ma.vi.esql.parser.Program;
@@ -45,6 +46,29 @@ public class SelectTest extends DataTest {
                                         .build(),
                                   select);
                      con.exec(select);
+                   }
+                 }));
+  }
+
+  @TestFactory
+  Stream<DynamicTest> simpleSelectFromSelect() {
+    return Stream.of(databases)
+                 .map(db -> dynamicTest(db.target().toString(), () -> {
+                   System.out.println(db.target());
+                   Parser p = new Parser(db.structure());
+                   try (EsqlConnection con = db.esql(db.pooledConnection())) {
+                     con.exec("delete t from t:a.b.T");
+                     con.exec("delete s from s:S");
+                     con.exec("insert into S(_id, a, b, e, h, j) values "
+                            + "(newid(), 1, 2, true, text['Four', 'Quatre'], int[1, 2, 3]),"
+                            + "(newid(), 6, 7, false, text['Nine', 'Neuf', 'X'], int[5, 6, 7, 8])");
+
+                     Select select = p.parse("select a, b from x:(select a, b from s:S order by s.a asc)", SELECT);
+                     Result rs = con.exec(select);
+                     rs.next(); assertEquals(1, (Integer)rs.value(1));
+                                assertEquals(2, (Integer)rs.value(2));
+                     rs.next(); assertEquals(6, (Integer)rs.value(1));
+                                assertEquals(7, (Integer)rs.value(2));
                    }
                  }));
   }
