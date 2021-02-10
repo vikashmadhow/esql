@@ -7,6 +7,8 @@ package ma.vi.esql.type;
 import ma.vi.base.string.Strings;
 import ma.vi.base.trie.PathTrie;
 import ma.vi.base.tuple.T2;
+import ma.vi.esql.parser.Context;
+import ma.vi.esql.parser.expression.ColumnRef;
 import ma.vi.esql.parser.query.Column;
 import ma.vi.esql.parser.query.TableExpr;
 
@@ -64,9 +66,16 @@ public class Selection extends Relation {
   @Override
   public List<Column> columns(String relationAlias, String prefix) {
     List<T2<String, Column>> cols = columnsByAlias.getPrefixed(prefix);
+    Context context = from().context;
     return cols.stream()
-               .map(t -> t.b().copy())
+               .map(t -> new Column(context, t.a,
+                                    new ColumnRef(context, null, t.a),
+                                    null))
                .collect(toList());
+
+//    return cols.stream()
+//               .map(t -> t.b().copy())
+//               .collect(toList());
   }
 
   public TableExpr from() {

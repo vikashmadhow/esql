@@ -11,9 +11,7 @@ import ma.vi.esql.parser.define.ColumnDefinition;
 import ma.vi.esql.parser.define.CreateTable;
 import ma.vi.esql.parser.define.DerivedColumnDefinition;
 import ma.vi.esql.parser.query.Column;
-import ma.vi.esql.type.BaseRelation;
-import ma.vi.esql.type.Type;
-import ma.vi.esql.type.Types;
+import ma.vi.esql.type.*;
 
 import java.util.Map;
 
@@ -118,21 +116,45 @@ public class ColumnRef extends Expression<String> implements Macro {
   public boolean expand(String name, Esql<?, ?> esql) {
     QueryUpdate stmt = ancestor(QueryUpdate.class);
     if (stmt != null) {
-      Column column = column(stmt);
-      if (column == null) {
-        throw new TranslationException(qualifiedName() + " could not be found in the tables of query");
+      Relation rel = stmt.tables().type();
+      if (qualifier() != null) {
+        rel = rel.forAlias(qualifier());
       }
-      if (column.derived()) {
-        Expression<?> expr = column.expr().copy();
-        if (qualifier() != null) {
-          qualify(expr, qualifier(), null, true);
+      if (rel instanceof BaseRelation
+      || (rel instanceof AliasedRelation && ((AliasedRelation)rel).relation instanceof BaseRelation)) {
+        Column column = rel.column(qualifier(), name());
+        if (column.derived()) {
+          Expression<?> expr = column.expr().copy();
+          if (qualifier() != null) {
+            qualify(expr, qualifier(), null, true);
+          }
+          parent.replaceWith(name, new GroupedExpression(context, expr));
+          return true;
         }
-        parent.replaceWith(name, new GroupedExpression(context, expr));
-        return true;
       }
     }
     return false;
   }
+
+//  @Override
+//  public boolean expand(String name, Esql<?, ?> esql) {
+//    QueryUpdate stmt = ancestor(QueryUpdate.class);
+//    if (stmt != null) {
+//      Column column = column(stmt);
+//      if (column == null) {
+//        throw new TranslationException(qualifiedName() + " could not be found in the tables of query");
+//      }
+//      if (column.derived()) {
+//        Expression<?> expr = column.expr().copy();
+//        if (qualifier() != null) {
+//          qualify(expr, qualifier(), null, true);
+//        }
+//        parent.replaceWith(name, new GroupedExpression(context, expr));
+//        return true;
+//      }
+//    }
+//    return false;
+//  }
 
   @Override
   public String translate(Target target, Map<String, Object> parameters) {

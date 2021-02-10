@@ -55,6 +55,10 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
   @Override
   public abstract QueryUpdate copy();
 
+//  private static Relation relationForQualifier(Relation relation, String qualifier) {
+//    return qualifier == null ? relation : relation.forAlias(qualifier);
+//  }
+
   @Override
   public Selection type() {
     if (type == null) {
@@ -267,6 +271,18 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
      * will break the query or not be of any use.
      */
     boolean selectExpression = ancestor(SelectExpression.class) != null;
+
+    /*
+     * If this query is part of another query, it is a subquery and its attributes
+     * must not be optimised away (removed from the query and calculated statically)
+     * as they could be references in the outer query.
+     */
+    boolean subQuery = false;
+    QueryUpdate ancestor = ancestor(QueryUpdate.class);
+    if (ancestor.parent != null && ancestor.parent.ancestor(QueryUpdate.class) != null) {
+      subQuery = true;
+      optimiseAttributesLoading = false;
+    }
 
     Map<String, Integer> columnToIndex = new HashMap<>();
     Map<String, ColumnMapping> columnMappings = new LinkedHashMap<>();
