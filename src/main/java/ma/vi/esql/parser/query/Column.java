@@ -9,6 +9,7 @@ import ma.vi.base.tuple.T2;
 import ma.vi.esql.parser.Context;
 import ma.vi.esql.parser.Esql;
 import ma.vi.esql.parser.MetadataContainer;
+import ma.vi.esql.parser.QueryUpdate;
 import ma.vi.esql.parser.define.Attribute;
 import ma.vi.esql.parser.define.ColumnDefinition;
 import ma.vi.esql.parser.define.DerivedColumnDefinition;
@@ -191,11 +192,21 @@ public class Column extends MetadataContainer<Expression<?>, String> {
 
   @Override
   public Type type() {
-    if (metadata() != null
-        && metadata().attribute(TYPE) != null) {
-      return Types.typeOf((String)metadata().evaluateAttribute(TYPE));
+    if (metadata() != null && metadata().attribute(TYPE) != null) {
+      Type type = Types.typeOf((String)metadata().evaluateAttribute(TYPE));
+      if (type == Types.VoidType && derived() && ancestor(QueryUpdate.class) != null) {
+        /*
+         * Derived type are set to void on load. Their actual types can
+         * be determined at this point.
+         */
+        type = expr().type();
+        type(type);
+      }
+      return type;
     } else {
-      return expr().type();
+      Type type = expr().type();
+      type(type);
+      return type;
     }
   }
 

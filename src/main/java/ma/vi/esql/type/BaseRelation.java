@@ -8,6 +8,7 @@ import ma.vi.base.trie.PathTrie;
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.parser.CircularReferenceException;
 import ma.vi.esql.parser.Context;
+import ma.vi.esql.parser.Esql;
 import ma.vi.esql.parser.TranslationException;
 import ma.vi.esql.parser.define.Attribute;
 import ma.vi.esql.parser.define.ConstraintDefinition;
@@ -81,8 +82,10 @@ public class BaseRelation extends Relation {
      *      is expanded to {a:a, b:a+5, c:a+a+5, d:a+a+5+a+5}
      */
     for (Column column: this.columns) {
-      if (!(column.expr() instanceof ColumnRef)
-       || !column.expr().value.equals(column.alias())) {
+      column.parent = new Esql<>(context, this);
+      if (!(column.expr() instanceof Literal)
+         && (!(column.expr() instanceof ColumnRef)
+          || !column.expr().value.equals(column.alias()))) {
         column.expr(expandDerived(column.expr(),
                                   columnsByAlias,
                                   column.alias(),

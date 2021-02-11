@@ -72,10 +72,10 @@ public class Selection extends Relation {
                                     new ColumnRef(context, null, t.a),
                                     null))
                .collect(toList());
+  }
 
-//    return cols.stream()
-//               .map(t -> t.b().copy())
-//               .collect(toList());
+  public Column findColumn(String relationAlias, String name) {
+    return columnsByAlias.get(name);
   }
 
   public TableExpr from() {

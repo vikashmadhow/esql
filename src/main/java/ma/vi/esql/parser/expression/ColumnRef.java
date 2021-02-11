@@ -15,6 +15,8 @@ import ma.vi.esql.type.*;
 
 import java.util.Map;
 
+import static ma.vi.esql.builder.Attributes.TYPE;
+
 /**
  * Reference to a column.
  *
@@ -46,10 +48,25 @@ public class ColumnRef extends Expression<String> implements Macro {
   @Override
   public Type type() {
     if (type == null) {
-      Column column = column(ancestor(QueryUpdate.class));
-      if (column != null) {
-        type = column.type();
-      } else {
+      QueryUpdate qu = ancestor(QueryUpdate.class);
+      if (qu != null) {
+//        Relation rel = qu.tables().type();
+//        if (qualifier() != null) {
+//          rel = rel.forAlias(qualifier());
+//        }
+//        Column column = rel.column(qualifier(), name());
+        Column column = column(qu);
+        if (column.expr() instanceof ColumnRef) {
+          if (column.metadata() != null && column.metadata().attribute(TYPE) != null) {
+            type = Types.typeOf((String)column.metadata().evaluateAttribute(TYPE));
+          } else {
+            type = Types.VoidType;
+          }
+        } else {
+          type = column.type();
+        }
+      }
+      if (type == null) {
         /*
          * The column could be part of a create statement.
          */
@@ -74,7 +91,7 @@ public class ColumnRef extends Expression<String> implements Macro {
             if (table == null) {
               throw new TranslationException("Could not find table " + alter.name());
             }
-            column = table.column(name());
+            Column column = table.column(name());
             if (column == null) {
               throw new TranslationException("Could not find field " + name() + " in table " + alter.name());
             }

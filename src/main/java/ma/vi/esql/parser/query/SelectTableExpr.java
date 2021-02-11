@@ -5,8 +5,14 @@
 package ma.vi.esql.parser.query;
 
 import ma.vi.esql.parser.Context;
+import ma.vi.esql.parser.QueryUpdate;
+import ma.vi.esql.parser.expression.ColumnRef;
 import ma.vi.esql.type.AliasedRelation;
+import ma.vi.esql.type.Selection;
+import ma.vi.esql.type.Type;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -46,7 +52,15 @@ public class SelectTableExpr extends AbstractAliasTableExpr {
   @Override
   public AliasedRelation type() {
     if (type == null) {
-      type = new AliasedRelation(select().type(), alias());
+      Selection selectType = select().type();
+      List<Column> cols = new ArrayList<>();
+      for (Column c: selectType.columns()) {
+        Column col = new Column(c.context, c.alias(), new ColumnRef(c.context, null, c.alias()), null);
+        col.parent = ancestor(QueryUpdate.class);
+        cols.add(col);
+      }
+//      type = new AliasedRelation(select().type(), alias());
+      type = new AliasedRelation(new Selection(cols, this), alias());
     }
     return type;
   }

@@ -358,7 +358,7 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
         ColumnMapping mapping = columnMappings.get(colName);
         if (mapping == null) {
           throw new RuntimeException("Could not find column mapping for column " + colName
-                                         + " while there is an attribute for that columns (" + alias + ")");
+                                   + " while there is an attribute for that columns (" + alias + ")");
         }
 
         String attrName = alias.substring(pos + 1);

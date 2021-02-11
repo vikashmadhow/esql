@@ -71,7 +71,11 @@ public class AliasedRelation extends Relation {
   @Override
   public Column findColumn(String relationAlias, String name) {
     if (relationAlias == null || relationAlias.equals(alias)) {
-      return relation.findColumn(null, name);
+      Column col = relation.findColumn(null, name);
+      if (col != null) {
+        col = qualify(col.copy(), alias, null, true);
+      }
+      return col;
     } else {
       throw new NotFoundException("Could not find relation with alias " + relationAlias);
     }

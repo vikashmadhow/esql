@@ -16,7 +16,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-import static java.util.stream.Collectors.toCollection;
+import static java.util.stream.Collectors.toList;
 
 /**
  * @author Vikash Madhow (vikash.madhow@gmail.com)
@@ -71,25 +71,41 @@ public class Join extends Relation {
   @Override
   public List<Column> columns(String alias, String prefix) {
     List<Column> cols = new ArrayList<>();
-    Relation leftRel = left.forAlias(alias);
+    Set<String> colNames = new HashSet<>();
+
+    Relation leftRel = alias == null ? left : left.forAlias(alias);
     if (leftRel != null) {
       cols.addAll(leftRel.columns(alias, prefix));
+      colNames.addAll(cols.stream().map(Column::alias).collect(toList()));
     }
-    Relation rightRel = right.forAlias(alias);
+
+    Relation rightRel = alias == null ? right : right.forAlias(alias);
     if (rightRel != null) {
-      Set<String> columnNames = cols.stream()
-                                    .map(Column::alias)
-                                    .collect(toCollection(HashSet::new));
       for (Column col: rightRel.columns(alias, prefix)) {
-        if (!columnNames.contains(col.alias())) {
+        if (!colNames.contains(col.alias())) {
           cols.add(col);
-          columnNames.add(col.alias());
+          colNames.add(col.alias());
         } else {
-          String newName = Strings.makeUnique(columnNames, col.alias());
-          col.alias(newName);
-          cols.add(col);
+          if (alias == null && !col.alias().startsWith("/")) {
+            /*
+             * Ambiguous column as existing in both left and right relations.
+             */
+            throw new AmbiguousColumnException("Ambiguous column " + col.alias() + " exists in both "
+                                                   + left.name() + " and " + right.name());
+
+          } else {
+            String newName = Strings.makeUnique(colNames, col.alias());
+            col.alias(newName);
+            cols.add(col);
+          }
         }
       }
+    }
+    if (cols.isEmpty()) {
+      throw new NotFoundException("No columns with prefix " + prefix + " was found"
+                                + (alias == null
+                                      ? " in " + toString()
+                                      : " in relation named " + alias + " of " + toString()));
     }
     return cols;
   }
