@@ -18,10 +18,12 @@ import ma.vi.esql.parser.expression.BooleanLiteral;
 import ma.vi.esql.parser.expression.ColumnRef;
 import ma.vi.esql.parser.expression.Expression;
 import ma.vi.esql.parser.expression.StringLiteral;
+import ma.vi.esql.type.BaseRelation;
 import ma.vi.esql.type.Type;
 import ma.vi.esql.type.Types;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.UUID;
 
@@ -64,7 +66,6 @@ public class Column extends MetadataContainer<Expression<?>, String> {
     boolean derived = def instanceof DerivedColumnDefinition;
     DerivedColumnDefinition derivedDef = derived ? (DerivedColumnDefinition)def : null;
 
-//    Type columnType = derived ? derivedDef.expression().type() : def.type();
     Type columnType = null;
     if (!derived) {
       columnType = def.type();
@@ -191,16 +192,44 @@ public class Column extends MetadataContainer<Expression<?>, String> {
   }
 
   @Override
+  public void attribute(String name, Expression<?> value) {
+    if (metadata() == null) {
+      metadata(new Metadata(context, new ArrayList<>()));
+    }
+    if (value != null && parent != null && parent.value instanceof BaseRelation) {
+      value = ((BaseRelation)parent.value).expandDerived(value,name, new HashSet<>());
+    }
+    metadata().attribute(name, value);
+  }
+
+  @Override
   public Type type() {
     if (metadata() != null && metadata().attribute(TYPE) != null) {
       Type type = Types.typeOf((String)metadata().evaluateAttribute(TYPE));
-      if (type == Types.VoidType && derived() && ancestor(QueryUpdate.class) != null) {
+      if (type == Types.VoidType && derived()) {
         /*
          * Derived type are set to void on load. Their actual types can
          * be determined at this point.
          */
         type = expr().type();
-        type(type);
+        if (type != Types.VoidType) {
+          type(type);
+
+          /*
+           * Transfer the type information to base table if possible.
+           */
+          QueryUpdate query = ancestor(QueryUpdate.class);
+          if (query != null && query.tables() instanceof SingleTableExpr) {
+            SingleTableExpr table = (SingleTableExpr)query.tables();
+            if (context.structure.relationExists(table.tableName())) {
+              BaseRelation rel = context.structure.relation(table.tableName());
+              if (rel.findColumn(null, alias()) != null) {
+                Column column = rel.column(null, alias());
+                column.type(type);
+              }
+            }
+          }
+        }
       }
       return type;
     } else {

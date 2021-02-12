@@ -122,6 +122,11 @@ public class AlterTable extends Define<String> {
               }
             }
             Column col = Column.fromDefinition(column);
+            if (parent instanceof CreateTable) {
+              col.parent = parent;
+            } else {
+              col.parent = new Esql<>(column.context, relation);
+            }
             s.database.column(con, relation.id(), col);
             relation.addColumn(col);
 

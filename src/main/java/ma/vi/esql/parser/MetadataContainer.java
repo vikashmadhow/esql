@@ -44,7 +44,6 @@ public abstract class MetadataContainer<V, R> extends Statement<V, R> {
   /**
    * Set metadata.
    */
-
   public void metadata(Metadata metadata) {
     child("metadata", metadata);
   }

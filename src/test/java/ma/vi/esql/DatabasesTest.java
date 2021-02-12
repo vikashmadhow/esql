@@ -25,7 +25,7 @@ public class DatabasesTest {
     databases = new Database[] {
         Databases.Postgresql(),
         Databases.SqlServer(),
-        Databases.HSqlDb(),
+//        Databases.HSqlDb(),
 //        Databases.MariaDb(),
     };
   }
@@ -93,16 +93,12 @@ public class DatabasesTest {
                  .map(db -> dynamicTest(db.target().toString(), () -> {
                     System.out.println(db.target());
                     Parser p = new Parser(db.structure());
-                    try (EsqlConnection con = db.esql(db.pooledConnection())) {
-                      Program s = p.parse("create table X (" +
-                                              "  _id int, " +
-                                              "  a=a" +
-                                              ")");
-                      System.out.println(s);
                       Assertions.assertThrows(
                           CircularReferenceException.class,
-                          () -> con.exec(s));
-                    }
+                          () -> p.parse("create table X ("
+                                      + "  _id int, "
+                                      + "  a=a"
+                                      + ")"));
                   }));
   }
 
@@ -112,17 +108,13 @@ public class DatabasesTest {
                  .map(db -> dynamicTest(db.target().toString(), () -> {
                    System.out.println(db.target());
                    Parser p = new Parser(db.structure());
-                   try (EsqlConnection con = db.esql(db.pooledConnection())) {
-                     Program s = p.parse("create table X (" +
-                                             "  _id int, " +
-                                             "  a=b, " +
-                                             "  b=a" +
-                                             ")");
-                     System.out.println(s);
-                     Assertions.assertThrows(
-                         CircularReferenceException.class,
-                         () -> con.exec(s));
-                   }
+                   Assertions.assertThrows(
+                       CircularReferenceException.class,
+                       () -> p.parse("create table X (" +
+                                           "  _id int, " +
+                                           "  a=b, " +
+                                           "  b=a" +
+                                           ")"));
                  }));
   }
 

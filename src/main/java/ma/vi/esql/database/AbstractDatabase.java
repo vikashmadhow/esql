@@ -354,6 +354,22 @@ public abstract class AbstractDatabase implements Database {
 //          }
 //        }
 
+        /*
+         * Find the correct type for derived columns (the derived column type are
+         * set to void by default).
+         */
+        for (BaseRelation rel: structure.relations().values()) {
+          for (Column column: rel.columns()) {
+            if (column.derived()) {
+              column.type();
+            }
+          }
+        }
+
+        for (BaseRelation rel: structure.relations().values()) {
+          rel.expandColumns();
+        }
+
         // Todo: parse expressions
         // Todo: load the view sources by interpreting the view definition
       } catch (SQLException sqle) {

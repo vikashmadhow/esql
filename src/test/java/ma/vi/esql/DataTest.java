@@ -16,7 +16,7 @@ public class DataTest {
   @BeforeAll
   static void setup() {
     databases = new Database[] {
-//        Databases.Postgresql(),
+        Databases.Postgresql(),
         Databases.SqlServer(),
 //        Databases.HSqlDb(),
 //        Databases.MariaDb(),

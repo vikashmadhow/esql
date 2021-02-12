@@ -101,12 +101,12 @@ public class Join extends Relation {
         }
       }
     }
-    if (cols.isEmpty()) {
-      throw new NotFoundException("No columns with prefix " + prefix + " was found"
-                                + (alias == null
-                                      ? " in " + toString()
-                                      : " in relation named " + alias + " of " + toString()));
-    }
+//    if (cols.isEmpty()) {
+//      throw new NotFoundException("No columns with prefix " + prefix + " was found"
+//                                + (alias == null
+//                                      ? " in " + toString()
+//                                      : " in relation named " + alias + " of " + toString()));
+//    }
     return cols;
   }
 

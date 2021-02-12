@@ -8,10 +8,14 @@ import ma.vi.base.collections.Sets;
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.database.Database;
 import ma.vi.esql.exec.Result;
+import ma.vi.esql.parser.CircularReferenceException;
 import ma.vi.esql.parser.Context;
 import ma.vi.esql.parser.Esql;
+import ma.vi.esql.parser.TranslationException;
+import ma.vi.esql.parser.expression.ColumnRef;
 import ma.vi.esql.parser.expression.Expression;
 import ma.vi.esql.parser.query.Column;
+import ma.vi.esql.parser.query.Select;
 import ma.vi.esql.type.BaseRelation;
 import ma.vi.esql.type.Type;
 
@@ -19,6 +23,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static java.lang.System.Logger.Level.ERROR;
 import static java.util.Collections.singletonList;
@@ -45,6 +50,54 @@ public class CreateTable extends Define<String> {
           T2.of("columns", new Esql<>(context, "columns", columns)),
           T2.of("constraints", new Esql<>(context, "constraints", constraints)),
           T2.of("metadata", metadata));
+
+    /*
+     * verify that there are no circular references in derived columns
+     */
+    Set<String> persistentCols = columns.stream()
+                                        .filter(c -> !(c instanceof DerivedColumnDefinition))
+                                        .map(ColumnDefinition::name)
+                                        .collect(Collectors.toSet());
+    Map<String, Expression<?>> derivedCols = columns.stream()
+                                                    .filter(c -> c instanceof DerivedColumnDefinition)
+                                                    .collect(Collectors.toMap(ColumnDefinition::name,
+                                                                              ColumnDefinition::expression));
+
+    for (ColumnDefinition column: columns) {
+      if (column instanceof DerivedColumnDefinition) {
+        circular(column.name(), column.expression(), persistentCols, derivedCols, new ArrayList<>());
+      }
+    }
+  }
+
+  public static void circular(String column,
+                              Expression<?> expression,
+                              Set<String> persistentCols,
+                              Map<String, Expression<?>> derivedCols,
+                              List<String> circularPath) {
+    try {
+      circularPath.add(column);
+      expression.forEach(e -> {
+        if (e instanceof ColumnRef) {
+          ColumnRef ref = (ColumnRef)e;
+          String colName = ref.name();
+          if (!persistentCols.contains(colName) && !derivedCols.containsKey(colName)) {
+            throw new TranslationException("Unknown column " + colName
+                                         + " in derived expresion " + expression);
+          } else if (circularPath.contains(colName)) {
+            circularPath.add(colName);
+            throw new CircularReferenceException("A circular reference was detected in the expression "
+                                                + expression + " consisting of the column path " + circularPath);
+          } else if (derivedCols.containsKey(colName)) {
+            circular(colName, derivedCols.get(colName), persistentCols, derivedCols, circularPath);
+          }
+        }
+        return true;
+      },
+      e -> !(e instanceof Select));
+    } finally {
+      circularPath.remove(column);
+    }
   }
 
   public CreateTable(CreateTable other) {
@@ -131,8 +184,8 @@ public class CreateTable extends Define<String> {
 
           int size = constraints.size();
           constraints.removeIf(c -> c instanceof UniqueConstraint
-                                 && !Sets.intersect(new HashSet<>(c.columns()),
-                                                    columnsInForeignKey).isEmpty());
+              && !Sets.intersect(new HashSet<>(c.columns()),
+                                 columnsInForeignKey).isEmpty());
           if (constraints.size() != size) {
             constraints(constraints);
           }
@@ -161,6 +214,7 @@ public class CreateTable extends Define<String> {
          */
         con.createStatement().executeUpdate(translate(db.target()));
         db.structure().relation(table);
+        table.expandColumns();
         db.structure().database.table(con, table);
       } else {
         /*
@@ -170,14 +224,15 @@ public class CreateTable extends Define<String> {
         AlterTable alter;
 
         if (metadata() != null
-         && metadata().attributes() != null
-         && !metadata().attributes().isEmpty()) {
+            && metadata().attributes() != null
+            && !metadata().attributes().isEmpty()) {
           /*
            * alter table metadata if specified
            */
           alter = new AlterTable(context,
                                  tableName,
                                  singletonList(new AddTableDefinition(context, metadata())));
+          alter.parent = this;
           alter.execute(db, con);
         }
 
@@ -193,6 +248,7 @@ public class CreateTable extends Define<String> {
             alter = new AlterTable(context,
                                    tableName,
                                    singletonList(new AddTableDefinition(context, column)));
+            alter.parent = this;
             alter.execute(db, con);
           } else {
             /*
@@ -201,30 +257,30 @@ public class CreateTable extends Define<String> {
             Type toType = !existingColumn.type().equals(column.type()) ? column.type() : null;
 
             boolean setNotNull = column.notNull() != null
-                              && column.notNull()
-                              && !existingColumn.notNull();
+                && column.notNull()
+                && !existingColumn.notNull();
 
             boolean dropNotNull = (column.notNull() == null || !column.notNull())
-                               && existingColumn.notNull();
+                && existingColumn.notNull();
 
             Expression<?> setDefault = null;
             if (column.expression() != null
-             && (existingColumn.defaultExpression() == null
-              || !column.expression().equals(existingColumn.defaultExpression()))) {
+                && (existingColumn.defaultExpression() == null
+                || !column.expression().equals(existingColumn.defaultExpression()))) {
               setDefault = column.expression();
 //                dropDefault = existingColumn.defaultExpression() != null;
             }
 
             boolean dropDefault = setDefault == null
-                               && existingColumn.defaultExpression() != null;
+                && existingColumn.defaultExpression() != null;
 
             Metadata metadata = column.metadata();
             if (toType != null
-             || setNotNull
-             || dropNotNull
-             || setDefault != null
-             || dropDefault
-             || (metadata != null && metadata.attributes() != null && !metadata.attributes().isEmpty())) {
+                || setNotNull
+                || dropNotNull
+                || setDefault != null
+                || dropDefault
+                || (metadata != null && metadata.attributes() != null && !metadata.attributes().isEmpty())) {
               alter = new AlterTable(context, tableName,
                                      singletonList(new AlterColumn(context, column.name(),
                                                                    new AlterColumnDefinition(context,
@@ -235,6 +291,7 @@ public class CreateTable extends Define<String> {
                                                                                              setDefault,
                                                                                              dropDefault,
                                                                                              metadata))));
+              alter.parent = this;
               alter.execute(db, con);
             }
           }
@@ -248,7 +305,7 @@ public class CreateTable extends Define<String> {
              * A constraint same as this one does not exist;: add it
              */
             new AlterTable(context, tableName,
-                                   singletonList(new AddTableDefinition(context, constraint))).execute(db, con);
+                           singletonList(new AddTableDefinition(context, constraint))).execute(db, con);
           } else {
             /*
              * There is a similar constraint. For foreign keys check that the cascading
@@ -259,7 +316,7 @@ public class CreateTable extends Define<String> {
               ForeignKeyConstraint fk = (ForeignKeyConstraint)constraint;
               ForeignKeyConstraint existing = (ForeignKeyConstraint)tableConstraint;
               if (!Objects.equals(fk.onDelete(), existing.onDelete())
-               || !Objects.equals(fk.onUpdate(), existing.onUpdate())) {
+                  || !Objects.equals(fk.onUpdate(), existing.onUpdate())) {
 
                 new AlterTable(context, tableName,
                                singletonList(new DropConstraint(context, tableConstraint.name()))).execute(db, con);
@@ -280,13 +337,14 @@ public class CreateTable extends Define<String> {
           for (Column column: table.columns()) {
             String columnName = column.alias();
             if (columnName != null
-             && columnName.indexOf('/') == -1
-             && !columns.containsKey(columnName)) {
+                && columnName.indexOf('/') == -1
+                && !columns.containsKey(columnName)) {
               /*
                * Drop existing field not specified in create command
                */
               alter = new AlterTable(context, tableName,
                                      singletonList(new DropColumn(context, columnName)));
+              alter.parent = this;
               alter.execute(db, con);
             }
           }
@@ -318,9 +376,10 @@ public class CreateTable extends Define<String> {
            * Drop table metadata if no metadata specified in create
            */
           if (metadata() == null
-           || metadata().attributes() == null
-           || metadata().attributes().isEmpty()) {
+              || metadata().attributes() == null
+              || metadata().attributes().isEmpty()) {
             alter = new AlterTable(context, tableName, singletonList(new DropMetadata(context)));
+            alter.parent = this;
             alter.execute(db, con);
           }
         }

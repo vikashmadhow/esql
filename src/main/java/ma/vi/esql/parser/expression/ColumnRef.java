@@ -50,11 +50,6 @@ public class ColumnRef extends Expression<String> implements Macro {
     if (type == null) {
       QueryUpdate qu = ancestor(QueryUpdate.class);
       if (qu != null) {
-//        Relation rel = qu.tables().type();
-//        if (qualifier() != null) {
-//          rel = rel.forAlias(qualifier());
-//        }
-//        Column column = rel.column(qualifier(), name());
         Column column = column(qu);
         if (column.expr() instanceof ColumnRef) {
           if (column.metadata() != null && column.metadata().attribute(TYPE) != null) {
@@ -64,6 +59,21 @@ public class ColumnRef extends Expression<String> implements Macro {
           }
         } else {
           type = column.type();
+        }
+      } else {
+        Column column = ancestor(Column.class);
+        if (column != null && column.parent != null && column.parent.value instanceof BaseRelation) {
+          /*
+           * Derived columns which are part of base relations can use the type
+           * information of the relation to find their correct type. (the columns
+           * of base relations are loaded on startup and their type set to void
+           * for derived columns).
+           */
+          BaseRelation rel = (BaseRelation)column.parent.value;
+          Column col = rel.findColumn(null, name());
+          if (col != null) {
+            type = col.type();
+          }
         }
       }
       if (type == null) {

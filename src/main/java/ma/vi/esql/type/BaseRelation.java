@@ -19,6 +19,7 @@ import ma.vi.esql.parser.query.Column;
 import ma.vi.esql.parser.query.Select;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.unmodifiableList;
@@ -57,7 +58,8 @@ public class BaseRelation extends Relation {
         attribute(a.name(), a.attributeValue());
       }
     }
-    this.columns = expandColumns(attributes, columns);
+//    this.columns = expandColumns(attributes, columns);
+    this.columns = columns;
 
     /*
      * Implicit aliasing of columns.
@@ -91,6 +93,22 @@ public class BaseRelation extends Relation {
                                   column.alias(),
                                   new HashSet<>()));
       }
+      if (column.metadata() != null) {
+        for (Attribute attr: column.metadata().attributes().values()) {
+          attr.attributeValue(expandDerived(attr.attributeValue(),
+                                            columnsByAlias,
+                                            column.alias() + '/' + attr.name(),
+                                            new HashSet<>()));
+        }
+      }
+//      if (!(column.expr() instanceof Literal)
+//         && (!(column.expr() instanceof ColumnRef)
+//          || !column.expr().value.equals(column.alias()))) {
+//        column.expr(expandDerived(column.expr(),
+//                                  columnsByAlias,
+//                                  column.alias(),
+//                                  new HashSet<>()));
+//      }
     }
   }
 
@@ -157,6 +175,20 @@ public class BaseRelation extends Relation {
                             ? t.b().copy()
                             : qualify(t.b().copy(), alias, null, true))
                .collect(toList());
+  }
+
+  @Override public Expression<?> attribute(String name, Expression<?> value) {
+    value = attributes().put(name, value);
+    if (value != null) {
+      value = expandDerived(value, columnsByAlias, name, new HashSet<>());
+    }
+    return value;
+  }
+
+  public Expression<?> expandDerived(Expression<?> derivedExpression,
+                                     String columnName,
+                                     Set<String> seen) {
+    return expandDerived(derivedExpression, columnsByAlias, columnName, seen);
   }
 
   public static Expression<?> expandDerived(Expression<?> derivedExpression,
@@ -233,6 +265,12 @@ public class BaseRelation extends Relation {
       ));
     }
     return cols;
+  }
+
+  public void expandColumns() {
+    this.columns = expandColumns(attributes().entrySet().stream()
+                                             .map(e -> new Attribute(e.getValue().context, e.getKey(), e.getValue()))
+                                             .collect(toList()), columns);
   }
 
   public static List<Column> expandColumns(List<Attribute> attributes, List<Column> columns) {
@@ -633,7 +671,7 @@ public class BaseRelation extends Relation {
   /**
    * Relation columns.
    */
-  private final List<Column> columns;
+  private List<Column> columns;
 
   private final PathTrie<Column> columnsByAlias = new PathTrie<>();
 

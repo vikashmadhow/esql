@@ -10,6 +10,7 @@ import ma.vi.esql.parser.Context;
 import ma.vi.esql.parser.Esql;
 import ma.vi.esql.parser.Macro;
 import ma.vi.esql.parser.QueryUpdate;
+import ma.vi.esql.parser.define.Attribute;
 import ma.vi.esql.parser.define.GroupBy;
 import ma.vi.esql.parser.define.Metadata;
 import ma.vi.esql.parser.expression.ColumnRef;
@@ -141,6 +142,11 @@ public class Select extends QueryUpdate implements Macro {
             col = relCol.copy();
             if (qualifier != null) {
               ColumnRef.qualify(col.expr(), qualifier, null, true);
+            }
+            if (col.metadata() != null) {
+              for (Attribute attr: col.metadata().attributes().values()) {
+                ColumnRef.qualify(attr.attributeValue(), qualifier, null, true);
+              }
             }
           } else {
             col = new Column(context,

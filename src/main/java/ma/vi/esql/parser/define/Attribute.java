@@ -63,4 +63,8 @@ public class Attribute extends Esql<String, String> {
   public Expression<?> attributeValue() {
     return child("value");
   }
+
+  public void attributeValue(Expression<?> value) {
+    child("value", value);
+  }
 }
