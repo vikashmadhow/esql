@@ -19,7 +19,6 @@ import ma.vi.esql.parser.query.Column;
 import ma.vi.esql.parser.query.Select;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.unmodifiableList;

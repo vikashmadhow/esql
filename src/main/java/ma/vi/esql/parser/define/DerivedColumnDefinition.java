@@ -47,8 +47,10 @@ public class DerivedColumnDefinition extends ColumnDefinition {
       addMetadata(st, target);
       return st.toString();
     }
-    // derived expressions don't produce SQL statements directly;
-    // they are just inserted into the table definitions of the core schema.
+    /*
+     * Derived expressions don't produce SQL statements directly; they are just
+     * inserted into the table definitions of the core schema.
+     */
     return null;
   }
 }

@@ -40,16 +40,17 @@ import static ma.vi.esql.type.Type.dbTableName;
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 public class CreateTable extends Define<String> {
-  public CreateTable(Context context,
-                     String name, boolean dropUndefined,
-                     List<ColumnDefinition> columns,
+  public CreateTable(Context                    context,
+                     String                     name,
+                     boolean                    dropUndefined,
+                     List<ColumnDefinition>     columns,
                      List<ConstraintDefinition> constraints,
-                     Metadata metadata) {
+                     Metadata                   metadata) {
     super(context, name,
           T2.of("dropUndefined", new Esql<>(context, dropUndefined)),
-          T2.of("columns", new Esql<>(context, "columns", columns)),
-          T2.of("constraints", new Esql<>(context, "constraints", constraints)),
-          T2.of("metadata", metadata));
+          T2.of("columns",       new Esql<>(context, "columns", columns)),
+          T2.of("constraints",   new Esql<>(context, "constraints", constraints)),
+          T2.of("metadata",      metadata));
 
     /*
      * verify that there are no circular references in derived columns
