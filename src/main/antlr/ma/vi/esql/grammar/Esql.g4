@@ -615,12 +615,6 @@ expr
        */
     | left=expr op=('+' | '-') right=expr                       #AdditionExpr
 
-//      /*
-//       * The `*` character can be provided as an argument to certain functions
-//       * such as the count aggregate function.
-//       */
-//    | '*'                                                       #StarExpr
-
       /*
        * A named parameter consists of a name preceded with a colon (:). Values
        * for named parameters must be provided when a statement containing them
@@ -871,6 +865,7 @@ define
 //    | dropView
 
 //    | createIndex
+//    | dropIndex
 
 //    | createFunction
 //    | createTrigger

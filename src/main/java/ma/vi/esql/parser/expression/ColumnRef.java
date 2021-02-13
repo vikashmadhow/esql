@@ -171,26 +171,6 @@ public class ColumnRef extends Expression<String> implements Macro {
     return false;
   }
 
-//  @Override
-//  public boolean expand(String name, Esql<?, ?> esql) {
-//    QueryUpdate stmt = ancestor(QueryUpdate.class);
-//    if (stmt != null) {
-//      Column column = column(stmt);
-//      if (column == null) {
-//        throw new TranslationException(qualifiedName() + " could not be found in the tables of query");
-//      }
-//      if (column.derived()) {
-//        Expression<?> expr = column.expr().copy();
-//        if (qualifier() != null) {
-//          qualify(expr, qualifier(), null, true);
-//        }
-//        parent.replaceWith(name, new GroupedExpression(context, expr));
-//        return true;
-//      }
-//    }
-//    return false;
-//  }
-
   @Override
   public String translate(Target target, Map<String, Object> parameters) {
     boolean sqlServerBool = target == Target.SQLSERVER

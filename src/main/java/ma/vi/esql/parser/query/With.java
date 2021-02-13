@@ -101,9 +101,8 @@ public class With extends QueryUpdate {
     boolean first = true;
     for (Cte cte: ctes()) {
       /*
-       * For recursive with query, the first CTE does
-       * not support distinct for SQL SERVER; thus for
-       * that part of the WITH query, disable the rewriting.
+       * For recursive with query, the first CTE does not support distinct for
+       * SQL SERVER; thus for that part of the WITH query, disable the rewriting.
        */
       if (!(context.structure.database instanceof SqlServer)
           || !recursive()

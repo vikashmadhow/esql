@@ -55,10 +55,6 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
   @Override
   public abstract QueryUpdate copy();
 
-//  private static Relation relationForQualifier(Relation relation, String qualifier) {
-//    return qualifier == null ? relation : relation.forAlias(qualifier);
-//  }
-
   @Override
   public Selection type() {
     if (type == null) {
