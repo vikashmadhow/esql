@@ -48,31 +48,39 @@ public class ColumnRef extends Expression<String> implements Macro {
   @Override
   public Type type() {
     if (type == null) {
-      QueryUpdate qu = ancestor(QueryUpdate.class);
-      if (qu != null) {
-        Column column = column(qu);
-        if (column.expr() instanceof ColumnRef) {
-          if (column.metadata() != null && column.metadata().attribute(TYPE) != null) {
-            type = Types.typeOf((String)column.metadata().evaluateAttribute(TYPE));
-          } else {
-            type = Types.VoidType;
-          }
-        } else {
+      if (qualifier() != null && context.type(qualifier()) instanceof Relation) {
+        Column column = ((Relation)context.type(qualifier())).findColumn(null, name());
+        if (column != null) {
           type = column.type();
         }
-      } else {
-        Column column = ancestor(Column.class);
-        if (column != null && column.parent != null && column.parent.value instanceof BaseRelation) {
-          /*
-           * Derived columns which are part of base relations can use the type
-           * information of the relation to find their correct type. (the columns
-           * of base relations are loaded on startup and their type set to void
-           * for derived columns).
-           */
-          BaseRelation rel = (BaseRelation)column.parent.value;
-          Column col = rel.findColumn(null, name());
-          if (col != null) {
-            type = col.type();
+      }
+      if (type == null) {
+        QueryUpdate qu = ancestor(QueryUpdate.class);
+        if (qu != null) {
+          Column column = column(qu);
+          if (column.expr() instanceof ColumnRef) {
+            if (column.metadata() != null && column.metadata().attribute(TYPE) != null) {
+              type = Types.typeOf((String)column.metadata().evaluateAttribute(TYPE));
+            } else {
+              type = Types.VoidType;
+            }
+          } else {
+            type = column.type();
+          }
+        } else {
+          Column column = ancestor(Column.class);
+          if (column != null && column.parent != null && column.parent.value instanceof BaseRelation) {
+            /*
+             * Derived columns which are part of base relations can use the type
+             * information of the relation to find their correct type. (the columns
+             * of base relations are loaded on startup and their type set to void
+             * for derived columns).
+             */
+            BaseRelation rel = (BaseRelation)column.parent.value;
+            Column col = rel.findColumn(null, name());
+            if (col != null) {
+              type = col.type();
+            }
           }
         }
       }

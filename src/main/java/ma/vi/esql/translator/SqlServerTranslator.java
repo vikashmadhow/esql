@@ -35,7 +35,7 @@ public class SqlServerTranslator extends AbstractTranslator {
   @Override
   protected QueryTranslation translate(Select select, Map<String, Object> parameters) {
     List<Expression<?>> distinctOn = select.distinctOn();
-    boolean subSelect = select.ancestor("tables") != null;
+    boolean subSelect = select.ancestor("tables") != null || select.ancestor(Cte.class) != null;
     if (select.distinct() && distinctOn != null && !distinctOn.isEmpty()) {
       String subquery = "q_" + Strings.random();
       String rank = "r_" + Strings.random();
@@ -270,8 +270,8 @@ public class SqlServerTranslator extends AbstractTranslator {
         if (select.orderBy() != null && !select.orderBy().isEmpty()) {
           st.append(" order by ")
             .append(select.orderBy().stream()
-                             .map(e -> e.translate(target(), parameters))
-                             .collect(joining(", ")));
+                          .map(e -> e.translate(target(), parameters))
+                          .collect(joining(", ")));
           if (subSelect && select.offset() == null && select.limit() == null) {
             /*
              * Offset is required when order is specified in an inner query in SQL Server

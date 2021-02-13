@@ -6,10 +6,7 @@ package ma.vi.esql.parser.query;
 
 import ma.vi.base.lang.NotFoundException;
 import ma.vi.esql.parser.Context;
-import ma.vi.esql.type.AliasedRelation;
-import ma.vi.esql.type.BaseRelation;
-import ma.vi.esql.type.Relation;
-import ma.vi.esql.type.Type;
+import ma.vi.esql.type.*;
 
 import java.util.Map;
 
@@ -100,7 +97,13 @@ public class SingleTableExpr extends AbstractAliasTableExpr {
     if (target == Target.ESQL) {
       return (alias == null ? "" : alias + ':') + (table == null ? "" : table);
     } else {
-      return (table == null ? "" : Type.dbTableName(table, target)) + (alias == null ? "" : " \"" + alias + '"');
+      String dbName;
+      if (table.indexOf('.') == -1 && context.type(table) instanceof Selection) {
+        dbName = '"' + table + '"';
+      } else {
+        dbName = Type.dbTableName(table, target);
+      }
+      return dbName + (alias == null ? "" : " \"" + alias + '"');
     }
   }
 

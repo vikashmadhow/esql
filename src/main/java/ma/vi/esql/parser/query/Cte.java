@@ -73,6 +73,7 @@ public class Cte extends QueryUpdate {
       for (int i = 0; i < fields.size(); i++) {
         typeFields.get(i).alias(fields.get(i));
       }
+      type = new Selection(typeFields, type.from());
     }
     context.type(name(), type);
     return type;
@@ -98,7 +99,7 @@ public class Cte extends QueryUpdate {
         + " as (" + q.statement + ')';
 
     return new QueryTranslation(s, q.columns, q.columnToIndex,
-        q.resultAttributeIndices, q.resultAttributes);
+                                q.resultAttributeIndices, q.resultAttributes);
   }
 
   @Override

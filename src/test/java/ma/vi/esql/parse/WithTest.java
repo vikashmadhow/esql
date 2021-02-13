@@ -23,7 +23,6 @@ public class WithTest extends DataTest {
     return Stream.of(databases)
                  .map(db -> dynamicTest(db.target().toString(), () -> {
                    System.out.println(db.target());
-                   Parser p = new Parser(db.structure());
                    try (EsqlConnection con = db.esql(db.pooledConnection())) {
                      con.exec("delete T from a.b.T");
                      con.exec("delete s from s:S");

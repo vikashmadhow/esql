@@ -70,11 +70,8 @@ public class With extends QueryUpdate {
 
     boolean first = true;
     for (Cte cte: ctes()) {
-      if (first) {
-        first = false;
-      } else {
-        st.append(", ");
-      }
+      if (first) { first = false; }
+      else       { st.append(", "); }
       st.append(cte.translate(target, parameters).statement);
     }
 
