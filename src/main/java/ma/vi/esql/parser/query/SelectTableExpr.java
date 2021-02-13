@@ -9,7 +9,6 @@ import ma.vi.esql.parser.QueryUpdate;
 import ma.vi.esql.parser.expression.ColumnRef;
 import ma.vi.esql.type.AliasedRelation;
 import ma.vi.esql.type.Selection;
-import ma.vi.esql.type.Type;
 
 import java.util.ArrayList;
 import java.util.List;

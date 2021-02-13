@@ -59,6 +59,7 @@ public class Cte extends QueryUpdate {
   @Override
   public Selection type() {
     Selection type = query().type();
+    type.name(name());
 
     // rename columns using CTE field list
     List<String> fields = fields();
@@ -73,6 +74,7 @@ public class Cte extends QueryUpdate {
         typeFields.get(i).alias(fields.get(i));
       }
     }
+    context.type(name(), type);
     return type;
   }
 

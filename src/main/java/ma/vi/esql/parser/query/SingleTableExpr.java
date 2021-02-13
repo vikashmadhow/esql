@@ -8,6 +8,7 @@ import ma.vi.base.lang.NotFoundException;
 import ma.vi.esql.parser.Context;
 import ma.vi.esql.type.AliasedRelation;
 import ma.vi.esql.type.BaseRelation;
+import ma.vi.esql.type.Relation;
 import ma.vi.esql.type.Type;
 
 import java.util.Map;
@@ -48,35 +49,36 @@ public class SingleTableExpr extends AbstractAliasTableExpr {
 
   @Override
   public AliasedRelation type() {
-    if (type == null) {
-      type = new AliasedRelation(relation(), alias());
-//      type = (BaseRelation)t;
-    }
-    return type;
-
 //    if (type == null) {
-//      String table = tableName();
-//      Relation r = (Relation)context.typeOf(table);
-//      if (r == null) {
-//        r = context.translator.structure().relation(table);
-//      }
-//      if (r == null) {
-//        // for 'with' queries, ensure that CTEs have been added to local type registry
-//        // before throwing an exception
-//        With with = ancestor(With.class);
-//        if (with != null) {
-//          for (Cte cte: with.ctes()) {
-//            cte.type();
-//          }
-//        }
-//        r = (Relation)context.typeOf(table);
-//        if (r == null) {
-//          throw new TranslationException("Relation " + table + " is not known");
-//        }
-//      }
-//      type = new AliasedRelation(context.translator, r.copy(), alias());
+//      type = new AliasedRelation(relation(), alias());
+////      type = (BaseRelation)t;
 //    }
 //    return type;
+
+    if (type == null) {
+      String table = tableName();
+      Type t = context.type(table);
+      if (t != null) {
+        type = new AliasedRelation(relation(), alias());
+      } else {
+        /*
+         * for 'with' queries, ensure that CTEs have been added to local type registry
+         * before throwing an exception
+         */
+        With with = ancestor(With.class);
+        if (with != null) {
+          for (Cte cte: with.ctes()) {
+            cte.type();
+          }
+        }
+        t = context.type(table);
+        if (t == null) {
+          throw new NotFoundException(table + " is not known relation in this query");
+        }
+        type = new AliasedRelation((Relation)t, alias());
+      }
+    }
+    return type;
   }
 
   public BaseRelation relation() {

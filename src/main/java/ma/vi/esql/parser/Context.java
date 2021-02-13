@@ -34,8 +34,8 @@ public class Context {
     } else if (structure != null && structure.relationExists(name)) {
       return structure.relation(name);
     } else {
-      return Types.typeOf(name);
-//      return Types.findTypeOf(name);
+//      return Types.typeOf(name);
+      return Types.findTypeOf(name);
     }
   }
 
@@ -45,7 +45,11 @@ public class Context {
    * null if none.
    */
   public Type type(Type type) {
-    return types.put(type.name(), type);
+    return type(type.name(), type);
+  }
+
+  public Type type(String name, Type type) {
+    return types.put(name, type);
   }
 
   /**

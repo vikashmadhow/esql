@@ -22,8 +22,7 @@ import java.util.*;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.unmodifiableList;
-import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toSet;
+import static java.util.stream.Collectors.*;
 import static ma.vi.base.string.Strings.makeUnique;
 import static ma.vi.base.string.Strings.random;
 import static ma.vi.esql.builder.Attributes.DERIVED;
@@ -270,9 +269,30 @@ public class BaseRelation extends Relation {
     this.columns = expandColumns(attributes().entrySet().stream()
                                              .map(e -> new Attribute(e.getValue().context, e.getKey(), e.getValue()))
                                              .collect(toList()), columns);
+    /*
+     * Implicit aliasing of columns.
+     */
+    Set<String> aliases = this.columns.stream()
+                                      .map(Column::alias)
+                                      .collect(toCollection(HashSet::new));
+    for (Column column: this.columns) {
+      if (column.alias() == null) {
+        Expression<?> expr = column.expr();
+        if (expr instanceof ColumnRef) {
+          column.alias(((ColumnRef)expr).name());
+        } else {
+          column.alias(makeUnique(aliases, "column"));
+        }
+      }
+      aliases.add(column.alias());
+      if (this.columnsByAlias.get(column.alias()) == null) {
+        this.columnsByAlias.put(column.alias(), column);
+      }
+    }
   }
 
-  public static List<Column> expandColumns(List<Attribute> attributes, List<Column> columns) {
+  public static List<Column> expandColumns(List<Attribute> attributes,
+                                           List<Column> columns) {
     List<Column> newCols = new ArrayList<>();
     Map<String, String> aliased = aliasedColumns(columns);
 

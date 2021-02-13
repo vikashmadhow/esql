@@ -101,11 +101,11 @@ public class Result implements AutoCloseable {
    * Returns the column at the specified field index (starting from 1)
    * of the current row.
    */
-  public <T> ResultColumn<T> get(int field) {
+  public <T> ResultColumn<T> get(int column) {
     try {
-      ColumnMapping mapping = columns.get(field - 1);
+      ColumnMapping mapping = columns.get(column - 1);
       if (mapping == null) {
-        throw new NotFoundException("Invalid field index: " + field);
+        throw new NotFoundException("Invalid column index: " + column);
       }
       T value = convert(rs.getObject(mapping.valueIndex), mapping.valueIndex, mapping.valueType);
 
@@ -114,7 +114,7 @@ public class Result implements AutoCloseable {
         T3<Integer, String, Type> attr = mapping.attributeIndices.get(i);
         metadata.put(attr.b, convert(rs.getObject(attr.a), attr.a, attr.c));
       }
-      return new ResultColumn<>(value, columnsByNumber().get(field), metadata);
+      return new ResultColumn<>(value, columnsByNumber().get(column - 1), metadata);
 
     } catch (SQLException sqle) {
       throw Errors.unchecked(sqle);
