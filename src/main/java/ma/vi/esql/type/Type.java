@@ -62,7 +62,7 @@ public interface Type extends Close, Copy<Type>, Translatable<String> {
    * The kind of types.
    */
   enum Kind {
-    BASE, ARRAY, FIELD, COMPOSITE
+    BASE, ARRAY, COMPOSITE
   }
 
   @Override

@@ -37,7 +37,7 @@ public class Parser {
   public <T extends Esql<?, ?>> T parse(String esql, String as) {
     try {
       EsqlParser p = parser(esql);
-      return (T)parse(structure, (ParserRuleContext)Dissector.method(p.getClass(), as).get().invoke(p));
+      return (T)parse(structure, (ParserRuleContext)Dissector.method(p.getClass(), as).get().invoke(p), esql);
     } catch (Exception e) {
       throw e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e);
     }
@@ -61,9 +61,10 @@ public class Parser {
   }
 
   public static Esql<?, ?> parse(Structure structure,
-                                 ParserRuleContext startFrom) {
+                                 ParserRuleContext startFrom,
+                                 String input) {
     Context context = new Context(structure);
-    Analyser analyser = new Analyser(context);
+    Analyser analyser = new Analyser(context, input);
     ParseTreeWalker walker = new ParseTreeWalker();
     walker.walk(analyser, startFrom);
 
@@ -87,7 +88,7 @@ public class Parser {
    * @return The parsed program
    */
   public static Program parse(Structure structure, String esql) {
-    return (Program)parse(structure, parser(esql).program());
+    return (Program)parse(structure, parser(esql).program(), esql);
   }
 
   /**
@@ -95,7 +96,7 @@ public class Parser {
    */
   public static Expression<?> parseExpression(Structure structure,
                                               String expression) {
-    return (Expression<?>)parse(structure, parser(expression).expr());
+    return (Expression<?>)parse(structure, parser(expression).expr(), expression);
   }
 
   public interface Rules {

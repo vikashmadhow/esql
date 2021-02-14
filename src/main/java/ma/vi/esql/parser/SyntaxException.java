@@ -11,11 +11,28 @@ package ma.vi.esql.parser;
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 public class SyntaxException extends EsqlException {
-  public SyntaxException(String message) {
-    super(message);
+  public SyntaxException(String message,
+                         Throwable cause,
+                         String text,
+                         int startLine, int startCharPos, int startIndex,
+                         int stopLine, int stopCharPos, int stopIndex) {
+    super(message, cause);
+    this.text = text;
+    this.startLine = startLine;
+    this.startCharPos = startCharPos;
+    this.startIndex = startIndex;
+    this.stopLine = stopLine;
+    this.stopCharPos = stopCharPos;
+    this.stopIndex = stopIndex;
   }
 
-  public SyntaxException(String message, Throwable cause) {
-    super(message, cause);
-  }
+  public final String text;
+
+  public final int startLine;
+  public final int startCharPos;
+  public final int startIndex;
+
+  public final int stopLine;
+  public final int stopCharPos;
+  public final int stopIndex;
 }

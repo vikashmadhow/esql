@@ -17,11 +17,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Support for creating and using views (including materialised views).
 - Complete documentation of ESQL grammar.
 - Document purpose and usage. 
+- Performance testing.
+- Improve error detection and reporting in Analyser.
 
-## [Unreleased]
+## [0.3.1] - 2021-02-14
+### Added
 - Reduce the number of keywords in the grammar by not explicitly naming all
   acceptable types (replace with identifier pattern).
-- Grammar support for multi-dimensional arrays and sized arrays.  
+- Grammar support for multi-dimensional arrays and sized arrays.
+- Improved error detection and reporting of wrong type specification.
 
 ## [0.3.0] - 2021-02-13
 ### Added

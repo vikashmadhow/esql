@@ -21,6 +21,7 @@ import ma.vi.esql.parser.modify.Insert;
 import ma.vi.esql.parser.modify.InsertRow;
 import ma.vi.esql.parser.modify.Update;
 import ma.vi.esql.parser.query.*;
+import ma.vi.esql.type.Type;
 import ma.vi.esql.type.Types;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.RuleContext;
@@ -48,17 +49,36 @@ import static ma.vi.esql.parser.define.GroupBy.Type.*;
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 public class Analyser extends EsqlBaseListener {
-  public Analyser(Context context) {
+  public Analyser(Context context, String input) {
     this.context = context;
+    this.input = input;
   }
 
   @Override
   public void visitErrorNode(ErrorNode node) {
     Token token = node.getSymbol();
-    log.log(ERROR, "ERROR in " + token.getTokenSource().getInputStream().toString()
-                           + " at " + token.getLine() + ':' + token.getCharPositionInLine());
-    throw new SyntaxException("ERROR in " + token.getTokenSource().getInputStream().toString()
-                                  + " at " + token.getLine() + ':' + token.getCharPositionInLine());
+    String text = token.getTokenSource().getInputStream().toString();
+    log.log(ERROR, "ERROR in " + text + " at " + token.getLine() + ':' + token.getCharPositionInLine());
+    throw new SyntaxException("ERROR in " + text + " (" + token.getText() + ") "
+                            + "at " + token.getLine() + ':' + token.getCharPositionInLine(), null, text,
+                              token.getLine(), token.getCharPositionInLine(), token.getStartIndex(),
+                              token.getLine(), token.getCharPositionInLine() + token.getText().length(), token.getStopIndex());
+  }
+
+  private void error(ParserRuleContext ctx, String message) throws SyntaxException {
+    int startLine = ctx.getStart().getLine();
+    int startPos = ctx.getStart().getCharPositionInLine();
+    int startIndex = ctx.getStart().getStartIndex();
+
+    int stopLine = ctx.getStop().getLine();
+    int stopPos = ctx.getStop().getCharPositionInLine();
+    int stopIndex = ctx.getStop().getStartIndex();
+
+    log.log(ERROR, "ERROR " + message + " in " + input + " at [" + startLine + ":"
+                + startPos + "]");
+
+    throw new SyntaxException(message, null, input, startLine, startPos,
+                              startIndex, stopLine, stopPos, stopIndex);
   }
 
   @Override
@@ -480,7 +500,11 @@ public class Analyser extends EsqlBaseListener {
   @Override
   public void exitBaseArrayLiteral(BaseArrayLiteralContext ctx) {
     String componentType = ctx.Identifier().getText();
-    put(ctx, new BaseArrayLiteral(context, Types.typeOf(componentType), value(ctx.baseLiteralList())));
+    Type type = Types.findTypeOf(componentType);
+    if (type == null) {
+      error(ctx, "Unknown type " + componentType + " for array literal");
+    }
+    put(ctx, new BaseArrayLiteral(context, type, value(ctx.baseLiteralList())));
   }
 
   @Override
@@ -1068,12 +1092,22 @@ public class Analyser extends EsqlBaseListener {
 
   @Override
   public void exitBase(BaseContext ctx) {
-    put(ctx, new Esql<>(context, Types.typeOf(ctx.Identifier().getText())));
+    String baseType = ctx.Identifier().getText();
+    Type type = Types.findTypeOf(baseType);
+    if (type == null) {
+      error(ctx, "Unknown base type " + baseType);
+    }
+    put(ctx, new Esql<>(context, type));
   }
 
   @Override
   public void exitArray(ArrayContext ctx) {
-    put(ctx, new Esql<>(context, Types.typeOf(ctx.type().getText()).array()));
+    String componentType = ctx.type().getText();
+    Type type = Types.findTypeOf(componentType);
+    if (type == null) {
+      error(ctx, "Unknown component type " + componentType + " for array");
+    }
+    put(ctx, new Esql<>(context, type.array()));
   }
 
   // Constraints
@@ -1251,6 +1285,8 @@ public class Analyser extends EsqlBaseListener {
   public final IdentityHashMap<RuleContext, Esql<?, ?>> nodes = new IdentityHashMap<>();
 
   private final Context context;
+
+  private final String input;
 
   public Esql<?, ?> lastRecognised;
 

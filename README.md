@@ -52,17 +52,17 @@ included in the result, and can be overridden at the query level:
 ```
   select x.a, x.b, y.c, 
          z.d {m1: 'test'}, # metadata override: if the z.d already contains a 
-                           # metadata attribute m1, its value will be replaces
+                           # metadata attribute m1, its value will be replaced
                            # by 'test'
                             
-         # ESQL equivalent of SQL case statement is based on the Python conditional expressions: 
-         #    <true-value> if <condition> else <false-value>
-         #  The conditional expression associate to the right and can be chained.
-         # ESQL also supports two-sides comparison, like Python      
+         # ESQL equivalent of SQL case statement, based on Python conditional expressions: 
+         #    <true-expression> if <condition> else <false-expression>
+         # The conditional expression associates to the right and can be chained.
+         # ESQL also supports two-sided comparison, like Python.      
                          
          'A' if  0 <= x.a < 5  else
          'B' if  5 <= x.a < 10 else
-         'C' if 10 <= x.a < 20 else 'D'                 
+         'C' if 10 <= x.a < 20 else 'D'
     from x:X 
     join y:Y on x.a=y.b 
     left join z:Z on y.c=z.c

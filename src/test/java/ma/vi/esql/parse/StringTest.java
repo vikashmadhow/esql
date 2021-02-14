@@ -28,7 +28,7 @@ public class StringTest {
 
   @Test
   void multiLineStrings() {
-    EsqlParser p = Parser.parser(
+    String input =
         "{\n" +
         "a: `function sum(x, y) {\n" +
         "      x *= x's;\n" +
@@ -59,10 +59,10 @@ public class StringTest {
         "     }\n" +
         "   }\n" +
         "   `\n" +
-        "}"
-    );
+        "}";
+    EsqlParser p = Parser.parser(input);
     Structure structure = Databases.HSqlDb().structure();
-    Metadata metadata = (Metadata)Parser.parse(structure, p.metadata());
+    Metadata metadata = (Metadata)Parser.parse(structure, p.metadata(), input);
     String value = metadata.evaluateAttribute("a");
     assertEquals(
     "function sum(x, y) {\n" +
