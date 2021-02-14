@@ -49,6 +49,10 @@ public class ColumnRef extends Expression<String> implements Macro {
   public Type type() {
     if (type == null) {
       if (qualifier() != null && context.type(qualifier()) instanceof Relation) {
+        /*
+         * In a With query, the column could be part of a common-table-expression (CTE),
+         * in which case, the type of the latter would be in the local context.
+         */
         Column column = ((Relation)context.type(qualifier())).findColumn(null, name());
         if (column != null) {
           type = column.type();
@@ -57,6 +61,10 @@ public class ColumnRef extends Expression<String> implements Macro {
       if (type == null) {
         QueryUpdate qu = ancestor(QueryUpdate.class);
         if (qu != null) {
+          /*
+           * In a query check all levels as the column might refer to a table in
+           * an outer level, if it is in a subquery, e.g.
+           */
           Column column = column(qu);
           if (column.expr() instanceof ColumnRef) {
             if (column.metadata() != null && column.metadata().attribute(TYPE) != null) {

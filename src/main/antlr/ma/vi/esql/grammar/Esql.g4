@@ -819,7 +819,7 @@ expressionList
 literal
     : baseLiteral                           #BasicLiterals
     | NullLiteral                           #Null
-    | BaseType '[' baseLiteralList? ']'     #BaseArrayLiteral
+    | Identifier '[' baseLiteralList? ']'   #BaseArrayLiteral
     | '[' literalList? ']'                  #JsonArrayLiteral       // valid only in metadata expression
     | '{' attributeList? '}'                #JsonObjectLiteral      // valid only in metadata expression
     ;
@@ -1016,39 +1016,46 @@ foreignKeyAction
     | 'set' 'default'
     ;
 
+//arrayType
+//    : type '[' ']'
+//    ;
+
 type
-     : BaseType         #Base
-     | arrayType        #Array
+     : Identifier                       #Base       // A base type is simply an identifier
+     | type '[' IntegerLiteral? ']'     #Array      // Array of arrays are supported by multiple by following with
+                                                    // a type with any number of '['']'
      ;
 
-arrayType
-    : BaseType '[' ']'
-    ;
 
 Quantifier
     : 'all' | 'any'
     ;
 
-BaseType            // POSTGRESQL TYPE      SQL SERVER TYPE
-    : 'byte'        // tinyint              tinyint
-    | 'short'       // smallint             smallint
-    | 'int'         // integer              int
-    | 'long'        // bigint               bigint
-    | 'float'       // real                 real
-    | 'double'      // double precision     float
-    | 'money'       // money                money
-    | 'bool'        // boolean              bit
-    | 'char'        // char(1)              char(1)
-    | 'string'      // text                 varchar(8000)
-    | 'text'        // text                 varchar(max)
-    | 'bytes'       // bytea                varbinary(max)
-    | 'date'        // date                 date
-    | 'time'        // time                 time
-    | 'datetime'    // timestamp            datetime2
-    | 'interval'    // interval             varchar(200)     -- No interval type in SQL Server, simulated
-    | 'uuid'        // uuid                 uniqueidentifier
-    | 'json'        // jsonb                varchar(max)
-    ;
+
+//BaseType            // POSTGRESQL TYPE      SQL SERVER TYPE
+//    : 'byte'        // tinyint              tinyint
+//    | 'short'       // smallint             smallint
+//    | 'int'         // integer              int
+//    | 'long'        // bigint               bigint
+//    | 'float'       // real                 real
+//    | 'double'      // double precision     float
+//    | 'money'       // money                money
+//    | 'bool'        // boolean              bit
+//    | 'char'        // char(1)              char(1)
+//    | 'string'      // text                 varchar(8000)
+//    | 'text'        // text                 varchar(max)
+//    | 'bytes'       // bytea                varbinary(max)
+//    | 'date'        // date                 date
+//    | 'time'        // time                 time
+//    | 'datetime'    // timestamp            datetime2
+//    | 'interval'    // interval             varchar(200)     -- No interval type in SQL Server, simulated
+//    | 'uuid'        // uuid                 uniqueidentifier
+//    | 'json'        // jsonb                varchar(max)
+//    ;
+
+//BaseType
+//  : [$_a-zA-Z][$_a-zA-Z0-9]*
+//  ;
 
 Not
     : 'not'

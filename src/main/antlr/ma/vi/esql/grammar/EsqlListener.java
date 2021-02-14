@@ -1560,18 +1560,6 @@ public interface EsqlListener extends ParseTreeListener {
 	 */
 	void exitForeignKeyAction(EsqlParser.ForeignKeyActionContext ctx);
 	/**
-	 * Enter a parse tree produced by the {@code Base}
-	 * labeled alternative in {@link EsqlParser#type}.
-	 * @param ctx the parse tree
-	 */
-	void enterBase(EsqlParser.BaseContext ctx);
-	/**
-	 * Exit a parse tree produced by the {@code Base}
-	 * labeled alternative in {@link EsqlParser#type}.
-	 * @param ctx the parse tree
-	 */
-	void exitBase(EsqlParser.BaseContext ctx);
-	/**
 	 * Enter a parse tree produced by the {@code Array}
 	 * labeled alternative in {@link EsqlParser#type}.
 	 * @param ctx the parse tree
@@ -1584,13 +1572,15 @@ public interface EsqlListener extends ParseTreeListener {
 	 */
 	void exitArray(EsqlParser.ArrayContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link EsqlParser#arrayType}.
+	 * Enter a parse tree produced by the {@code Base}
+	 * labeled alternative in {@link EsqlParser#type}.
 	 * @param ctx the parse tree
 	 */
-	void enterArrayType(EsqlParser.ArrayTypeContext ctx);
+	void enterBase(EsqlParser.BaseContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link EsqlParser#arrayType}.
+	 * Exit a parse tree produced by the {@code Base}
+	 * labeled alternative in {@link EsqlParser#type}.
 	 * @param ctx the parse tree
 	 */
-	void exitArrayType(EsqlParser.ArrayTypeContext ctx);
+	void exitBase(EsqlParser.BaseContext ctx);
 }

@@ -479,7 +479,7 @@ public class Analyser extends EsqlBaseListener {
 
   @Override
   public void exitBaseArrayLiteral(BaseArrayLiteralContext ctx) {
-    String componentType = ctx.BaseType().getText();
+    String componentType = ctx.Identifier().getText();
     put(ctx, new BaseArrayLiteral(context, Types.typeOf(componentType), value(ctx.baseLiteralList())));
   }
 
@@ -1068,12 +1068,12 @@ public class Analyser extends EsqlBaseListener {
 
   @Override
   public void exitBase(BaseContext ctx) {
-    put(ctx, new Esql<>(context, Types.typeOf(ctx.BaseType().getText())));
+    put(ctx, new Esql<>(context, Types.typeOf(ctx.Identifier().getText())));
   }
 
   @Override
   public void exitArray(ArrayContext ctx) {
-    put(ctx, new Esql<>(context, Types.typeOf(ctx.arrayType().BaseType().getText()).array()));
+    put(ctx, new Esql<>(context, Types.typeOf(ctx.type().getText()).array()));
   }
 
   // Constraints

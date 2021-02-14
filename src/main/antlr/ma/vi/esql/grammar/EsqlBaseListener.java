@@ -1686,18 +1686,6 @@ public class EsqlBaseListener implements EsqlListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterBase(EsqlParser.BaseContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitBase(EsqlParser.BaseContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
 	@Override public void enterArray(EsqlParser.ArrayContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -1710,13 +1698,13 @@ public class EsqlBaseListener implements EsqlListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterArrayType(EsqlParser.ArrayTypeContext ctx) { }
+	@Override public void enterBase(EsqlParser.BaseContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitArrayType(EsqlParser.ArrayTypeContext ctx) { }
+	@Override public void exitBase(EsqlParser.BaseContext ctx) { }
 
 	/**
 	 * {@inheritDoc}
