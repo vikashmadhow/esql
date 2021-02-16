@@ -62,7 +62,7 @@ public class StringTest {
         "}";
     EsqlParser p = Parser.parser(input);
     Structure structure = Databases.HSqlDb().structure();
-    Metadata metadata = (Metadata)Parser.parse(structure, p.metadata(), input);
+    Metadata metadata = (Metadata)Parser.parse(structure, p.metadata());
     String value = metadata.evaluateAttribute("a");
     assertEquals(
     "function sum(x, y) {\n" +

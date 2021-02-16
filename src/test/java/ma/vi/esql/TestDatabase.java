@@ -5,6 +5,7 @@
 package ma.vi.esql;
 
 import ma.vi.esql.parser.Context;
+import ma.vi.esql.parser.EsqlTransformer;
 import ma.vi.esql.parser.Parser;
 import ma.vi.esql.parser.Translatable;
 import ma.vi.esql.parser.define.Attribute;
@@ -18,10 +19,7 @@ import ma.vi.esql.type.BaseRelation;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 import static ma.vi.esql.builder.Attributes.DERIVED;
 import static ma.vi.esql.builder.Attributes.TYPE;
@@ -241,6 +239,20 @@ public class TestDatabase implements Database {
   public void postInit(Connection con,
                        Structure structure,
                        boolean createCoreTables) {
+  }
+
+  @Override
+  public void addEsqlTransformer(EsqlTransformer transformer) {
+  }
+
+  @Override
+  public boolean removeEsqlTransformer(EsqlTransformer transformer) {
+    return false;
+  }
+
+  @Override
+  public List<EsqlTransformer> esqlTransformers() {
+    return null;
   }
 
   @Override

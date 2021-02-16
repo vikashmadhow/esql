@@ -9,6 +9,7 @@ import ma.vi.esql.exec.EsqlConnection;
 import ma.vi.esql.exec.Param;
 import ma.vi.esql.exec.Result;
 import ma.vi.esql.parser.Context;
+import ma.vi.esql.parser.EsqlTransformer;
 import ma.vi.esql.parser.Parser;
 import ma.vi.esql.parser.define.*;
 import ma.vi.esql.parser.expression.*;
@@ -24,6 +25,7 @@ import java.util.*;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
+import static java.util.Collections.unmodifiableList;
 import static ma.vi.base.string.Escape.escapeSqlString;
 import static ma.vi.esql.builder.Attributes.*;
 import static ma.vi.esql.parser.Translatable.Target.*;
@@ -723,6 +725,35 @@ public abstract class AbstractDatabase implements Database {
     }
   }
 
+
+  /**
+   * Adds an ESQL transformer to the list of transformers that are used to
+   * transform ESQL statements prior to their executions.
+   */
+  @Override
+  public void addEsqlTransformer(EsqlTransformer transformer) {
+    transformers.add(transformer);
+  }
+
+  /**
+   * Removes a ESQL transformer from the list of transformers that was used to
+   * transform ESQL statements prior to their executions, if it exists. Returns
+   * true if the transformer was successfully removed.
+   */
+  @Override
+  public boolean removeEsqlTransformer(EsqlTransformer transformer) {
+    return transformers.remove(transformer);
+  }
+
+  /**
+   * Returns the list of active ESQL transformers used to transform ESQL
+   * statements prior to their executions.
+   */
+  @Override
+  public List<EsqlTransformer> esqlTransformers() {
+    return unmodifiableList(transformers);
+  }
+
   private T2<String, List<String>> keyColumns(Statement stmt,
                                               String constraintSchema,
                                               String constraintName) {
@@ -1377,6 +1408,8 @@ public abstract class AbstractDatabase implements Database {
   protected Structure structure;
 
   private Boolean hasCoreTables = null;
+
+  private final List<EsqlTransformer> transformers = new ArrayList<>();
 
   private static final String INSERT_COLUMN =
       "insert into _core.columns("

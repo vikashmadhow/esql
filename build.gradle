@@ -106,12 +106,12 @@ dependencies {
 
   implementation("com.vikmad:base:latest.release")
 
-  implementation("org.apache.zookeeper:zookeeper:3.6.2")
-  implementation("org.apache.kafka:kafka-clients:2.7.0")
+//  implementation("org.apache.zookeeper:zookeeper:3.6.2")
+//  implementation("org.apache.kafka:kafka-clients:2.7.0")
 //  implementation("org.apache.kafka:kafka_2.13:2.7.0")
 //  implementation("org.apache.kafka:connect:2.7.0")
-  implementation("org.apache.kafka:connect-api:2.7.0")
-  implementation("org.apache.kafka:kafka-examples:2.7.0")
+//  implementation("org.apache.kafka:connect-api:2.7.0")
+//  implementation("org.apache.kafka:kafka-examples:2.7.0")
 
   // Use JUnit test framework
   testImplementation(platform('org.junit:junit-bom:5.7.0'))
@@ -128,7 +128,7 @@ test {
 group = 'com.vikmad'
 archivesBaseName = 'esql'
 sourceCompatibility = JavaVersion.VERSION_14
-version = "0.3.0"
+version = "0.3.1"
 ext.isReleaseVersion = !version.endsWith("SNAPSHOT")
 
 java {

@@ -49,9 +49,8 @@ import static ma.vi.esql.parser.define.GroupBy.Type.*;
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 public class Analyser extends EsqlBaseListener {
-  public Analyser(Context context, String input) {
+  public Analyser(Context context) {
     this.context = context;
-    this.input = input;
   }
 
   @Override
@@ -65,19 +64,21 @@ public class Analyser extends EsqlBaseListener {
                               token.getLine(), token.getCharPositionInLine() + token.getText().length(), token.getStopIndex());
   }
 
-  private void error(ParserRuleContext ctx, String message) throws SyntaxException {
+  public static void error(ParserRuleContext ctx, String message) throws SyntaxException {
     int startLine = ctx.getStart().getLine();
     int startPos = ctx.getStart().getCharPositionInLine();
     int startIndex = ctx.getStart().getStartIndex();
 
-    int stopLine = ctx.getStop().getLine();
-    int stopPos = ctx.getStop().getCharPositionInLine();
-    int stopIndex = ctx.getStop().getStartIndex();
+    Token stop = ctx.getStop();
+    int stopLine = stop == null ? 0 : stop.getLine();
+    int stopPos = stop == null ? 0 : stop.getCharPositionInLine();
+    int stopIndex = stop == null ? 0 : stop.getStartIndex();
 
-    log.log(ERROR, "ERROR " + message + " in " + input + " at [" + startLine + ":"
+    String text = ctx.start.getInputStream().toString();
+    log.log(ERROR, "ERROR " + message + " in '" + text + "' at [" + startLine + ":"
                 + startPos + "]");
 
-    throw new SyntaxException(message, null, input, startLine, startPos,
+    throw new SyntaxException(message, null, text, startLine, startPos,
                               startIndex, stopLine, stopPos, stopIndex);
   }
 
@@ -124,6 +125,9 @@ public class Analyser extends EsqlBaseListener {
   @Override
   public void exitBaseSelection(BaseSelectionContext ctx) {
     DistinctContext distinct = ctx.distinct();
+    if (ctx.tableExpr() == null) {
+      error(ctx,"Missing or wrong from clause in Select");
+    }
     put(ctx, new Select(context,
                         ctx.metadata() == null ? null : get(ctx.metadata()),
                         distinct != null && distinct.getText().startsWith("distinct"),
@@ -1286,9 +1290,7 @@ public class Analyser extends EsqlBaseListener {
 
   private final Context context;
 
-  private final String input;
-
   public Esql<?, ?> lastRecognised;
 
-  private static final System.Logger log = System.getLogger(Analyser.class.getName());
+  public static final System.Logger log = System.getLogger(Analyser.class.getName());
 }

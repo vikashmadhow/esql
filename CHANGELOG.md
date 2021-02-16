@@ -6,7 +6,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Planned]
 - Support for Oracle database.
-- Esql transformers (prior to execution, to inject specific behaviour).
 - Result transformers and encoders.  
 - Testing of all normal functions.
 - Testing of all macro functions.
@@ -19,13 +18,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Document purpose and usage. 
 - Performance testing.
 - Improve error detection and reporting in Analyser.
+  - Missing or wrong keyword.
+  - Missing closing bracket, square bracket, parenthesis.
+  - Missing commas, semi-colons.  
+  - Use of reserved keywords in wrong parts.
+
+## [Unreleased]
+- ESQL transformers (prior to execution, to inject specific behaviour by rewriting ESQL).
+- Improved detection of general syntax errors, and missing (or wrong) from clause in selects. 
 
 ## [0.3.1] - 2021-02-14
 ### Added
 - Reduce the number of keywords in the grammar by not explicitly naming all
   acceptable types (replace with identifier pattern).
 - Grammar support for multi-dimensional arrays and sized arrays.
-- Improved error detection and reporting of wrong type specification.
+- Improved error detection and reporting of wrong types in ESQL commands.
 
 ## [0.3.0] - 2021-02-13
 ### Added
@@ -36,10 +43,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   number of levels (e.g `select a from x:(select * from y:(select a from A))`)
 
 ### Fixed
-- Multi-tables updates and deletes in PostgreSql are not fully functional.
+- Multi-tables updates and deletes in PostgreSql are now fully functional.
 
 ### Deprecated
-- Support for HSQLDB is being deprecated as complex names.
+- Support for HSQLDB is being deprecated as complex names are not supported
+  when reading from sub-queries.
 - Support for MariaDB (and MySQL) is being deprecated as it fails to create 
   constraints on tables in certain conditions.
 

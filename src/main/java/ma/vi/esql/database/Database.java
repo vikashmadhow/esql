@@ -6,6 +6,7 @@ package ma.vi.esql.database;
 
 import ma.vi.esql.exec.EsqlConnection;
 import ma.vi.esql.exec.EsqlConnectionImpl;
+import ma.vi.esql.parser.EsqlTransformer;
 import ma.vi.esql.parser.Translatable;
 import ma.vi.esql.parser.define.ConstraintDefinition;
 import ma.vi.esql.parser.define.Metadata;
@@ -17,6 +18,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -89,6 +91,25 @@ public interface Database {
    * Returns the translation target for this database.
    */
   Translatable.Target target();
+
+  /**
+   * Adds an ESQL transformer to the list of transformers that are used to
+   * transform ESQL statements prior to their executions.
+   */
+  void addEsqlTransformer(EsqlTransformer transformer);
+
+  /**
+   * Removes a ESQL transformer from the list of transformers that was used to
+   * transform ESQL statements prior to their executions, if it exists. Returns
+   * true if the transformer was successfully removed.
+   */
+  boolean removeEsqlTransformer(EsqlTransformer transformer);
+
+  /**
+   * Returns the list of active ESQL transformers used to transform ESQL
+   * statements prior to their executions.
+   */
+  List<EsqlTransformer> esqlTransformers();
 
   // Connections
   //////////////////////////////////////////////////////

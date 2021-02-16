@@ -191,7 +191,6 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
    *                                  for the same attributes.
    *                                  </li>
    * </ul>
-   * </p>
    *
    * @param query                     The generated query result is added to this string builder.
    * @param target                    The target database being translated to, such as Postgresql and Sql server.

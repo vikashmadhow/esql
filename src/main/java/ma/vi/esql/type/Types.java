@@ -5,7 +5,6 @@
 package ma.vi.esql.type;
 
 import ma.vi.base.lang.NotFoundException;
-import ma.vi.esql.database.MariaDb;
 import ma.vi.esql.parser.Translatable;
 import ma.vi.esql.parser.query.Column;
 
@@ -18,7 +17,6 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static java.lang.Integer.MAX_VALUE;
-import static ma.vi.base.lang.Errors.checkArgument;
 import static ma.vi.esql.parser.Translatable.Target.*;
 
 /**

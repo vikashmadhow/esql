@@ -40,7 +40,7 @@ public class WithTest extends DataTest {
                        + "  select _id, a, b, c from S order by a"
                        + ")"
                        + "select t.a, t.b, s.c "
-                       + "  from t:a.b.T join s on t.s_id=s.id");
+                       + "  from t:a.b.T join s on t.s_id=s.id order by t.a");
 
                      rs.next(); assertEquals(1, (Integer)rs.value("a"));
                                 assertEquals(2, (Integer)rs.value("b"));

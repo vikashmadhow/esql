@@ -112,11 +112,10 @@ public class EsqlConnectionImpl implements EsqlConnection {
           String paramName = ((NamedParameter)e).name();
           if (!parameters.containsKey(paramName)) {
             throw new TranslationException("Parameter named " + paramName + " is present in statement ("
-                                            + statement + ") but has not been supplied.");
+                                         + statement + ") but has not been supplied.");
           } else {
             Param param = parameters.get(paramName);
             Object value = param.b;
-            // @todo dynamic parsing of parameters would allow ESQL expressions to be provided as parameters
             if (value instanceof Esql) {
               return (Esql<?, ?>)value;
 
@@ -144,7 +143,14 @@ public class EsqlConnectionImpl implements EsqlConnection {
        */
       expand(st);
     }
-    return st.execute(db, con);
+    /*
+     * Transform ESQL through registered transformers prior to execution.
+     */
+    Esql<?, ?> esql = st;
+    for (EsqlTransformer t: db.esqlTransformers()) {
+      esql = t.transform(db, esql);
+    }
+    return esql.execute(db, con);
   }
 
   private static void expand(Esql<?, ?> esql) {

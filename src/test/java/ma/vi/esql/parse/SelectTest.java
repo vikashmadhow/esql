@@ -103,6 +103,34 @@ public class SelectTest extends DataTest {
   }
 
   @TestFactory
+  Stream<DynamicTest> selectExists() {
+    return Stream.of(databases)
+                 .map(db -> dynamicTest(db.target().toString(), () -> {
+                   System.out.println(db.target());
+                   Parser p = new Parser(db.structure());
+                   try (EsqlConnection con = db.esql(db.pooledConnection())) {
+                     con.exec("delete t from t:a.b.T");
+                     con.exec("delete s from s:S");
+                     con.exec("insert into S(_id, a, b, e, h, j) values "
+                            + "(newid(), 1, 2, true, text['Four', 'Quatre'], int[1, 2, 3]),"
+                            + "(newid(), 6, 7, false, text['Nine', 'Neuf', 'X'], int[5, 6, 7, 8])");
+
+                     Select select = p.parse(
+                         "select a, b "
+                       + "from x:(select a, b "
+                               + "from x:(select a, b "
+                                       + "from s:S order by s.a asc) order by x.a asc)" +
+                             "where exists(select * from S)", SELECT);
+                     Result rs = con.exec(select);
+                     rs.next(); assertEquals(1, (Integer)rs.value(1));
+                                assertEquals(2, (Integer)rs.value(2));
+                     rs.next(); assertEquals(6, (Integer)rs.value(1));
+                                assertEquals(7, (Integer)rs.value(2));
+                   }
+                 }));
+  }
+
+  @TestFactory
   Stream<DynamicTest> simpleSelectDerivedFromSelectFromSelect() {
     return Stream.of(databases)
                  .map(db -> dynamicTest(db.target().toString(), () -> {

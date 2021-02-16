@@ -9,6 +9,7 @@ import ma.vi.esql.database.Structure;
 import ma.vi.esql.grammar.EsqlLexer;
 import ma.vi.esql.grammar.EsqlParser;
 import ma.vi.esql.parser.expression.Expression;
+import org.antlr.v4.runtime.BailErrorStrategy;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.ParserRuleContext;
@@ -22,7 +23,6 @@ import static org.antlr.v4.runtime.CharStreams.fromString;
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 public class Parser {
-
   public Parser(Structure structure) {
     this.structure = structure;
   }
@@ -37,7 +37,7 @@ public class Parser {
   public <T extends Esql<?, ?>> T parse(String esql, String as) {
     try {
       EsqlParser p = parser(esql);
-      return (T)parse(structure, (ParserRuleContext)Dissector.method(p.getClass(), as).get().invoke(p), esql);
+      return (T)parse(structure, (ParserRuleContext)Dissector.method(p.getClass(), as).get().invoke(p));
     } catch (Exception e) {
       throw e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e);
     }
@@ -57,14 +57,13 @@ public class Parser {
     EsqlParser esqlParser = new EsqlParser(tokens);
     esqlParser.removeErrorListeners();
     esqlParser.addErrorListener(new ErrorListener());
+    esqlParser.setErrorHandler(new BailErrorStrategy());
     return esqlParser;
   }
 
-  public static Esql<?, ?> parse(Structure structure,
-                                 ParserRuleContext startFrom,
-                                 String input) {
+  public static Esql<?, ?> parse(Structure structure, ParserRuleContext startFrom) {
     Context context = new Context(structure);
-    Analyser analyser = new Analyser(context, input);
+    Analyser analyser = new Analyser(context);
     ParseTreeWalker walker = new ParseTreeWalker();
     walker.walk(analyser, startFrom);
 
@@ -88,15 +87,14 @@ public class Parser {
    * @return The parsed program
    */
   public static Program parse(Structure structure, String esql) {
-    return (Program)parse(structure, parser(esql).program(), esql);
+    return (Program)parse(structure, parser(esql).program());
   }
 
   /**
    * Parses a database expression passed in string form.
    */
-  public static Expression<?> parseExpression(Structure structure,
-                                              String expression) {
-    return (Expression<?>)parse(structure, parser(expression).expr(), expression);
+  public static Expression<?> parseExpression(Structure structure, String expression) {
+    return (Expression<?>)parse(structure, parser(expression).expr());
   }
 
   public interface Rules {
