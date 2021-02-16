@@ -22,6 +22,10 @@ public class ErrorListener extends BaseErrorListener {
                           int charPositionInLine,
                           String msg,
                           RecognitionException e) {
-    Analyser.error((ParserRuleContext)e.getCtx(), msg);
+    if (e != null) {
+      Analyser.error((ParserRuleContext)e.getCtx(), msg);
+    } else {
+      Analyser.error(msg, line, charPositionInLine);
+    }
   }
 }

@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Planned]
 - Support for Oracle database.
-- Result transformers and encoders.  
+- Result transformers and encoders.
 - Testing of all normal functions.
 - Testing of all macro functions.
 - Testing of grouping (normal, cube, rollup).
@@ -17,13 +17,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Complete documentation of ESQL grammar.
 - Document purpose and usage. 
 - Performance testing.
-- Improve error detection and reporting in Analyser.
-  - Missing or wrong keyword.
-  - Missing closing bracket, square bracket, parenthesis.
-  - Missing commas, semi-colons.  
-  - Use of reserved keywords in wrong parts.
+
+### Fixed
+- `exists` should not expand column list (in general, conditions over subqueries
+  should not expand the columns in the subquery)
+- `exists` fails in SQL Server  
 
 ## [Unreleased]
+### Added
+- Improved error detection: use of reserved keywords in wrong parts and missing/wrong keyword.
+- Improved error detection: missing commas and semi-colons.
+- Improved error detection: missing closing bracket, square bracket, parenthesis.
+
+## [0.3.2] - 2021-02-16
+### Added
 - ESQL transformers (prior to execution, to inject specific behaviour by rewriting ESQL).
 - Improved detection of general syntax errors, and missing (or wrong) from clause in selects. 
 

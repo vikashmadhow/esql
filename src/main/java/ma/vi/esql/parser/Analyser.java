@@ -82,6 +82,11 @@ public class Analyser extends EsqlBaseListener {
                               startIndex, stopLine, stopPos, stopIndex);
   }
 
+  public static void error(String message, int startLine, int startPos) throws SyntaxException {
+    log.log(ERROR, "ERROR " + message + "' at [" + startLine + ":" + startPos + "]");
+    throw new SyntaxException(message, null, null, startLine, startPos, 0, 0, 0, 0);
+  }
+
   @Override
   public void exitEveryRule(ParserRuleContext ctx) {
     lastRecognised = get(ctx);
@@ -127,6 +132,9 @@ public class Analyser extends EsqlBaseListener {
     DistinctContext distinct = ctx.distinct();
     if (ctx.tableExpr() == null) {
       error(ctx,"Missing or wrong from clause in Select");
+    }
+    if (ctx.columns() == null) {
+      error(ctx,"No columns specified in Select");
     }
     put(ctx, new Select(context,
                         ctx.metadata() == null ? null : get(ctx.metadata()),

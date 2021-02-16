@@ -9,7 +9,6 @@ import ma.vi.esql.database.Structure;
 import ma.vi.esql.grammar.EsqlLexer;
 import ma.vi.esql.grammar.EsqlParser;
 import ma.vi.esql.parser.expression.Expression;
-import org.antlr.v4.runtime.BailErrorStrategy;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.ParserRuleContext;
@@ -57,7 +56,7 @@ public class Parser {
     EsqlParser esqlParser = new EsqlParser(tokens);
     esqlParser.removeErrorListeners();
     esqlParser.addErrorListener(new ErrorListener());
-    esqlParser.setErrorHandler(new BailErrorStrategy());
+    esqlParser.setErrorHandler(new ParserErrorStrategy());
     return esqlParser;
   }
 
