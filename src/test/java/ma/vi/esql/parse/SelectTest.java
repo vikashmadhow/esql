@@ -271,6 +271,7 @@ public class SelectTest extends DataTest {
                                              "  left join a.b.T on s._id=T.s_id " +
                                              "  join x:a.b.X on x.t_id=T._id " +
                                              " times y:b.Y " +
+                                             " where left(s.i, 2)='PI'" +
                                              " order by s.a desc," +
                                              "          y.b," +
                                              "          T.b asc", SELECT);

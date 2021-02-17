@@ -251,7 +251,7 @@ public class Analyser extends EsqlBaseListener {
   public void exitJoinTableExpr(JoinTableExprContext ctx) {
     put(ctx, new JoinTableExpr(context,
                                get(ctx.left),
-                               ctx.joinType() == null ? null : ctx.joinType().getText(),
+                               ctx.JoinType() == null ? null : ctx.JoinType().getText(),
                                get(ctx.right),
                                get(ctx.expr())));
   }

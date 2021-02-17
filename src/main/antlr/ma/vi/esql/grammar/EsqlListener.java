@@ -304,16 +304,6 @@ public interface EsqlListener extends ParseTreeListener {
 	 */
 	void exitNameWithMetadata(EsqlParser.NameWithMetadataContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link EsqlParser#joinType}.
-	 * @param ctx the parse tree
-	 */
-	void enterJoinType(EsqlParser.JoinTypeContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link EsqlParser#joinType}.
-	 * @param ctx the parse tree
-	 */
-	void exitJoinType(EsqlParser.JoinTypeContext ctx);
-	/**
 	 * Enter a parse tree produced by the {@code SimpleGroup}
 	 * labeled alternative in {@link EsqlParser#groupByList}.
 	 * @param ctx the parse tree

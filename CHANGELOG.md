@@ -19,15 +19,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Performance testing.
 
 ### Fixed
-- `exists` should not expand column list (in general, conditions over subqueries
-  should not expand the columns in the subquery)
-- `exists` fails in SQL Server  
+- `exists` should not expand column list (in general, conditions over subqueries should not expand the columns in 
+  the subquery)
 
 ## [Unreleased]
 ### Added
 - Improved error detection: use of reserved keywords in wrong parts and missing/wrong keyword.
 - Improved error detection: missing commas and semi-colons.
 - Improved error detection: missing closing bracket, square bracket, parenthesis.
+
+### Fixed
+- Improved bool support in nested queries on SQL Server solving error in nested `exists` queries.
 
 ## [0.3.2] - 2021-02-16
 ### Added

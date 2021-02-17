@@ -319,7 +319,7 @@ tableExpr
     | alias ':' '(' select ')'                                   #SelectTableExpr
     | alias metadata? dynamicColumns ':' '(' rows ')'            #DynamicTableExpr
     | left=tableExpr 'times' right=tableExpr                     #CrossProductTableExpr
-    | left=tableExpr joinType? 'join' right=tableExpr 'on' expr  #JoinTableExpr
+    | left=tableExpr JoinType? 'join' right=tableExpr 'on' expr  #JoinTableExpr
     ;
 
 /**
@@ -343,7 +343,7 @@ nameWithMetadata
  * built with these respective keywords before the `join` keyword in a table
  * expression; when none of those are provided, an inner join is assumed.
  */
-joinType
+JoinType
     : 'left'
     | 'right'
     | 'full'
@@ -653,11 +653,6 @@ expr
       '(' distinct? (expressionList | select | star='*')? ')'
       window?                                                   #FunctionInvocation
 
-//      /*
-//       * Boolean expression returning true if the select returns one or more rows.
-//       */
-//    | 'exists' '(' select ')'                                   #Existence
-
       /*
        * Two-sided comparison similar to what is present in the Python language
        * and similar to (but more powerful than) the `between` operator in SQL.
@@ -734,9 +729,10 @@ expr
        * Ternary `if` following the same syntax as in Python:
        *    <true result> if <condition> else <expression if condition is false>
        * E.g.:
-       *    'a' if x else
-       *    'b' if y else
-       *    'c' if z else 'e'
+       *      'a' if x
+       * else 'b' if y
+       * else 'c' if z
+       * else 'e'
        */
     | <assoc=right> expr ('if' expr 'else' expr)+               #CaseExpr
 
