@@ -16,6 +16,7 @@ import ma.vi.esql.type.*;
 import java.util.Map;
 
 import static ma.vi.esql.builder.Attributes.TYPE;
+import static ma.vi.esql.translator.SqlServerTranslator.requireIif;
 
 /**
  * Reference to a column.
@@ -183,7 +184,7 @@ public class ColumnRef extends Expression<String> implements Macro {
   public String translate(Target target, Map<String, Object> parameters) {
     boolean sqlServerBool = target == Target.SQLSERVER
                          && type() == Types.BoolType
-                         && (ancestor("on") != null || ancestor("where") != null || ancestor("having") != null)
+                         && !requireIif(this)
                          && (parent == null || parent.ancestor(Coalesce.class) == null);
     return switch (target) {
       case ESQL, JAVASCRIPT -> qualifiedName();

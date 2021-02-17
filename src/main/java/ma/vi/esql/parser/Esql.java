@@ -403,6 +403,23 @@ public class  Esql<V, R> implements Close, Copy<Esql<V, R>>, Translatable<R> {
     }
   }
 
+  public int ancestorDistance(String name) {
+    if (parent == null) {
+      return MAX_VALUE;
+
+    } else if (parent.children.containsKey(name)
+            && parent.children.get(name).equals(this)) {
+      return 0;
+
+    } else {
+      int parentLevel = parent.ancestorDistance(name);
+      return parentLevel == MAX_VALUE
+                ? MAX_VALUE
+                : parentLevel + 1;
+
+    }
+  }
+
   /**
    * Return the first child (or itself) of the specified type in the Esql.
    * Return null if no such child exist.

@@ -10,6 +10,7 @@ import ma.vi.esql.parser.Esql;
 import java.util.Map;
 
 import static ma.vi.esql.parser.Translatable.Target.SQLSERVER;
+import static ma.vi.esql.translator.SqlServerTranslator.requireIif;
 
 /**
  * The case-insensitive like operator (ilike) in ESQL.
@@ -52,9 +53,7 @@ public class ILike extends RelationalOperator {
       String e = '(' + expr1().translate(target, parameters) + ") collate Latin1_General_CI_AS"
           + (not() ? " not" : "")
           + " like (" + expr2().translate(target, parameters) + ") collate Latin1_General_CI_AS";
-      if (ancestor("on") == null
-       && ancestor("where") == null
-       && ancestor("having") == null) {
+      if (requireIif(this)) {
         e = "iif(" + e + ", 1, 0)";
       }
       return e;

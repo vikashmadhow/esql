@@ -17,7 +17,7 @@ import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import static org.antlr.v4.runtime.CharStreams.fromString;
 
 /**
- * Knows how to parse ESQL statements and expressions
+ * Entry-point to the ESQL parser.
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */

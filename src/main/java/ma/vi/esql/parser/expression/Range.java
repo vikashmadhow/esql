@@ -14,6 +14,7 @@ import java.util.Map;
 
 import static ma.vi.base.string.Escape.escapeJsonString;
 import static ma.vi.esql.parser.Translatable.Target.JSON;
+import static ma.vi.esql.translator.SqlServerTranslator.requireIif;
 
 /**
  * A range expression bounds an expression between two expression
@@ -67,10 +68,7 @@ public class Range extends Expression<Expression<?>> {
         return target == JSON ? '"' + escapeJsonString(e) + '"' : e;
       }
       default -> {
-        boolean sqlServerBool = target == Target.SQLSERVER
-                             && ancestor("on") == null
-                             && ancestor("where") == null
-                             && ancestor("having") == null;
+        boolean sqlServerBool = target == Target.SQLSERVER && requireIif(this);
         return (sqlServerBool ? "iif" : "") + '('
              + leftExpression().translate(target, parameters) + ' ' + leftCompare() + ' '
              + compareExpression().translate(target, parameters) + " and "

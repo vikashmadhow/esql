@@ -2,6 +2,7 @@ package ma.vi.esql.translator;
 
 import ma.vi.base.string.Strings;
 import ma.vi.esql.function.Function;
+import ma.vi.esql.parser.Esql;
 import ma.vi.esql.parser.Translatable;
 import ma.vi.esql.parser.TranslationException;
 import ma.vi.esql.parser.define.GroupBy;
@@ -19,6 +20,7 @@ import ma.vi.esql.type.Type;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static java.lang.Math.min;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 import static java.util.stream.Collectors.joining;
@@ -393,5 +395,27 @@ public class SqlServerTranslator extends AbstractTranslator {
       return new QueryTranslation(st.toString(), q.columns, q.columnToIndex,
                                   q.resultAttributeIndices, q.resultAttributes);
     }
+  }
+
+  /**
+   * To simulate boolean values in SQL Server, we need to surround boolean-returning
+   * expressions with IIF in Sql Server but only where boolean expressions are not
+   * allowed. Latter are allowed only in where, on and having clause, which IIF is
+   * required if the boolean expressions appears in a columns list, group-by list
+   * or order-by list. Because ESQL statements can be nested we need to look at
+   * the distance of ancestor to determine whether IIF is needed or not.
+   */
+  public static boolean requireIif(Esql<?, ?> esql) {
+    int columnsDist = esql.ancestorDistance("columns");
+    int orderByDist = esql.ancestorDistance("orderBy");
+    int groupByDist = esql.ancestorDistance("groupBy");
+    int whereDist = esql.ancestorDistance("where");
+    int havingDist = esql.ancestorDistance("having");
+    int onDist = esql.ancestorDistance("on");
+
+    int reqIf = min(columnsDist, min(orderByDist, groupByDist));
+    int noIf = min(whereDist, min(havingDist, onDist));
+
+    return reqIf < noIf;
   }
 }

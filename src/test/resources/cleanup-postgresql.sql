@@ -103,7 +103,7 @@ where exists(select N'S'                                                        
                     (select max("a") "max" from "DBO"."S" "S")                                                                                                                             "f",
                     (select distinct ("S"."a" + "S"."b") "c"
                      from "DBO"."S" "S"
-                     where iif(("S"."b" + ("S"."a" + "S"."b")) > 5, 1, 0))                                                                                                                 "g",
+                     where (("S"."b" + ("S"."a" + "S"."b")) > 5))                                                                                                                          "g",
                     "S"."h"                                                                                                                                                                "h",
                     "S"."i"                                                                                                                                                                "i",
                     "S"."j"                                                                                                                                                                "j",
@@ -177,9 +177,9 @@ where exists(select N'S'                                                        
                     '5036a7d9-589a-473a-a258-6689880bde56'                                                                                                                                 "i/id",
                     (select "lv"."label" "label"
                      from "_platform.lookup"."LookupValue" "lv"
-                              join "_platform.lookup"."Lookup" "l" on (iif(
-                                 (iif("lv"."lookup_id" = "l"."_id", 1, 0)) and (iif("l"."name" = N'City', 1, 0)), 1, 0))
-                     where (iif("lv"."code" = "i", 1, 0)))                                                                                                                                 "i/label",
+                              join "_platform.lookup"."Lookup" "l"
+                                   on (((("lv"."lookup_id" = "l"."_id")) and (("l"."name" = N'City'))))
+                     where (("lv"."code" = "i")))                                                                                                                                          "i/label",
                     '(label:lv.label from lv:_platform.lookup.LookupValue join l:_platform.lookup.Lookup on ((((lv.lookup_id = l._id)) and ((l.name = ''City'')))) where ((lv.code = i)))' "i/label/e",
                     N'string'                                                                                                                                                              "i/type",
                     0                                                                                                                                                                      "i/required",

@@ -9,6 +9,8 @@ import ma.vi.esql.type.Type;
 import ma.vi.esql.type.Types;
 
 import java.util.Map;
+import static java.lang.Math.min;
+import static ma.vi.esql.translator.SqlServerTranslator.requireIif;
 
 /**
  * A relational expression (such as comparison) always has a
@@ -46,10 +48,7 @@ public class RelationalOperator extends BinaryOperator {
 
   @Override
   public String translate(Target target, Map<String, Object> parameters) {
-    boolean sqlServerBool = target == Target.SQLSERVER
-                         && ancestor("on") == null
-                         && ancestor("where") == null
-                         && ancestor("having") == null;
+    boolean sqlServerBool = target == Target.SQLSERVER && requireIif(this);
     return (sqlServerBool ? "iif" : "") + '('
          + super.translate(target, parameters)
          + (sqlServerBool ? ", 1, 0" : "") + ')';
