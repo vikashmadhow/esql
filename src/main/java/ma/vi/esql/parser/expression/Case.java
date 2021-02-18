@@ -6,6 +6,7 @@ package ma.vi.esql.parser.expression;
 
 import ma.vi.esql.parser.Context;
 
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -88,6 +89,25 @@ public class Case extends MultipleSubExpressions<String> {
         return est.toString();
       }
 
+      case SQLSERVER -> {
+        StringBuilder st = new StringBuilder("case");
+        Map<String, Object> addIif = new HashMap<>(parameters);
+        addIif.put("addIif", true);
+        Map<String, Object> dontAddIif = new HashMap<>(parameters);
+        dontAddIif.put("addIif", false);
+        for (Iterator<Expression<?>> i = expressions().iterator(); i.hasNext(); ) {
+          Expression<?> e = i.next();
+          if (i.hasNext()) {
+            st.append(" when ").append(i.next().translate(target, dontAddIif))
+              .append(" then ").append(e.translate(target, addIif));
+          } else {
+            st.append(" else ").append(e.translate(target, parameters));
+          }
+        }
+        st.append(" end");
+        return st.toString();
+      }
+
       default -> {
         StringBuilder st = new StringBuilder("case");
         for (Iterator<Expression<?>> i = expressions().iterator(); i.hasNext(); ) {
@@ -114,9 +134,9 @@ public class Case extends MultipleSubExpressions<String> {
       else       { st.append(" else "); }
 
       if (i.hasNext()) {
-        i.next()._toString(st, level, indent);
-        st.append(" if ");
         e._toString(st, level, indent);
+        st.append(" if ");
+        i.next()._toString(st, level, indent);
       } else {
         e._toString(st, level, indent);
       }

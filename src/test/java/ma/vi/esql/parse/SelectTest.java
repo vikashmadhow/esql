@@ -266,14 +266,14 @@ public class SelectTest extends DataTest {
                    System.out.println(db.target());
                    Parser p = new Parser(db.structure());
                    try (EsqlConnection con = db.esql(db.pooledConnection())) {
-                     Select select = p.parse("select s.*, T.*, v:x.a + y.b {m1:x.a, m2: y.b >= 5} " +
-                                             "  from s:S " +
-                                             "  left join a.b.T on s._id=T.s_id " +
-                                             "  join x:a.b.X on x.t_id=T._id " +
-                                             " times y:b.Y " +
-                                             " where left(s.i, 2)='PI'" +
-                                             " order by s.a desc," +
-                                             "          y.b," +
+                     Select select = p.parse("select s.*, T.*, v:x.a + y.b {m1:x.a, m2: y.b >= 5}\n" +
+                                             "  from s:S \n" +
+                                             "  left join a.b.T on s._id=T.s_id \n" +
+                                             "  join x:a.b.X on x.t_id=T._id \n" +
+                                             " times y:b.Y \n" +
+                                             " where leftstr(s.i, 2)='PI' \n" +
+                                             " order by s.a desc, \n" +
+                                             "          y.b, \n" +
                                              "          T.b asc", SELECT);
 
                      Context context = new Context(db.structure());
@@ -285,6 +285,7 @@ public class SelectTest extends DataTest {
                                       .leftJoin("a.b.T", null, "s._id = T.s_id")
                                       .join("a.b.X", "x", "x.t_id = T._id")
                                       .times("b.Y", "y")
+                                      .where("leftstr(s.i, 2)='PI'")
                                       .orderBy("s.a", "desc")
                                       .orderBy("y.b")
                                       .orderBy("T.b", "asc")

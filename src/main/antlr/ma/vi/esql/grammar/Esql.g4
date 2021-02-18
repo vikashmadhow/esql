@@ -77,9 +77,9 @@ select
     :  'select' (metadata ','?)? distinct? explicit? columns
       (  'from' tableExpr)?
       ( 'where' where=expr)?
-      ( 'order' 'by' orderByList)?
       ( 'group' 'by' groupByList)?
       ('having' having=expr)?
+      ( 'order' 'by' orderByList)?
       ('offset' offset=expr)?
       ( 'limit' limit=expr)?                #BaseSelection
 

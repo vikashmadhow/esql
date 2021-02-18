@@ -76,8 +76,8 @@ public class EsqlParser extends Parser {
 
 	private static String[] makeLiteralNames() {
 		return new String[] {
-			null, "';'", "'select'", "','", "'from'", "'where'", "'order'", "'by'", 
-			"'group'", "'having'", "'offset'", "'limit'", "'{'", "'}'", "':'", "'all'", 
+			null, "';'", "'select'", "','", "'from'", "'where'", "'group'", "'by'", 
+			"'having'", "'order'", "'offset'", "'limit'", "'{'", "'}'", "':'", "'all'", 
 			"'distinct'", "'on'", "'('", "')'", "'explicit'", "'*'", "'/'", "'.'", 
 			"'times'", "'join'", "'rollup'", "'cube'", "'asc'", "'desc'", "'union'", 
 			"'intersect'", "'except'", "'with'", "'recursive'", "'insert'", "'into'", 
@@ -541,11 +541,11 @@ public class EsqlParser extends Parser {
 		public TableExprContext tableExpr() {
 			return getRuleContext(TableExprContext.class,0);
 		}
-		public OrderByListContext orderByList() {
-			return getRuleContext(OrderByListContext.class,0);
-		}
 		public GroupByListContext groupByList() {
 			return getRuleContext(GroupByListContext.class,0);
+		}
+		public OrderByListContext orderByList() {
+			return getRuleContext(OrderByListContext.class,0);
 		}
 		public List<ExprContext> expr() {
 			return getRuleContexts(ExprContext.class);
@@ -667,11 +667,11 @@ public class EsqlParser extends Parser {
 					setState(192);
 					match(T__6);
 					setState(193);
-					orderByList();
+					groupByList();
 					}
 					break;
 				}
-				setState(199);
+				setState(198);
 				_errHandler.sync(this);
 				switch ( getInterpreter().adaptivePredict(_input,12,_ctx) ) {
 				case 1:
@@ -679,9 +679,7 @@ public class EsqlParser extends Parser {
 					setState(196);
 					match(T__7);
 					setState(197);
-					match(T__6);
-					setState(198);
-					groupByList();
+					((BaseSelectionContext)_localctx).having = expr(0);
 					}
 					break;
 				}
@@ -690,10 +688,12 @@ public class EsqlParser extends Parser {
 				switch ( getInterpreter().adaptivePredict(_input,13,_ctx) ) {
 				case 1:
 					{
-					setState(201);
+					setState(200);
 					match(T__8);
+					setState(201);
+					match(T__6);
 					setState(202);
-					((BaseSelectionContext)_localctx).having = expr(0);
+					orderByList();
 					}
 					break;
 				}
@@ -4788,10 +4788,10 @@ public class EsqlParser extends Parser {
 			setState(735);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
-			if (_la==T__5) {
+			if (_la==T__8) {
 				{
 				setState(732);
-				match(T__5);
+				match(T__8);
 				setState(733);
 				match(T__6);
 				setState(734);
@@ -4871,10 +4871,10 @@ public class EsqlParser extends Parser {
 			setState(751);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
-			if (_la==T__5) {
+			if (_la==T__8) {
 				{
 				setState(748);
-				match(T__5);
+				match(T__8);
 				setState(749);
 				match(T__6);
 				setState(750);
@@ -7362,7 +7362,7 @@ public class EsqlParser extends Parser {
 		"\3\4\3\4\5\4\u00a0\n\4\3\5\3\5\3\5\5\5\u00a5\n\5\3\6\3\6\5\6\u00a9\n\6"+
 		"\3\7\3\7\3\7\3\7\5\7\u00af\n\7\5\7\u00b1\n\7\3\7\5\7\u00b4\n\7\3\7\5\7"+
 		"\u00b7\n\7\3\7\3\7\3\7\5\7\u00bc\n\7\3\7\3\7\5\7\u00c0\n\7\3\7\3\7\3\7"+
-		"\5\7\u00c5\n\7\3\7\3\7\3\7\5\7\u00ca\n\7\3\7\3\7\5\7\u00ce\n\7\3\7\3\7"+
+		"\5\7\u00c5\n\7\3\7\3\7\5\7\u00c9\n\7\3\7\3\7\3\7\5\7\u00ce\n\7\3\7\3\7"+
 		"\5\7\u00d2\n\7\3\7\3\7\5\7\u00d6\n\7\3\7\5\7\u00d9\n\7\3\7\3\7\3\7\3\7"+
 		"\7\7\u00df\n\7\f\7\16\7\u00e2\13\7\3\b\3\b\3\b\3\b\3\t\3\t\3\t\7\t\u00eb"+
 		"\n\t\f\t\16\t\u00ee\13\t\3\n\3\n\3\n\3\n\3\13\3\13\3\13\3\13\3\13\3\13"+
@@ -7457,11 +7457,11 @@ public class EsqlParser extends Parser {
 		"\"\22\2\u00bb\u00b9\3\2\2\2\u00bb\u00bc\3\2\2\2\u00bc\u00bf\3\2\2\2\u00bd"+
 		"\u00be\7\7\2\2\u00be\u00c0\5J&\2\u00bf\u00bd\3\2\2\2\u00bf\u00c0\3\2\2"+
 		"\2\u00c0\u00c4\3\2\2\2\u00c1\u00c2\7\b\2\2\u00c2\u00c3\7\t\2\2\u00c3\u00c5"+
-		"\5*\26\2\u00c4\u00c1\3\2\2\2\u00c4\u00c5\3\2\2\2\u00c5\u00c9\3\2\2\2\u00c6"+
-		"\u00c7\7\n\2\2\u00c7\u00c8\7\t\2\2\u00c8\u00ca\5(\25\2\u00c9\u00c6\3\2"+
-		"\2\2\u00c9\u00ca\3\2\2\2\u00ca\u00cd\3\2\2\2\u00cb\u00cc\7\13\2\2\u00cc"+
-		"\u00ce\5J&\2\u00cd\u00cb\3\2\2\2\u00cd\u00ce\3\2\2\2\u00ce\u00d1\3\2\2"+
-		"\2\u00cf\u00d0\7\f\2\2\u00d0\u00d2\5J&\2\u00d1\u00cf\3\2\2\2\u00d1\u00d2"+
+		"\5(\25\2\u00c4\u00c1\3\2\2\2\u00c4\u00c5\3\2\2\2\u00c5\u00c8\3\2\2\2\u00c6"+
+		"\u00c7\7\n\2\2\u00c7\u00c9\5J&\2\u00c8\u00c6\3\2\2\2\u00c8\u00c9\3\2\2"+
+		"\2\u00c9\u00cd\3\2\2\2\u00ca\u00cb\7\13\2\2\u00cb\u00cc\7\t\2\2\u00cc"+
+		"\u00ce\5*\26\2\u00cd\u00ca\3\2\2\2\u00cd\u00ce\3\2\2\2\u00ce\u00d1\3\2"+
+		"\2\2\u00cf\u00d0\7\f\2\2\u00d0\u00d2\5J&\2\u00d1\u00cf\3\2\2\2\u00d1\u00d2"+
 		"\3\2\2\2\u00d2\u00d5\3\2\2\2\u00d3\u00d4\7\r\2\2\u00d4\u00d6\5J&\2\u00d5"+
 		"\u00d3\3\2\2\2\u00d5\u00d6\3\2\2\2\u00d6\u00d9\3\2\2\2\u00d7\u00d9\5\62"+
 		"\32\2\u00d8\u00aa\3\2\2\2\u00d8\u00d7\3\2\2\2\u00d9\u00e0\3\2\2\2\u00da"+
@@ -7639,14 +7639,14 @@ public class EsqlParser extends Parser {
 		"\u02d3\u02d4\7\20\2\2\u02d4\u02d6\3\2\2\2\u02d5\u02d2\3\2\2\2\u02d5\u02d6"+
 		"\3\2\2\2\u02d6\u02d7\3\2\2\2\u02d7\u02d8\5J&\2\u02d8\u02d9\7\6\2\2\u02d9"+
 		"\u02dc\5\"\22\2\u02da\u02db\7\7\2\2\u02db\u02dd\5J&\2\u02dc\u02da\3\2"+
-		"\2\2\u02dc\u02dd\3\2\2\2\u02dd\u02e1\3\2\2\2\u02de\u02df\7\b\2\2\u02df"+
+		"\2\2\u02dc\u02dd\3\2\2\2\u02dd\u02e1\3\2\2\2\u02de\u02df\7\13\2\2\u02df"+
 		"\u02e0\7\t\2\2\u02e0\u02e2\5*\26\2\u02e1\u02de\3\2\2\2\u02e1\u02e2\3\2"+
 		"\2\2\u02e2\u02e5\3\2\2\2\u02e3\u02e4\7\f\2\2\u02e4\u02e6\5J&\2\u02e5\u02e3"+
 		"\3\2\2\2\u02e5\u02e6\3\2\2\2\u02e6\u02e7\3\2\2\2\u02e7\u02e8\7\25\2\2"+
 		"\u02e8O\3\2\2\2\u02e9\u02ea\7A\2\2\u02ea\u02ec\7\24\2\2\u02eb\u02ed\5"+
 		"R*\2\u02ec\u02eb\3\2\2\2\u02ec\u02ed\3\2\2\2\u02ed\u02f1\3\2\2\2\u02ee"+
-		"\u02ef\7\b\2\2\u02ef\u02f0\7\t\2\2\u02f0\u02f2\5*\26\2\u02f1\u02ee\3\2"+
-		"\2\2\u02f1\u02f2\3\2\2\2\u02f2\u02f3\3\2\2\2\u02f3\u02f4\7\25\2\2\u02f4"+
+		"\u02ef\7\13\2\2\u02ef\u02f0\7\t\2\2\u02f0\u02f2\5*\26\2\u02f1\u02ee\3"+
+		"\2\2\2\u02f1\u02f2\3\2\2\2\u02f2\u02f3\3\2\2\2\u02f3\u02f4\7\25\2\2\u02f4"+
 		"Q\3\2\2\2\u02f5\u02f6\7B\2\2\u02f6\u02f7\7\t\2\2\u02f7\u02f8\5X-\2\u02f8"+
 		"S\3\2\2\2\u02f9\u02fa\t\5\2\2\u02faU\3\2\2\2\u02fb\u02fc\t\6\2\2\u02fc"+
 		"W\3\2\2\2\u02fd\u0302\5J&\2\u02fe\u02ff\7\5\2\2\u02ff\u0301\5J&\2\u0300"+
@@ -7737,7 +7737,7 @@ public class EsqlParser extends Parser {
 		"\3\2\2\2\u03f6\u03f8\7G\2\2\u03f7\u03f1\3\2\2\2\u03f8\u03fb\3\2\2\2\u03f9"+
 		"\u03f7\3\2\2\2\u03f9\u03fa\3\2\2\2\u03fa\u008d\3\2\2\2\u03fb\u03f9\3\2"+
 		"\2\2\u0081\u0093\u0097\u009f\u00a4\u00a8\u00ae\u00b0\u00b3\u00b6\u00bb"+
-		"\u00bf\u00c4\u00c9\u00cd\u00d1\u00d5\u00d8\u00e0\u00ec\u00fa\u00fc\u0105"+
+		"\u00bf\u00c4\u00c8\u00cd\u00d1\u00d5\u00d8\u00e0\u00ec\u00fa\u00fc\u0105"+
 		"\u010b\u010f\u0112\u0115\u0118\u011f\u0124\u012b\u0132\u013d\u0145\u014c"+
 		"\u0153\u0155\u015e\u0165\u0172\u0179\u017e\u0187\u018b\u0195\u019a\u01a6"+
 		"\u01b0\u01b4\u01ba\u01be\u01c1\u01c8\u01da\u01de\u01e1\u01e8\u01f5\u01f9"+

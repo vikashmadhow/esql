@@ -4,92 +4,56 @@
 
 package ma.vi.esql.parse;
 
-import ma.vi.esql.Databases;
-import ma.vi.esql.TestDatabase;
+import ma.vi.esql.DataTest;
+import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.exec.Result;
 import ma.vi.esql.parser.Parser;
-import ma.vi.esql.parser.SyntaxException;
-import org.junit.jupiter.api.Test;
+import ma.vi.esql.parser.query.Select;
+import org.junit.jupiter.api.DynamicTest;
+import org.junit.jupiter.api.TestFactory;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import java.util.UUID;
+import java.util.stream.Stream;
 
-public class ParseTest {
-  @Test
-  void invalidBaseType() {
-    TestDatabase db = Databases.TestDatabase();
-    Parser parser = new Parser(db.structure());
-    assertThrows(SyntaxException.class, () ->
-                 parser.parse("create table A(\n" +
-                              "  _id uuid, \n" +
-                              "  name str, \n" +
-                              "  age int\n" +
-                              ")"));
-  }
+import static ma.vi.esql.parser.Parser.Rules.SELECT;
+import static org.junit.jupiter.api.DynamicTest.dynamicTest;
 
-  @Test
-  void invalidComponentTypeOfArray() {
-    TestDatabase db = Databases.TestDatabase();
-    Parser parser = new Parser(db.structure());
-    assertThrows(SyntaxException.class, () ->
-                 parser.parse("create table A(\n" +
-                              "  _id uuid[][], \n" +
-                              "  name str[], \n" +
-                              "  age int\n" +
-                              ")"));
-  }
+public class ParseTest extends DataTest {
 
-  @Test
-  void syntaxErrorInSelect() {
-    TestDatabase db = Databases.TestDatabase();
-    Parser parser = new Parser(db.structure());
-    assertThrows(SyntaxException.class, () -> parser.parse("select * S"));
-    assertThrows(SyntaxException.class, () -> parser.parse("select * fro S"));
-    assertThrows(SyntaxException.class, () -> parser.parse("select from S"));
-    assertThrows(SyntaxException.class, () -> parser.parse("from S"));
-  }
+  @TestFactory
+  Stream<DynamicTest> simpleGroupby() {
+    return Stream.of(databases)
+                 .map(db -> dynamicTest(db.target().toString(), () -> {
+                   System.out.println(db.target());
+                   try (EsqlConnection con = db.esql(db.pooledConnection())) {
+                     con.exec("delete T from a.b.T");
+                     con.exec("delete s from s:S");
 
-  @Test
-  void syntaxErrorInCompositeSelect() {
-    TestDatabase db = Databases.TestDatabase();
-    Parser parser = new Parser(db.structure());
-    assertThrows(SyntaxException.class, () -> parser.parse("union all select * from S"));
-    assertThrows(SyntaxException.class, () -> parser.parse("except"));
-  }
+                     UUID id1 = UUID.randomUUID(), id2 = UUID.randomUUID();
+                     con.exec("insert into S(_id, a, b, e, h, j) values "
+                                  + "(u'" + id1 + "', 1, 2, true, text['Four', 'Quatre'], int[1, 2, 3]),"
+                                  + "(u'" + id2 + "', 6, 7, false, text['Nine', 'Neuf', 'X'], int[5, 6, 7, 8])");
 
-  @Test
-  void syntaxErrorInInsert() {
-    TestDatabase db = Databases.TestDatabase();
-    Parser parser = new Parser(db.structure());
-    assertThrows(SyntaxException.class, () -> parser.parse("insert into(a, b, c) values(1,2,3)"));
-    assertThrows(SyntaxException.class, () -> parser.parse("insert X(a, b, c) values(1,2,3)"));
-    assertThrows(SyntaxException.class, () -> parser.parse("insert X(a b, c) values(1,2,3)"));
-    assertThrows(SyntaxException.class, () -> parser.parse("insert X(a b, c) values(1,2 3)"));
-    assertThrows(SyntaxException.class, () -> parser.parse("insert X(a b, c) values 1,2 3)"));
-    assertThrows(SyntaxException.class, () -> parser.parse("insert X(a b, c) values 1,2 3"));
-    assertThrows(SyntaxException.class, () -> parser.parse("insert X(a b, c values(1,2 3)"));
-    assertThrows(SyntaxException.class, () -> parser.parse("insert Xa b, c) values(1,2 3)"));
-    assertThrows(SyntaxException.class, () -> parser.parse("insert X a b, c values(1,2 3)"));
-    assertThrows(SyntaxException.class, () -> parser.parse("insert X(a, b, c) select * fro S"));
-    assertThrows(SyntaxException.class, () -> parser.parse("insert X a, b, c) select * fro S"));
-    assertThrows(SyntaxException.class, () -> parser.parse("insert X(a, b, c select * fro S"));
-    assertThrows(SyntaxException.class, () -> parser.parse("insert X a, b, c select * fro S"));
-  }
+                     con.exec("insert into a.b.T(_id, a, b, s_id) values"
+                                  + "(newid(), 1, 2, u'" + id1 + "'), "
+                                  + "(newid(), 3, 4, u'" + id2 + "')");
 
-  @Test
-  void syntaxErrorInUpdate() {
-    TestDatabase db = Databases.TestDatabase();
-    Parser parser = new Parser(db.structure());
-    assertThrows(SyntaxException.class, () -> parser.parse("update X set a=b"));
-    assertThrows(SyntaxException.class, () -> parser.parse("update from X set a=b"));
-    assertThrows(SyntaxException.class, () -> parser.parse("update X from set a=b"));
-    assertThrows(SyntaxException.class, () -> parser.parse("update X from X where b>5"));
-  }
+                     Parser p = new Parser(db.structure());
+                     Select select = p.parse(
+                         "select s.c if 0 < t.b < 5 else s.a, "
+                             + "  'A' if t.b < 0 else "
+                             + "  'B' if 0 <= t.b < 5 else "
+                             + "  'C' if 5 <= t.b < 10 else 'D' "
+                             + "  from t:a.b.T join s:S on t.s_id=s._id", SELECT);
 
-  @Test
-  void syntaxErrorInDelete() {
-    TestDatabase db = Databases.TestDatabase();
-    Parser parser = new Parser(db.structure());
-    assertThrows(SyntaxException.class, () -> parser.parse("delete X set a=b"));
-    assertThrows(SyntaxException.class, () -> parser.parse("delete from X set a=b"));
-    assertThrows(SyntaxException.class, () -> parser.parse("delete X from set a=b"));
-  }
-}
+                     con.exec(select);
+
+//                     rs.next(); assertEquals(1, (Integer)rs.value("a"));
+//                                assertEquals(2, (Integer)rs.value("b"));
+//                                assertEquals(3, (Integer)rs.value("c"));
+//                     rs.next(); assertEquals(3, (Integer)rs.value("a"));
+//                                assertEquals(4, (Integer)rs.value("b"));
+//                                assertEquals(13, (Integer)rs.value("c"));
+                   }
+                 }));
+  }}

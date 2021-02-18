@@ -36,6 +36,37 @@ public class SqlServerTranslator extends AbstractTranslator {
 
   @Override
   protected QueryTranslation translate(Select select, Map<String, Object> parameters) {
+    /*
+     * If group by expression list contains numbers, those refer to the column expressions
+     * in the expressions list. This is not supported in SQL server, so replace the
+     * column reference with the actual column expression.
+     */
+    boolean hasComplexGroups = false;
+    GroupBy groupBy = select.groupBy();
+    if (groupBy != null) {
+      List<Expression<?>> newGroupExpressions = new ArrayList<>();
+      boolean groupExpressionsChanged = false;
+      for (Expression<?> expr: groupBy.groupBy()) {
+        if (expr.firstChild(Select.class) != null) {
+          hasComplexGroups = true;
+        }
+        if (expr instanceof IntegerLiteral){
+          groupExpressionsChanged = true;
+          int colPos = (((IntegerLiteral)expr).value).intValue();
+          if (select.columns().size() < colPos) {
+            throw new TranslationException("Group " + colPos + " does not exist in the columns list of the query");
+          } else {
+            newGroupExpressions.add(select.columns().get(colPos - 1).expr().copy());
+          }
+        } else {
+          newGroupExpressions.add(expr.copy());
+        }
+      }
+      if (groupExpressionsChanged) {
+        select.groupBy(new GroupBy(select.context, newGroupExpressions, groupBy.groupType()));
+      }
+    }
+
     List<Expression<?>> distinctOn = select.distinctOn();
     boolean subSelect = select.ancestor("tables") != null || select.ancestor(Cte.class) != null;
     if (select.distinct() && distinctOn != null && !distinctOn.isEmpty()) {
@@ -116,15 +147,6 @@ public class SqlServerTranslator extends AbstractTranslator {
                                   q.resultAttributeIndices,
                                   q.resultAttributes);
     } else {
-      boolean hasComplexGroups = false;
-      if (select.groupBy() != null) {
-        for (Expression<?> expr: select.groupBy().groupBy()) {
-          if (expr.firstChild(Select.class) != null) {
-            hasComplexGroups = true;
-            break;
-          }
-        }
-      }
       if (hasComplexGroups) {
         /*
          * SQL Server does not support the use of sub-queries in group by expression.
@@ -405,17 +427,21 @@ public class SqlServerTranslator extends AbstractTranslator {
    * or order-by list. Because ESQL statements can be nested we need to look at
    * the distance of ancestor to determine whether IIF is needed or not.
    */
-  public static boolean requireIif(Esql<?, ?> esql) {
-    int columnsDist = esql.ancestorDistance("columns");
-    int orderByDist = esql.ancestorDistance("orderBy");
-    int groupByDist = esql.ancestorDistance("groupBy");
-    int whereDist = esql.ancestorDistance("where");
-    int havingDist = esql.ancestorDistance("having");
-    int onDist = esql.ancestorDistance("on");
+  public static boolean requireIif(Esql<?, ?> esql, Map<String, Object> parameters) {
+    if (parameters.containsKey("addIif")) {
+       return (Boolean)parameters.get("addIif");
+    } else {
+      int columnsDist = esql.ancestorDistance("columns");
+      int orderByDist = esql.ancestorDistance("orderBy");
+      int groupByDist = esql.ancestorDistance("groupBy");
+      int whereDist = esql.ancestorDistance("where");
+      int havingDist = esql.ancestorDistance("having");
+      int onDist = esql.ancestorDistance("on");
 
-    int reqIf = min(columnsDist, min(orderByDist, groupByDist));
-    int noIf = min(whereDist, min(havingDist, onDist));
+      int reqIf = min(columnsDist, min(orderByDist, groupByDist));
+      int noIf = min(whereDist, min(havingDist, onDist));
 
-    return reqIf < noIf;
+      return reqIf < noIf;
+    }
   }
 }

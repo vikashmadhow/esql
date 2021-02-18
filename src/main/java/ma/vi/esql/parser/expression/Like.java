@@ -44,7 +44,7 @@ public class Like extends RelationalOperator {
       String e = '(' + expr1().translate(target, parameters) + ") collate Latin1_General_CS_AS"
                + (not() ? " not" : "")
                + " like (" + expr2().translate(target, parameters) + ") collate Latin1_General_CS_AS";
-      if (requireIif(this)) {
+      if (requireIif(this, parameters)) {
         e = "iif(" + e + ", 1, 0)";
       }
       return e;

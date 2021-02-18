@@ -5,11 +5,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Planned]
-- Support for Oracle database.
 - Result transformers and encoders.
 - Testing of all normal functions.
 - Testing of all macro functions.
-- Testing of grouping (normal, cube, rollup).
+- Testing of translation of grouping by complex expressions (subqueries) in SQL Server.
+- Testing of translation of distinct over multiple columns in SQL Server.
 - Testing of window functions.
 - Support for creating and using sequences.
 - Support for creating indices.
@@ -17,19 +17,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Complete documentation of ESQL grammar.
 - Document purpose and usage. 
 - Performance testing.
+- Support for Oracle database.
 
-### Fixed
-- `exists` should not expand column list (in general, conditions over subqueries should not expand the columns in 
-  the subquery)
-
-## [Unreleased]
+## [0.3.3] - 2021-02-18
 ### Added
 - Improved error detection: use of reserved keywords in wrong parts and missing/wrong keyword.
 - Improved error detection: missing commas and semi-colons.
 - Improved error detection: missing closing bracket, square bracket, parenthesis.
+- Group by clause can now refer to columns by position (e.g group by 1, 2 will group by the 1st and 2nd column 
+  expressions in the query).
+- Base testing of grouping (normal, cube, rollup).
 
 ### Fixed
-- Improved bool support in nested queries on SQL Server solving error in nested `exists` queries.
+- Improved bool support in nested queries on SQL Server using ancestorDistance and 
+  consequently solving the error in nested `exists` queries.
+- `order by` is not specified after `group by` in ESQL select, similar to the order
+  of execution of those clauses.
 
 ## [0.3.2] - 2021-02-16
 ### Added

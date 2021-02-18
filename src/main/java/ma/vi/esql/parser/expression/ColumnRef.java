@@ -184,7 +184,7 @@ public class ColumnRef extends Expression<String> implements Macro {
   public String translate(Target target, Map<String, Object> parameters) {
     boolean sqlServerBool = target == Target.SQLSERVER
                          && type() == Types.BoolType
-                         && !requireIif(this)
+                         && !requireIif(this, parameters)
                          && (parent == null || parent.ancestor(Coalesce.class) == null);
     return switch (target) {
       case ESQL, JAVASCRIPT -> qualifiedName();

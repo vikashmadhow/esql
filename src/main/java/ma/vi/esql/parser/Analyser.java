@@ -874,40 +874,16 @@ public class Analyser extends EsqlBaseListener {
 
   @Override
   public void exitCaseExpr(CaseExprContext ctx) {
-    List<ExprContext> expressions = ctx.expr();
-    boolean optimised = false;
-    if (expressions.size() == 3) {
-      /*
-       * Multi-select case statements are broken in 3-parts corresponding to
-       * (expr 'if' expr 'else' expr), associating to the right (starting at
-       * the end of the whole case expression). If the last expr is a case
-       * expression, we can optimise the whole case statement by combining it
-       * into a single one.
-       *
-       * Thus (e1 if e2 else case) where case is (e3 if e4 else e5)
-       * is combined into (e1 if e2 else e3 if e4 else e5)
-       */
-      Esql<?, ?> last = get(expressions.get(2));
-      if (last instanceof Case) {
-        Case lastCase = (Case)last;
-        List<Expression<?>> caseExprs = new ArrayList<>();
-        caseExprs.add(get(expressions.get(0)));
-        caseExprs.add(get(expressions.get(1)));
-        caseExprs.addAll(lastCase.expressions());
-        put(ctx, new Case(context, caseExprs));
-        optimised = true;
-      }
-    }
-    if (!optimised) {
-      put(ctx, new Case(context, ctx.expr().stream()
-                                    .map(e -> (Expression<?>)get(e))
-                                    .collect(toList())));
-    }
+    createCaseStatement(ctx, ctx.expr());
   }
 
   @Override
   public void exitSimpleCaseExpr(SimpleCaseExprContext ctx) {
-    List<SimpleExprContext> expressions = ctx.simpleExpr();
+    createCaseStatement(ctx, ctx.simpleExpr());
+  }
+
+  private void createCaseStatement(ParserRuleContext ctx,
+                                   List<? extends ParserRuleContext> expressions) {
     boolean optimised = false;
     if (expressions.size() == 3) {
       /*
@@ -932,7 +908,7 @@ public class Analyser extends EsqlBaseListener {
       }
     }
     if (!optimised) {
-      put(ctx, new Case(context, ctx.simpleExpr().stream()
+      put(ctx, new Case(context, expressions.stream()
                                     .map(e -> (Expression<?>)get(e))
                                     .collect(toList())));
     }

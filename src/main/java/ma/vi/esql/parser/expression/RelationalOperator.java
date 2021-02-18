@@ -9,7 +9,7 @@ import ma.vi.esql.type.Type;
 import ma.vi.esql.type.Types;
 
 import java.util.Map;
-import static java.lang.Math.min;
+
 import static ma.vi.esql.translator.SqlServerTranslator.requireIif;
 
 /**
@@ -48,7 +48,7 @@ public class RelationalOperator extends BinaryOperator {
 
   @Override
   public String translate(Target target, Map<String, Object> parameters) {
-    boolean sqlServerBool = target == Target.SQLSERVER && requireIif(this);
+    boolean sqlServerBool = target == Target.SQLSERVER && requireIif(this, parameters);
     return (sqlServerBool ? "iif" : "") + '('
          + super.translate(target, parameters)
          + (sqlServerBool ? ", 1, 0" : "") + ')';

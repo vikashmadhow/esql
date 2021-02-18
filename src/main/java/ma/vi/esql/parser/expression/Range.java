@@ -68,7 +68,7 @@ public class Range extends Expression<Expression<?>> {
         return target == JSON ? '"' + escapeJsonString(e) + '"' : e;
       }
       default -> {
-        boolean sqlServerBool = target == Target.SQLSERVER && requireIif(this);
+        boolean sqlServerBool = target == Target.SQLSERVER && requireIif(this, parameters);
         return (sqlServerBool ? "iif" : "") + '('
              + leftExpression().translate(target, parameters) + ' ' + leftCompare() + ' '
              + compareExpression().translate(target, parameters) + " and "

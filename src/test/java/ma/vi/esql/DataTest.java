@@ -6,9 +6,12 @@ package ma.vi.esql;
 
 import ma.vi.esql.database.Database;
 import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.exec.Result;
 import ma.vi.esql.parser.Parser;
 import ma.vi.esql.parser.Program;
 import org.junit.jupiter.api.BeforeAll;
+
+import static org.apache.commons.lang3.StringUtils.*;
 
 public class DataTest {
   public static Database[] databases;
@@ -185,6 +188,38 @@ public class DataTest {
                     ")");
         con.exec(s);
       }
+    }
+  }
+
+  public static void printResult(Result rs, int columnWidth) {
+    boolean first = true;
+    while(rs.next()) {
+      if (first) {
+        System.out.println('+' + repeat(repeat('-', columnWidth) + '+', rs.columns()));
+        // print header
+        System.out.print('|');
+        for (int i = 0; i < rs.columns(); i++) {
+          System.out.print(rightPad(rs.get(i + 1).column.alias(), columnWidth) + '|');
+        }
+        System.out.println();
+        System.out.println('+' + repeat(repeat('-', columnWidth) + '+', rs.columns()));
+        first = false;
+      }
+      System.out.print('|');
+      for (int i = 0; i < rs.columns(); i++) {
+        Object value = rs.value(i + 1);
+        if (value == null) {
+          System.out.print(repeat(' ', columnWidth) + '|');
+        } else if (value instanceof Number) {
+          System.out.print(leftPad(value.toString(), columnWidth) + '|');
+        } else {
+          System.out.print(rightPad(value.toString(), columnWidth) + '|');
+        }
+      }
+      System.out.println();
+    }
+    if (!first) {
+      System.out.println('+' + repeat(repeat('-', columnWidth) + '+', rs.columns()));
     }
   }
 }
