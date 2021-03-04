@@ -19,9 +19,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Performance testing.
 - Support for Oracle database.
 
-## [Unreleased]
+## [0.3.4]
 ### Added
 - Reduce code duplication in Analyser for expressions and simple expressions.
+  
+### Fixed
+- Corrected error where derived expressions were not being linked to their parent 
+  leading to type resolution errors (in SQL Server). 
+- Translation of select expressions in ESQL now does not output column metadata 
+  even when they are present (which is invalid in select expressions).
 
 ## [0.3.3] - 2021-02-18
 ### Added
