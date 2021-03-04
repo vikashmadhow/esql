@@ -19,7 +19,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Performance testing.
 - Support for Oracle database.
 
-## [0.3.4]
+## [Unreleased]
+### Added
+- Recursive CTE is now fully supported in PostgreSQL and SQL Server.
+
+### Fixed
+- is null was being parsed (and translated) as is not null.
+- with query types are now taken as the type of their last CTE. 
+
+## [0.3.4] - 2021-03-04
 ### Added
 - Reduce code duplication in Analyser for expressions and simple expressions.
   
@@ -35,19 +43,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improved error detection: missing commas and semi-colons.
 - Improved error detection: missing closing bracket, square bracket, parenthesis.
 - Group by clause can now refer to columns by position (e.g group by 1, 2 will group by the 1st and 2nd column 
-  expressions in the query).
+  expressions in the query). This is simulated on SQL Server which does not directly
+  support this construct.
 - Base testing of grouping (normal, cube, rollup).
 
 ### Fixed
-- Improved bool support in nested queries on SQL Server using ancestorDistance and 
-  consequently solving the error in nested `exists` queries.
-- `order by` is not specified after `group by` in ESQL select, similar to the order
-  of execution of those clauses.
+- Improved bool support in nested queries on SQL Server using `ancestorDistance`
+  and consequently solving the error in nested `exists` queries.
+- `order by` is now specified after `group by` in ESQL select, in line with the 
+  order of their execution.
 
 ## [0.3.2] - 2021-02-16
 ### Added
 - ESQL transformers (prior to execution, to inject specific behaviour by rewriting ESQL).
-- Improved detection of general syntax errors, and missing (or wrong) from clause in selects. 
+- Improved detection of general syntax errors, and missing (or wrong) `from` clause in selects. 
 
 ## [0.3.1] - 2021-02-14
 ### Added

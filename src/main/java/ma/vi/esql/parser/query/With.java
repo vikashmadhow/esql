@@ -10,6 +10,7 @@ import ma.vi.esql.parser.Context;
 import ma.vi.esql.parser.Esql;
 import ma.vi.esql.parser.QueryUpdate;
 import ma.vi.esql.parser.Restriction;
+import ma.vi.esql.type.Selection;
 
 import java.util.List;
 import java.util.Map;
@@ -52,6 +53,11 @@ public class With extends QueryUpdate {
     } else {
       return this;
     }
+  }
+
+  @Override
+  public Selection type() {
+    return query().type();
   }
 
   @Override

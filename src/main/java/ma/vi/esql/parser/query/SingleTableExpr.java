@@ -55,7 +55,7 @@ public class SingleTableExpr extends AbstractAliasTableExpr {
     if (type == null) {
       String table = tableName();
       Type t = context.type(table);
-      if (t != null) {
+      if (t instanceof BaseRelation) {
         type = new AliasedRelation(relation(), alias());
       } else {
         /*

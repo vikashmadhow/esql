@@ -1,12 +1,11 @@
-package ma.vi.esql;
+package ma.vi.esql.parse;
 
-import ma.vi.esql.database.Database;
+import ma.vi.esql.DataTest;
 import ma.vi.esql.exec.EsqlConnection;
 import ma.vi.esql.parser.CircularReferenceException;
 import ma.vi.esql.parser.Parser;
 import ma.vi.esql.parser.Program;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
 
@@ -17,19 +16,7 @@ import static org.junit.jupiter.api.DynamicTest.dynamicTest;
 /**
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public class DatabasesTest {
-  static Database[] databases;
-
-  @BeforeAll
-  static void setup() {
-    databases = new Database[] {
-        Databases.Postgresql(),
-        Databases.SqlServer(),
-//        Databases.HSqlDb(),
-//        Databases.MariaDb(),
-    };
-  }
-
+public class CreateTest extends DataTest {
   @TestFactory
   Stream<DynamicTest> create() {
     return Stream.of(databases)
@@ -84,22 +71,22 @@ public class DatabasesTest {
                      System.out.println(s);
                      con.exec(s);
                    }
-                }));
+                 }));
   }
 
   @TestFactory
   Stream<DynamicTest> circularDerivedColumn() {
     return Stream.of(databases)
                  .map(db -> dynamicTest(db.target().toString(), () -> {
-                    System.out.println(db.target());
-                    Parser p = new Parser(db.structure());
-                      Assertions.assertThrows(
-                          CircularReferenceException.class,
-                          () -> p.parse("create table X ("
-                                      + "  _id int, "
-                                      + "  a=a"
-                                      + ")"));
-                  }));
+                   System.out.println(db.target());
+                   Parser p = new Parser(db.structure());
+                   Assertions.assertThrows(
+                       CircularReferenceException.class,
+                       () -> p.parse("create table X ("
+                                         + "  _id int, "
+                                         + "  a=a"
+                                         + ")"));
+                 }));
   }
 
   @TestFactory
@@ -111,10 +98,10 @@ public class DatabasesTest {
                    Assertions.assertThrows(
                        CircularReferenceException.class,
                        () -> p.parse("create table X (" +
-                                           "  _id int, " +
-                                           "  a=b, " +
-                                           "  b=a" +
-                                           ")"));
+                                         "  _id int, " +
+                                         "  a=b, " +
+                                         "  b=a" +
+                                         ")"));
                  }));
   }
 
@@ -122,19 +109,19 @@ public class DatabasesTest {
   Stream<DynamicTest> nonCircularDerivedColumn() {
     return Stream.of(databases)
                  .map(db -> dynamicTest(db.target().toString(), () -> {
-                    System.out.println(db.target());
-                    Parser p = new Parser(db.structure());
-                    try (EsqlConnection con = db.esql(db.pooledConnection())) {
-                      Program s = p.parse("create table Y (" +
-                                              "  _id int, " +
-                                              "  a int, " +
-                                              "  b=a + a, " +
-                                              "  c=b + a, " +
-                                              "  d=c + c + b " +
-                                              ")");
-                      con.exec(s);
-                      System.out.println(s);
-                    }
-                  }));
+                   System.out.println(db.target());
+                   Parser p = new Parser(db.structure());
+                   try (EsqlConnection con = db.esql(db.pooledConnection())) {
+                     Program s = p.parse("create table Y (" +
+                                             "  _id int, " +
+                                             "  a int, " +
+                                             "  b=a + a, " +
+                                             "  c=b + a, " +
+                                             "  d=c + c + b " +
+                                             ")");
+                     con.exec(s);
+                     System.out.println(s);
+                   }
+                 }));
   }
 }

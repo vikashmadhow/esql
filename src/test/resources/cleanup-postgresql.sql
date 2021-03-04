@@ -191,4 +191,18 @@ where exists(select N'S'                                                        
                     '84a45ed3-79ea-42f6-bc53-4a7b100a9525'                                                                                                                                 "k/id",
                     N'interval'                                                                                                                                                            "k/type",
                     0                                                                                                                                                                      "k/required"
-             from "DBO"."S" "S")
+             from "DBO"."S" "S");
+
+
+
+with recursive r("id", "parent", "name") as (select "_id" "_id", "parent_id" "parent_id", "name" "name"
+                                             from "x"."R" "R"
+                                             where "parent_id" is not null
+                                             union all
+                                             select "xr"."_id"                       "_id",
+                                                    "xr"."parent_id"                 "parent_id",
+                                                    "r"."name" || '/' || "xr"."name" "column"
+                                             from "x"."R" "xr"
+                                                      join "r" "r" on ("xr"."parent_id" = "r"."id"))
+select "r"."id" "id", "r"."parent" "parent", "r"."name" "name"
+from "r" "r";

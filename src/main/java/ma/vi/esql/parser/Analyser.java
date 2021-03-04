@@ -796,7 +796,7 @@ public class Analyser extends EsqlBaseListener {
 
   @Override
   public void exitNullCheckExpr(NullCheckExprContext ctx) {
-    put(ctx, new IsNull(context, ctx.Not() == null, get(ctx.expr())));
+    put(ctx, new IsNull(context, ctx.Not() != null, get(ctx.expr())));
    }
 
   @Override
