@@ -385,7 +385,6 @@ public abstract class AbstractDatabase implements Database {
   public void postInit(Connection con,
                        Structure structure,
                        boolean createCoreTables) {
-
     Parser p = new Parser(structure);
     if (createCoreTables && !hasCoreTables(con)) {
       // CREATE _core tables
@@ -704,6 +703,15 @@ public abstract class AbstractDatabase implements Database {
                 "      columnsOrder: [''_id'', ''column_id'', ''attribute'', ''value'']" +
                 "    }" +
                 "}')"));
+
+
+//        /*
+//         * Load extensions through ServiceLoader and execute.
+//         */
+//        ServiceLoader<Extension> loader = ServiceLoader.load(Extension.class);
+//        for (Extension e: loader) {
+//          e.init(this, structure);
+//        }
 
       } catch (RuntimeException e) {
         throw e;

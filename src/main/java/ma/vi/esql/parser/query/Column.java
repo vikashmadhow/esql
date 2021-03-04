@@ -122,7 +122,8 @@ public class Column extends MetadataContainer<Expression<?>, String> {
         for (Attribute attr: metadata.attributes().values()) {
           if (first) { first = false; }
           else       { st.append(", "); }
-          st.append(attr.attributeValue().translate(target, parameters));
+          st.append(attr.name()).append(':')
+            .append(attr.attributeValue().translate(target, parameters));
         }
         st.append('}');
       }

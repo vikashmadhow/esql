@@ -196,7 +196,6 @@ public class DataTest {
     while(rs.next()) {
       if (first) {
         System.out.println('+' + repeat(repeat('-', columnWidth) + '+', rs.columns()));
-        // print header
         System.out.print('|');
         for (int i = 0; i < rs.columns(); i++) {
           System.out.print(rightPad(rs.get(i + 1).column.alias(), columnWidth) + '|');

@@ -3,12 +3,12 @@
  */
 
 /**
- *  _____   _____  _____
- * |  ___  |  ___ |  __ |  | |
- * | |___  | |___ | | | |  | |
- * |  ___  |___ | | | | |  | |
- * | |___  ___| | | |_| |_ | |___
- * |_____  _____| |_______ |_____
+ *  _____  ____   _____
+ * |  __  |  __  |  _  |  | |
+ * | |__  | |__  | | | |  | |
+ * |  __  |__  | | | | |  | |
+ * | |__   __| | | |_| |_ | |___
+ * |_____ _____| |_______ |_____
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
@@ -60,24 +60,24 @@ projectFilestatistics {
 
   // the files to exclude from the generation
   excludes = [
-    "**/*.woff*",
-    "**/*.babelrc",
-    "**/*.editorconfig",
-    "**/*.eot",
-    "**/*.eslintignore",
-    "**/*.gif",
-    "**/*.ico",
-    "**/*.interp",
-    "**/*.jpg",
-    "**/*.json",
-    "**/*.keep",
-    "**/*.map",
-    "**/*.orig",
-    "**/*.otf",
-    "**/*.png",
-    "**/*.svg",
-    "**/*.tokens",
-    "**/*.ttf",
+      "**/*.woff*",
+      "**/*.babelrc",
+      "**/*.editorconfig",
+      "**/*.eot",
+      "**/*.eslintignore",
+      "**/*.gif",
+      "**/*.ico",
+      "**/*.interp",
+      "**/*.jpg",
+      "**/*.json",
+      "**/*.keep",
+      "**/*.map",
+      "**/*.orig",
+      "**/*.otf",
+      "**/*.png",
+      "**/*.svg",
+      "**/*.tokens",
+      "**/*.ttf",
   ]
 
   // the output directory for the generated statistics

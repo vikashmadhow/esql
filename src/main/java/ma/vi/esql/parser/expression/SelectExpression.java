@@ -5,6 +5,7 @@
 package ma.vi.esql.parser.expression;
 
 import ma.vi.esql.parser.Context;
+import ma.vi.esql.parser.query.Column;
 import ma.vi.esql.parser.query.Order;
 import ma.vi.esql.parser.query.Select;
 import ma.vi.esql.type.Type;
@@ -63,7 +64,11 @@ public class SelectExpression extends Expression<Select> {
         }
       }
 
-      st.append(sel.columns().get(0).translate(ESQL, parameters));
+      Column col = sel.columns().get(0);
+      if (col.alias() != null) {
+        st.append(col.alias()).append(':');
+      }
+      st.append(col.expr().translate(target, parameters));
 
       if (sel.tables() != null) {
         st.append(" from ").append(sel.tables().translate(target, parameters));

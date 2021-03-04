@@ -212,9 +212,10 @@ public class BaseRelation extends Relation {
                 + derivedExpression + " consisting of the column "
                 + colName + (otherColumns.isEmpty() ? "" : " and " + otherColumns));
             } else if (column.derived()) {
-              return new GroupedExpression(
-                  e.context,
-                  expandDerived(column.expr(), columns, colName, seen));
+              GroupedExpression expanded =
+                  new GroupedExpression(e.context, expandDerived(column.expr(), columns, colName, seen));
+              expanded.parent = e.parent;
+              return expanded;
             }
           }
           return e;
@@ -276,6 +277,7 @@ public class BaseRelation extends Relation {
                                       .map(Column::alias)
                                       .collect(toCollection(HashSet::new));
     for (Column column: this.columns) {
+      column.parent = new Esql<>(context, this);
       if (column.alias() == null) {
         Expression<?> expr = column.expr();
         if (expr instanceof ColumnRef) {

@@ -283,7 +283,7 @@ public class Analyser extends EsqlBaseListener {
     put(ctx, new UncomputedExpression(context, get(ctx.expr())));
   }
 
-  // with and cte
+  // With and CTE
   //////////////////////////////////////////////////
 
   @Override
@@ -352,7 +352,9 @@ public class Analyser extends EsqlBaseListener {
 
   @Override
   public void exitRow(RowContext ctx) {
-    // A row is mapped to an InsertRow (a list of expression)
+    /*
+     * a row is mapped to an InsertRow (a list of expression)
+     */
     put(ctx, new Esql<>(context, new InsertRow(context, value(ctx.expressionList()))));
   }
 
@@ -624,11 +626,6 @@ public class Analyser extends EsqlBaseListener {
     }
   }
 
-//  @Override
-//  public void exitStarExpr(StarExprContext ctx) {
-//    put(ctx, new StarExpression(context));
-//  }
-
   @Override
   public void exitColumnExpr(ColumnExprContext ctx) {
     ColumnReferenceContext ref = ctx.columnReference();
@@ -720,11 +717,6 @@ public class Analyser extends EsqlBaseListener {
                                     .collect(toList())));
   }
 
-//  @Override
-//  public void exitExistence(ExistenceContext ctx) {
-//    put(ctx, new Exists(context, get(ctx.select())));
-//  }
-
   @Override
   public void exitComparison(ComparisonContext ctx) {
     String compare = ctx.compare().getText();
@@ -807,44 +799,18 @@ public class Analyser extends EsqlBaseListener {
     put(ctx, new IsNull(context, ctx.Not() == null, get(ctx.expr())));
    }
 
-//  @Override
-//  public void exitSimpleExpression(SimpleExpressionContext ctx) {
-//    put(ctx, );
-//   }
-
   @Override
   public void exitCoalesceExpr(CoalesceExprContext ctx) {
-    List<ExprContext> expressions = ctx.expr();
-    boolean optimised = false;
-    if (expressions.size() == 2) {
-      /*
-       * Chained coalesced statements are broken in 2-parts corresponding to
-       * (expr '?' expr). If the first expr is a coalesce expression, we can
-       * optimise the whole coalesce function by combining it into a single one.
-       *
-       * Thus (coalesce ? e3) where coalesce is (e1 ? e2) is combined into
-       * (e1 ? e2 ? e3)
-       */
-      Esql<?, ?> first = get(expressions.get(0));
-      if (first instanceof Coalesce) {
-        Coalesce firstCoalesce = (Coalesce)first;
-        List<Expression<?>> coalesceExprs =
-            new ArrayList<>(firstCoalesce.expressions());
-        coalesceExprs.add(get(expressions.get(1)));
-        put(ctx, new Coalesce(context, coalesceExprs));
-        optimised = true;
-      }
-    }
-    if (!optimised) {
-      put(ctx, new Coalesce(context, ctx.expr().stream()
-                                        .map(e -> (Expression<?>)get(e))
-                                        .collect(toList())));
-    }
+    createCoalesce(ctx, ctx.expr());
   }
 
   @Override
   public void exitSimpleCoalesceExpr(SimpleCoalesceExprContext ctx) {
-    List<SimpleExprContext> expressions = ctx.simpleExpr();
+    createCoalesce(ctx, ctx.simpleExpr());
+  }
+
+  private void createCoalesce(ParserRuleContext ctx,
+                              List<? extends ParserRuleContext> expressions) {
     boolean optimised = false;
     if (expressions.size() == 2) {
       /*
@@ -866,24 +832,24 @@ public class Analyser extends EsqlBaseListener {
       }
     }
     if (!optimised) {
-      put(ctx, new Coalesce(context, ctx.simpleExpr().stream()
-                                        .map(e -> (Expression<?>)get(e))
-                                        .collect(toList())));
+      put(ctx, new Coalesce(context, expressions.stream()
+                                                .map(e -> (Expression<?>)get(e))
+                                                .collect(toList())));
     }
   }
 
-  @Override
+    @Override
   public void exitCaseExpr(CaseExprContext ctx) {
-    createCaseStatement(ctx, ctx.expr());
+    createCase(ctx, ctx.expr());
   }
 
   @Override
   public void exitSimpleCaseExpr(SimpleCaseExprContext ctx) {
-    createCaseStatement(ctx, ctx.simpleExpr());
+    createCase(ctx, ctx.simpleExpr());
   }
 
-  private void createCaseStatement(ParserRuleContext ctx,
-                                   List<? extends ParserRuleContext> expressions) {
+  private void createCase(ParserRuleContext ctx,
+                          List<? extends ParserRuleContext> expressions) {
     boolean optimised = false;
     if (expressions.size() == 3) {
       /*

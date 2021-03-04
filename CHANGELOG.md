@@ -19,6 +19,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Performance testing.
 - Support for Oracle database.
 
+## [Unreleased]
+### Added
+- Reduce code duplication in Analyser for expressions and simple expressions.
+
 ## [0.3.3] - 2021-02-18
 ### Added
 - Improved error detection: use of reserved keywords in wrong parts and missing/wrong keyword.
