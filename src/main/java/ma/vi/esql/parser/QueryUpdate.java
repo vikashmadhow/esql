@@ -370,6 +370,11 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
     type = null;
   }
 
+  public void columnsAsEsql(Esql<List<Column>, ?> columns) {
+    child("columns", columns);
+    type = null;
+  }
+
   public void columns(T3<String, String, List<Attr>>... columns) {
     List<Column> cols = new ArrayList<>();
     Parser parser = new Parser(context.structure);

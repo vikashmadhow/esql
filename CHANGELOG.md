@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Testing of translation of grouping by complex expressions (subqueries) in SQL Server.
 - Testing of translation of distinct over multiple columns in SQL Server.
 - Testing of window functions.
+- Array operations.
+- JSON operations.  
 - Support for creating and using sequences.
 - Support for creating indices.
 - Support for creating and using views (including materialised views).
@@ -24,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Recursive CTE is now fully supported in PostgreSQL and SQL Server.
 - Reduce code duplication in Analyser for addition and multiplication expressions.
+- Columns of CTE are renamed to match the CTE field list when latter is provided.
 
 ### Fixed
 - `is null` was being parsed (and translated) as `is not null`.

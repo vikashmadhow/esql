@@ -11,6 +11,10 @@ package ma.vi.esql.parser;
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 public class SyntaxException extends EsqlException {
+  public SyntaxException(String message) {
+    this(message, null, null, -1, -1, -1, -1, -1, -1);
+  }
+
   public SyntaxException(String message,
                          Throwable cause,
                          String text,

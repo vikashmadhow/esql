@@ -63,7 +63,8 @@ public class CompositeSelects extends Select {
       }
       mergeMetadata(columns);
     }
-    columns(selects.get(0).columnsAsEsql() == null ? null : selects.get(0).columnsAsEsql().copy().value);
+//    columns(selects.get(0).columnsAsEsql() == null ? null : selects.get(0).columnsAsEsql().copy().value);
+    columnsAsEsql(selects.get(0).columnsAsEsql());
   }
 
   public CompositeSelects(CompositeSelects other) {

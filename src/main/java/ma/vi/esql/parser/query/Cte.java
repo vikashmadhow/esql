@@ -8,6 +8,7 @@ import ma.vi.base.tuple.T2;
 import ma.vi.esql.parser.*;
 import ma.vi.esql.type.Selection;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -28,9 +29,31 @@ public class Cte extends QueryUpdate {
           of("fields", fields == null ? null : new Esql<>(context, fields)),
           of("query", query));
 
-    child("columns", query.columnsAsEsql(), false);
     child("tables", query.tables(), false);
     child("metadata", query.metadata(), false);
+
+    if (fields != null && !fields.isEmpty()) {
+      /*
+       * Set the alias of columns to the name of the corresponding field
+       */
+      List<QueryUpdate> queries = new ArrayList<>();
+      if (query instanceof CompositeSelects) {
+        queries.addAll(((CompositeSelects)query).selects());
+      } else {
+        queries.add(query);
+      }
+      for (QueryUpdate q: queries) {
+        if (fields.size() != q.columns().size()) {
+          throw new SyntaxException("Number of fields for CTE is " + fields.size()
+                                  + " while number of columns in the query for the CTE is " + q.columns().size());
+        }
+        for (int i = 0; i < fields.size(); i++) {
+          Column col = q.columns().get(i);
+          col.alias(fields.get(i));
+        }
+      }
+    }
+    child("columns", query.columnsAsEsql(), false);
   }
 
   public Cte(Cte other) {
