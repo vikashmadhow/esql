@@ -13,14 +13,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Testing of translation of distinct over multiple columns in SQL Server.
 - Testing of window functions.
 - Array operations.
-- JSON operations.  
+- JSON operations.
 - Support for creating and using sequences.
 - Support for creating indices.
 - Support for creating and using views (including materialised views).
 - Complete documentation of ESQL grammar.
-- Document purpose and usage. 
+- Document purpose and usage.
 - Performance testing.
 - Support for Oracle database.
+
+## [0.3.6] - 2021-03-05
+### Added
+- Columns of CTE are renamed to match the CTE field list when latter is provided.
 
 ## [0.3.5] - 2021-03-05
 ### Added
