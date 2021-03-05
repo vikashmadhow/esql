@@ -590,39 +590,35 @@ public class Analyser extends EsqlBaseListener {
 
   @Override
   public void exitMultiplicationExpr(MultiplicationExprContext ctx) {
-    switch (ctx.op.getText().charAt(0)) {
-      case '*' -> put(ctx, new Multiplication(context, get(ctx.left), get(ctx.right)));
-      case '/' -> put(ctx, new Division(context, get(ctx.left), get(ctx.right)));
-      case '%' -> put(ctx, new Modulus(context, get(ctx.left), get(ctx.right)));
-      default  -> throw new TranslationException("Unknown multiplication operator: " + ctx.op.getText());
-    }
+    createBinaryExpr(ctx, ctx.left, ctx.right, ctx.op.getText().charAt(0));
   }
 
   @Override
   public void exitSimpleMultiplicationExpr(SimpleMultiplicationExprContext ctx) {
-    switch (ctx.op.getText().charAt(0)) {
-      case '*' -> put(ctx, new Multiplication(context, get(ctx.left), get(ctx.right)));
-      case '/' -> put(ctx, new Division(context, get(ctx.left), get(ctx.right)));
-      case '%' -> put(ctx, new Modulus(context, get(ctx.left), get(ctx.right)));
-      default  -> throw new TranslationException("Unknown multiplication operator: " + ctx.op.getText());
-    }
+    createBinaryExpr(ctx, ctx.left, ctx.right, ctx.op.getText().charAt(0));
   }
 
   @Override
   public void exitAdditionExpr(AdditionExprContext ctx) {
-    switch (ctx.op.getText().charAt(0)) {
-      case '+' -> put(ctx, new Addition(context, get(ctx.left), get(ctx.right)));
-      case '-' -> put(ctx, new Subtraction(context, get(ctx.left), get(ctx.right)));
-      default  -> throw new TranslationException("Unknown addition operator: " + ctx.op.getText());
-    }
+    createBinaryExpr(ctx, ctx.left, ctx.right, ctx.op.getText().charAt(0));
   }
 
   @Override
   public void exitSimpleAdditionExpr(SimpleAdditionExprContext ctx) {
-    switch (ctx.op.getText().charAt(0)) {
-      case '+' -> put(ctx, new Addition(context, get(ctx.left), get(ctx.right)));
-      case '-' -> put(ctx, new Subtraction(context, get(ctx.left), get(ctx.right)));
-      default  -> throw new TranslationException("Unknown addition operator: " + ctx.op.getText());
+    createBinaryExpr(ctx, ctx.left, ctx.right, ctx.op.getText().charAt(0));
+  }
+
+  private void createBinaryExpr(ParserRuleContext ctx,
+                                ParserRuleContext left,
+                                ParserRuleContext right,
+                                char op) {
+    switch (op) {
+      case '*' -> put(ctx, new Multiplication(context, get(left), get(right)));
+      case '/' -> put(ctx, new Division(context, get(left), get(right)));
+      case '%' -> put(ctx, new Modulus(context, get(left), get(right)));
+      case '+' -> put(ctx, new Addition(context, get(left), get(right)));
+      case '-' -> put(ctx, new Subtraction(context, get(left), get(right)));
+      default  -> throw new TranslationException("Unknown operator: " + op);
     }
   }
 
@@ -682,30 +678,32 @@ public class Analyser extends EsqlBaseListener {
 
   @Override
   public void exitFunctionInvocation(FunctionInvocationContext ctx) {
-    DistinctContext distinct = ctx.distinct();
-    WindowContext window = ctx.window();
-    put(ctx, new FunctionCall(context,
-        value(ctx.qualifiedName()),
-        distinct != null && distinct.getText().startsWith("distinct"),
-        distinct != null && distinct.expressionList() != null ? value(distinct.expressionList()) : null,
-        value(ctx.expressionList()),
-        ctx.select() != null ? get(ctx.select()) : null,
-        ctx.star != null,
-        window != null ? value(window.partition() != null ? window.partition().expressionList() : null) : null,
-        window != null ? value(window.orderByList()) : null));
+    createFunctionInvocation(ctx, ctx.distinct(), ctx.window(),
+                             ctx.qualifiedName(), ctx.expressionList(),
+                             ctx.select(), ctx.star);
   }
 
   @Override
   public void exitSimpleFunctionInvocation(SimpleFunctionInvocationContext ctx) {
-    DistinctContext distinct = ctx.distinct();
-    WindowContext window = ctx.window();
+    createFunctionInvocation(ctx, ctx.distinct(), ctx.window(),
+                             ctx.qualifiedName(), ctx.expressionList(),
+                             ctx.select(), ctx.star);
+  }
+
+  public void createFunctionInvocation(ParserRuleContext ctx,
+                                       DistinctContext distinct,
+                                       WindowContext window,
+                                       ParserRuleContext qualifiedName,
+                                       ParserRuleContext expressionList,
+                                       ParserRuleContext select,
+                                       Token star) {
     put(ctx, new FunctionCall(context,
-        value(ctx.qualifiedName()),
+        value(qualifiedName),
         distinct != null && distinct.getText().startsWith("distinct"),
         distinct != null && distinct.expressionList() != null ? value(distinct.expressionList()) : null,
-        value(ctx.expressionList()),
-        ctx.select() != null ? get(ctx.select()) : null,
-        ctx.star != null,
+        value(expressionList),
+        select != null ? get(select) : null,
+        star != null,
         window != null ? value(window.partition() != null ? window.partition().expressionList() : null) : null,
         window != null ? value(window.orderByList()) : null));
   }

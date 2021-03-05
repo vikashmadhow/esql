@@ -6,8 +6,6 @@ package ma.vi.esql.parse;
 
 import ma.vi.esql.DataTest;
 import ma.vi.esql.exec.EsqlConnection;
-import ma.vi.esql.exec.ExpressionParam;
-import ma.vi.esql.exec.Param;
 import ma.vi.esql.exec.Result;
 import ma.vi.esql.parser.Parser;
 import ma.vi.esql.parser.modify.Insert;

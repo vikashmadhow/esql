@@ -6,19 +6,11 @@ package ma.vi.esql.parse;
 
 import ma.vi.esql.Databases;
 import ma.vi.esql.TestDatabase;
-import ma.vi.esql.exec.EsqlConnection;
-import ma.vi.esql.exec.Result;
 import ma.vi.esql.parser.Parser;
 import ma.vi.esql.parser.SyntaxException;
-import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestFactory;
-
-import java.util.UUID;
-import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.DynamicTest.dynamicTest;
 
 public class ErrorDetectionTest {
   @Test

@@ -5,6 +5,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Planned]
+- Extensions to add new functionality to ESQL.
 - Result transformers and encoders.
 - Testing of all normal functions.
 - Testing of all macro functions.
@@ -19,13 +20,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Performance testing.
 - Support for Oracle database.
 
-## [Unreleased]
+## [0.3.5] - 2021-03-05
 ### Added
 - Recursive CTE is now fully supported in PostgreSQL and SQL Server.
+- Reduce code duplication in Analyser for addition and multiplication expressions.
 
 ### Fixed
-- is null was being parsed (and translated) as is not null.
-- with query types are now taken as the type of their last CTE. 
+- `is null` was being parsed (and translated) as `is not null`.
+- `with` query types are now taken as the type of their last CTE. 
 
 ## [0.3.4] - 2021-03-04
 ### Added
@@ -81,5 +83,3 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   when reading from sub-queries.
 - Support for MariaDB (and MySQL) is being deprecated as it fails to create 
   constraints on tables in certain conditions.
-
-

@@ -20,7 +20,7 @@ import static org.junit.jupiter.api.DynamicTest.dynamicTest;
 public class ParseTest extends DataTest {
 
   @TestFactory
-  Stream<DynamicTest> simpleGroupby() {
+  Stream<DynamicTest> rangeAndConditionalTest() {
     return Stream.of(databases)
                  .map(db -> dynamicTest(db.target().toString(), () -> {
                    System.out.println(db.target());
@@ -55,4 +55,5 @@ public class ParseTest extends DataTest {
 //                                assertEquals(13, (Integer)rs.value("c"));
                    }
                  }));
-  }}
+  }
+}
