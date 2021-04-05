@@ -25,8 +25,6 @@ import static ma.vi.esql.parser.Translatable.Target.HSQLDB;
 public class HSqlDb extends AbstractDatabase {
   public HSqlDb(Map<String, Object> config,
                 boolean createCoreTables) {
-    this.config = config;
-
     Properties props = new Properties();
     props.setProperty("dataSourceClassName", JDBCDataSource.class.getName());
     if (config.containsKey("database.host")) {
@@ -56,12 +54,7 @@ public class HSqlDb extends AbstractDatabase {
     }
 
     init(config);
-    postInit(pooledConnection(), structure(), createCoreTables);
-  }
-
-  @Override
-  public Map<String, Object> config() {
-    return config;
+    postInit(pooledConnection(), structure());
   }
 
   @Override
@@ -70,10 +63,8 @@ public class HSqlDb extends AbstractDatabase {
   }
 
   @Override
-  public void postInit(Connection con,
-                       Structure structure,
-                       boolean createCoreTables) {
-    super.postInit(con, structure, createCoreTables);
+  public void postInit(Connection con, Structure structure) {
+    super.postInit(con, structure);
     try (Connection c = pooledConnection(true, -1)) {
       // HSqlDB specific
       // c.createStatement().executeUpdate("CREATE SCHEMA IF NOT EXISTS \"" + CORE_SCHEMA + '"');
@@ -178,7 +169,7 @@ public class HSqlDb extends AbstractDatabase {
                                   String password) {
     try {
       Connection con = DriverManager.getConnection(
-          "jdbc:hsqldb:" + valueOf(config.get("database.name")),
+          "jdbc:hsqldb:" + valueOf(config().get("database.name")),
           username,
           password);
       con.setAutoCommit(autoCommit);
@@ -253,6 +244,4 @@ public class HSqlDb extends AbstractDatabase {
    * Datasource for pooled connections.
    */
   private final HikariDataSource dataSource;
-
-  private final Map<String, Object> config;
 }

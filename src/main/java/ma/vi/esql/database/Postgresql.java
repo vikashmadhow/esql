@@ -24,8 +24,6 @@ import static ma.vi.esql.parser.Translatable.Target.POSTGRESQL;
 public class Postgresql extends AbstractDatabase {
   public Postgresql(Map<String, Object> config,
                     boolean createCoreTables) {
-    this.config = config;
-
     Properties props = new Properties();
     props.setProperty("dataSourceClassName", PGSimpleDataSource.class.getName());
     props.setProperty("dataSource.serverName", valueOf(config.getOrDefault("database.host", "localhost")));
@@ -38,12 +36,7 @@ public class Postgresql extends AbstractDatabase {
     dataSource = new HikariDataSource(new HikariConfig(props));
 
     init(config);
-    postInit(pooledConnection(), structure(), createCoreTables);
-  }
-
-  @Override
-  public Map<String, Object> config() {
-    return config;
+    postInit(pooledConnection(), structure());
   }
 
   @Override
@@ -52,10 +45,8 @@ public class Postgresql extends AbstractDatabase {
   }
 
   @Override
-  public void postInit(Connection con,
-                       Structure structure,
-                       boolean createCoreTables) {
-    super.postInit(con, structure, createCoreTables);
+  public void postInit(Connection con, Structure structure) {
+    super.postInit(con, structure);
     try (Connection c = pooledConnection(true, -1)) {
       // Postgresql specific
 
@@ -96,78 +87,7 @@ public class Postgresql extends AbstractDatabase {
               "END;\n" +
               "$$ LANGUAGE plpgsql");
 
-      // @todo: move to platform project
-//      // lookup label with no links
-//      c.createStatement().executeUpdate("create or replace function _core.lookup_label(code text,\n" +
-//                                            "                                              lookup text,\n" +
-//                                            "                                              show_code boolean,\n" +
-//                                            "                                              show_label boolean) returns text as $$\n" +
-//                                            "    select case when coalesce(show_code, false)=coalesce(show_label, false)\n" +
-//                                            "                then v.code || ' - ' || v.label\n" +
-//                                            "\n" +
-//                                            "                when coalesce(show_code, false)=true\n" +
-//                                            "                then v.code\n" +
-//                                            "\n" +
-//                                            "                else v.label\n" +
-//                                            "           end\n" +
-//                                            "      from \"_platform.lookup\".\"LookupValue\" v\n" +
-//                                            "      join \"_platform.lookup\".\"Lookup\" l on v.lookup_id=l._id\n" +
-//                                            "     where l.name=$2 and v.code=$1;\n" +
-//                                            "$$ language sql immutable;");
-//
-//      // lookup label with variable number of links
-//      c.createStatement().executeUpdate("create or replace function _core.lookup_label(code text,\n" +
-//                                            "                                              lookup text,\n" +
-//                                            "                                              show_code boolean,\n" +
-//                                            "                                              show_label boolean,\n" +
-//                                            "                                              variadic links text[]) returns text as $$\n" +
-//                                            "declare\n" +
-//                                            "    link_name text;\n" +
-//                                            "    link_index int = 0;\n" +
-//                                            "\n" +
-//                                            "    label_clause text = '';\n" +
-//                                            "    from_clause text = '';\n" +
-//                                            "    query text;\n" +
-//                                            "    result text;\n" +
-//                                            "\n" +
-//                                            "begin\n" +
-//                                            "    from_clause := '\"_platform.lookup\".\"LookupValue\" v0 '\n" +
-//                                            "                        || 'join \"_platform.lookup\".\"Lookup\" lookup '\n" +
-//                                            "                        || 'on (v0.lookup_id=lookup._id and lookup.name=''' || lookup || ''')';\n" +
-//                                            "\n" +
-//                                            "    foreach link_name in array links loop\n" +
-//                                            "        -- source side\n" +
-//                                            "        from_clause := from_clause || ' join \"_platform.lookup\".\"LookupValueLink\" lk' || link_index\n" +
-//                                            "                                   || ' on (v' || link_index || '._id=lk' || link_index\n" +
-//                                            "                                   || '.source_lookup_value_id and ' || 'lk' || link_index\n" +
-//                                            "                                   || '.lookup_link=''' || link_name || ''')';\n" +
-//                                            "\n" +
-//                                            "        link_index := link_index + 1;\n" +
-//                                            "\n" +
-//                                            "        -- target side\n" +
-//                                            "        from_clause := from_clause || ' join \"_platform.lookup\".\"LookupValue\" v' || link_index\n" +
-//                                            "                                   || ' on (v' || link_index || '._id=lk' || (link_index - 1)\n" +
-//                                            "                                   || '.target_lookup_value_id)';\n" +
-//                                            "    end loop;\n" +
-//                                            "\n" +
-//                                            "    if coalesce(show_code, false)=coalesce(show_label, false) then\n" +
-//                                            "        label_clause := 'v' || link_index || '.code || '' - '' || v' || link_index || '.label';\n" +
-//                                            "    elsif coalesce(show_code, false)=true then\n" +
-//                                            "        label_clause := 'v' || link_index || '.code';\n" +
-//                                            "    else\n" +
-//                                            "        label_clause := 'v' || link_index || '.label';\n" +
-//                                            "    end if;\n" +
-//                                            "\n" +
-//                                            "    query := 'select ' || label_clause\n" +
-//                                            "                       || ' from ' || from_clause\n" +
-//                                            "                       || ' where v0.code=''' || code || '''';\n" +
-//                                            "\n" +
-//                                            "    execute query into result;\n" +
-//                                            "    return result;\n" +
-//                                            "end;\n" +
-//                                            "$$ language plpgsql immutable;\n");
-
-      c.createStatement().executeUpdate(
+       c.createStatement().executeUpdate(
           "create or replace function _core.range(val double precision, variadic intervals bigint[]) returns text as $$\n" +
               "  with range(lb, ub, label) as (\n" +
               "    select intervals[i], intervals[i + 1],\n" +
@@ -196,11 +116,11 @@ public class Postgresql extends AbstractDatabase {
     try {
       Connection con = DriverManager.getConnection(
           "jdbc:postgresql://"
-              + valueOf(config.get("database.host")) + ':'
-              + (config.containsKey("database.port")
-                    ? ':' + valueOf(config.get("database.port"))
+              + valueOf(config().get("database.host")) + ':'
+              + (config().containsKey("database.port")
+                    ? ':' + valueOf(config().get("database.port"))
                     : "")
-              + '/' + valueOf(config.get("database.name")),
+              + '/' + valueOf(config().get("database.name")),
           username,
           password);
       con.setAutoCommit(autoCommit);
@@ -260,6 +180,4 @@ public class Postgresql extends AbstractDatabase {
    * Datasource for pooled connections.
    */
   private final HikariDataSource dataSource;
-
-  private final Map<String, Object> config;
 }

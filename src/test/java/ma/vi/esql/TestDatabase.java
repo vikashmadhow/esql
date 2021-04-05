@@ -14,6 +14,7 @@ import ma.vi.esql.parser.define.Metadata;
 import ma.vi.esql.parser.query.Column;
 import ma.vi.esql.database.Database;
 import ma.vi.esql.database.Structure;
+import ma.vi.esql.translator.*;
 import ma.vi.esql.type.BaseRelation;
 
 import java.sql.Connection;
@@ -23,6 +24,7 @@ import java.util.*;
 
 import static ma.vi.esql.builder.Attributes.DERIVED;
 import static ma.vi.esql.builder.Attributes.TYPE;
+import static ma.vi.esql.parser.Translatable.Target.*;
 
 /**
  * A test structure container containing structures used
@@ -33,6 +35,22 @@ import static ma.vi.esql.builder.Attributes.TYPE;
 public class TestDatabase implements Database {
   public TestDatabase() {
     init(null);
+  }
+
+  @Override public void init(Map<String, Object> config) {
+    /*
+     * Register translators.
+     */
+    TranslatorFactory.register(ESQL,       new EsqlTranslator());
+    TranslatorFactory.register(POSTGRESQL, new PostgresqlTranslator());
+    TranslatorFactory.register(SQLSERVER,  new SqlServerTranslator());
+    TranslatorFactory.register(MARIADB,    new MariaDbTranslator());
+    TranslatorFactory.register(HSQLDB,     new HSqlDbTranslator());
+
+    /*
+     * Load database structure.
+     */
+    structure();
   }
 
   @Override
@@ -236,9 +254,7 @@ public class TestDatabase implements Database {
   }
 
   @Override
-  public void postInit(Connection con,
-                       Structure structure,
-                       boolean createCoreTables) {
+  public void postInit(Connection con, Structure structure) {
   }
 
   @Override

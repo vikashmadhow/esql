@@ -24,8 +24,6 @@ import static ma.vi.esql.parser.Translatable.Target.MYSQL;
 public class MySql extends AbstractDatabase {
   public MySql(Map<String, Object> config,
                boolean createCoreTables) {
-    this.config = config;
-
     Properties props = new Properties();
     props.setProperty("dataSourceClassName", MysqlDataSource.class.getName());
     props.setProperty("dataSource.serverName", valueOf(config.getOrDefault("database.host", "localhost")));
@@ -38,12 +36,7 @@ public class MySql extends AbstractDatabase {
     dataSource = new HikariDataSource(new HikariConfig(props));
 
     init(config);
-    postInit(pooledConnection(), structure(), createCoreTables);
-  }
-
-  @Override
-  public Map<String, Object> config() {
-    return config;
+    postInit(pooledConnection(), structure());
   }
 
   @Override
@@ -52,10 +45,8 @@ public class MySql extends AbstractDatabase {
   }
 
   @Override
-  public void postInit(Connection con,
-                       Structure structure,
-                       boolean createCoreTables) {
-    super.postInit(con, structure, createCoreTables);
+  public void postInit(Connection con, Structure structure) {
+    super.postInit(con, structure);
     try (Connection c = pooledConnection(true, -1)) {
       // MySQL specific
 
@@ -196,11 +187,11 @@ public class MySql extends AbstractDatabase {
     try {
       Connection con = DriverManager.getConnection(
           "jdbc:mysql://"
-              + valueOf(config.get("database.host")) + ':'
-              + (config.containsKey("database.port")
-                    ? ':' + valueOf(config.get("database.port"))
+              + valueOf(config().get("database.host")) + ':'
+              + (config().containsKey("database.port")
+                    ? ':' + valueOf(config().get("database.port"))
                     : "")
-              + '/' + valueOf(config.get("database.name")),
+              + '/' + valueOf(config().get("database.name")),
           username,
           password);
       con.setAutoCommit(autoCommit);
@@ -260,6 +251,4 @@ public class MySql extends AbstractDatabase {
    * Datasource for pooled connections.
    */
   private final HikariDataSource dataSource;
-
-  private final Map<String, Object> config;
 }

@@ -22,8 +22,6 @@ import static ma.vi.esql.parser.Translatable.Target.MARIADB;
 public class MariaDb extends AbstractDatabase {
   public MariaDb(Map<String, Object> config,
                  boolean createCoreTables) {
-    this.config = config;
-
     Properties props = new Properties();
     props.setProperty("dataSourceClassName", MariaDbDataSource.class.getName());
     props.setProperty("dataSource.serverName", valueOf(config.getOrDefault("database.host", "localhost")));
@@ -38,12 +36,7 @@ public class MariaDb extends AbstractDatabase {
     dataSource = new HikariDataSource(new HikariConfig(props));
 
     init(config);
-    postInit(pooledConnection(), structure(), createCoreTables);
-  }
-
-  @Override
-  public Map<String, Object> config() {
-    return config;
+    postInit(pooledConnection(), structure());
   }
 
   @Override
@@ -52,10 +45,8 @@ public class MariaDb extends AbstractDatabase {
   }
 
   @Override
-  public void postInit(Connection con,
-                       Structure structure,
-                       boolean createCoreTables) {
-    super.postInit(con, structure, createCoreTables);
+  public void postInit(Connection con, Structure structure) {
+    super.postInit(con, structure);
     try (Connection c = pooledConnection(true, -1)) {
       // MariaDB specific
 
@@ -194,12 +185,12 @@ public class MariaDb extends AbstractDatabase {
                                   String username,
                                   String password) {
     try {
-      String db = valueOf(config.get("database.name"));
+      String db = valueOf(config().get("database.name"));
       Connection con = DriverManager.getConnection(
           "jdbc:mariadb://"
-              + valueOf(config.get("database.host")) + ':'
-              + (config.containsKey("database.port")
-                    ? ':' + valueOf(config.get("database.port"))
+              + valueOf(config().get("database.host")) + ':'
+              + (config().containsKey("database.port")
+                    ? ':' + valueOf(config().get("database.port"))
                     : "")
               + '/' + db,
           username,
@@ -264,6 +255,4 @@ public class MariaDb extends AbstractDatabase {
   private final HikariDataSource dataSource;
 
   private final String database;
-
-  private final Map<String, Object> config;
 }

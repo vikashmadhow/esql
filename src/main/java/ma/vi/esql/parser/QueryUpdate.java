@@ -384,9 +384,9 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
           column.b,
           parser.parseExpression(column.a),
           column.c == null
-          ? null
-          : new Metadata(context,
-                         column.c.stream()
+            ? null
+            : new Metadata(context,
+                           column.c.stream()
                                  .map(a -> new Attribute(context,
                                                          a.name,
                                                          parser.parseExpression(a.expr)))

@@ -15,6 +15,7 @@ import ma.vi.esql.parser.define.*;
 import ma.vi.esql.parser.expression.*;
 import ma.vi.esql.parser.modify.Insert;
 import ma.vi.esql.parser.query.Column;
+import ma.vi.esql.translator.*;
 import ma.vi.esql.type.BaseRelation;
 import ma.vi.esql.type.Relation;
 import ma.vi.esql.type.Type;
@@ -23,18 +24,37 @@ import ma.vi.esql.type.Types;
 import java.sql.*;
 import java.util.*;
 
+import static java.lang.System.Logger.Level.INFO;
 import static java.util.Arrays.asList;
-import static java.util.Collections.emptyList;
-import static java.util.Collections.unmodifiableList;
+import static java.util.Collections.*;
 import static ma.vi.base.string.Escape.escapeSqlString;
 import static ma.vi.esql.builder.Attributes.*;
 import static ma.vi.esql.parser.Translatable.Target.*;
 import static ma.vi.esql.parser.define.ConstraintDefinition.Type.fromMarker;
+import static org.apache.commons.lang3.StringUtils.repeat;
 
 /**
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 public abstract class AbstractDatabase implements Database {
+  @Override public void init(Map<String, Object> config) {
+    this.config = config;
+
+    /*
+     * Register translators.
+     */
+    TranslatorFactory.register(ESQL,       new EsqlTranslator());
+    TranslatorFactory.register(POSTGRESQL, new PostgresqlTranslator());
+    TranslatorFactory.register(SQLSERVER,  new SqlServerTranslator());
+    TranslatorFactory.register(MARIADB,    new MariaDbTranslator());
+    TranslatorFactory.register(HSQLDB,     new HSqlDbTranslator());
+
+    /*
+     * Load database structure.
+     */
+    structure();
+  }
+
   /**
    * Loads the structures in the database from the _core tables, if available,
    * or, otherwise, from the information schema.
@@ -382,11 +402,9 @@ public abstract class AbstractDatabase implements Database {
   }
 
   @Override
-  public void postInit(Connection con,
-                       Structure structure,
-                       boolean createCoreTables) {
+  public void postInit(Connection con, Structure structure) {
     Parser p = new Parser(structure);
-    if (createCoreTables && !hasCoreTables(con)) {
+    if (createCoreTables() && !hasCoreTables(con)) {
       // CREATE _core tables
       ///////////////////////////////////////////
       try (EsqlConnection c = esql(pooledConnection())) {
@@ -704,17 +722,13 @@ public abstract class AbstractDatabase implements Database {
                 "    }" +
                 "}')"));
 
-
-//        /*
-//         * Load extensions through ServiceLoader and execute.
-//         */
-//        ServiceLoader<Extension> loader = ServiceLoader.load(Extension.class);
-//        for (Extension e: loader) {
-//          e.init(this, structure);
-//        }
-
-      } catch (RuntimeException e) {
-        throw e;
+        /*
+         * Load extensions through ServiceLoader and execute.
+         */
+        loadExtensions((Set<Class<? extends Extension>>)config.getOrDefault("database.extensions", emptySet()),
+                       new HashSet<>(), 0);
+      } catch (Exception e) {
+        throw e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e);
       } finally {
         if (!hasCoreTables) {
           hasCoreTables = true;
@@ -733,6 +747,32 @@ public abstract class AbstractDatabase implements Database {
     }
   }
 
+  private void loadExtensions(Set<Class<? extends Extension>> toLoad,
+                              Set<Class<? extends Extension>> loaded,
+                              int level) {
+    try {
+      for (Class<? extends Extension> extension: toLoad) {
+        if (!loaded.contains(extension)) {
+          loaded.add(extension);
+          log.log(INFO, repeat(' ', level * 2) + extension.getName() + " loaded");
+
+          Extension e = extension.getDeclaredConstructor().newInstance();
+          if (e.dependsOn() != null && !e.dependsOn().isEmpty()) {
+            loadExtensions(e.dependsOn(), loaded, level + 1);
+          }
+          e.init(this, structure);
+          log.log(INFO, repeat(' ', level * 2) + extension.getName() + " initialized");
+        }
+      }
+    } catch (Exception e) {
+      throw e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e);
+    }
+  }
+
+  @Override
+  public Map<String, Object> config() {
+    return config;
+  }
 
   /**
    * Adds an ESQL transformer to the list of transformers that are used to
@@ -1455,4 +1495,5 @@ public abstract class AbstractDatabase implements Database {
                                                            "SYSTEM_LOBS",
                                                            "MYSQL",
                                                            "PERFORMANCE_SCHEMA");
+  private Map<String, Object> config;
 }

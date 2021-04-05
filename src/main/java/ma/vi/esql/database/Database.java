@@ -11,7 +11,6 @@ import ma.vi.esql.parser.Translatable;
 import ma.vi.esql.parser.define.ConstraintDefinition;
 import ma.vi.esql.parser.define.Metadata;
 import ma.vi.esql.parser.query.Column;
-import ma.vi.esql.translator.*;
 import ma.vi.esql.type.BaseRelation;
 
 import java.sql.Connection;
@@ -21,8 +20,6 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-
-import static ma.vi.esql.parser.Translatable.Target.*;
 
 /**
  * Represents a database containing tables and other persistent objects
@@ -45,27 +42,16 @@ public interface Database {
    *   <li><b>database.name:</b> name of the database.</li>
    *   <li><b>database.user.name:</b> default username for connecting to the database.</li>
    *   <li><b>database.user.password:</b> default password for connecting to the database.</li>
+   *   <li><b>database.createCoreTables:</b> whether or not to create the core tables if missing; default is true.</li>
+   *   <li><b>database.extensions:</b> An array of classes implementing the Extension interface
+   *                                   which are initialised when the database starts.</li>
    * </ul>
    *
    * This method must be called when the database object is created.
    *
    * @param config Contains the configuration keys for connecting to the database.
    */
-  default void init(Map<String, Object> config) {
-    /*
-     * Register translators.
-     */
-    TranslatorFactory.register(ESQL,       new EsqlTranslator());
-    TranslatorFactory.register(POSTGRESQL, new PostgresqlTranslator());
-    TranslatorFactory.register(SQLSERVER,  new SqlServerTranslator());
-    TranslatorFactory.register(MARIADB,    new MariaDbTranslator());
-    TranslatorFactory.register(HSQLDB,     new HSqlDbTranslator());
-
-    /*
-     * Load database structure.
-     */
-    structure();
-  }
+  void init(Map<String, Object> config);
 
   /**
    * Returns an unmodifiable copy of the default config supplied when the database was created.
@@ -79,13 +65,21 @@ public interface Database {
   Structure structure();
 
   /**
+   * Whether or not to create the core tables (in which are stored metadata info
+   * on all tables and columns, among others), if they are not present. This
+   * method returns the value of the configuration parameter
+   * `database.createCoreTables` if it is present, or true otherwise.
+   */
+  default boolean createCoreTables() {
+    return (Boolean)config().getOrDefault("database.createCoreTables", Boolean.TRUE);
+  }
+
+  /**
    * Performs post initialisation of the database where special objects, such as tables
    * to hold metadata on other tables, can be created in the database. This is called after
    * the {@link #structure()} method which allows the use of ESQL to create the objects.
    */
-  void postInit(Connection con,
-                Structure structure,
-                boolean createCoreTables);
+  void postInit(Connection con, Structure structure);
 
   /**
    * Returns the translation target for this database.

@@ -5,7 +5,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Planned]
-- Extensions to add new functionality to ESQL.
 - Result transformers and encoders.
 - Testing of all normal functions.
 - Testing of all macro functions.
@@ -21,6 +20,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Document purpose and usage.
 - Performance testing.
 - Support for Oracle database.
+- Make into Java 9 module.
+
+## [Unreleased]
+### Added
+- Extensions can define their dependencies on other extensions which determines
+  the loading and initialization order of extensions. 
+- database.createCoreTables parameter instead of method parameter to postInit 
+  simplifies instantiation of database object.
+  
+### Fixed
+- Self-translation of cross-joins to ESQL uses proper form (`times` instead of `cross join`).
+
+## [0.3.7] - 2021-03-06
+### Added
+- Extensions to add new functionality to ESQL.
+- Extensions now declare dependencies on other extensions which are loaded first.
 
 ## [0.3.6] - 2021-03-05
 ### Added
