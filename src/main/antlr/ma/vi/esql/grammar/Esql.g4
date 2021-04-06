@@ -12,7 +12,7 @@
 grammar Esql;
 
 @header {
-    package ma.vi.esql.grammar;
+package ma.vi.esql.grammar;
 }
 
 /**

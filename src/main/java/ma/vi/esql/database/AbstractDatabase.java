@@ -723,7 +723,7 @@ public abstract class AbstractDatabase implements Database {
                 "}')"));
 
         /*
-         * Load extensions through ServiceLoader and execute.
+         * Load extensions.
          */
         loadExtensions((Set<Class<? extends Extension>>)config.getOrDefault("database.extensions", emptySet()),
                        new HashSet<>(), 0);
@@ -760,7 +760,7 @@ public abstract class AbstractDatabase implements Database {
           if (e.dependsOn() != null && !e.dependsOn().isEmpty()) {
             loadExtensions(e.dependsOn(), loaded, level + 1);
           }
-          e.init(this, structure);
+          e.init(this);
           log.log(INFO, repeat(' ', level * 2) + extension.getName() + " initialized");
         }
       }

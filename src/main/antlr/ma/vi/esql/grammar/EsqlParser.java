@@ -1,6 +1,6 @@
-// Generated from ma\vi\esql\grammar\Esql.g4 by ANTLR 4.9.1
+// Generated from ma\vi\esql\grammar\Esql.g4 by ANTLR 4.9.2
 
-    package ma.vi.esql.grammar;
+package ma.vi.esql.grammar;
 
 import org.antlr.v4.runtime.atn.*;
 import org.antlr.v4.runtime.dfa.DFA;
@@ -13,7 +13,7 @@ import java.util.ArrayList;
 
 @SuppressWarnings({"all", "warnings", "unchecked", "unused", "cast"})
 public class EsqlParser extends Parser {
-	static { RuntimeMetaData.checkVersion("4.9.1", RuntimeMetaData.VERSION); }
+	static { RuntimeMetaData.checkVersion("4.9.2", RuntimeMetaData.VERSION); }
 
 	protected static final DFA[] _decisionToDFA;
 	protected static final PredictionContextCache _sharedContextCache =

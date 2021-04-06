@@ -1,6 +1,6 @@
-// Generated from ma\vi\esql\grammar\Esql.g4 by ANTLR 4.9.1
+// Generated from ma\vi\esql\grammar\Esql.g4 by ANTLR 4.9.2
 
-    package ma.vi.esql.grammar;
+package ma.vi.esql.grammar;
 
 
 import org.antlr.v4.runtime.ParserRuleContext;

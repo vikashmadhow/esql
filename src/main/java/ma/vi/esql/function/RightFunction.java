@@ -22,7 +22,7 @@ import static ma.vi.esql.parser.Translatable.Target.JAVASCRIPT;
  */
 public class RightFunction extends Function {
   public RightFunction() {
-    super("right", Types.IntType,
+    super("rightstr", Types.IntType,
           asList(new FunctionParameter("s", Types.StringType),
             new FunctionParameter("count", Types.IntType)));
   }
@@ -43,7 +43,7 @@ public class RightFunction extends Function {
           + args.get(1).translate(target) + ')';
     } else {
       // all databases
-      return name + '('
+      return "right("
           + args.get(0).translate(target) + ", "
           + args.get(1).translate(target) + ')';
     }

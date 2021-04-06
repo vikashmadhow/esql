@@ -22,15 +22,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Support for Oracle database.
 - Make into Java 9 module.
 
-## [Unreleased]
+## [0.3.8] - 2021-04-06
 ### Added
 - Extensions can define their dependencies on other extensions which determines
   the loading and initialization order of extensions. 
-- database.createCoreTables parameter instead of method parameter to postInit 
+- `database.createCoreTables` parameter instead of method parameter to postInit 
   simplifies instantiation of database object.
+- Extension `init` function no longer takes a `Structure` parameter as it can 
+  be obtained from the `Database` parameter.
+- Simplified function registration in Structure.  
   
 ### Fixed
 - Self-translation of cross-joins to ESQL uses proper form (`times` instead of `cross join`).
+- Corrected order of `rtrim` and `ltrim` function which were reversed during
+  registration in the constructor of `Structure`.
 
 ## [0.3.7] - 2021-03-06
 ### Added

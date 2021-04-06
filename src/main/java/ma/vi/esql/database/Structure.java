@@ -77,343 +77,330 @@ public class Structure {
 
     // existence
     /////////////////////////////////////
-    functions.put("exists",
-                  new Function("exists", BoolType,
-                               singletonList(new FunctionParameter("exists", Relation)),
-                               false, null));
+    function(new Function("exists", BoolType,
+                          singletonList(new FunctionParameter("exists", Relation)),
+                          false, null));
 
     // aggregates
     //////////////////////////
-    functions.put("count",
-                  new Function("count", LongType,
-                               singletonList(new FunctionParameter("count", TopType)),
-                               true, null));
+    function(new Function("count", LongType,
+                          singletonList(new FunctionParameter("count", TopType)),
+                          true, null));
 
-    functions.put("sum",
-                  new Function("sum", AsParameterType,
-                               singletonList(new FunctionParameter("sum", NumberType)),
-                               true, null));
+    function(new Function("sum", AsParameterType,
+                          singletonList(new FunctionParameter("sum", NumberType)),
+                          true, null));
 
-    functions.put("avg", new Function("avg", FractionalType,
-                                      singletonList(new FunctionParameter("avg", NumberType)),
-                                      true, null));
+    function(new Function("avg", FractionalType,
+                          singletonList(new FunctionParameter("avg", NumberType)),
+                          true, null));
 
-    functions.put("varpop",
-                  new Function("var_pop", FractionalType,
-                               singletonList(new FunctionParameter("var", NumberType)),
-                               true,
-                               Map.of(POSTGRESQL, "var_pop",
-                                      HSQLDB,     "var_pop",
-                                      SQLSERVER,  "varp")));
+    function(new Function("var_pop", FractionalType,
+                          singletonList(new FunctionParameter("var", NumberType)),
+                          true,
+                          Map.of(POSTGRESQL, "var_pop",
+                                 HSQLDB, "var_pop",
+                                 SQLSERVER, "varp")));
 
-    functions.put("varsamp",
-                  new Function("var_samp", FractionalType,
-                               singletonList(new FunctionParameter("var", NumberType)),
-                               true,
-                               Map.of(POSTGRESQL, "var_samp",
-                                      HSQLDB,     "var_samp",
-                                      SQLSERVER,  "var")));
+    function(new Function("var_samp", FractionalType,
+                          singletonList(new FunctionParameter("var", NumberType)),
+                          true,
+                          Map.of(POSTGRESQL, "var_samp",
+                                 HSQLDB, "var_samp",
+                                 SQLSERVER, "var")));
 
-    functions.put("stddevpop",
-                  new Function("stddev_pop", FractionalType,
-                               singletonList(new FunctionParameter("stddev", NumberType)),
-                               true,
-                               Map.of(POSTGRESQL, "stddev_pop",
-                                      HSQLDB,     "stddev_pop",
-                                      SQLSERVER,  "stddevp")));
+    function(new Function("stddev_pop", FractionalType,
+                          singletonList(new FunctionParameter("stddev", NumberType)),
+                          true,
+                          Map.of(POSTGRESQL, "stddev_pop",
+                                 HSQLDB, "stddev_pop",
+                                 SQLSERVER, "stddevp")));
 
-    functions.put("stddevsamp",
-                  new Function("stddev_samp", FractionalType,
-                               singletonList(new FunctionParameter("stddev", NumberType)),
-                               true,
-                               Map.of(POSTGRESQL, "stddev_samp",
-                                      HSQLDB,     "stddev_samp",
-                                      SQLSERVER,  "stddev")));
+    function(new Function("stddev_samp", FractionalType,
+                          singletonList(new FunctionParameter("stddev", NumberType)),
+                          true,
+                          Map.of(POSTGRESQL, "stddev_samp",
+                                 HSQLDB, "stddev_samp",
+                                 SQLSERVER, "stddev")));
 
-    functions.put("max",
-                  new Function("max", AsParameterType,
-                               singletonList(new FunctionParameter("max", TopType)),
-                               true, null));
+    function(new Function("max", AsParameterType,
+                          singletonList(new FunctionParameter("max", TopType)),
+                          true, null));
 
-    functions.put("min",
-                  new Function("min", AsParameterType,
-                               singletonList(new FunctionParameter("min", TopType)),
-                               true, null));
+    function(new Function("min", AsParameterType,
+                          singletonList(new FunctionParameter("min", TopType)),
+                          true, null));
 
-    functions.put("stringagg",
-                  new Function("string_agg", TextType,
-                               asList(new FunctionParameter("val", TopType),
-                                      new FunctionParameter("delimiter", TextType)),
-                               true,
-                                Map.of(POSTGRESQL,  "string_agg",
-                                       HSQLDB,      "group_concat",
-                                       SQLSERVER,   "string_agg")));
+    function(new Function("string_agg", TextType,
+                          asList(new FunctionParameter("val", TopType),
+                                 new FunctionParameter("delimiter", TextType)),
+                          true,
+                          Map.of(POSTGRESQL, "string_agg",
+                                 HSQLDB, "group_concat",
+                                 SQLSERVER, "string_agg")));
 
-    functions.put("arrayagg",
-                  new Function("array_agg", TextType,
-                               asList(new FunctionParameter("val", TopType),
-                                      new FunctionParameter("delimiter", TextType)),
-                               true,
-                                Map.of(POSTGRESQL,  "array_agg",
-                                       HSQLDB,      "array_agg",
-                                       SQLSERVER,   "string_agg")));
+    function(new Function("array_agg", TextType,
+                          asList(new FunctionParameter("val", TopType),
+                                 new FunctionParameter("delimiter", TextType)),
+                          true,
+                          Map.of(POSTGRESQL, "array_agg",
+                                 HSQLDB, "array_agg",
+                                 SQLSERVER, "string_agg")));
 
     // mathematical
     //////////////////////
 
     // trigonometric
-    functions.put("acos", new Function("acos", FloatType,
-        singletonList(new FunctionParameter("p", NumberType))));
+    function(new Function("acos", FloatType,
+                          singletonList(new FunctionParameter("p", NumberType))));
 
-    functions.put("asin", new Function("asin", FloatType,
-        singletonList(new FunctionParameter("p", NumberType))));
+    function(new Function("asin", FloatType,
+                          singletonList(new FunctionParameter("p", NumberType))));
 
-    functions.put("atan", new Function("atan", FloatType,
-        singletonList(new FunctionParameter("p", NumberType))));
+    function(new Function("atan", FloatType,
+                          singletonList(new FunctionParameter("p", NumberType))));
 
-    functions.put("atan2", new Function("atan2", FractionalType,
-        singletonList(new FunctionParameter("stddev", NumberType)),
-        false,
-        Map.of(POSTGRESQL,  "atan2",
-               HSQLDB,      "atan2",
-               SQLSERVER,   "atn2")));
+    function(new Function("atan2", FractionalType,
+                          singletonList(new FunctionParameter("stddev", NumberType)),
+                          false,
+                          Map.of(POSTGRESQL, "atan2",
+                                 HSQLDB, "atan2",
+                                 SQLSERVER, "atn2")));
 
-    functions.put("cos", new Function("cos", FloatType,
-        singletonList(new FunctionParameter("p", NumberType))));
+    function(new Function("cos", FloatType,
+                          singletonList(new FunctionParameter("p", NumberType))));
 
-    functions.put("sin", new Function("sin", FloatType,
-        singletonList(new FunctionParameter("p", NumberType))));
+    function(new Function("sin", FloatType,
+                          singletonList(new FunctionParameter("p", NumberType))));
 
-    functions.put("tan", new Function("tan", FloatType,
-        singletonList(new FunctionParameter("p", NumberType))));
+    function(new Function("tan", FloatType,
+                          singletonList(new FunctionParameter("p", NumberType))));
 
-    functions.put("cot", new Function("cot", FloatType,
-        singletonList(new FunctionParameter("p", NumberType))));
+    function(new Function("cot", FloatType,
+                          singletonList(new FunctionParameter("p", NumberType))));
 
-    functions.put("degrees", new Function("degrees", FloatType,
-        singletonList(new FunctionParameter("p", NumberType))));
+    function(new Function("degrees", FloatType,
+                          singletonList(new FunctionParameter("p", NumberType))));
 
-    functions.put("radians", new Function("radians", FloatType,
-        singletonList(new FunctionParameter("p", NumberType))));
+    function(new Function("radians", FloatType,
+                          singletonList(new FunctionParameter("p", NumberType))));
 
     // number manipulation
-    functions.put("abs", new Function("abs", AsParameterType,
-        singletonList(new FunctionParameter("abs", NumberType))));
+    function(new Function("abs", AsParameterType,
+                          singletonList(new FunctionParameter("abs", NumberType))));
 
-    functions.put("ceil", new Function("ceil", LongType,
-        singletonList(new FunctionParameter("p", NumberType))));
+    function(new Function("ceil", LongType,
+                          singletonList(new FunctionParameter("p", NumberType))));
 
-    functions.put("floor", new Function("floor", LongType,
-        singletonList(new FunctionParameter("p", NumberType))));
+    function(new Function("floor", LongType,
+                          singletonList(new FunctionParameter("p", NumberType))));
 
-    functions.put("round", new Function("round", LongType,
-        Arrays.asList(new FunctionParameter("p", NumberType),
-            new FunctionParameter("p", IntType))));
+    function(new Function("round", LongType,
+                          Arrays.asList(new FunctionParameter("p", NumberType),
+                                        new FunctionParameter("p", IntType))));
 
-    functions.put("sign", new Function("sign", IntType,
-        singletonList(new FunctionParameter("p", NumberType))));
+    function(new Function("sign", IntType,
+                          singletonList(new FunctionParameter("p", NumberType))));
 
     // logarithmic
-    functions.put("ln", new Function("ln", FloatType,
-        singletonList(new FunctionParameter("p", NumberType)),
-        false,
-        Map.of(POSTGRESQL,  "ln",
-               HSQLDB,      "ln",
-               SQLSERVER,   "log")));
+    function(new Function("ln", FloatType,
+                          singletonList(new FunctionParameter("p", NumberType)),
+                          false,
+                          Map.of(POSTGRESQL, "ln",
+                                 HSQLDB, "ln",
+                                 SQLSERVER, "log")));
 
-    functions.put("log", new Function("log", FloatType,
-        singletonList(new FunctionParameter("p", NumberType)),
-        false,
-        Map.of(POSTGRESQL,  "log",
-               HSQLDB,      "log10",
-               SQLSERVER,   "log10")));
+    function(new Function("log", FloatType,
+                          singletonList(new FunctionParameter("p", NumberType)),
+                          false,
+                          Map.of(POSTGRESQL, "log",
+                                 HSQLDB, "log10",
+                                 SQLSERVER, "log10")));
 
-    functions.put("floormod", new Function("floormod", NumberType,
-        Arrays.asList(new FunctionParameter("dividend", NumberType),
-            new FunctionParameter("divider", NumberType)),
-        false,
-        Map.of(POSTGRESQL,  "_core.floormod",
-               SQLSERVER,   "_core.floormod")));
+    function(new Function("floormod", NumberType,
+                          Arrays.asList(new FunctionParameter("dividend", NumberType),
+                                        new FunctionParameter("divider", NumberType)),
+                          false,
+                          Map.of(POSTGRESQL, "_core.floormod",
+                                 SQLSERVER, "_core.floormod")));
 
-    functions.put("exp", new Function("exp", FloatType,
-                  singletonList(new FunctionParameter("p", NumberType))));
+    function(new Function("exp", FloatType,
+                          singletonList(new FunctionParameter("p", NumberType))));
 
     // other misc mathematical
-    functions.put("sqrt", new Function("sqrt", DoubleType,
-        singletonList(new FunctionParameter("p", NumberType))));
+    function(new Function("sqrt", DoubleType,
+                          singletonList(new FunctionParameter("p", NumberType))));
 
-    functions.put("pi", new Function("pi", FloatType, emptyList()));
+    function(new Function("pi", FloatType, emptyList()));
 
-    functions.put("random", new Function("random", FloatType, emptyList(),
-        false,
-        Map.of(POSTGRESQL, "random",
-               HSQLDB,     "rand",
-               SQLSERVER,  "rand")));
+    function(new Function("random", FloatType, emptyList(),
+                          false,
+                          Map.of(POSTGRESQL, "random",
+                                 HSQLDB, "rand",
+                                 SQLSERVER, "rand")));
 
-    functions.put("randomstr", new Function("random", StringType,
-        singletonList(new FunctionParameter("length", IntType)),
-        false,
-        Map.of(POSTGRESQL, "_core.randomstr",
-               SQLSERVER,  "_core.randomstr")));
+    function(new Function("random", StringType,
+                          singletonList(new FunctionParameter("length", IntType)),
+                          false,
+                          Map.of(POSTGRESQL, "_core.randomstr",
+                                 SQLSERVER, "_core.randomstr")));
 
     // id
     /////////////////////////////////
-    functions.put("newid", new Function("newid", FloatType, emptyList(),
-        false,
-        Map.of(POSTGRESQL, "uuid_generate_v4",
-               SQLSERVER,  "newid",
-               HSQLDB,     "uuid",
-               MARIADB,    "uuid",
-               MYSQL,      "uuid",
-               JAVASCRIPT, "uuidv4")));
+    function(new Function("newid", FloatType, emptyList(),
+                          false,
+                          Map.of(POSTGRESQL, "uuid_generate_v4",
+                                 SQLSERVER, "newid",
+                                 HSQLDB, "uuid",
+                                 MARIADB, "uuid",
+                                 MYSQL, "uuid",
+                                 JAVASCRIPT, "uuidv4")));
 
     // string
     /////////////////////////////////
-    functions.put("length", new LengthFunction());
+    function(new LengthFunction());
 
-    functions.put("ascii", new Function("ascii", IntType,
-        singletonList(new FunctionParameter("p", StringType))));
+    function(new Function("ascii", IntType,
+                          singletonList(new FunctionParameter("p", StringType))));
 
-    functions.put("concat", new ConcatFunction());
+    function(new ConcatFunction());
 
-    functions.put("concatws", new Function("concatws", StringType,
-        singletonList(new FunctionParameter("p", StringType)),
-        false,
-        Map.of(POSTGRESQL, "concat_ws",
-               SQLSERVER,  "concat_ws")));
+    function(new Function("concatws", StringType,
+                          singletonList(new FunctionParameter("p", StringType)),
+                          false,
+                          Map.of(POSTGRESQL, "concat_ws",
+                                 SQLSERVER, "concat_ws")));
 
-    functions.put("chr", new Function("chr", IntType,
-        singletonList(new FunctionParameter("p", StringType)),
-        false,
-        Map.of(POSTGRESQL,  "chr",
-               SQLSERVER,   "char")));
+    function(new Function("chr", IntType,
+                          singletonList(new FunctionParameter("p", StringType)),
+                          false,
+                          Map.of(POSTGRESQL, "chr",
+                                 SQLSERVER, "char")));
 
-    functions.put("trim",  new TrimFunction());
-    functions.put("ltrim", new RightTrimFunction());
-    functions.put("rtrim", new LeftTrimFunction());
-    functions.put("lpad",  new LeftPad());
-    functions.put("rpad",  new RightPad());
+    function(new TrimFunction());
+    function(new LeftTrimFunction());
+    function(new RightTrimFunction());
+    function(new LeftPad());
+    function(new RightPad());
 
-    functions.put("reverse", new Function("reverse", StringType,
-        singletonList(new FunctionParameter("p", StringType))));
+    function(new Function("reverse", StringType,
+                          singletonList(new FunctionParameter("p", StringType))));
 
-    functions.put("replace", new Function("replace", StringType,
-        asList(new FunctionParameter("s", StringType),
-            new FunctionParameter("search_for", StringType),
-            new FunctionParameter("replace_with", StringType))));
+    function(new Function("replace", StringType,
+                          asList(new FunctionParameter("s", StringType),
+                                 new FunctionParameter("search_for", StringType),
+                                 new FunctionParameter("replace_with", StringType))));
 
-    functions.put("repeat", new Function("repeat", StringType,
-        asList(new FunctionParameter("s", StringType),
-            new FunctionParameter("times", IntType)),
-        false,
-        Map.of(POSTGRESQL, "repeat",
-               SQLSERVER, "replicate")));
+    function(new Function("repeat", StringType,
+                          asList(new FunctionParameter("s", StringType),
+                                 new FunctionParameter("times", IntType)),
+                          false,
+                          Map.of(POSTGRESQL, "repeat",
+                                 SQLSERVER, "replicate")));
 
-    functions.put("substring", new SubstringFunction());
+    function(new SubstringFunction());
 
-    functions.put("translate", new Function("translate", StringType,
-        asList(new FunctionParameter("s", StringType),
-            new FunctionParameter("from", StringType),
-            new FunctionParameter("to", StringType))));
+    function(new Function("translate", StringType,
+                          asList(new FunctionParameter("s", StringType),
+                                 new FunctionParameter("from", StringType),
+                                 new FunctionParameter("to", StringType))));
 
-    functions.put("leftstr",  new LeftFunction());
-    functions.put("rightstr", new RightFunction());
-    functions.put("lower",    new LowerFunction());
-    functions.put("upper",    new UpperFunction());
-    functions.put("indexof",  new IndexOfFunction());
+    function(new LeftFunction());
+    function(new RightFunction());
+    function(new LowerFunction());
+    function(new UpperFunction());
+    function(new IndexOfFunction());
 
     // Obfuscation
     /////////////////////////////////
-    functions.put("obfuscate", new Function("obfuscate", StringType,
-        singletonList(new FunctionParameter("p", StringType)),
-        false,
-        Map.of(POSTGRESQL, "_core.obfuscate",
-               SQLSERVER, "_core.obfuscate")));
+    function(new Function("obfuscate", StringType,
+                          singletonList(new FunctionParameter("p", StringType)),
+                          false,
+                          Map.of(POSTGRESQL, "_core.obfuscate",
+                                 SQLSERVER, "_core.obfuscate")));
 
-    functions.put("unobfuscate", new Function("unobfuscate", StringType,
-        singletonList(new FunctionParameter("p", StringType)),
-        false,
-        Map.of(POSTGRESQL, "_core.unobfuscate",
-               SQLSERVER, "_core.unobfuscate")));
+    function(new Function("unobfuscate", StringType,
+                          singletonList(new FunctionParameter("p", StringType)),
+                          false,
+                          Map.of(POSTGRESQL, "_core.unobfuscate",
+                                 SQLSERVER, "_core.unobfuscate")));
 
     // conversion and formatting
     /////////////////////////////////
-    functions.put("format", new FormatDateFunction());
+    function(new FormatDateFunction());
 
     // date and time
     /////////////////////////////////
-    functions.put("now", new Function("now", StringType, emptyList(),
-        false,
-        Map.of(POSTGRESQL, "now",
-               SQLSERVER, "getdate",
-               JAVASCRIPT, "_moment")));
+    function(new Function("now", StringType, emptyList(),
+                          false,
+                          Map.of(POSTGRESQL, "now",
+                                 SQLSERVER, "getdate",
+                                 JAVASCRIPT, "_moment")));
 
-    functions.put("incdate", new AddIntervalToDateFunction());
+    function(new AddIntervalToDateFunction());
 
-    functions.put("addintervals", new AddIntervalsFunction());
+    function(new AddIntervalsFunction());
 
-    functions.put("newdate", new Function("newdate", DateType,
-        asList(new FunctionParameter("y", IntType),
-            new FunctionParameter("m", IntType),
-            new FunctionParameter("d", IntType)),
-        false,
-        Map.of(POSTGRESQL, "make_date",
-               SQLSERVER, "datefromparts",
-               JAVASCRIPT, "_moment")));
+    function(new Function("newdate", DateType,
+                          asList(new FunctionParameter("y", IntType),
+                                 new FunctionParameter("m", IntType),
+                                 new FunctionParameter("d", IntType)),
+                          false,
+                          Map.of(POSTGRESQL, "make_date",
+                                 SQLSERVER, "datefromparts",
+                                 JAVASCRIPT, "_moment")));
 
-    functions.put("newdatetime", new NewDateTimeFunction());
+    function(new NewDateTimeFunction());
 
-    functions.put("newtime", new NewTimeFunction());
+    function(new NewTimeFunction());
 
-    functions.put("year",       new DatePartFunction("year", Year));
-    functions.put("quarter",    new DatePartFunction("quarter", Quarter));
-    functions.put("semester",   new DatePartFunction("semester", Semester));
-    functions.put("month",      new DatePartFunction("month", Month));
-    functions.put("day",        new DatePartFunction("day", Day));
-    functions.put("dayofweek",  new DatePartFunction("dayofweek", DayOfWeek));
-    functions.put("dayofyear",  new DatePartFunction("dayofyear", DayOfYear));
-    functions.put("week",       new DatePartFunction("week", Week));
-    functions.put("hour",       new DatePartFunction("hour", Hour));
-    functions.put("minute",     new DatePartFunction("minute", Minute));
-    functions.put("second",     new DatePartFunction("second", Second));
-    functions.put("milli",      new DatePartFunction("milli", Millisecond));
-    functions.put("micro",      new DatePartFunction("micro", Microsecond));
+    function(new DatePartFunction("year", Year));
+    function(new DatePartFunction("quarter", Quarter));
+    function(new DatePartFunction("semester", Semester));
+    function(new DatePartFunction("month", Month));
+    function(new DatePartFunction("day", Day));
+    function(new DatePartFunction("dayofweek", DayOfWeek));
+    function(new DatePartFunction("dayofyear", DayOfYear));
+    function(new DatePartFunction("week", Week));
+    function(new DatePartFunction("hour", Hour));
+    function(new DatePartFunction("minute", Minute));
+    function(new DatePartFunction("second", Second));
+    function(new DatePartFunction("milli", Millisecond));
+    function(new DatePartFunction("micro", Microsecond));
 
-    functions.put("ageinyears", new AgeInYears());
+    function(new AgeInYears());
 
-    functions.put("startofmonth", new StartOfMonthFunction());
-    functions.put("endofmonth",   new EndOfMonthFunction());
-    functions.put("inmonth",      new InMonthMacroFunction());
+    function(new StartOfMonthFunction());
+    function(new EndOfMonthFunction());
+    function(new InMonthMacroFunction());
 
     // Functions to compute difference between dates in years, months, days, etc, (datediff in sql server)
-    functions.put("years",    new DateDiffFunction("years", Year));
-    functions.put("months",   new DateDiffFunction("months", Month));
-    functions.put("days",     new DateDiffFunction("days", Day));
-    functions.put("weeks",    new DateDiffFunction("weeks", Week));
-    functions.put("hours",    new DateDiffFunction("hours", Hour));
-    functions.put("minutes",  new DateDiffFunction("minutes", Minute));
-    functions.put("seconds",  new DateDiffFunction("seconds", Second));
-    functions.put("millis",   new DateDiffFunction("millis", Millisecond));
-    functions.put("micros",   new DateDiffFunction("micros", Microsecond));
+    function(new DateDiffFunction("years", Year));
+    function(new DateDiffFunction("months", Month));
+    function(new DateDiffFunction("days", Day));
+    function(new DateDiffFunction("weeks", Week));
+    function(new DateDiffFunction("hours", Hour));
+    function(new DateDiffFunction("minutes", Minute));
+    function(new DateDiffFunction("seconds", Second));
+    function(new DateDiffFunction("millis", Millisecond));
+    function(new DateDiffFunction("micros", Microsecond));
 
     // @todo all window functions
     ////////////////////////////////
-    functions.put("rownumber",
-                  new Function("rownumber",
-                               LongType, emptyList(), false,
-                               Map.of(POSTGRESQL, "row_number",
-                                      SQLSERVER,  "row_number")));
+    function(new Function("rownumber",
+                          LongType, emptyList(), false,
+                          Map.of(POSTGRESQL, "row_number",
+                                 SQLSERVER, "row_number")));
 
     // labels functions and macros
     ////////////////////////////////
-//        functions.put("label", new LabelMacroFunction(this));
-    functions.put("label",        new LookupLabelMacroFunction());
-    functions.put("lookuplabel",  new LookupLabel());
-    functions.put("joinlabel",    new JoinLabelMacroFunction());
+    function(new LookupLabelMacroFunction());
+    function(new LookupLabel());
+    function(new JoinLabelMacroFunction());
 
     // Range binning
     ///////////////////////////////////
-    functions.put("range", new Range());
+    function(new Range());
   }
 
   public Map<String, BaseRelation> relations() {
