@@ -22,7 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Support for Oracle database.
 - Make into Java 9 module.
 
-## [Unreleased]
+## [0.3.9] - 2021-04-08
 ### Added
 - `bin` macro function which return the interval that a value belongs to and 
   expanded to a CASE expression; it is similar to the `range` function but the 

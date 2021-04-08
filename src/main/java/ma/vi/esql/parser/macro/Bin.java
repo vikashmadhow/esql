@@ -25,16 +25,16 @@ import static org.apache.commons.lang3.StringUtils.leftPad;
  * Given a value and a variadic array of intervals, returns the range
  * where the value fits. E.g.
  * <p>
- * bin(15, "x", 1,5,12,20,35,67) returns '12 <= x < 19'
+ * bin(15, "x", 1,5,12,20,35,67) returns '12 &lt;= x &lt; 19'
  * <p>
  * bin is macro which is expanded to a case statement: E.g.
  * <pre>
  *   bin(age, "age", 1,2,5) expands to:
  *
- *      '01. age < 1'      if age < 1      else
- *      '02. 1 <= age < 2' if 1 <= age < 2 else
- *      '03. 2 <= age < 5' if 2 <= age < 5 else
- *                                         else '04. age >= 5'
+ *      '01. age &lt; 1'   if age &lt; 1      else
+ *      '02. 1 &lt;= age &lt; 2' if 1 &lt;= age &lt; 2 else
+ *      '03. 2 &lt;= age &lt; 5' if 2 &lt;= age &lt; 5 else
+ *                                         else '04. age &gt;= 5'
  *
  *   which is then translated to a database-specific CASE expression.
  * </pre>
