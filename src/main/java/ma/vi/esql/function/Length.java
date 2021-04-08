@@ -16,32 +16,27 @@ import static ma.vi.esql.parser.Translatable.Target.JAVASCRIPT;
 import static ma.vi.esql.parser.Translatable.Target.SQLSERVER;
 
 /**
- * Function to trim string of spaces.
+ * Function returning the length of a string.
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public class TrimFunction extends Function {
-  public TrimFunction() {
-    super("trim", Types.StringType,
-        singletonList(new FunctionParameter("text", Types.StringType)));
+public class Length extends Function {
+  public Length() {
+    super("length", Types.IntType,
+          singletonList(new FunctionParameter("text", Types.StringType)));
   }
 
   @Override
   public String translate(FunctionCall call, Translatable.Target target) {
     List<Expression<?>> args = call.arguments();
-    if (target == JAVASCRIPT) {
-      return "(" + args.get(0).translate(target) + ").trim()";
+    if (target == SQLSERVER) {
+      return "len(" + args.get(0).translate(target) + ')';
 
-    } else if (target == SQLSERVER) {
-      /*
-       * default trim only removes space (char 32) in SQL Server, we use the
-       * special form to specify all other space characters that we want to
-       * remove.
-       */
-      return name + "(nchar(0x09) + nchar(0x20) + nchar(0x0D) + nchar(0x0A) from "
-          + args.get(0).translate(target) + ')';
+    } else if (target == JAVASCRIPT) {
+      return "(" + args.get(0).translate(target) + ").length";
+
     } else {
-      // ESQL and all other databases
+      // Postgres, ESQL and everything else
       return name + '(' + args.get(0).translate(target) + ')';
     }
   }

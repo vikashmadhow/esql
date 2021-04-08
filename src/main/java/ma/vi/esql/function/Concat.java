@@ -19,8 +19,8 @@ import static ma.vi.esql.parser.Translatable.Target.JAVASCRIPT;
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public class ConcatFunction extends Function {
-  public ConcatFunction() {
+public class Concat extends Function {
+  public Concat() {
     super("concat", Types.StringType,
           asList(new FunctionParameter("a", Types.StringType),
             new FunctionParameter("b", Types.StringType)));

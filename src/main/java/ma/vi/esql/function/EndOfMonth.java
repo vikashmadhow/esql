@@ -19,8 +19,8 @@ import static ma.vi.esql.parser.Translatable.Target.*;
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public class EndOfMonthFunction extends Function {
-  public EndOfMonthFunction() {
+public class EndOfMonth extends Function {
+  public EndOfMonth() {
     super("endofmonth",
           Types.DateType,
           singletonList(new FunctionParameter("s", Types.DateType)));

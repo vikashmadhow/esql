@@ -84,7 +84,7 @@ public class With extends QueryUpdate {
     QueryTranslation q = query().translate(target, parameters);
     st.append(' ').append(q.statement);
     return new QueryTranslation(st.toString(), q.columns, q.columnToIndex,
-        q.resultAttributeIndices, q.resultAttributes);
+                                q.resultAttributeIndices, q.resultAttributes);
   }
 
   @Override

@@ -19,8 +19,8 @@ import static ma.vi.esql.parser.Translatable.Target.*;
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public class StartOfMonthFunction extends Function {
-  public StartOfMonthFunction() {
+public class StartOfMonth extends Function {
+  public StartOfMonth() {
     super("startofmonth",
           Types.DateType,
         singletonList(new FunctionParameter("s", Types.DateType)));

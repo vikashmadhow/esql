@@ -44,8 +44,8 @@ import static ma.vi.esql.parser.Translatable.Target.*;
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public class FormatDateFunction extends Function {
-  public FormatDateFunction() {
+public class FormatDate extends Function {
+  public FormatDate() {
     super("format", Types.StringType,
           Arrays.asList(new FunctionParameter("date", Types.DatetimeType),
             new FunctionParameter("format", Types.StringType)));

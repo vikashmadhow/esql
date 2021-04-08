@@ -20,8 +20,8 @@ import static ma.vi.esql.parser.Translatable.Target.POSTGRESQL;
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public class SubstringFunction extends Function {
-  public SubstringFunction() {
+public class Substring extends Function {
+  public Substring() {
     super("substring", Types.StringType,
           asList(new FunctionParameter("s", Types.StringType),
             new FunctionParameter("from", Types.IntType),

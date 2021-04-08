@@ -590,7 +590,7 @@ expr
       /*
        * `||` is the concatenation operator.
        */
-    | left=expr '||' right=expr                                 #ConcatenationExpr
+    | expr ('||' expr)+                                         #ConcatenationExpr
 
       /*
        * Any numeric expression can be negated by prefixing it with `-`.
@@ -752,7 +752,7 @@ simpleExpr
     | type '<' simpleExpr '>'                                                         #SimpleCastExpr
     | literal                                                                         #SimpleLiteralExpr
     | simpleExpr ('?' simpleExpr)+                                                    #SimpleCoalesceExpr
-    | left=simpleExpr '||' right=simpleExpr                                           #SimpleConcatenationExpr
+    | simpleExpr ('||' simpleExpr)+                                                   #SimpleConcatenationExpr
     | '-' simpleExpr                                                                  #SimpleNegationExpr
     | <assoc=right> left=simpleExpr '^' right=simpleExpr                              #SimpleExponentiationExpr
     | left=simpleExpr op=('*' | '/' | '%') right=simpleExpr                           #SimpleMultiplicationExpr

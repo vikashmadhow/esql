@@ -16,15 +16,18 @@ import static ma.vi.esql.parser.Translatable.Target.POSTGRESQL;
 import static ma.vi.esql.parser.Translatable.Target.SQLSERVER;
 
 /**
- * Function to create a new time value from individual components.
+ * Function to create a new datetime value from individual components.
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public class NewTimeFunction extends Function {
-  public NewTimeFunction() {
-    super("newtime", Types.TimeType,
-          Arrays.asList(new FunctionParameter("h", Types.IntType),
-            new FunctionParameter("mi", Types.IntType),
+public class NewDateTime extends Function {
+  public NewDateTime() {
+    super("newdatetime", Types.DatetimeType,
+        Arrays.asList(new FunctionParameter("y", Types.IntType),
+            new FunctionParameter("m", Types.IntType),
+            new FunctionParameter("d", Types.IntType),
+            new FunctionParameter("h", Types.IntType),
+            new FunctionParameter("mi",Types.IntType),
             new FunctionParameter("s", Types.FloatType)));
   }
 
@@ -32,10 +35,13 @@ public class NewTimeFunction extends Function {
   public String translate(FunctionCall call, Translatable.Target target) {
     List<Expression<?>> args = call.arguments();
     if (target == POSTGRESQL) {
-      return "make_time("
+      return "make_timestamp("
           + args.get(0).translate(target) + ", "
           + args.get(1).translate(target) + ", "
-          + args.get(2).translate(target) + ')';
+          + args.get(2).translate(target) + ", "
+          + args.get(3).translate(target) + ", "
+          + args.get(4).translate(target) + ", "
+          + args.get(5).translate(target) + ')';
 
     } else if (target == SQLSERVER) {
       // precision and fractional second values must agree in SQL Server
@@ -55,9 +61,12 @@ public class NewTimeFunction extends Function {
         fractional = Integer.parseInt(fraction);
         precision = fraction.length();
       }
-      return "timefromparts("
+      return "datetime2fromparts("
           + args.get(0).translate(target) + ", "
           + args.get(1).translate(target) + ", "
+          + args.get(2).translate(target) + ", "
+          + args.get(3).translate(target) + ", "
+          + args.get(4).translate(target) + ", "
           + seconds + ", "
           + fractional + ", "
           + precision + ')';
@@ -66,7 +75,10 @@ public class NewTimeFunction extends Function {
       return name + '('
           + args.get(0).translate(target) + ", "
           + args.get(1).translate(target) + ", "
-          + args.get(2).translate(target) + ')';
+          + args.get(2).translate(target) + ", "
+          + args.get(3).translate(target) + ", "
+          + args.get(4).translate(target) + ", "
+          + args.get(5).translate(target) + ')';
     }
   }
 }

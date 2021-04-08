@@ -20,8 +20,8 @@ import static ma.vi.esql.parser.Translatable.Target.SQLSERVER;
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public class DateDiffFunction extends Function {
-  public DateDiffFunction(String name, DatePartFunction.Part part) {
+public class DateDiff extends Function {
+  public DateDiff(String name, DatePart.Part part) {
     super(name, Types.IntType,
           Arrays.asList(new FunctionParameter("s1", Types.DatetimeType),
             new FunctionParameter("s2", Types.DatetimeType)));
@@ -42,5 +42,5 @@ public class DateDiffFunction extends Function {
     }
   }
 
-  public final DatePartFunction.Part part;
+  public final DatePart.Part part;
 }

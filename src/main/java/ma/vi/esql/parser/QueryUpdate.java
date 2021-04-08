@@ -216,12 +216,10 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
     /*
      * If this query is part of another query, it is a subquery and its attributes
      * must not be optimised away (removed from the query and calculated statically)
-     * as they could be references in the outer query.
+     * as they could be referenced in the outer query.
      */
-    boolean subQuery = false;
     QueryUpdate ancestor = ancestor(QueryUpdate.class);
     if (ancestor.parent != null && ancestor.parent.ancestor(QueryUpdate.class) != null) {
-      subQuery = true;
       optimiseAttributesLoading = false;
     }
 

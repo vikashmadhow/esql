@@ -22,6 +22,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Support for Oracle database.
 - Make into Java 9 module.
 
+## [Unreleased]
+### Added
+- `bin` macro function which return the interval that a value belongs to and 
+  expanded to a CASE expression; it is similar to the `range` function but the 
+  latter uses a stored database function whereas `bin` expansion to a CASE can 
+  be optimised by the database and result in faster queries.
+- Concatenation of multiple expressions is now optimised to generate more 
+  compact code.
+
+### Fixed
+- Typing of CTE now returns the relation type of the CTE instead of the type of
+  the internal query of the CTE, thereby fixing various bugs in `with` queries.
+- Renamed functions and macro functions to be shorter and consistent.  
+  
+### Removed
+- All lookup tables, functions and macros moved to an Extension.
+
 ## [0.3.8] - 2021-04-06
 ### Added
 - Extensions can define their dependencies on other extensions which determines

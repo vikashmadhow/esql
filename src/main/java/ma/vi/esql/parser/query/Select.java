@@ -16,6 +16,7 @@ import ma.vi.esql.parser.define.Metadata;
 import ma.vi.esql.parser.expression.ColumnRef;
 import ma.vi.esql.parser.expression.Expression;
 import ma.vi.esql.parser.expression.FunctionCall;
+import ma.vi.esql.parser.expression.SelectExpression;
 import ma.vi.esql.type.AliasedRelation;
 import ma.vi.esql.type.BaseRelation;
 import ma.vi.esql.type.Relation;
@@ -117,7 +118,7 @@ public class Select extends QueryUpdate implements Macro {
   @Override
   public boolean expand(String name, Esql<?, ?> esql) {
     /*
-     * Expand all columns (*) to the individual columns they refer to
+     * Expand star columns (*) to the individual columns they refer to
      */
     TableExpr from = tables();
     Relation fromType = from.type();
@@ -190,6 +191,19 @@ public class Select extends QueryUpdate implements Macro {
           }
         }
       } else {
+        column.expr().forEach(e -> {
+          if (e instanceof ColumnRef) {
+            SelectExpression selExpr = e.ancestor(SelectExpression.class);
+            if (selExpr == null) {
+              ColumnRef c = (ColumnRef)e;
+              if (c.qualifier() == null) {
+                Column col = fromType.column(c.name());
+                c.replaceWith(col.expr());
+              }
+            }
+          }
+          return true;
+        });
         resolvedColumns.put(column.alias(), column);
       }
     }

@@ -15,13 +15,13 @@ import static java.util.Collections.singletonList;
 import static ma.vi.esql.parser.Translatable.Target.JAVASCRIPT;
 
 /**
- * Function to convert text to upper case.
+ * Function to convert text to lower case.
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public class UpperFunction extends Function {
-  public UpperFunction() {
-    super("upper", Types.StringType,
+public class Lower extends Function {
+  public Lower() {
+    super("lower", Types.StringType,
           singletonList(new FunctionParameter("text", Types.StringType)));
   }
 
@@ -29,7 +29,7 @@ public class UpperFunction extends Function {
   public String translate(FunctionCall call, Translatable.Target target) {
     List<Expression<?>> args = call.arguments();
     if (target == JAVASCRIPT) {
-      return "(" + args.get(0).translate(target) + ").toUpperCase()";
+      return '(' + args.get(0).translate(target) + ").toLowerCase()";
 
     } else {
       // ESQL and all databases

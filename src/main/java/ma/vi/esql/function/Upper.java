@@ -15,13 +15,13 @@ import static java.util.Collections.singletonList;
 import static ma.vi.esql.parser.Translatable.Target.JAVASCRIPT;
 
 /**
- * Function to trim string of spaces.
+ * Function to convert text to upper case.
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public class LeftTrimFunction extends Function {
-  public LeftTrimFunction() {
-    super("ltrim", Types.StringType,
+public class Upper extends Function {
+  public Upper() {
+    super("upper", Types.StringType,
           singletonList(new FunctionParameter("text", Types.StringType)));
   }
 
@@ -29,7 +29,7 @@ public class LeftTrimFunction extends Function {
   public String translate(FunctionCall call, Translatable.Target target) {
     List<Expression<?>> args = call.arguments();
     if (target == JAVASCRIPT) {
-      return "(" + args.get(0).translate(target) + ").trimLeft()";
+      return "(" + args.get(0).translate(target) + ").toUpperCase()";
 
     } else {
       // ESQL and all databases

@@ -13,30 +13,26 @@ import java.util.List;
 
 import static java.util.Collections.singletonList;
 import static ma.vi.esql.parser.Translatable.Target.JAVASCRIPT;
-import static ma.vi.esql.parser.Translatable.Target.SQLSERVER;
 
 /**
- * Function returning the length of a string.
+ * Function to trim string of spaces.
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public class LengthFunction extends Function {
-  public LengthFunction() {
-    super("length", Types.IntType,
+public class LeftTrim extends Function {
+  public LeftTrim() {
+    super("ltrim", Types.StringType,
           singletonList(new FunctionParameter("text", Types.StringType)));
   }
 
   @Override
   public String translate(FunctionCall call, Translatable.Target target) {
     List<Expression<?>> args = call.arguments();
-    if (target == SQLSERVER) {
-      return "len(" + args.get(0).translate(target) + ')';
-
-    } else if (target == JAVASCRIPT) {
-      return "(" + args.get(0).translate(target) + ").length";
+    if (target == JAVASCRIPT) {
+      return "(" + args.get(0).translate(target) + ").trimLeft()";
 
     } else {
-      // Postgres, ESQL and everything else
+      // ESQL and all databases
       return name + '(' + args.get(0).translate(target) + ')';
     }
   }

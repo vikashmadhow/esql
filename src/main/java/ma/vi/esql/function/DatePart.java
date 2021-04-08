@@ -12,7 +12,7 @@ import ma.vi.esql.type.Types;
 import java.util.List;
 
 import static java.util.Collections.singletonList;
-import static ma.vi.esql.function.DatePartFunction.Part.*;
+import static ma.vi.esql.function.DatePart.Part.*;
 import static ma.vi.esql.parser.Translatable.Target.*;
 
 /**
@@ -20,8 +20,8 @@ import static ma.vi.esql.parser.Translatable.Target.*;
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public class DatePartFunction extends Function {
-  public DatePartFunction(String name, Part part) {
+public class DatePart extends Function {
+  public DatePart(String name, Part part) {
     super(name, Types.IntType,
           singletonList(new FunctionParameter("s", Types.DatetimeType)));
     this.part = part;

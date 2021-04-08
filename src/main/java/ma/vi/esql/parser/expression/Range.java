@@ -24,8 +24,10 @@ import static ma.vi.esql.translator.SqlServerTranslator.requireIif;
  */
 public class Range extends Expression<Expression<?>> {
   public Range(Context context,
-               Expression<?> leftExpression, String leftCompare,
-               Expression<?> compareExpression, String rightCompare,
+               Expression<?> leftExpression,
+               String leftCompare,
+               Expression<?> compareExpression,
+               String rightCompare,
                Expression<?> rightExpression) {
     super(context, compareExpression,
         T2.of("leftExpression", leftExpression),

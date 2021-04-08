@@ -21,26 +21,14 @@ import static java.util.Collections.singletonList;
 import static ma.vi.esql.parser.Translatable.Target.ESQL;
 
 /**
- * A macro function which produces a label corresponding to a sequence of ids
- * from linked tables.
- * <p>
- * To get the label corresponding to an id referring to another table. For instance,
- * if table A {b_id} refers to B{id, name} with A.b_id being a foreign key pointing
- * to B.id and B.name is set as the string_form for the table B then <b>joinlabel(b_id, B)</b>
- * will return the name from B corresponding to b_id. joinlabel(b_id, B, c_id, C) will
- * produce c_name / b_name corresponding the b_id and following on to c_id. Any number of
- * links can be specified.
- * <p>
- * joinlabel can have the following optional named arguments to control the value displayed:
- * <ul>
- *     <li><b>show_last_only:</b> Show the last label element in the chain only (a -&gt; b -&gt; c, show c only).</li>
- *     <li><b>join_separator:</b> an expression for the separator between the labels from different tables.</li>
- * </ul>
+ * A macro function to check whether a date value falls in a specific month of a
+ * year. This macro expands to a `between` expression and result in faster query
+ * execution than extracting and comparing the year and month from the date.
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public class InMonthMacroFunction extends Function implements Macro {
-  public InMonthMacroFunction() {
+public class InMonth extends Function implements Macro {
+  public InMonth() {
     super("inmonth", Types.StringType, emptyList());
   }
 
@@ -51,8 +39,8 @@ public class InMonthMacroFunction extends Function implements Macro {
     List<Expression<?>> arguments = call.arguments();
 
     if (arguments.isEmpty()) {
-      throw new TranslationException("inmonth function needs at 3 arguments (the date to check and " +
-                                         "the month and year that the date must fall in)");
+      throw new TranslationException("inmonth function needs at 3 arguments (the date to check "
+                                   + "and the month and year that the date must fall in)");
     }
 
     /*

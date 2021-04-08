@@ -550,13 +550,50 @@ public class Analyser extends EsqlBaseListener {
 
   @Override
   public void exitConcatenationExpr(ConcatenationExprContext ctx) {
-    put(ctx, new Concatenation(context, get(ctx.left), get(ctx.right)));
+    createConcatenation(ctx, ctx.expr());
   }
 
   @Override
   public void exitSimpleConcatenationExpr(SimpleConcatenationExprContext ctx) {
-    put(ctx, new Concatenation(context, get(ctx.left), get(ctx.right)));
+    createConcatenation(ctx, ctx.simpleExpr());
   }
+
+  private void createConcatenation(ParserRuleContext ctx,
+                                   List<? extends ParserRuleContext> expressions) {
+    boolean optimised = false;
+    if (expressions.size() == 2) {
+      /*
+       * Chained concatenation statements are broken in 2-parts corresponding to
+       * (expr '||' expr). If the first expr is a concatenation expression, we can
+       * optimise the whole concatenation function by combining it into a single one.
+       *
+       * Thus (concatenation || e3) where concatenation is (e1 || e2) is combined into
+       * (e1 || e2 || e3)
+       */
+      Expression<?> first = get(expressions.get(0));
+      Expression<?> second = get(expressions.get(1));
+      if (first instanceof Concatenation) {
+        Concatenation concat = (Concatenation)first;
+        List<Expression<?>> concatExprs = new ArrayList<>(concat.expressions());
+        concatExprs.add(second);
+        put(ctx, new Concatenation(context, concatExprs));
+        optimised = true;
+
+      } if (second instanceof Concatenation) {
+        Concatenation concat = (Concatenation)second;
+        List<Expression<?>> concatExprs = new ArrayList<>(concat.expressions());
+        concatExprs.add(0, first);
+        put(ctx, new Concatenation(context, concatExprs));
+        optimised = true;
+      }
+    }
+    if (!optimised) {
+      put(ctx, new Concatenation(context, expressions.stream()
+                                                     .map(e -> (Expression<?>)get(e))
+                                                     .collect(toList())));
+    }
+  }
+
 
   @Override
   public void exitCastExpr(CastExprContext ctx) {
@@ -819,12 +856,19 @@ public class Analyser extends EsqlBaseListener {
        * Thus (coalesce ? e3) where coalesce is (e1 ? e2) is combined into
        * (e1 ? e2 ? e3)
        */
-      Esql<?, ?> first = get(expressions.get(0));
+      Expression<?> first = get(expressions.get(0));
+      Expression<?> second = get(expressions.get(1));
       if (first instanceof Coalesce) {
-        Coalesce firstCoalesce = (Coalesce)first;
-        List<Expression<?>> coalesceExprs =
-            new ArrayList<>(firstCoalesce.expressions());
-        coalesceExprs.add(get(expressions.get(1)));
+        Coalesce coalesce = (Coalesce)first;
+        List<Expression<?>> coalesceExprs = new ArrayList<>(coalesce.expressions());
+        coalesceExprs.add(second);
+        put(ctx, new Coalesce(context, coalesceExprs));
+        optimised = true;
+
+      } else if (second instanceof Coalesce) {
+        Coalesce coalesce = (Coalesce)second;
+        List<Expression<?>> coalesceExprs = new ArrayList<>(coalesce.expressions());
+        coalesceExprs.add(0, first);
         put(ctx, new Coalesce(context, coalesceExprs));
         optimised = true;
       }
@@ -836,7 +880,7 @@ public class Analyser extends EsqlBaseListener {
     }
   }
 
-    @Override
+  @Override
   public void exitCaseExpr(CaseExprContext ctx) {
     createCase(ctx, ctx.expr());
   }

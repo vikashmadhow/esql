@@ -9,9 +9,8 @@ import ma.vi.esql.parser.Translatable;
 import ma.vi.esql.parser.TranslationException;
 import ma.vi.esql.parser.expression.Expression;
 import ma.vi.esql.parser.expression.FunctionCall;
-import ma.vi.esql.parser.macro.InMonthMacroFunction;
-import ma.vi.esql.parser.macro.JoinLabelMacroFunction;
-import ma.vi.esql.parser.macro.LookupLabelMacroFunction;
+import ma.vi.esql.parser.macro.Bin;
+import ma.vi.esql.parser.macro.InMonth;
 import ma.vi.esql.type.BaseRelation;
 import ma.vi.esql.type.Sequence;
 import ma.vi.esql.type.Type;
@@ -23,7 +22,7 @@ import java.util.concurrent.ConcurrentMap;
 import static java.util.Arrays.asList;
 import static java.util.Collections.*;
 import static java.util.stream.Collectors.joining;
-import static ma.vi.esql.function.DatePartFunction.Part.*;
+import static ma.vi.esql.function.DatePart.Part.*;
 import static ma.vi.esql.parser.Translatable.Target.*;
 import static ma.vi.esql.type.Types.*;
 
@@ -258,12 +257,12 @@ public class Structure {
 
     // string
     /////////////////////////////////
-    function(new LengthFunction());
+    function(new Length());
 
     function(new Function("ascii", IntType,
                           singletonList(new FunctionParameter("p", StringType))));
 
-    function(new ConcatFunction());
+    function(new Concat());
 
     function(new Function("concatws", StringType,
                           singletonList(new FunctionParameter("p", StringType)),
@@ -277,9 +276,9 @@ public class Structure {
                           Map.of(POSTGRESQL, "chr",
                                  SQLSERVER, "char")));
 
-    function(new TrimFunction());
-    function(new LeftTrimFunction());
-    function(new RightTrimFunction());
+    function(new Trim());
+    function(new LeftTrim());
+    function(new RightTrim());
     function(new LeftPad());
     function(new RightPad());
 
@@ -298,18 +297,18 @@ public class Structure {
                           Map.of(POSTGRESQL, "repeat",
                                  SQLSERVER, "replicate")));
 
-    function(new SubstringFunction());
+    function(new Substring());
 
     function(new Function("translate", StringType,
                           asList(new FunctionParameter("s", StringType),
                                  new FunctionParameter("from", StringType),
                                  new FunctionParameter("to", StringType))));
 
-    function(new LeftFunction());
-    function(new RightFunction());
-    function(new LowerFunction());
-    function(new UpperFunction());
-    function(new IndexOfFunction());
+    function(new Left());
+    function(new Right());
+    function(new Lower());
+    function(new Upper());
+    function(new IndexOf());
 
     // Obfuscation
     /////////////////////////////////
@@ -327,7 +326,7 @@ public class Structure {
 
     // conversion and formatting
     /////////////////////////////////
-    function(new FormatDateFunction());
+    function(new FormatDate());
 
     // date and time
     /////////////////////////////////
@@ -337,9 +336,9 @@ public class Structure {
                                  SQLSERVER, "getdate",
                                  JAVASCRIPT, "_moment")));
 
-    function(new AddIntervalToDateFunction());
+    function(new AddIntervalToDate());
 
-    function(new AddIntervalsFunction());
+    function(new AddIntervals());
 
     function(new Function("newdate", DateType,
                           asList(new FunctionParameter("y", IntType),
@@ -350,40 +349,40 @@ public class Structure {
                                  SQLSERVER, "datefromparts",
                                  JAVASCRIPT, "_moment")));
 
-    function(new NewDateTimeFunction());
+    function(new NewDateTime());
 
-    function(new NewTimeFunction());
+    function(new NewTime());
 
-    function(new DatePartFunction("year", Year));
-    function(new DatePartFunction("quarter", Quarter));
-    function(new DatePartFunction("semester", Semester));
-    function(new DatePartFunction("month", Month));
-    function(new DatePartFunction("day", Day));
-    function(new DatePartFunction("dayofweek", DayOfWeek));
-    function(new DatePartFunction("dayofyear", DayOfYear));
-    function(new DatePartFunction("week", Week));
-    function(new DatePartFunction("hour", Hour));
-    function(new DatePartFunction("minute", Minute));
-    function(new DatePartFunction("second", Second));
-    function(new DatePartFunction("milli", Millisecond));
-    function(new DatePartFunction("micro", Microsecond));
+    function(new DatePart("year", Year));
+    function(new DatePart("quarter", Quarter));
+    function(new DatePart("semester", Semester));
+    function(new DatePart("month", Month));
+    function(new DatePart("day", Day));
+    function(new DatePart("dayofweek", DayOfWeek));
+    function(new DatePart("dayofyear", DayOfYear));
+    function(new DatePart("week", Week));
+    function(new DatePart("hour", Hour));
+    function(new DatePart("minute", Minute));
+    function(new DatePart("second", Second));
+    function(new DatePart("milli", Millisecond));
+    function(new DatePart("micro", Microsecond));
 
     function(new AgeInYears());
 
-    function(new StartOfMonthFunction());
-    function(new EndOfMonthFunction());
-    function(new InMonthMacroFunction());
+    function(new StartOfMonth());
+    function(new EndOfMonth());
+    function(new InMonth());
 
     // Functions to compute difference between dates in years, months, days, etc, (datediff in sql server)
-    function(new DateDiffFunction("years", Year));
-    function(new DateDiffFunction("months", Month));
-    function(new DateDiffFunction("days", Day));
-    function(new DateDiffFunction("weeks", Week));
-    function(new DateDiffFunction("hours", Hour));
-    function(new DateDiffFunction("minutes", Minute));
-    function(new DateDiffFunction("seconds", Second));
-    function(new DateDiffFunction("millis", Millisecond));
-    function(new DateDiffFunction("micros", Microsecond));
+    function(new DateDiff("years", Year));
+    function(new DateDiff("months", Month));
+    function(new DateDiff("days", Day));
+    function(new DateDiff("weeks", Week));
+    function(new DateDiff("hours", Hour));
+    function(new DateDiff("minutes", Minute));
+    function(new DateDiff("seconds", Second));
+    function(new DateDiff("millis", Millisecond));
+    function(new DateDiff("micros", Microsecond));
 
     // @todo all window functions
     ////////////////////////////////
@@ -392,15 +391,10 @@ public class Structure {
                           Map.of(POSTGRESQL, "row_number",
                                  SQLSERVER, "row_number")));
 
-    // labels functions and macros
-    ////////////////////////////////
-    function(new LookupLabelMacroFunction());
-    function(new LookupLabel());
-    function(new JoinLabelMacroFunction());
-
     // Range binning
     ///////////////////////////////////
     function(new Range());
+    function(new Bin());
   }
 
   public Map<String, BaseRelation> relations() {

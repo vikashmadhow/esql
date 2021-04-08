@@ -468,14 +468,18 @@ public class  Esql<V, R> implements Close, Copy<Esql<V, R>>, Translatable<R> {
   public String replaceWith(Esql<?, ?> replacement) {
     String thisChildName = null;
     if (parent != null) {
-      for (Map.Entry<String, Esql<?, ?>> child: parent.children.entrySet()) {
-        if (child.getValue() == this) {
-          thisChildName = child.getKey();
-          break;
+      if (parent.value == this) {
+        parent.replaceWith(null, replacement);
+      } else {
+        for (Map.Entry<String, Esql<?, ?>> child: parent.children.entrySet()) {
+          if (child.getValue() == this) {
+            thisChildName = child.getKey();
+            break;
+          }
         }
-      }
-      if (thisChildName != null) {
-        parent.replaceWith(thisChildName, replacement);
+        if (thisChildName != null) {
+          parent.replaceWith(thisChildName, replacement);
+        }
       }
     }
     return thisChildName;

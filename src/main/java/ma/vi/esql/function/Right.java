@@ -16,13 +16,13 @@ import static ma.vi.esql.parser.Translatable.Target.ESQL;
 import static ma.vi.esql.parser.Translatable.Target.JAVASCRIPT;
 
 /**
- * Left part of a string
+ * Right part of a string
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public class LeftFunction extends Function {
-  public LeftFunction() {
-    super("leftstr", Types.StringType,
+public class Right extends Function {
+  public Right() {
+    super("rightstr", Types.IntType,
           asList(new FunctionParameter("s", Types.StringType),
             new FunctionParameter("count", Types.IntType)));
   }
@@ -31,17 +31,19 @@ public class LeftFunction extends Function {
   public String translate(FunctionCall call, Translatable.Target target) {
     List<Expression<?>> args = call.arguments();
     if (target == JAVASCRIPT) {
-      return "(" + args.get(0).translate(target) + ").substring(0"
-          + args.get(1).translate(target) + ")";
+      return
+          "(" + args.get(0).translate(target) + ").substring(("
+              + args.get(0).translate(target) + ").length - "
+              + args.get(1).translate(target) + ")";
 
     } else if (target == ESQL) {
       // ESQL
-      return "leftstr("
+      return "rightstr("
           + args.get(0).translate(target) + ", "
           + args.get(1).translate(target) + ')';
     } else {
       // all databases
-      return "left("
+      return "right("
           + args.get(0).translate(target) + ", "
           + args.get(1).translate(target) + ')';
     }

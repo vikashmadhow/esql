@@ -19,8 +19,8 @@ import static ma.vi.esql.parser.Translatable.Target.*;
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public class IndexOfFunction extends Function {
-  public IndexOfFunction() {
+public class IndexOf extends Function {
+  public IndexOf() {
     super("indexof", Types.IntType,
           Arrays.asList(new FunctionParameter("substr_to_find", Types.StringType),
             new FunctionParameter("str_to_search", Types.StringType),
