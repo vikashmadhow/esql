@@ -278,6 +278,7 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
       String colName = column.alias();
       columnToIndex.put(colName, columnIndex);
       columnMappings.put(colName, new ColumnMapping(itemIndex,
+                                                    column,
                                                     column.type(),
                                                     new ArrayList<>(),
                                                     new HashMap<>()));

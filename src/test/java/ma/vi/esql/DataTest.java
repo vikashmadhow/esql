@@ -73,6 +73,7 @@ public class DataTest {
                                 "  }," +
                                 "  j int[], " +
                                 "  k interval, " +
+                                "  l int, " +
                                 "  primary key(_id)" +
                                 ")");
         con.exec(s);
@@ -97,6 +98,14 @@ public class DataTest {
                     "    m1: a > 5," +
                     "    m2: a + b," +
                     "    m3: b > 5" +
+                    "  }," +
+                    "  x int {" +
+                    "    x1: b > 5," +
+                    "    x2: a != 0" +
+                    "  }," +
+                    "  y int {" +
+                    "    y1: b > 5," +
+                    "    y2: a != 0" +
                     "  }," +
                     "  s_id uuid {" +
                     "    link_table: 'S', " +
@@ -198,7 +207,7 @@ public class DataTest {
         System.out.println('+' + repeat(repeat('-', columnWidth) + '+', rs.columns()));
         System.out.print('|');
         for (int i = 0; i < rs.columns(); i++) {
-          System.out.print(rightPad(rs.get(i + 1).column.alias(), columnWidth) + '|');
+          System.out.print(rightPad(rs.column(i + 1).alias(), columnWidth) + '|');
         }
         System.out.println();
         System.out.println('+' + repeat(repeat('-', columnWidth) + '+', rs.columns()));

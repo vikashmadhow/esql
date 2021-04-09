@@ -206,3 +206,50 @@ with recursive r("id", "parent", "name") as (select "_id" "_id", "parent_id" "pa
                                                       join "r" "r" on ("xr"."parent_id" = "r"."id"))
 select "r"."id" "id", "r"."parent" "parent", "r"."name" "name"
 from "r" "r";
+
+
+
+select (iif("S"."a" > "S"."b", 1, 0))                                              "/tm2",
+       (select max("b") "max" from "DBO"."S" "S")                                  "/tm1",
+       "S"."a"                                                                     "a",
+       "S"."b"                                                                     "b",
+       "S"."a" + "S"."b"                                                           "c",
+       "S"."a" * "S"."b"                                                           "column",
+       case
+           when ("S"."a" * ("S"."a" + "S"."b") < 10) then N'01. ' + N'a times c' + N' < ' + cast(10 as nvarchar(4000))
+           when (10 <= "S"."a" * ("S"."a" + "S"."b") and "S"."a" * ("S"."a" + "S"."b") < 25) then N'02. ' +
+                                                                                                  cast(10 as nvarchar(4000)) +
+                                                                                                  N' <= ' +
+                                                                                                  N'a times c' +
+                                                                                                  N' < ' +
+                                                                                                  cast(25 as nvarchar(4000))
+           when (25 <= "S"."a" * ("S"."a" + "S"."b") and "S"."a" * ("S"."a" + "S"."b") < 40) then N'03. ' +
+                                                                                                  cast(25 as nvarchar(4000)) +
+                                                                                                  N' <= ' +
+                                                                                                  N'a times c' +
+                                                                                                  N' < ' +
+                                                                                                  cast(40 as nvarchar(4000))
+           when (40 <= "S"."a" * ("S"."a" + "S"."b") and "S"."a" * ("S"."a" + "S"."b") < 75) then N'04. ' +
+                                                                                                  cast(40 as nvarchar(4000)) +
+                                                                                                  N' <= ' +
+                                                                                                  N'a times c' +
+                                                                                                  N' < ' +
+                                                                                                  cast(75 as nvarchar(4000))
+           when (75 <= "S"."a" * ("S"."a" + "S"."b") and "S"."a" * ("S"."a" + "S"."b") < 100) then N'05. ' +
+                                                                                                   cast(75 as nvarchar(4000)) +
+                                                                                                   N' <= ' +
+                                                                                                   N'a times c' +
+                                                                                                   N' < ' +
+                                                                                                   cast(100 as nvarchar(4000))
+           when (100 <= "S"."a" * ("S"."a" + "S"."b") and "S"."a" * ("S"."a" + "S"."b") < 200) then N'06. ' +
+                                                                                                    cast(100 as nvarchar(4000)) +
+                                                                                                    N' <= ' +
+                                                                                                    N'a times c' +
+                                                                                                    N' < ' +
+                                                                                                    cast(200 as nvarchar(4000))
+           else N'07. ' + N'a times c' + N' >= ' + cast(200 as nvarchar(4000)) end "bin",
+       (iif("S"."b" > 5, 1, 0))                                                    "a/m1",
+       (iif("S"."a" != 0, 1, 0))                                                   "a/m3",
+       (iif("S"."b" < 0, 1, 0))                                                    "b/m1"
+from "DBO"."S" "S"
+order by "a"

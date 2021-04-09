@@ -4,12 +4,9 @@
 
 package ma.vi.esql.function;
 
-import ma.vi.esql.parser.QueryUpdate;
 import ma.vi.esql.parser.Translatable;
-import ma.vi.esql.parser.expression.ColumnRef;
 import ma.vi.esql.parser.expression.Expression;
 import ma.vi.esql.parser.expression.FunctionCall;
-//import ma.vi.esql.parser.macro.LookupLabelMacroFunction;
 import ma.vi.esql.type.Types;
 
 import java.util.Arrays;
@@ -43,13 +40,6 @@ public class Range extends Function {
     List<Expression<?>> args = call.arguments();
     Iterator<Expression<?>> i = args.iterator();
     Expression<?> value = i.next();
-//    QueryUpdate query = call.ancestor(QueryUpdate.class);
-//    if (query != null) {
-//      String qualifier = LookupLabelMacroFunction.qualifierFromTableExpr(call.context.structure, query.tables(), value);
-//      if (qualifier != null) {
-//        ColumnRef.qualify(value, qualifier, null, false);
-//      }
-//    }
 
     if (target == POSTGRESQL) {
       StringBuilder func = new StringBuilder("_core.range((" + value.translate(target) + ")::double precision");

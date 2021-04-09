@@ -114,21 +114,11 @@ public class Result implements AutoCloseable {
         T3<Integer, String, Type> attr = mapping.attributeIndices.get(i);
         metadata.put(attr.b, convert(rs.getObject(attr.a), attr.a, attr.c));
       }
-      return new ResultColumn<>(value, columnsByNumber().get(column - 1), metadata);
+      return new ResultColumn<>(value, mapping.column, metadata);
 
     } catch (SQLException sqle) {
       throw Errors.unchecked(sqle);
     }
-  }
-
-  private Map<Integer, Column> columnsByNumber() {
-    if (columnsByNumber == null) {
-      List<Column> columns = type().columns();
-      columnsByNumber = IntStream.range(0, columns.size())
-                                 .boxed()
-                                 .collect(toMap(i -> i, columns::get));
-    }
-    return columnsByNumber;
   }
 
   public <T> ResultColumn<T> get(String field) {
@@ -143,7 +133,17 @@ public class Result implements AutoCloseable {
       throw new RuntimeException("No such field: " + field);
     }
     return value(columnNameToIndex.get(field));
+  }
 
+  public Column column(int column) {
+    return columns.get(column - 1).column;
+  }
+
+  public Column column(String field) {
+    if (!columnNameToIndex.containsKey(field)) {
+      throw new RuntimeException("No such field: " + field);
+    }
+    return column(columnNameToIndex.get(field));
   }
 
   public <T> T value(int index) {
@@ -257,8 +257,6 @@ public class Result implements AutoCloseable {
   private final Structure structure;
 
   private final ResultSet rs;
-
-  private Map<Integer, Column> columnsByNumber;
 
   private final Relation type;
 

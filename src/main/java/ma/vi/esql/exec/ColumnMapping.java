@@ -5,6 +5,7 @@
 package ma.vi.esql.exec;
 
 import ma.vi.base.tuple.T3;
+import ma.vi.esql.parser.query.Column;
 import ma.vi.esql.type.Type;
 
 import java.util.List;
@@ -19,10 +20,12 @@ import java.util.Map;
  */
 public class ColumnMapping {
   public ColumnMapping(int valueIndex,
+                       Column column,
                        Type valueType,
                        List<T3<Integer, String, Type>> attributeIndices,
                        Map<String, Object> attributes) {
     this.valueIndex = valueIndex;
+    this.column = column;
     this.valueType = valueType;
     this.attributeIndices = attributeIndices;
     this.attributes = attributes;
@@ -32,6 +35,8 @@ public class ColumnMapping {
    * The index in the resultset for the value of this column.
    */
   public final int valueIndex;
+
+  public final Column column;
 
   /**
    * The type of the value.

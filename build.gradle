@@ -93,12 +93,12 @@ dependencies {
 
   implementation("org.apache.commons:commons-lang3:3.9")
 
-  implementation("org.postgresql:postgresql:42.2.18.jre7")
-  implementation("com.microsoft.sqlserver:mssql-jdbc:8.4.0.jre14")
-  implementation("org.mariadb.jdbc:mariadb-java-client:2.7.1")
+  implementation("org.postgresql:postgresql:42.2.19")
+  implementation("com.microsoft.sqlserver:mssql-jdbc:9.2.1.jre11")
+  implementation("org.mariadb.jdbc:mariadb-java-client:2.7.2")
   implementation("mysql:mysql-connector-java:8.0.23")
-  implementation("org.hsqldb:hsqldb:2.5.1")
-  implementation("com.zaxxer:HikariCP:3.4.5")
+  implementation("org.hsqldb:hsqldb:2.6.0")
+  implementation("com.zaxxer:HikariCP:4.0.3")
 //  implementation("cubrid:cubrid-jdbc:10.2.2.8874")
 
   implementation("org.json:json:latest.release")
@@ -132,9 +132,22 @@ version = "0.3.9"
 ext.isReleaseVersion = !version.endsWith("SNAPSHOT")
 
 java {
+  modularity.inferModulePath = true
   withJavadocJar()
   withSourcesJar()
 }
+
+//compileJava {
+//  inputs.property("moduleName", 'ma.vi.esql')
+//  doFirst {
+//    // println("Classpath: " + classpath.asPath)
+//    options.compilerArgs = [
+//        '--module-path', classpath.asPath,
+//        '--add-exports', 'org.hsqldb/org.hsqldb=ma.vi.esql',
+//    ]
+//    classpath = files()
+//  }
+//}
 
 publishing {
   repositories {
