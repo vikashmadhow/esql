@@ -20,19 +20,18 @@ import static ma.vi.esql.parser.Translatable.Target.MARIADB;
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 public class MariaDb extends AbstractDatabase {
-  public MariaDb(Map<String, Object> config,
-                 boolean createCoreTables) {
+  public MariaDb(Map<String, Object> config) {
     Properties props = new Properties();
     props.setProperty("dataSourceClassName", MariaDbDataSource.class.getName());
-    props.setProperty("dataSource.serverName", valueOf(config.getOrDefault("database.host", "localhost")));
-    if (config.containsKey("database.port")) {
-      props.setProperty("dataSource.portNumber", valueOf(config.get("database.port")));
+    props.setProperty("dataSource.serverName", valueOf(config.getOrDefault(CONFIG_DB_HOST, "localhost")));
+    if (config.containsKey(CONFIG_DB_PORT)) {
+      props.setProperty("dataSource.portNumber", valueOf(config.get(CONFIG_DB_PORT)));
     }
 
-    database =  valueOf(config.get("database.name"));
+    database =  valueOf(config.get(CONFIG_DB_NAME));
     props.setProperty("dataSource.databaseName", database);
-    props.setProperty("dataSource.user", valueOf(config.get("database.user.name")));
-    props.setProperty("dataSource.password", valueOf(config.get("database.user.password")));
+    props.setProperty("dataSource.user", valueOf(config.get(CONFIG_DB_USER)));
+    props.setProperty("dataSource.password", valueOf(config.get(CONFIG_DB_PASSWORD)));
     dataSource = new HikariDataSource(new HikariConfig(props));
 
     init(config);
@@ -185,12 +184,12 @@ public class MariaDb extends AbstractDatabase {
                                   String username,
                                   String password) {
     try {
-      String db = valueOf(config().get("database.name"));
+      String db = valueOf(config().get(CONFIG_DB_NAME));
       Connection con = DriverManager.getConnection(
           "jdbc:mariadb://"
-              + valueOf(config().get("database.host")) + ':'
-              + (config().containsKey("database.port")
-                    ? ':' + valueOf(config().get("database.port"))
+              + valueOf(config().get(CONFIG_DB_HOST)) + ':'
+              + (config().containsKey(CONFIG_DB_PORT)
+                    ? ':' + valueOf(config().get(CONFIG_DB_PORT))
                     : "")
               + '/' + db,
           username,

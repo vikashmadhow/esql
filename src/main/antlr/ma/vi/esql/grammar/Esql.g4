@@ -625,7 +625,10 @@ expr
       /*
        * A named argument to a function. The name is dropped when this is
        * translated to SQL as most databases do not support named arguments yet.
-       * This is however useful for macro expansions.
+       * This is however useful as macro parameters to control the macro
+       * expansion. Since macros are expanded before translation of the ESQL
+       * statement to SQL, the named parameters can be interpreted by the macro
+       * and dropped from the expansion.
        */
     | Identifier ':=' expr                                      #NamedArgument
 

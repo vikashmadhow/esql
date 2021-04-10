@@ -23,22 +23,21 @@ import static ma.vi.esql.parser.Translatable.Target.HSQLDB;
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 public class HSqlDb extends AbstractDatabase {
-  public HSqlDb(Map<String, Object> config,
-                boolean createCoreTables) {
+  public HSqlDb(Map<String, Object> config) {
     Properties props = new Properties();
     props.setProperty("dataSourceClassName", JDBCDataSource.class.getName());
-    if (config.containsKey("database.host")) {
-      props.setProperty("dataSource.serverName", valueOf(config.get("database.host")));
+    if (config.containsKey(CONFIG_DB_HOST)) {
+      props.setProperty("dataSource.serverName", valueOf(config.get(CONFIG_DB_HOST)));
     }
-    if (config.containsKey("database.port")) {
-      props.setProperty("dataSource.portNumber", valueOf(config.get("database.port")));
+    if (config.containsKey(CONFIG_DB_PORT)) {
+      props.setProperty("dataSource.portNumber", valueOf(config.get(CONFIG_DB_PORT)));
     }
-    String database = valueOf(config.get("database.name"));
+    String database = valueOf(config.get(CONFIG_DB_NAME));
     props.setProperty("dataSource.databaseName", database);
-    if (config.get("database.user.name") != null
-     && config.get("database.user.password") != null) {
-      props.setProperty("dataSource.user", valueOf(config.get("database.user.name")));
-      props.setProperty("dataSource.password", valueOf(config.get("database.user.password")));
+    if (config.get(CONFIG_DB_USER) != null
+     && config.get(CONFIG_DB_PASSWORD) != null) {
+      props.setProperty("dataSource.user", valueOf(config.get(CONFIG_DB_USER)));
+      props.setProperty("dataSource.password", valueOf(config.get(CONFIG_DB_PASSWORD)));
     }
     dataSource = new HikariDataSource(new HikariConfig(props));
 
@@ -169,7 +168,7 @@ public class HSqlDb extends AbstractDatabase {
                                   String password) {
     try {
       Connection con = DriverManager.getConnection(
-          "jdbc:hsqldb:" + valueOf(config().get("database.name")),
+          "jdbc:hsqldb:" + valueOf(config().get(CONFIG_DB_NAME)),
           username,
           password);
       con.setAutoCommit(autoCommit);

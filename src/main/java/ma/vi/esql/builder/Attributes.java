@@ -5,11 +5,11 @@
 package ma.vi.esql.builder;
 
 /**
- * A standard set metadata of attributes which can be attached to tables and fields
- * through their metadata definition.
+ * A standard set metadata of attributes which can be attached to tables and
+ * fields through their metadata definition.
  * <p>
- * Attributes starting with display_ are interpreted on the client
- * side. They are packaged into a javascript function as follows:
+ * Attributes starting with display_ are interpreted on the client side. They
+ * are packaged into a javascript function as follows:
  *
  * <pre>
  * function(value, context) {
@@ -17,33 +17,30 @@ package ma.vi.esql.builder;
  * }
  * </pre>
  * <p>
- * The attribute value becomes the body of the function and has
- * the current value of the object (column or row) and a context
- * object which contains more information related to the object
- * value and the current environment.
+ * The attribute value becomes the body of the function and has the current
+ * value of the object (column or row) and a context object which contains more
+ * information related to the object value and the current environment.
  * <p>
- * Through the context argument, the function has access to the row
- * which the object value is part of (if applicable); if this row was
- * part of a row array, the latter is supplied as the rows property
- * of the context. The column index of the value in the row and the
- * row index of the row in the rows array are supplied as the
- * columnIndex and rowIndex properties, respectively. Additionally,
- * the context may contain information on what is being done currently
- * with the object value (e.g., edited, displayed in a data table, etc.)
+ * Through the context argument, the function has access to the row which the
+ * object value is part of (if applicable); if this row was part of a row array,
+ * the latter is supplied as the rows property of the context. The column index
+ * of the value in the row and the row index of the row in the rows array are
+ * supplied as the columnIndex and rowIndex properties, respectively.
+ * Additionally, the context may contain information on what is being done
+ * currently with the object value (e.g., edited, displayed in a data table,
+ * etc.)
  * <p>
- * If the attribute value is a single expression without a 'return'
- * statement element, an implicit return will be added. Otherwise,
- * the attribute value is inserted as-is, and the system assumes
- * that the value returns something explicitly. The detection of
- * whether the attribute is a single expression is quite basic: the
- * system checks for the presence of ';' and 'return'. If those two
- * substrings are not found, it is assumed that the attribute value
- * is an expression and an implicit return is added.
+ * If the attribute value is a single expression without a 'return' statement
+ * element, an implicit return will be added. Otherwise, the attribute value is
+ * inserted as-is, and the system assumes that the value returns something
+ * explicitly. The detection of whether the attribute is a single expression is
+ * quite basic: the system checks for the presence of ';' and 'return'. If those
+ * two substrings are not found, it is assumed that the attribute value is an
+ * expression and an implicit return is added.
  * <p>
- * Attribute values are thus computed at runtime and can dynamically
- * control various aspects of the user-interface, such as when the
- * visibility of certain fields in relation to values of other fields,
- * validation rules, etc.
+ * Attribute values are thus computed at runtime and can dynamically control
+ * various aspects of the user-interface, such as when the visibility of
+ * certain fields in relation to values of other fields, validation rules, etc.
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */

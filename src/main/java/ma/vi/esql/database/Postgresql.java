@@ -22,17 +22,16 @@ import static ma.vi.esql.parser.Translatable.Target.POSTGRESQL;
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 public class Postgresql extends AbstractDatabase {
-  public Postgresql(Map<String, Object> config,
-                    boolean createCoreTables) {
+  public Postgresql(Map<String, Object> config) {
     Properties props = new Properties();
     props.setProperty("dataSourceClassName", PGSimpleDataSource.class.getName());
-    props.setProperty("dataSource.serverName", valueOf(config.getOrDefault("database.host", "localhost")));
-    if (config.containsKey("database.port")) {
-      props.setProperty("dataSource.portNumber", valueOf(config.get("database.port")));
+    props.setProperty("dataSource.serverName", valueOf(config.getOrDefault(CONFIG_DB_HOST, "localhost")));
+    if (config.containsKey(CONFIG_DB_PORT)) {
+      props.setProperty("dataSource.portNumber", valueOf(config.get(CONFIG_DB_PORT)));
     }
-    props.setProperty("dataSource.databaseName", valueOf(config.get("database.name")));
-    props.setProperty("dataSource.user", valueOf(config.get("database.user.name")));
-    props.setProperty("dataSource.password", valueOf(config.get("database.user.password")));
+    props.setProperty("dataSource.databaseName", valueOf(config.get(CONFIG_DB_NAME)));
+    props.setProperty("dataSource.user", valueOf(config.get(CONFIG_DB_USER)));
+    props.setProperty("dataSource.password", valueOf(config.get(CONFIG_DB_PASSWORD)));
     dataSource = new HikariDataSource(new HikariConfig(props));
 
     init(config);
@@ -116,11 +115,11 @@ public class Postgresql extends AbstractDatabase {
     try {
       Connection con = DriverManager.getConnection(
           "jdbc:postgresql://"
-              + valueOf(config().get("database.host")) + ':'
-              + (config().containsKey("database.port")
-                    ? ':' + valueOf(config().get("database.port"))
+              + valueOf(config().get(CONFIG_DB_HOST)) + ':'
+              + (config().containsKey(CONFIG_DB_PORT)
+                    ? ':' + valueOf(config().get(CONFIG_DB_PORT))
                     : "")
-              + '/' + valueOf(config().get("database.name")),
+              + '/' + valueOf(config().get(CONFIG_DB_NAME)),
           username,
           password);
       con.setAutoCommit(autoCommit);

@@ -22,10 +22,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Support for Oracle database.
 - Make into Java 9 module.
 
-## [Unreleased]
+## [0.4.0] - 2021-04-10
 ### Added
 - Result now keeps the Column info alongside each column mapping for access to 
   the column metadata when accessing the result.
+- Add database configuration parameters as constants to the Database interface.
 
 ## [0.3.9] - 2021-04-08
 ### Added

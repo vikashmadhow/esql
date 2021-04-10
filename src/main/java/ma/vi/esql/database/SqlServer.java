@@ -24,17 +24,16 @@ import static ma.vi.esql.type.BaseType.BASE_TYPE;
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 public class SqlServer extends AbstractDatabase {
-  public SqlServer(Map<String, Object> config,
-                   boolean createCoreTables) {
+  public SqlServer(Map<String, Object> config) {
     Properties props = new Properties();
     props.setProperty("dataSourceClassName", SQLServerConnectionPoolDataSource.class.getName());
-    props.setProperty("dataSource.serverName", valueOf(config.getOrDefault("database.host", "localhost")));
-    if (config.containsKey("database.port")) {
-      props.setProperty("dataSource.portNumber", valueOf(config.get("database.port")));
+    props.setProperty("dataSource.serverName", valueOf(config.getOrDefault(CONFIG_DB_HOST, "localhost")));
+    if (config.containsKey(CONFIG_DB_PORT)) {
+      props.setProperty("dataSource.portNumber", valueOf(config.get(CONFIG_DB_PORT)));
     }
-    props.setProperty("dataSource.databaseName", valueOf(config.get("database.name")));
-    props.setProperty("dataSource.user", valueOf(config.get("database.user.name")));
-    props.setProperty("dataSource.password", valueOf(config.get("database.user.password")));
+    props.setProperty("dataSource.databaseName", valueOf(config.get(CONFIG_DB_NAME)));
+    props.setProperty("dataSource.user", valueOf(config.get(CONFIG_DB_USER)));
+    props.setProperty("dataSource.password", valueOf(config.get(CONFIG_DB_PASSWORD)));
     props.setProperty("dataSource.sendStringParametersAsUnicode", "true");
     dataSource = new HikariDataSource(new HikariConfig(props));
 
@@ -56,7 +55,7 @@ public class SqlServer extends AbstractDatabase {
 
       // Allow snapshot isolation
       c.createStatement().executeUpdate(
-          "alter database " + valueOf(config().get("database.name")) + " set allow_snapshot_isolation on");
+          "alter database " + valueOf(config().get(CONFIG_DB_NAME)) + " set allow_snapshot_isolation on");
 
       // function to add intervals to dates
       c.createStatement().executeUpdate(
@@ -382,11 +381,11 @@ public class SqlServer extends AbstractDatabase {
     try {
       Connection con = DriverManager.getConnection(
           "jdbc:sqlserver://"
-              + valueOf(config().get("database.host"))
-              + (config().containsKey("database.port")
-                    ? ':' + valueOf(config().get("database.port"))
+              + valueOf(config().get(CONFIG_DB_HOST))
+              + (config().containsKey(CONFIG_DB_PORT)
+                    ? ':' + valueOf(config().get(CONFIG_DB_PORT))
                     : "")
-              + ";database=" + valueOf(config().get("database.name"))
+              + ";database=" + valueOf(config().get(CONFIG_DB_NAME))
               + ";sendStringParametersAsUnicode=true",
           username,
           password);

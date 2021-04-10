@@ -34,6 +34,45 @@ public interface Database {
   ////////////////////////////////////////////////
 
   /**
+   * The database host configuration parameter (default localhost).
+   */
+  String CONFIG_DB_HOST = "database.host";
+
+  /**
+   * The database port configuration parameter. If not specified the database
+   * default is used.
+   */
+  String CONFIG_DB_PORT = "database.port";
+
+  /**
+   * Configuration parameter for the name of the database.
+   */
+  String CONFIG_DB_NAME = "database.name";
+
+  /**
+   * Configuration parameter for the username to connect to the database.
+   */
+  String CONFIG_DB_USER = "database.user.name";
+
+  /**
+   * Configuration parameter for the password to connect to the database.
+   */
+  String CONFIG_DB_PASSWORD = "database.user.password";
+
+  /**
+   * Configuration parameter for whether or not to create the core tables if
+   * missing; default is true.
+   */
+  String CONFIG_DB_CREATE_CORE_TABLES = "database.createCoreTables";
+
+  /**
+   * Configuration parameter for extensions. The value of this parameter must be
+   * a set of classes implementing the {@link Extension} interface; these
+   * classes are initialised when the database starts.
+   */
+  String CONFIG_DB_EXTENSIONS = "database.extensions";
+
+  /**
    * Initialise the database using the provided configuration map.
    * The following map keys are recognised:
    * <ul>
@@ -43,7 +82,7 @@ public interface Database {
    *   <li><b>database.user.name:</b> default username for connecting to the database.</li>
    *   <li><b>database.user.password:</b> default password for connecting to the database.</li>
    *   <li><b>database.createCoreTables:</b> whether or not to create the core tables if missing; default is true.</li>
-   *   <li><b>database.extensions:</b> An array of classes implementing the Extension interface
+   *   <li><b>database.extensions:</b> A set of classes implementing the Extension interface
    *                                   which are initialised when the database starts.</li>
    * </ul>
    *
@@ -71,7 +110,7 @@ public interface Database {
    * `database.createCoreTables` if it is present, or true otherwise.
    */
   default boolean createCoreTables() {
-    return (Boolean)config().getOrDefault("database.createCoreTables", Boolean.TRUE);
+    return (Boolean)config().getOrDefault(CONFIG_DB_CREATE_CORE_TABLES, Boolean.TRUE);
   }
 
   /**

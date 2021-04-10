@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import static java.lang.System.Logger.Level.INFO;
+import static ma.vi.esql.database.Database.*;
 import static ma.vi.esql.parser.expression.StringLiteral.escapeEsqlString;
 
 /**
@@ -29,9 +30,10 @@ public class Databases {
       String userHome = System.getProperty("user.home");
       hSqlDb = new HSqlDb(Map.of(
 //          "database.name", "file:temp/test",
-          "database.name", "file:" + userHome + "/testdb/data",
-          "database.user.name", "SA",
-          "database.user.password", ""), true);
+          CONFIG_DB_NAME, "file:" + userHome + "/testdb/data",
+          CONFIG_DB_USER, "SA",
+          CONFIG_DB_PASSWORD, "",
+          CONFIG_DB_CREATE_CORE_TABLES, true));
       createTestTables(hSqlDb);
     }
     return hSqlDb;
@@ -40,9 +42,10 @@ public class Databases {
   public static Postgresql Postgresql() {
     if (postgresql == null) {
       postgresql = new Postgresql(Map.of(
-          "database.name", "test",
-          "database.user.name", "test",
-          "database.user.password", "test"), true);
+          CONFIG_DB_NAME, "test",
+          CONFIG_DB_USER, "test",
+          CONFIG_DB_PASSWORD, "test",
+          CONFIG_DB_CREATE_CORE_TABLES, true));
       createTestTables(postgresql);
     }
     return postgresql;
@@ -51,9 +54,10 @@ public class Databases {
   public static SqlServer SqlServer() {
     if (sqlServer == null) {
       sqlServer = new SqlServer(Map.of(
-          "database.name", "test",
-          "database.user.name", "test",
-          "database.user.password", "test"), true);
+          CONFIG_DB_NAME, "test",
+          CONFIG_DB_USER, "test",
+          CONFIG_DB_PASSWORD, "test",
+          CONFIG_DB_CREATE_CORE_TABLES, true));
       createTestTables(sqlServer);
     }
     return sqlServer;
@@ -62,9 +66,10 @@ public class Databases {
   public static MariaDb MariaDb() {
     if (mariaDb == null) {
       mariaDb = new MariaDb(Map.of(
-          "database.name", "test",
-          "database.user.name", "test",
-          "database.user.password", "test"), true);
+          CONFIG_DB_NAME, "test",
+          CONFIG_DB_USER, "test",
+          CONFIG_DB_PASSWORD, "test",
+          CONFIG_DB_CREATE_CORE_TABLES, true));
       createTestTables(mariaDb);
     }
     return mariaDb;
