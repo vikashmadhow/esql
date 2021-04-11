@@ -22,6 +22,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Support for Oracle database.
 - Make into Java 9 module.
 
+## [Unreleased]
+### Fixed
+- Extensions are loaded in all cases; previously they were loaded only when
+  core tables were being created.
+- Source columns in foreign key constraint assigned to the child named `columns`
+  to be coherent with other constraints and resolve an error which happened when
+  a foreign key constraint is to be dropped.
+- Fixed ConcurrentModificationException when dropping columns which are no 
+  longer defined in a table.
+
 ## [0.4.0] - 2021-04-10
 ### Added
 - Result now keeps the Column info alongside each column mapping for access to 

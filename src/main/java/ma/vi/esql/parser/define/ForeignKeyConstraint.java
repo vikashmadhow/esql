@@ -14,7 +14,6 @@ import java.util.List;
 import java.util.Map;
 
 import static java.util.stream.Collectors.joining;
-import static java.util.stream.Collectors.toSet;
 import static ma.vi.esql.parser.Translatable.Target.MARIADB;
 import static ma.vi.esql.parser.Translatable.Target.MYSQL;
 import static ma.vi.esql.type.Type.dbTableName;
@@ -37,7 +36,7 @@ public class ForeignKeyConstraint extends ConstraintDefinition {
                               ForeignKeyChangeAction onUpdate,
                               ForeignKeyChangeAction onDelete) {
     super(context, name,
-        T2.of("sourceColumns", new Esql<>(context, sourceColumns)),
+        T2.of("columns", new Esql<>(context, sourceColumns)),
         T2.of("targetTable", new Esql<>(context, targetTable)),
         T2.of("targetColumns", new Esql<>(context, targetColumns)),
         T2.of("forwardCost", new Esql<>(context, forwardCost)),
@@ -123,7 +122,7 @@ public class ForeignKeyConstraint extends ConstraintDefinition {
   }
 
   public List<String> sourceColumns() {
-    return childValue("sourceColumns");
+    return childValue("columns");
   }
 
   public String targetTable() {

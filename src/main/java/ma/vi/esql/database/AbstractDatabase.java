@@ -722,11 +722,6 @@ public abstract class AbstractDatabase implements Database {
                 "    }" +
                 "}')"));
 
-        /*
-         * Load extensions.
-         */
-        loadExtensions((Set<Class<? extends Extension>>)config.getOrDefault(CONFIG_DB_EXTENSIONS, emptySet()),
-                       new HashSet<>(), 0);
       } catch (Exception e) {
         throw e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e);
       } finally {
@@ -745,6 +740,12 @@ public abstract class AbstractDatabase implements Database {
         }
       }
     }
+
+    /*
+     * Load extensions.
+     */
+    loadExtensions((Set<Class<? extends Extension>>)config.getOrDefault(CONFIG_DB_EXTENSIONS, emptySet()),
+                   new HashSet<>(), 0);
   }
 
   private void loadExtensions(Set<Class<? extends Extension>> toLoad,

@@ -16,6 +16,7 @@ import ma.vi.esql.type.BaseRelation;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -327,7 +328,7 @@ public class AlterTable extends Define<String> {
           // drop constraints referring to column before dropping column
           List<ConstraintDefinition> constraints = relation.constraints();
           if (!constraints.isEmpty()) {
-            for (ConstraintDefinition c: constraints) {
+            for (ConstraintDefinition c: new ArrayList<>(constraints)) {
               if (c.columns().contains(column.alias())) {
                 new AlterTable(context, relation.name(),
                                singletonList(new DropConstraint(context, c.name()))).execute(db, con);

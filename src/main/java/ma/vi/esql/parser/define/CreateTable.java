@@ -335,7 +335,7 @@ public class CreateTable extends Define<String> {
           /*
            * drop excess fields
            */
-          for (Column column: table.columns()) {
+          for (Column column: new ArrayList<>(table.columns())) {
             String columnName = column.alias();
             if (columnName != null
                 && columnName.indexOf('/') == -1
@@ -354,7 +354,7 @@ public class CreateTable extends Define<String> {
            * drop excess constraints
            */
           List<String> toDrop = new ArrayList<>();
-          for (ConstraintDefinition tableConstraint: table.constraints()) {
+          for (ConstraintDefinition tableConstraint: new ArrayList<>(table.constraints())) {
             boolean found = false;
             for (ConstraintDefinition c: constraints()) {
               if (tableConstraint.sameAs(c)) {
