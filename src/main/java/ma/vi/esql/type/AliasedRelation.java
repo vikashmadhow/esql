@@ -78,7 +78,8 @@ public class AliasedRelation extends Relation {
       }
       return col;
     } else {
-      throw new NotFoundException("Could not find relation with alias " + relationAlias);
+      return null;
+//      throw new NotFoundException("Could not find relation with alias " + relationAlias);
     }
   }
 

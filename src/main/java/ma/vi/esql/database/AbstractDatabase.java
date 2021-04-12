@@ -34,6 +34,10 @@ import static ma.vi.esql.parser.define.ConstraintDefinition.Type.fromMarker;
 import static org.apache.commons.lang3.StringUtils.repeat;
 
 /**
+ * An abstract implementation of Database that registers base translators and
+ * extensions, create core tables, create and load objects structure from the
+ * database.
+ *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 public abstract class AbstractDatabase implements Database {

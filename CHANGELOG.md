@@ -7,7 +7,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Planned]
 - Result transformers and encoders.
 - Testing of all normal functions.
-- Testing of all macro functions.
 - Testing of translation of grouping by complex expressions (subqueries) in SQL Server.
 - Testing of translation of distinct over multiple columns in SQL Server.
 - Testing of window functions.
@@ -22,7 +21,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Support for Oracle database.
 - Make into Java 9 module.
 
-## [Unreleased]
+## [0.4.2] - 2021-04-12
+### Added
+- Testing of all base macro functions (bin, inmonth).
+
+### Fixed
+- Corrected an error where column defaults were being dropped when altering a table
+  on execution of a `create table` statement, as they were erroneously found to be
+  missing.
+- Do not throw NotfoundException in findColumn in AliasedRelation as this breaks
+  aliased column search in SQL Server in complex queries where the referred column
+  might be in an outer query.
+
+## [0.4.1] - 2021-04-11
 ### Fixed
 - Extensions are loaded in all cases; previously they were loaded only when
   core tables were being created.

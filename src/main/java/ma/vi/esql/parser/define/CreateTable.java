@@ -266,14 +266,11 @@ public class CreateTable extends Define<String> {
 
             Expression<?> setDefault = null;
             if (column.expression() != null
-                && (existingColumn.defaultExpression() == null
-                || !column.expression().equals(existingColumn.defaultExpression()))) {
+             && !column.expression().equals(existingColumn.defaultExpression())) {
               setDefault = column.expression();
-//                dropDefault = existingColumn.defaultExpression() != null;
             }
-
-            boolean dropDefault = setDefault == null
-                && existingColumn.defaultExpression() != null;
+            boolean dropDefault = column.expression() == null
+                               && existingColumn.defaultExpression() != null;
 
             Metadata metadata = column.metadata();
             if (toType != null

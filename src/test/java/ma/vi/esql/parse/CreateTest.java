@@ -60,12 +60,7 @@ public class CreateTest extends DataTest {
                                              "  h text {" +
                                              "    m1: 5" +
                                              "  }," +
-                                             "  i string {" +
-                                             "    label: (lv.label from lv:_platform.lookup.LookupValue" +
-                                             "                     join l:_platform.lookup.Lookup on lv.lookup_id=l._id" +
-                                             "                                  and l.name='City'" +
-                                             "                    where lv.code=i)" +
-                                             "  }," +
+                                             "  i string," +
                                              "  primary key(_id)" +
                                              ")");
                      System.out.println(s);

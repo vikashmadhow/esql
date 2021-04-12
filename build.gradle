@@ -3,7 +3,7 @@
  */
 
 /**
- *  _____  ____   _____
+ *  _____  _____  ______
  * |  __  |  __  |  _  |  | |
  * | |__  | |__  | | | |  | |
  * |  __  |__  | | | | |  | |
@@ -128,7 +128,7 @@ test {
 group = 'com.vikmad'
 archivesBaseName = 'esql'
 sourceCompatibility = JavaVersion.VERSION_14
-version = "0.4.1"
+version = "0.4.2"
 ext.isReleaseVersion = !version.endsWith("SNAPSHOT")
 
 java {

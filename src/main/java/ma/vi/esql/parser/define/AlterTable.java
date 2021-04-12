@@ -25,6 +25,11 @@ import static ma.vi.esql.parser.Translatable.Target.*;
 import static ma.vi.esql.type.Type.dbTableName;
 import static ma.vi.esql.type.Type.splitName;
 
+/**
+ * Alter table statement.
+ *
+ * @author Vikash Madhow (vikash.madhow@gmail.com)
+ */
 public class AlterTable extends Define<String> {
   public AlterTable(Context context, String name, List<AlterTableAction> alterations) {
     super(context, name,

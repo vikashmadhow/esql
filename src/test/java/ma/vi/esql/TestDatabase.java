@@ -174,15 +174,9 @@ public class TestDatabase implements Database {
                   parser.parseExpression("i"),
                   new Metadata(
                       context,
-                      new ArrayList<>(Arrays.asList(
-                          new Attribute(context, TYPE, parser.parseExpression("'string'")),
-                          new Attribute(context, "label", parser.parseExpression(
-                              "(lv.label from lv:LookupValue" +
-                              "          join  l:Lookup on lv.lookup_id=l._id" +
-                              "                        and  l.name='City'" +
-                              "         where lv.code=i)"
-                          ))
-                      ))
+                      new ArrayList<>(Collections.singletonList(
+                          new Attribute(context, TYPE, parser.parseExpression("'string'"))
+                                                               ))
                   )
               )
           )),
