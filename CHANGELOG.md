@@ -21,6 +21,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Support for Oracle database.
 - Make into Java 9 module.
 
+## [0.4.3] - 2021-04-13
+### Added
+- Extensions can be provided as any collection instead of just a set on initialisation.
+  Using a List, e.g., will allow the client to provide a preferred order in which to 
+  load and initialise the extensions.
+  
+### Fixed
+- Dropping derived columns was sending an `alter table ... drop column` command to
+  the database which resulted in an error. Derived columns only need to be removed
+  from the `_core.columns` table.
+- Do not throw NotfoundException in findColumn in Join as this breaks column search 
+  in SQL Server in complex queries where the referred column might be in an outer query.
+
 ## [0.4.2] - 2021-04-12
 ### Added
 - Testing of all base macro functions (bin, inmonth).

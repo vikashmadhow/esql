@@ -748,11 +748,11 @@ public abstract class AbstractDatabase implements Database {
     /*
      * Load extensions.
      */
-    loadExtensions((Set<Class<? extends Extension>>)config.getOrDefault(CONFIG_DB_EXTENSIONS, emptySet()),
+    loadExtensions((Collection<Class<? extends Extension>>)config.getOrDefault(CONFIG_DB_EXTENSIONS, emptySet()),
                    new HashSet<>(), 0);
   }
 
-  private void loadExtensions(Set<Class<? extends Extension>> toLoad,
+  private void loadExtensions(Collection<Class<? extends Extension>> toLoad,
                               Set<Class<? extends Extension>> loaded,
                               int level) {
     try {

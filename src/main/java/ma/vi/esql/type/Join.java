@@ -130,7 +130,8 @@ public class Join extends Relation {
     } else {
       Relation rel = forAlias(relationAlias);
       if (rel == null) {
-        throw new NotFoundException("Relation with alias " + relationAlias + " could not be found");
+        return null;
+//        throw new NotFoundException("Relation with alias " + relationAlias + " could not be found");
       }
       return rel.findColumn(relationAlias, name);
     }

@@ -88,7 +88,7 @@ public class CreateTable extends Define<String> {
           } else if (circularPath.contains(colName)) {
             circularPath.add(colName);
             throw new CircularReferenceException("A circular reference was detected in the expression "
-                                                + expression + " consisting of the column path " + circularPath);
+                                               + expression + " consisting of the column path " + circularPath);
           } else if (derivedCols.containsKey(colName)) {
             circular(colName, derivedCols.get(colName), persistentCols, derivedCols, circularPath);
           }

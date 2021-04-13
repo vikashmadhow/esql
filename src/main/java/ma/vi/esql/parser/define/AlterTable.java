@@ -341,8 +341,10 @@ public class AlterTable extends Define<String> {
             }
           }
 
-          con.createStatement().executeUpdate(
-            "ALTER TABLE " + dbName + " DROP COLUMN \"" + drop.columnName() + '"');
+          if (!column.derived()) {
+            con.createStatement().executeUpdate(
+                "ALTER TABLE " + dbName + " DROP COLUMN \"" + drop.columnName() + '"');
+          }
 
 //          con.createStatement().executeUpdate(
 //            "ALTER TABLE " + dbName + " DROP COLUMN IF EXISTS \"" + drop.columnName() + '"');

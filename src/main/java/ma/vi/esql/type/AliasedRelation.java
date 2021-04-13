@@ -4,7 +4,6 @@
 
 package ma.vi.esql.type;
 
-import ma.vi.base.lang.NotFoundException;
 import ma.vi.esql.parser.expression.Expression;
 import ma.vi.esql.parser.query.Column;
 
@@ -46,7 +45,6 @@ public class AliasedRelation extends Relation {
 
   @Override
   public Relation forAlias(String alias) {
-//    return this.alias.equals(alias) ? relation : null;
     return this.alias.equals(alias) ? this : null;
   }
 
@@ -79,7 +77,6 @@ public class AliasedRelation extends Relation {
       return col;
     } else {
       return null;
-//      throw new NotFoundException("Could not find relation with alias " + relationAlias);
     }
   }
 
