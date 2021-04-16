@@ -180,6 +180,16 @@ public interface EsqlListener extends ParseTreeListener {
 	 */
 	void exitStarColumn(EsqlParser.StarColumnContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link EsqlParser#qualifier}.
+	 * @param ctx the parse tree
+	 */
+	void enterQualifier(EsqlParser.QualifierContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link EsqlParser#qualifier}.
+	 * @param ctx the parse tree
+	 */
+	void exitQualifier(EsqlParser.QualifierContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link EsqlParser#alias}.
 	 * @param ctx the parse tree
 	 */
@@ -1004,6 +1014,16 @@ public interface EsqlListener extends ParseTreeListener {
 	 */
 	void exitSimpleColumnExpr(EsqlParser.SimpleColumnExprContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link EsqlParser#columnReference}.
+	 * @param ctx the parse tree
+	 */
+	void enterColumnReference(EsqlParser.ColumnReferenceContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link EsqlParser#columnReference}.
+	 * @param ctx the parse tree
+	 */
+	void exitColumnReference(EsqlParser.ColumnReferenceContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link EsqlParser#selectExpression}.
 	 * @param ctx the parse tree
 	 */
@@ -1240,26 +1260,6 @@ public interface EsqlListener extends ParseTreeListener {
 	 */
 	void exitBaseLiteralList(EsqlParser.BaseLiteralListContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link EsqlParser#columnReference}.
-	 * @param ctx the parse tree
-	 */
-	void enterColumnReference(EsqlParser.ColumnReferenceContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link EsqlParser#columnReference}.
-	 * @param ctx the parse tree
-	 */
-	void exitColumnReference(EsqlParser.ColumnReferenceContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link EsqlParser#qualifier}.
-	 * @param ctx the parse tree
-	 */
-	void enterQualifier(EsqlParser.QualifierContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link EsqlParser#qualifier}.
-	 * @param ctx the parse tree
-	 */
-	void exitQualifier(EsqlParser.QualifierContext ctx);
-	/**
 	 * Enter a parse tree produced by {@link EsqlParser#define}.
 	 * @param ctx the parse tree
 	 */
@@ -1290,108 +1290,6 @@ public interface EsqlListener extends ParseTreeListener {
 	 */
 	void exitDropUndefined(EsqlParser.DropUndefinedContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link EsqlParser#alterTable}.
-	 * @param ctx the parse tree
-	 */
-	void enterAlterTable(EsqlParser.AlterTableContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link EsqlParser#alterTable}.
-	 * @param ctx the parse tree
-	 */
-	void exitAlterTable(EsqlParser.AlterTableContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link EsqlParser#alterTableActions}.
-	 * @param ctx the parse tree
-	 */
-	void enterAlterTableActions(EsqlParser.AlterTableActionsContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link EsqlParser#alterTableActions}.
-	 * @param ctx the parse tree
-	 */
-	void exitAlterTableActions(EsqlParser.AlterTableActionsContext ctx);
-	/**
-	 * Enter a parse tree produced by the {@code RenameTable}
-	 * labeled alternative in {@link EsqlParser#alterTableAction}.
-	 * @param ctx the parse tree
-	 */
-	void enterRenameTable(EsqlParser.RenameTableContext ctx);
-	/**
-	 * Exit a parse tree produced by the {@code RenameTable}
-	 * labeled alternative in {@link EsqlParser#alterTableAction}.
-	 * @param ctx the parse tree
-	 */
-	void exitRenameTable(EsqlParser.RenameTableContext ctx);
-	/**
-	 * Enter a parse tree produced by the {@code AddTableDefinition}
-	 * labeled alternative in {@link EsqlParser#alterTableAction}.
-	 * @param ctx the parse tree
-	 */
-	void enterAddTableDefinition(EsqlParser.AddTableDefinitionContext ctx);
-	/**
-	 * Exit a parse tree produced by the {@code AddTableDefinition}
-	 * labeled alternative in {@link EsqlParser#alterTableAction}.
-	 * @param ctx the parse tree
-	 */
-	void exitAddTableDefinition(EsqlParser.AddTableDefinitionContext ctx);
-	/**
-	 * Enter a parse tree produced by the {@code AlterColumn}
-	 * labeled alternative in {@link EsqlParser#alterTableAction}.
-	 * @param ctx the parse tree
-	 */
-	void enterAlterColumn(EsqlParser.AlterColumnContext ctx);
-	/**
-	 * Exit a parse tree produced by the {@code AlterColumn}
-	 * labeled alternative in {@link EsqlParser#alterTableAction}.
-	 * @param ctx the parse tree
-	 */
-	void exitAlterColumn(EsqlParser.AlterColumnContext ctx);
-	/**
-	 * Enter a parse tree produced by the {@code DropColumn}
-	 * labeled alternative in {@link EsqlParser#alterTableAction}.
-	 * @param ctx the parse tree
-	 */
-	void enterDropColumn(EsqlParser.DropColumnContext ctx);
-	/**
-	 * Exit a parse tree produced by the {@code DropColumn}
-	 * labeled alternative in {@link EsqlParser#alterTableAction}.
-	 * @param ctx the parse tree
-	 */
-	void exitDropColumn(EsqlParser.DropColumnContext ctx);
-	/**
-	 * Enter a parse tree produced by the {@code DropConstraint}
-	 * labeled alternative in {@link EsqlParser#alterTableAction}.
-	 * @param ctx the parse tree
-	 */
-	void enterDropConstraint(EsqlParser.DropConstraintContext ctx);
-	/**
-	 * Exit a parse tree produced by the {@code DropConstraint}
-	 * labeled alternative in {@link EsqlParser#alterTableAction}.
-	 * @param ctx the parse tree
-	 */
-	void exitDropConstraint(EsqlParser.DropConstraintContext ctx);
-	/**
-	 * Enter a parse tree produced by the {@code DropTableMetadata}
-	 * labeled alternative in {@link EsqlParser#alterTableAction}.
-	 * @param ctx the parse tree
-	 */
-	void enterDropTableMetadata(EsqlParser.DropTableMetadataContext ctx);
-	/**
-	 * Exit a parse tree produced by the {@code DropTableMetadata}
-	 * labeled alternative in {@link EsqlParser#alterTableAction}.
-	 * @param ctx the parse tree
-	 */
-	void exitDropTableMetadata(EsqlParser.DropTableMetadataContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link EsqlParser#dropTable}.
-	 * @param ctx the parse tree
-	 */
-	void enterDropTable(EsqlParser.DropTableContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link EsqlParser#dropTable}.
-	 * @param ctx the parse tree
-	 */
-	void exitDropTable(EsqlParser.DropTableContext ctx);
-	/**
 	 * Enter a parse tree produced by {@link EsqlParser#tableDefinitions}.
 	 * @param ctx the parse tree
 	 */
@@ -1421,36 +1319,6 @@ public interface EsqlListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitColumnDefinition(EsqlParser.ColumnDefinitionContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link EsqlParser#alterColumnDefinition}.
-	 * @param ctx the parse tree
-	 */
-	void enterAlterColumnDefinition(EsqlParser.AlterColumnDefinitionContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link EsqlParser#alterColumnDefinition}.
-	 * @param ctx the parse tree
-	 */
-	void exitAlterColumnDefinition(EsqlParser.AlterColumnDefinitionContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link EsqlParser#alterNull}.
-	 * @param ctx the parse tree
-	 */
-	void enterAlterNull(EsqlParser.AlterNullContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link EsqlParser#alterNull}.
-	 * @param ctx the parse tree
-	 */
-	void exitAlterNull(EsqlParser.AlterNullContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link EsqlParser#alterDefault}.
-	 * @param ctx the parse tree
-	 */
-	void enterAlterDefault(EsqlParser.AlterDefaultContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link EsqlParser#alterDefault}.
-	 * @param ctx the parse tree
-	 */
-	void exitAlterDefault(EsqlParser.AlterDefaultContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link EsqlParser#derivedColumnDefinition}.
 	 * @param ctx the parse tree
@@ -1486,18 +1354,6 @@ public interface EsqlListener extends ParseTreeListener {
 	 */
 	void exitPrimaryKeyConstraint(EsqlParser.PrimaryKeyConstraintContext ctx);
 	/**
-	 * Enter a parse tree produced by the {@code ForeignKeyConstraint}
-	 * labeled alternative in {@link EsqlParser#constraintDefinition}.
-	 * @param ctx the parse tree
-	 */
-	void enterForeignKeyConstraint(EsqlParser.ForeignKeyConstraintContext ctx);
-	/**
-	 * Exit a parse tree produced by the {@code ForeignKeyConstraint}
-	 * labeled alternative in {@link EsqlParser#constraintDefinition}.
-	 * @param ctx the parse tree
-	 */
-	void exitForeignKeyConstraint(EsqlParser.ForeignKeyConstraintContext ctx);
-	/**
 	 * Enter a parse tree produced by the {@code CheckConstraint}
 	 * labeled alternative in {@link EsqlParser#constraintDefinition}.
 	 * @param ctx the parse tree
@@ -1509,6 +1365,18 @@ public interface EsqlListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitCheckConstraint(EsqlParser.CheckConstraintContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code ForeignKeyConstraint}
+	 * labeled alternative in {@link EsqlParser#constraintDefinition}.
+	 * @param ctx the parse tree
+	 */
+	void enterForeignKeyConstraint(EsqlParser.ForeignKeyConstraintContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code ForeignKeyConstraint}
+	 * labeled alternative in {@link EsqlParser#constraintDefinition}.
+	 * @param ctx the parse tree
+	 */
+	void exitForeignKeyConstraint(EsqlParser.ForeignKeyConstraintContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link EsqlParser#constraintName}.
 	 * @param ctx the parse tree
@@ -1549,6 +1417,138 @@ public interface EsqlListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitForeignKeyAction(EsqlParser.ForeignKeyActionContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link EsqlParser#alterTable}.
+	 * @param ctx the parse tree
+	 */
+	void enterAlterTable(EsqlParser.AlterTableContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link EsqlParser#alterTable}.
+	 * @param ctx the parse tree
+	 */
+	void exitAlterTable(EsqlParser.AlterTableContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link EsqlParser#alterations}.
+	 * @param ctx the parse tree
+	 */
+	void enterAlterations(EsqlParser.AlterationsContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link EsqlParser#alterations}.
+	 * @param ctx the parse tree
+	 */
+	void exitAlterations(EsqlParser.AlterationsContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code RenameTable}
+	 * labeled alternative in {@link EsqlParser#alteration}.
+	 * @param ctx the parse tree
+	 */
+	void enterRenameTable(EsqlParser.RenameTableContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code RenameTable}
+	 * labeled alternative in {@link EsqlParser#alteration}.
+	 * @param ctx the parse tree
+	 */
+	void exitRenameTable(EsqlParser.RenameTableContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code AddTableDefinition}
+	 * labeled alternative in {@link EsqlParser#alteration}.
+	 * @param ctx the parse tree
+	 */
+	void enterAddTableDefinition(EsqlParser.AddTableDefinitionContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code AddTableDefinition}
+	 * labeled alternative in {@link EsqlParser#alteration}.
+	 * @param ctx the parse tree
+	 */
+	void exitAddTableDefinition(EsqlParser.AddTableDefinitionContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code AlterColumn}
+	 * labeled alternative in {@link EsqlParser#alteration}.
+	 * @param ctx the parse tree
+	 */
+	void enterAlterColumn(EsqlParser.AlterColumnContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code AlterColumn}
+	 * labeled alternative in {@link EsqlParser#alteration}.
+	 * @param ctx the parse tree
+	 */
+	void exitAlterColumn(EsqlParser.AlterColumnContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code DropColumn}
+	 * labeled alternative in {@link EsqlParser#alteration}.
+	 * @param ctx the parse tree
+	 */
+	void enterDropColumn(EsqlParser.DropColumnContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code DropColumn}
+	 * labeled alternative in {@link EsqlParser#alteration}.
+	 * @param ctx the parse tree
+	 */
+	void exitDropColumn(EsqlParser.DropColumnContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code DropConstraint}
+	 * labeled alternative in {@link EsqlParser#alteration}.
+	 * @param ctx the parse tree
+	 */
+	void enterDropConstraint(EsqlParser.DropConstraintContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code DropConstraint}
+	 * labeled alternative in {@link EsqlParser#alteration}.
+	 * @param ctx the parse tree
+	 */
+	void exitDropConstraint(EsqlParser.DropConstraintContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code DropTableMetadata}
+	 * labeled alternative in {@link EsqlParser#alteration}.
+	 * @param ctx the parse tree
+	 */
+	void enterDropTableMetadata(EsqlParser.DropTableMetadataContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code DropTableMetadata}
+	 * labeled alternative in {@link EsqlParser#alteration}.
+	 * @param ctx the parse tree
+	 */
+	void exitDropTableMetadata(EsqlParser.DropTableMetadataContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link EsqlParser#alterColumnDefinition}.
+	 * @param ctx the parse tree
+	 */
+	void enterAlterColumnDefinition(EsqlParser.AlterColumnDefinitionContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link EsqlParser#alterColumnDefinition}.
+	 * @param ctx the parse tree
+	 */
+	void exitAlterColumnDefinition(EsqlParser.AlterColumnDefinitionContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link EsqlParser#alterNull}.
+	 * @param ctx the parse tree
+	 */
+	void enterAlterNull(EsqlParser.AlterNullContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link EsqlParser#alterNull}.
+	 * @param ctx the parse tree
+	 */
+	void exitAlterNull(EsqlParser.AlterNullContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link EsqlParser#alterDefault}.
+	 * @param ctx the parse tree
+	 */
+	void enterAlterDefault(EsqlParser.AlterDefaultContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link EsqlParser#alterDefault}.
+	 * @param ctx the parse tree
+	 */
+	void exitAlterDefault(EsqlParser.AlterDefaultContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link EsqlParser#dropTable}.
+	 * @param ctx the parse tree
+	 */
+	void enterDropTable(EsqlParser.DropTableContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link EsqlParser#dropTable}.
+	 * @param ctx the parse tree
+	 */
+	void exitDropTable(EsqlParser.DropTableContext ctx);
 	/**
 	 * Enter a parse tree produced by the {@code Array}
 	 * labeled alternative in {@link EsqlParser#type}.

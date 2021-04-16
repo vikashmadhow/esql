@@ -21,6 +21,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Support for Oracle database.
 - Make into Java 9 module.
 
+## [0.4.4] - 2021-04-16
+### Added 
+- Completed documentation .g4 antlr grammar and github wiki page on ESQL grammar.
+- Rename AlterTableAction to Alteration
+
 ## [0.4.3] - 2021-04-13
 ### Added
 - Extensions can be provided as any collection instead of just a set on initialisation.

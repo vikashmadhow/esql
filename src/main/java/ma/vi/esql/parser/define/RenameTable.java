@@ -18,7 +18,7 @@ import java.util.Map;
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public class RenameTable extends AlterTableAction {
+public class RenameTable extends Alteration {
   public RenameTable(Context context, String toName) {
     super(context, T2.of("toName", new Esql<>(context, toName)));
   }

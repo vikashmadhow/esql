@@ -210,6 +210,16 @@ column
     ;
 
 /**
+ * In queries where there are multiple tables, the table alias can be used to
+ * qualify columns, when columns with the same name exists in more than one of
+ * the queries tables. A qualifier consists of an identifier followed by '.'.
+ * For example, `a.b` is the column `b` qualified with the table alias `a`.
+ */
+qualifier
+    : Identifier '.'
+    ;
+
+/**
  * An alias consists of one or more alias parts separated by the front slash
  * ('/'), and, optionally, starting with a front slash. An alias part can be a
  * qualified identifier or an escaped identifier. Qualified identifiers are one
@@ -266,7 +276,8 @@ aliasPart
 
 /**
  * An escaped identifier is a sequence of one or more characters surrounded by
- * double quotes. These are all valid escaped identifiers:
+ * double quotes, and can be used to create identifiers with non-standard
+ * characters. These are all valid escaped identifiers:
  *
  *    "Level 1"
  *    "!$$#42everything after$$#"
@@ -291,8 +302,8 @@ qualifiedName
     ;
 
 /**
- * The `from` clause of a `select` contains a table expression which can be one
- * of these:
+ * The `from` clause of a `select`, `update` and `delete` contains a table
+ * expression which can be one of these:
  * 1. A single table optionally aliased. If an alias is not provided, a default
  *    one with the table name (without schema) will be used. I.e. `a.b.X` is
  *    equivalent to `X:a.b.X`.
@@ -302,7 +313,7 @@ qualifiedName
  *
  * 3. A dynamic table expression which creates a named temporary table with rows
  *    as part of the query and allow selection from it. E.g.:
- *          `select a, b from X(a, b):((1, 'One'), (2, 'Two'), ('3, 'Three'))
+ *          `select a, b from X(a, b):((1, 'One'), (2, 'Two'), ('3, 'Three'))`
  *
  * 4. Cartesian product of any two table expressions: E.g.:
  *          `select x.a, x.b, y.c from x:X times y:Y`
@@ -353,7 +364,7 @@ JoinType
  * The `group by` clause of a select consists of a subset of expressions present
  * in the columns of select. 3 types of groupings are supported: simple, rollup
  * and cube. The latter two are indicated by surrounding the group list with the
- * keword `rollup` and `cube` respectively.
+ * keyword `rollup` and `cube` respectively.
  */
 groupByList
     : expressionList                        #SimpleGroup
@@ -505,7 +516,19 @@ defaultValues
     ;
 
 /**
+ * A `update` statement modifies matching rows from one or more joined tables.
+ * In ESQL, the table to be updated is identified by its alias in the table
+ * list specified in the `from` clause. This allows any select query to be
+ * converted to an `update` by simply replacing the `select` keyword and
+ * identifying the table to be updated in the `from` clause with its alias.
  *
+ * For example:
+ *      update y
+ *        from x:X join y:Y on x.y_id=y._id and y.status in ('A', 'T')
+ *       where y.min_age <= x.age <= y.max_age
+ *
+ * will only update rows in table Y that would be returned by an equivalent
+ * `select` query.
  */
 update
     :  'update' alias
@@ -516,7 +539,9 @@ update
     ;
 
 /**
- *
+ * The set list of an `update` consists of comma-separated list of set instructions,
+ * each of which consists of the column to update followed by '=' and the value
+ * to update the column to.
  */
 setList
     : set (',' set)*
@@ -534,6 +559,22 @@ set
     : qualifiedName '=' expr
     ;
 
+/**
+ * A `delete` statement deletes matching rows from one or more joined tables.
+ * In ESQL, the table from which rows are to be updated is identified by its
+ * alias in the table list specified in the `from` clause. This allows any
+ * select query to be converted to a `delete` by simply replacing the `select`
+ * keyword and identifying the table from which rows are to be deleted in the
+ * `from` clause with its alias.
+ *
+ * For example:
+ *      delete y
+ *        from x:X join y:Y on x.y_id=y._id and y.status in ('A', 'T')
+ *       where y.min_age <= x.age <= y.max_age
+ *
+ * will only delete rows in table Y that would be returned by an equivalent
+ * `select` query.
+ */
 delete
     :  'delete' alias
          'from' tableExpr
@@ -747,8 +788,8 @@ expr
     ;
 
 /**
- * An expression which excludes certain combinations of expression
- * and can be used as the middle expression of a range (e.g a > simpleExpr > b)
+ * An expression which excludes certain combinations of expression and can be
+ * used as the middle expression of a range (e.g `a > simpleExpr > b`)
  */
 simpleExpr
     : '(' simpleExpr ')'                                                              #SimpleGroupingExpr
@@ -767,12 +808,23 @@ simpleExpr
     ;
 
 /**
- * A select returning zero or one single row with a single column and can thus
- * be used where an expression needs to return a single value such in metadata
- * attributes. When used as an expression, the select keyword can be dropped.
- * E.g.:
- *    age_max: select max(age) from People
- *    age_min: min(age) from People
+ * A column can be referred to by its name in a table or its alias if the
+ * column has been renamed in the query, optionally qualified.
+ */
+columnReference
+    : qualifier? alias
+    ;
+
+/**
+ * A select returning zero or one row with a single column and can thus be used
+ * where an expression needs to return a single value such as in metadata
+ * attributes. When used as an expression, the select keyword can be dropped but
+ * the whole expression must be surrounded by parenthesis ('(' and ')').
+ *
+ * For example:
+ *
+ *    age_max: (select max(age) from People)
+ *    age_min: (min(age) from People)
  */
 selectExpression
     : '(' 'select'?
@@ -785,16 +837,28 @@ selectExpression
       ')'
     ;
 
-// y:(c from S), z:x+1 from T
-
+/**
+ * Certain functions can be followed by a window definition that defines a
+ * window of rows around the current row that the function will operate upon.
+ * A window definition consist of an optional partition definition and an
+ * optional order list.
+ */
 window
     : 'over' '(' partition? ('order' 'by' orderByList)? ')'
     ;
 
+/**
+ * A partition is a list of expression by which the result will be sliced and
+ * the window function executed on each slice iteratively.
+ */
 partition
     : 'partition' 'by' expressionList
     ;
 
+/**
+ * Comparison operators in ESQL include equality (`=`), inequality (`!=`),
+ * and ordering comparisons (`<`, `<=`, `>`, `>=`).
+ */
 compare
     : '='
     | '!='
@@ -804,6 +868,10 @@ compare
     | '>='
     ;
 
+/**
+ * Ordering comparisons (`<`, `<=`, `>`, `>=`) are assigned to their own
+ * production rule as they are used exclusively in range comparisons.
+ */
 ordering
     : '<'
     | '>'
@@ -811,10 +879,26 @@ ordering
     | '>='
     ;
 
+/**
+ * Expression lists, which are comma-separated lists of expressions, are used in
+ *  various parts of ESQL statements, such as in ordering list, group by list
+ * and window partition list.
+ */
 expressionList
     : expr (',' expr)*
     ;
 
+/**
+ * Literals are values of the different types supported by ESQL, and can be
+ * divided into base literals (numbers, strings, booleans, etc.), the special
+ * null literal ('null'), arrays, JSON arrays and JSON objects.
+ *
+ * ESQL array literals are defined by their element type (int, string, etc.)
+ * followed by their elements surrounded by square brackets. E.g.:
+ *
+ *    int[1, 4, 10, 3]
+ *    string['a', 'b', 'c']
+ */
 literal
     : baseLiteral                           #BasicLiterals
     | NullLiteral                           #Null
@@ -823,6 +907,10 @@ literal
     | '{' attributeList? '}'                #JsonObjectLiteral      // valid only in metadata expression
     ;
 
+/**
+ * Base literals include integers, floating point numbers, booleans, single-line
+ * and multi-line strings, UUIDs, dates and times, and intervals.
+ */
 baseLiteral
     : IntegerLiteral            #Integer
     | FloatingPointLiteral      #FloatingPoint
@@ -834,22 +922,182 @@ baseLiteral
     | IntervalLiteral           #Interval
     ;
 
+/**
+ * A comma-separated list of literals is used to define the elements of a JSON
+ * array literal.
+ */
 literalList
     : literal (',' literal)*
     ;
 
+/**
+ * A comma-separated list of base literals is used to define the elements of an
+ * ESQL array literal.
+ */
 baseLiteralList
     : baseLiteral (',' baseLiteral)*
     ;
-
-columnReference
-    : qualifier? alias
+/**
+ * Integer literals in ESQL consist of a sequence of digits preceded optionally
+ * by a minus sign (-) for negative values.
+ */
+IntegerLiteral
+    : '-'? Digits
     ;
 
-qualifier
-    : Identifier '.'
+/*
+ * Floating-Point literals in ESQL consist of a mantissa and an exponent part.
+ */
+FloatingPointLiteral
+    : '-'? Digits '.' Digits? ExponentPart?
+    | '-'? '.' Digits ExponentPart?
+    | '-'? Digits ExponentPart
     ;
 
+/**
+ * Underscore ('_') can be used to separate digits in large numbers for readability.
+ * E.g. 1_000_000_000
+ */
+fragment Digits
+    : Digit
+    | Digit ('_' | Digit)* Digit
+    ;
+
+/*
+ * The boolean literals are `true` and `false`.
+ */
+BooleanLiteral
+    : 'true'
+    | 'false'
+    ;
+
+/**
+ * `null` is the null literal in ESQL.
+ */
+NullLiteral
+    : 'null'
+    ;
+
+/**
+ * A string literal is a sequence of characters surrounded by single-quotes (').
+ * To add a single-quote character in the string, the single-quote must be
+ * repeated ('').
+ */
+StringLiteral
+    : '\'' (StringCharacter | DoubleSingleQuote)* '\''
+    ;
+
+/**
+ * Multi-line strings in ESQL are surrounded by back-ticks (`) and can span
+ * more than one lines. These strings have special support for stripping the left
+ * margin of spaces.
+ *
+ * For example the following text:
+ *         `func x(a,b) {
+ *           a = a^b
+ *           return a%b
+ *         }`
+ *
+ * will be interpreted as the following, after stripping:
+ * func x(a,b) {
+ *   a = a^b
+ *   return a%b
+ * }
+ */
+MultiLineStringLiteral
+    : '`' .*? '`'
+    ;
+
+/**
+ * UUIDs are strings of 32 hexadecimal digits surrounded by single-quotes and
+ * preceded with a 'u' character. For instance,
+ *
+ *    u'a124bf41-bfeb-aae4-ffee-039fbcde00ee'
+ */
+UuidLiteral
+    : 'u\'' HexDigit HexDigit HexDigit HexDigit HexDigit HexDigit HexDigit HexDigit
+        '-' HexDigit HexDigit HexDigit HexDigit
+        '-' HexDigit HexDigit HexDigit HexDigit
+        '-' HexDigit HexDigit HexDigit HexDigit
+        '-' HexDigit HexDigit HexDigit HexDigit HexDigit HexDigit HexDigit HexDigit HexDigit HexDigit HexDigit HexDigit '\''
+    ;
+
+/**
+ * Dates and times literals are surrounded by single-quotes and preceded with the
+ * letter 'd'. For example, d'2021-04-12', d'11:25' and d'2021-03-19 11:23:54'
+ */
+DateLiteral
+    : 'd\'' Date '\''
+    | 'd\'' Time '\''
+    | 'd\'' Date ' ' Time '\''
+    ;
+
+/**
+ * The date part of a date literal consists of a 2-digits or 4-digits year
+ * followed by a single or double digits month and single or double digits day,
+ * each separated by a `-`. E.g., 2002-04-1, 1955-12-01, 99-01-01
+ */
+fragment Date
+    : Digit? Digit? Digit Digit '-' [01]? Digit '-' [0123]? Digit
+    ;
+
+/**
+ * The time part of a date literal consists of a one or two-digit hour
+ * followed by a single or double digits minute and, optionally, a single or
+ * double digits second and finally a one, two or three digits millisecond.
+ * The hour, minute and second must be separated by a `:`, while the millisecond,
+ * if present, must be separated from the second with a `.`.
+ * E.g., 10:45, 10:43:12, 15:3:5.34
+ */
+fragment Time
+    : Digit? Digit ':' [012345]? Digit (':' [012345]? Digit ('.' Digit Digit? Digit?)?)?
+    ;
+
+/**
+ * An interval literal represents a duration and consists of one or more interval
+ * parts surround by single-quotes and preceded with the letter 'i'. Each interval
+ * part consist of an integer followed by a suffix representing a specific duration.
+ * For example: i'3mon 2w 1d 1m' represents a duration of 3 months 2 weeks 1 day
+ * and 1 minute.
+ */
+IntervalLiteral
+    : 'i\'' IntervalPart (',' IntervalPart)* '\''
+    ;
+
+/**
+ * An interval part consists of positive or negative integer followed by a suffix
+ * denoting the type of duration that the interval part represents.
+ */
+fragment IntervalPart
+    : '-'? Digits IntervalSuffix
+    ;
+
+/**
+ * The interval part suffixes are:
+ * * 'd' for days
+ * * 'w' for weeks
+ * * 'mon' for months
+ * * 'y' for year
+ * * 'h' for hours
+ * * 'm' for minutes
+ * * 's' for seconds
+ * * 'ms' for milliseconds
+ */
+fragment IntervalSuffix
+    : 'd'        // days
+    | 'w'        // weeks
+    | 'mon'      // months
+    | 'y'        // years
+    | 'h'        // hours
+    | 'm'        // minutes
+    | 's'        // seconds
+    | 'ms'       // milliseconds
+    ;
+
+/**
+ * ESQL support several data definition command to create database objects.
+ * Currently tables can be created, altered and dropped.
+ */
 define
     : createTable
     | alterTable
@@ -871,48 +1119,43 @@ define
     ;
 
 /**
- * Creates or alters a table.
+ * `create table` is used to create a table or modify an existing table.
+ * In ESQL, `create table` does not fail if the table already exists; instead
+ * the existing table is altered to match the table definition in the `create table`
+ * statement. New columns are added, types are changed , and so on. However some
+ * of these changes might fail if the underlying database cannot safely make
+ * them. For instance, changing the type of a column from string to int will
+ * fail.
+ *
+ * As a precaution, columns and constraints are not dropped automatically if
+ * they are not present in the new definition, unless the `drop undefined`
+ * keywords are specified in the command.
  */
 createTable
     : 'create' 'table' qualifiedName dropUndefined? '(' tableDefinitions ')'
     ;
 
 /**
- * Removes any excess definitions (columns, constraints, etc.)
- * when automatically updating the table.
+ * If present in a `create table` statement, removes any excess definitions
+ * (columns, constraints, etc.) when automatically updating the table.
  */
 dropUndefined
     : 'drop' 'undefined'
     ;
 
-alterTable
-    : 'alter' 'table' qualifiedName alterTableActions
-    ;
-
-alterTableActions
-    : alterTableAction (',' alterTableAction )*
-    ;
-
-alterTableAction
-    : 'rename' 'to' Identifier                                  #RenameTable
-
-    | 'add' tableDefinition                                     #AddTableDefinition
-
-    | 'alter' 'column' Identifier alterColumnDefinition         #AlterColumn
-
-    | 'drop' 'column' Identifier                                #DropColumn
-    | 'drop' 'constraint' Identifier                            #DropConstraint
-    | 'drop' 'metadata'                                         #DropTableMetadata
-    ;
-
-dropTable
-    : 'drop' 'table' qualifiedName
-    ;
-
+/**
+ * A `create table` statement consists of a comma-separated list of table
+ * definitions, including the definition of columns, derived columns, constraints
+ * and metadata.
+ */
 tableDefinitions
     : tableDefinition (',' tableDefinition)+
     ;
 
+/**
+ * A table definition in a `create table` statement can be one of these:
+ * definition of a column, a derived column, a constraint or metadata.
+ */
 tableDefinition
     : columnDefinition
     | derivedColumnDefinition
@@ -920,67 +1163,72 @@ tableDefinition
     | metadata
     ;
 
+/**
+ * A column definition consists of its name as an identifier, its type and, optionally,
+ * if nulls are prohibited (`not null`), a default value and metadata.
+ */
 columnDefinition
     : Identifier type (Not NullLiteral)? ('default' expr)? metadata?
     ;
 
-alterColumnDefinition
-    : Identifier?           // new column name
-      type?                 // new column type
-      alterNull?            // null state
-      alterDefault?         // column default
-      metadata?             // column metadata
-    ;
-
-alterNull
-    : 'not' 'null'
-    | 'null'
-    ;
-
-alterDefault
-    : 'default' expr
-    | 'no' 'default'
-    ;
-
 /**
  * A table column whose value is derived from an expression. Any expression
- * which can be part of the projection list of a select statement can be used to
- * compute the value of the derived column.
+ * which can be part of the column list of a select statement can be used to
+ * compute the value of a derived column.
  */
 derivedColumnDefinition
     : Identifier '=' expr metadata?
     ;
 
+/**
+ * Four types of constraints can be specified when creating a table:
+ * 1. `unique` constraints over a set of columns whereupon the combined value
+ *    over these columns is not duplicated over the table.
+ * 2. `primary key` constraints is similar to unique constraints with the
+ *    additional requirement that none of the columns can be null.
+ * 3. `check` constraints apply a conditional expression on one or more columns
+ *    in the table, with rows allowed only when the conditional expression is true.
+ * 4. `foreign key` constraints limits the values that can be inserted in one or
+ *    more columns of the table to values in corresponding columns in another table.
+ *
+ * With foreign keys, a database can be considered as a directed graph where the
+ * tables are the vertices and a foreign key between two tables represents an
+ * edge from the corresponding tables in the graph.
+ *
+ * This interpretation of a database can be used to find a path between two
+ * tables which can be used for various purposes; currently this is used to
+ * restrict one table based on a criteria on another linked table for
+ * access control and row-level security. A foreign key can be followed from the
+ * table where the foreign key is defined to the table being referred (the forward
+ * path) or in the reverse direction (the reverse path).
+ *
+ * To allow for the search of lowest-cost path between tables, cost values
+ * can be associated foreign keys in ESQL using the `cost` keyword in the foreign
+ * key definition, followed by cost of traversing the link in the forward
+ * direction (forward cost) and, optionally, by the cost of traversing the link
+ * in the reverse direction (reverse cost). If only the forward path cost is
+ * specified, twice its value is assigned to the reverse path cost; this is so
+ * as to prefer, by default, forward paths over reverse ones, when searching for
+ * paths between tables.
+ *
+ * A negative cost prevents the respective path (forward or reverse) to be
+ * followed effectively removing that link from any path that a search
+ * algorithm will return.
+ *
+ * A zero or positive value is the cost for following the link and a uniform
+ * cost search (such as Djikstra shortest path algorithm) can be used to find
+ * shortest path by cost between tables.
+ *
+ * A forward cost of 1 and a reverse cost of 2 is assumed when not specified,
+ * making forward paths preferable to reverse ones, as the default behaviour.
+ */
 constraintDefinition
     : constraintName? 'unique' names                    #UniqueConstraint
     | constraintName? 'primary' 'key' names             #PrimaryKeyConstraint
+    | constraintName? 'check' '(' expr ')'              #CheckConstraint
     | constraintName? 'foreign' 'key'
       from=names 'references' qualifiedName to=names
 
-      /*
-       * Foreign keys are used in certain cases to find a path between two
-       * tables (e.g. to restrict one table based on a criteria on the other
-       * for access control and row-level security); a foreign key can be
-       * followed from the table where the foreign key is defined to the table
-       * being referred (the forward path) or in the reverse direction (the
-       * reverse path).
-       *
-       * The following attribute sets a cost for following this foreign key in
-       * the forward and reverse path. If only the forward path cost is
-       * specified, twice its value is assigned to the reverse path cost to
-       * provide a preference for forward paths over reverse ones.
-       *
-       * A negative cost prevents the respective path (forward or reverse) to be
-       * followed effectively removing that link from any path that a search
-       * algorithm will return.
-       *
-       * A zero or positive value is the cost for following the link and a
-       * uniform cost search (such as Djikstra shortest path algorithm) can be
-       * used to find shortest path by cost between tables.
-       *
-       * A forward cost of 1 and a reverse cost of 2 is assumed when not
-       * specified, making forward paths preferable to reverse ones.
-       */
       ('cost' '(' forwardcost=IntegerLiteral (',' reversecost=IntegerLiteral)? ')')?
 
       /*
@@ -992,21 +1240,46 @@ constraintDefinition
        */
       (onUpdate | onDelete)?
       (onUpdate | onDelete)?                            #ForeignKeyConstraint
-    | constraintName? 'check' '(' expr ')'              #CheckConstraint
     ;
 
+/**
+ * Constraints have an optional name (which must be an identifier); when provided
+ * this must be preceded with the `constraint` keyword. When not provided, a
+ * constraint is named automatically based on its source and target tables and
+ * columns.
+ */
 constraintName
     : 'constraint' Identifier
     ;
 
+/**
+ * Foreign keys can have on `on update` action which defines what is to happen
+ * to source columns of the foreign key when the target columns are updated.
+ * The actions can be `restrict` which prevents the update to take place with
+ * an error, `cascade` which propagates the update to the source columns,
+ * `set null` whereupon the source columns are set to null and `set default`
+ * where the source columns are set to their default value.
+ */
 onUpdate
     : 'on' 'update' foreignKeyAction
     ;
 
+/**
+ * Foreign keys can have on `on delete` action which defines what is to happen
+ * to source columns of the foreign key when the target row is deleted.
+ * The actions can be `restrict` which prevents the delete to take place with
+ * an error, `cascade` which deletes the rows containing the source columns
+ * referring to the deleted rows in the target table, `set null` whereupon the
+ * source columns are set to null and `set default` where the source columns are
+ * set to their default value.
+ */
 onDelete
     : 'on' 'delete' foreignKeyAction
     ;
 
+/**
+ * Foreign keys actions for `on delete` and `on update` clause of foreign keys.
+ */
 foreignKeyAction
     : 'restrict'
     | 'cascade'
@@ -1015,27 +1288,110 @@ foreignKeyAction
     ;
 
 /**
- * Supported base types and their conversion to PostgreSql and SQL Server:
- *    ESQL TYPE  | POSTGRESQL TYPE    | SQL SERVER TYPE
- *    -----------|--------------------|----------------
- *    byte       | tinyint            | tinyint
- *    short      | smallint           | smallint
- *    int        | integer            | int
- *    long       | bigint             | bigint
- *    float      | real               | real
- *    double     | double precision   | float
- *    money      | money              | money
- *    bool       | boolean            | bit
- *    char       | char(1)            | char(1)
- *    string     | text               | varchar(8000)
- *    text       | text               | varchar(max)
- *    bytes      | bytea              | varbinary(max)
- *    date       | date               | date
- *    time       | time               | time
- *    datetime   | timestamp          | datetime2
- *    interval   | interval           | varchar(200)     -- No interval type in SQL Server, simulated
- *    uuid       | uuid               | uniqueidentifier
- *    json       | jsonb              | varchar(max)
+ * `alter table` is used to apply one or more alterations to an existing table.
+ * Alterations include adding columns, changing column names, types, null status
+ * default value or metadata, or dropping columns, adding or dropping constraints
+ * and adding or dropping metadata.
+ */
+alterTable
+    : 'alter' 'table' qualifiedName alterations
+    ;
+
+/**
+ * A list of comma-separated alterations can be specified in an `alter table`
+ * statement.
+ */
+alterations
+    : alteration (',' alteration )*
+    ;
+
+/**
+ * Table alterations include adding columns, changing column names, changing
+ * column types, changing null status, changing default value or metadata,
+ * dropping columns, adding or dropping constraints and adding or dropping
+ * metadata.
+ */
+alteration
+    : 'rename' 'to' Identifier                                  #RenameTable
+
+    | 'add' tableDefinition                                     #AddTableDefinition
+
+    | 'alter' 'column' Identifier alterColumnDefinition         #AlterColumn
+
+    | 'drop' 'column' Identifier                                #DropColumn
+    | 'drop' 'constraint' Identifier                            #DropConstraint
+    | 'drop' 'metadata'                                         #DropTableMetadata
+    ;
+
+/**
+ * The `alter column` clause in `alter table` is used to change column names,
+ * type, null status, default value and metadata.
+ */
+alterColumnDefinition
+    : Identifier?           // new column name
+      type?                 // new column type
+      alterNull?            // null state
+      alterDefault?         // column default
+      metadata?             // column metadata
+    ;
+
+/**
+ * The null status in the `alter column` clause of an `alter table` can be
+ * specified as either `not null` or `null`.
+ */
+alterNull
+    : 'not' 'null'
+    | 'null'
+    ;
+
+/**
+ * The default value in the `alter column` clause of an `alter table` can be
+ * specified as the keyword `default` followed by an expression for the default
+ * value or the keyword `no default` to signify that the previous default value
+ * for the column is to be dropped.
+ */
+alterDefault
+    : 'default' expr
+    | 'no' 'default'
+    ;
+
+/**
+ * A table can be dropped using the `drop table` statement.
+ */
+dropTable
+    : 'drop' 'table' qualifiedName
+    ;
+
+/**
+ * ESQL support base types and arrays, where array types are formed from a type
+ * followed by an optional integer size in square brackets.
+ *
+ * This table shows the current types that ESQL supports and which types they
+ * are mapped to in PostgreSql and SQL Server:
+ *
+ *    | ESQL TYPE  | POSTGRESQL TYPE    | SQL SERVER TYPE  |
+ *    |------------|--------------------|------------------|
+ *    | byte       | tinyint            | tinyint          |
+ *    | short      | smallint           | smallint         |
+ *    | int        | integer            | int              |
+ *    | long       | bigint             | bigint           |
+ *    | float      | real               | real             |
+ *    | double     | double precision   | float            |
+ *    | money      | money              | money            |
+ *    | bool       | boolean            | bit              |
+ *    | char       | char(1)            | char(1)          |
+ *    | string     | text               | varchar(8000)    |
+ *    | text       | text               | varchar(max)     |
+ *    | bytes      | bytea              | varbinary(max)   |
+ *    | date       | date               | date             |
+ *    | time       | time               | time             |
+ *    | datetime   | timestamp          | datetime2        |
+ *    | interval   | interval           | varchar(200)     |
+ *    | uuid       | uuid               | uniqueidentifier |
+ *    | json       | jsonb              | varchar(max)     |
+ *
+ * An array type can be formed from any type, including arrays themselves to
+ * create multi-dimensional arrays. E.g. `int[5]`, `string[10][10]`.
  */
 type
      : Identifier                       #Base       // A base type is simply an identifier
@@ -1043,7 +1399,15 @@ type
                                                     // a type with any number of '['']'
      ;
 
-
+/**
+ * The keywords `any` and `all` are used in quantified comparisons of the form:
+ *
+ *     expression compare Quantifier '(' select ')'
+ *
+ * A quantified comparison returns true if the expression matches any records in
+ * the select result when `any` is used as the quantifier or if the expression
+ * matches all the records in the select result when `all` is used as the quantifier.
+ */
 Quantifier
     : 'all' | 'any'
     ;
@@ -1052,25 +1416,8 @@ Not
     : 'not'
     ;
 
-// Integers
-IntegerLiteral
-    : '-'? Digits
-    ;
-
-// Floating-Point Literals
-fragment Digits
-    : Digit
-    | Digit ('_' | Digit)* Digit
-    ;
-
 fragment Digit
     : [0-9]
-    ;
-
-FloatingPointLiteral
-    : '-'? Digits '.' Digits? ExponentPart?
-    | '-'? '.' Digits ExponentPart?
-    | '-'? Digits ExponentPart
     ;
 
 fragment ExponentPart
@@ -1085,19 +1432,6 @@ fragment Sign
     : [+-]
     ;
 
-BooleanLiteral
-    : 'true'
-    | 'false'
-    ;
-
-MultiLineStringLiteral
-    : '`' .*? '`'
-    ;
-
-StringLiteral
-    : '\'' (StringCharacter | DoubleSingleQuote)* '\''
-    ;
-
 fragment StringCharacter
     : ~[']
     ;
@@ -1106,56 +1440,15 @@ fragment DoubleSingleQuote
     : '\'\''
     ;
 
-UuidLiteral
-    : 'u\'' HexDigit HexDigit HexDigit HexDigit HexDigit HexDigit HexDigit HexDigit
-        '-' HexDigit HexDigit HexDigit HexDigit
-        '-' HexDigit HexDigit HexDigit HexDigit
-        '-' HexDigit HexDigit HexDigit HexDigit
-        '-' HexDigit HexDigit HexDigit HexDigit HexDigit HexDigit HexDigit HexDigit HexDigit HexDigit HexDigit HexDigit '\''
-    ;
-
-DateLiteral
-    : 'd\'' Date '\''
-    | 'd\'' Time '\''
-    | 'd\'' Date ' ' Time '\''
-    ;
-
-IntervalLiteral
-    : 'i\'' IntervalPart (',' IntervalPart)* '\''
-    ;
-
-// '3mon 2w 1d 1m' + '1w 1h 1m' = '3mon 3w 1d 1h 2m'
-fragment IntervalPart
-    : '-'? Digits IntervalSuffix
-    ;
-
-fragment IntervalSuffix
-    : 'd'        // days
-    | 'w'        // weeks
-    | 'mon'      // months
-    | 'y'        // years
-    | 'h'        // hours
-    | 'm'        // minutes
-    | 's'        // seconds
-    | 'ms'       // milliseconds
-    ;
-
-fragment Date
-    : Digit? Digit? Digit Digit '-' [01]? Digit '-' [0123]? Digit
-    ;
-
-fragment Time
-    : Digit? Digit ':' [012345]? Digit (':' [012345]? Digit ('.' Digit Digit? Digit?)?)?
-    ;
-
 fragment HexDigit
     : [0-9a-fA-F]
     ;
 
-NullLiteral
-    : 'null'
-    ;
-
+/**
+ * An identifier can start with a letter, an underscore or the dollar sign,
+ * followed by zero or more letters, numbers, underscores and dollar signs. The
+ * dollar sign is reserved for internal use (although ESQL does not enforce this.
+ */
 Identifier
     : [$_a-zA-Z][$_a-zA-Z0-9]*
     ;
@@ -1168,7 +1461,7 @@ Comment
     ;
 
 /**
- * white-spaces are ignored in ESQL.
+ * White-spaces are ignored in ESQL.
  */
 Whitespace
     : [ \t\r\n]+ -> skip

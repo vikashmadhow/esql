@@ -31,7 +31,7 @@ import static ma.vi.esql.type.Type.splitName;
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 public class AlterTable extends Define<String> {
-  public AlterTable(Context context, String name, List<AlterTableAction> alterations) {
+  public AlterTable(Context context, String name, List<Alteration> alterations) {
     super(context, name,
           T2.of("alterations", new Esql<>(context, "alterations", alterations)));
   }
@@ -60,7 +60,7 @@ public class AlterTable extends Define<String> {
     st.append(dbTableName(name(), target)).append(' ');
 
     boolean first = true;
-    for (AlterTableAction alteration: alterations()) {
+    for (Alteration alteration: alterations()) {
       if (first) {
         first = false;
       } else {
@@ -81,7 +81,7 @@ public class AlterTable extends Define<String> {
       throw new IllegalArgumentException("Relation " + name() + " not found");
     }
     try {
-      for (AlterTableAction alteration: alterations()) {
+      for (Alteration alteration: alterations()) {
         if (alteration instanceof RenameTable) {
           /*
            * Rename table
@@ -389,7 +389,7 @@ public class AlterTable extends Define<String> {
     return value;
   }
 
-  public List<AlterTableAction> alterations() {
+  public List<Alteration> alterations() {
     return child("alterations").childrenList();
   }
 }

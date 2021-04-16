@@ -10,7 +10,7 @@ import ma.vi.esql.parser.Esql;
 
 import java.util.Map;
 
-public class RenameColumn extends AlterTableAction {
+public class RenameColumn extends Alteration {
   public RenameColumn(Context context, String from, String to) {
     super(context,
         T2.of("from", new Esql<>(context, from)),

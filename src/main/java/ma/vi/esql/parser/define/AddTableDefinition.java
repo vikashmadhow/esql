@@ -9,7 +9,7 @@ import ma.vi.esql.parser.Context;
 
 import java.util.Map;
 
-public class AddTableDefinition extends AlterTableAction {
+public class AddTableDefinition extends Alteration {
   public AddTableDefinition(Context context, TableDefinition def) {
     super(context, T2.of("definition", def));
   }

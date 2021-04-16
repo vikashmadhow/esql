@@ -10,7 +10,7 @@ import ma.vi.esql.parser.Esql;
 
 import java.util.Map;
 
-public class DropColumn extends AlterTableAction {
+public class DropColumn extends Alteration {
   public DropColumn(Context context, String columnName) {
     super(context, T2.of("columnName", new Esql<>(context, columnName)));
   }

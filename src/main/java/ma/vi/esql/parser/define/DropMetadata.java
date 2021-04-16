@@ -8,7 +8,7 @@ import ma.vi.esql.parser.Context;
 
 import java.util.Map;
 
-public class DropMetadata extends AlterTableAction {
+public class DropMetadata extends Alteration {
   public DropMetadata(Context context) {
     super(context);
   }

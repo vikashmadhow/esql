@@ -1008,8 +1008,8 @@ public class Analyser extends EsqlBaseListener {
   @Override
   public void exitAlterTable(AlterTableContext ctx) {
     String tableName = value(ctx.qualifiedName());
-    List<AlterTableAction> alterations = value(ctx.alterTableActions());
-    for (AlterTableAction alteration: alterations) {
+    List<Alteration> alterations = value(ctx.alterations());
+    for (Alteration alteration: alterations) {
       if (alteration instanceof AddTableDefinition) {
         AddTableDefinition def = (AddTableDefinition)alteration;
         if (def.definition() instanceof ConstraintDefinition) {
@@ -1022,9 +1022,9 @@ public class Analyser extends EsqlBaseListener {
   }
 
   @Override
-  public void exitAlterTableActions(AlterTableActionsContext ctx) {
-    put(ctx, new Esql<>(context, ctx.alterTableAction().stream()
-                                    .map(a -> (AlterTableAction)get(a))
+  public void exitAlterations(AlterationsContext ctx) {
+    put(ctx, new Esql<>(context, ctx.alteration().stream()
+                                    .map(a -> (Alteration)get(a))
                                     .collect(toList())));
   }
 
