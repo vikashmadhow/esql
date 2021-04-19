@@ -241,7 +241,7 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
         String colName = column.alias();
         String attrName = colName.substring(1);
 
-        Expression<?> attributeValue = column.expr();
+        Expression<?, String> attributeValue = column.expr();
         if (optimiseAttributesLoading && (attributeValue instanceof Literal
                                        || attributeValue instanceof UncomputedExpression)) {
           resultAttributes.put(attrName, attributeValue.value(target));
@@ -270,7 +270,7 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
         query.append(", ");
       }
       column = column.copy();
-      Expression<?> expression = column.expr();
+      Expression<?, String> expression = column.expr();
       if (qualifier != null) {
         ColumnRef.qualify(expression, qualifier, null, true);
       }
@@ -302,7 +302,7 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
         }
 
         String attrName = alias.substring(pos + 1);
-        Expression<?> attributeValue = col.expr();
+        Expression<?, String> attributeValue = col.expr();
         if (optimiseAttributesLoading && (attributeValue instanceof Literal
                                        || attributeValue instanceof UncomputedExpression)) {
           mapping.attributes.put(attrName, attributeValue.value(target));
@@ -325,7 +325,7 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
    * Appends the expression to the output clause of this query.
    */
   protected void appendExpression(StringBuilder query,
-                                  Expression<?> expression,
+                                  Expression<?, String> expression,
                                   Target target,
                                   String qualifier,
                                   String alias) {
@@ -417,15 +417,15 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
     return tables();
   }
 
-  public Expression<?> where() {
+  public Expression<?, String> where() {
     return child("where");
   }
 
-  public QueryUpdate where(Expression<?> where) {
+  public QueryUpdate where(Expression<?, String> where) {
     return where(where, false);
   }
 
-  public QueryUpdate where(Expression<?> where, boolean addToJoin) {
+  public QueryUpdate where(Expression<?, String> where, boolean addToJoin) {
     boolean added = false;
     if (addToJoin) {
       /*
@@ -480,7 +480,7 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
       /*
        * Add as where clause.
        */
-      Expression<?> w = where();
+      Expression<?, String> w = where();
       child("where",
             w == null
               ? where
@@ -544,7 +544,7 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
   }
 
   protected static class Join {
-    public Join(String joinType, SingleTableExpr table, Expression<?> on) {
+    public Join(String joinType, SingleTableExpr table, Expression<?, String> on) {
       this.joinType = joinType;
       this.table = table;
       this.on = on;
@@ -552,7 +552,7 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
 
     public final String joinType;
     public final SingleTableExpr table;
-    public final Expression<?> on;
+    public final Expression<?, String> on;
   }
 
   public T2<Boolean, String> restrict(String restrictToTable) {
@@ -710,7 +710,7 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
              * Or normal path (foreign key from source to target).
              * E.g. Emp e -> Com c: from Emp e join Com t on e.company_id=t._id
              */
-            Expression<?> on = new Equality(context,
+            Expression<?, String> on = new Equality(context,
                                             new ColumnRef(context,
                                                           sourceAlias,
                                                           reversePath ? link.targetColumns().get(0)
@@ -777,12 +777,12 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
           if (by.column != null
               && restriction.values != null
               && !restriction.values.isEmpty()) {
-            Expression<?> restrict = restrictClause(context,
-                                                    shortestPathSource.tableName(),
-                                                    shortestPathSource.alias(),
-                                                    restriction.excluded,
-                                                    by.column,
-                                                    restriction.values);
+            Expression<?, String> restrict = restrictClause(context,
+                                                            shortestPathSource.tableName(),
+                                                            shortestPathSource.alias(),
+                                                            restriction.excluded,
+                                                            by.column,
+                                                            restriction.values);
             where(where() == null
                   ? restrict
                   : new LogicalAnd(context, where(), restrict));
@@ -793,12 +793,12 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
     }
   }
 
-  private static Expression<?> restrictClause(Context context,
-                                              String restrictTableName,
-                                              String restrictTableAlias,
-                                              boolean exclude,
-                                              String restrictColumn,
-                                              Set<String> restrictValues) {
+  private static Expression<?, String> restrictClause(Context context,
+                                                      String restrictTableName,
+                                                      String restrictTableAlias,
+                                                      boolean exclude,
+                                                      String restrictColumn,
+                                                      Set<String> restrictValues) {
     if (restrictColumn == null
         || restrictValues == null
         || restrictValues.isEmpty()) {
@@ -812,8 +812,7 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
                     exclude,
                     restrictValues.stream()
                                   .map(v -> Literal.makeLiteral(context, v, column.type()))
-                                  .collect(toList()),
-                    null);
+                                  .collect(toList()));
     }
   }
 

@@ -22,7 +22,7 @@ import static ma.vi.esql.parser.Translatable.Target.JSON;
 public class IsNull extends SingleSubExpression {
   public IsNull(Context context,
                 boolean not,
-                Expression<?> expr) {
+                Expression<?, String> expr) {
     super(context, expr);
     child("not", new Esql<>(context, not));
   }

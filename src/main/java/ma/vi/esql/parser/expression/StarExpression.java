@@ -14,7 +14,7 @@ import java.util.Map;
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public class StarExpression extends Expression<String> {
+public class StarExpression extends Expression<String, String> {
   public StarExpression(Context context) {
     super(context, "star");
   }

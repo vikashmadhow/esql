@@ -25,21 +25,19 @@ import static ma.vi.base.tuple.T2.of;
  *
  * @author vikash.madhow@gmail.com
  */
-public class FunctionCall extends Expression<String> implements Macro {
+public class FunctionCall extends Expression<String, String> implements Macro {
   public FunctionCall(Context             context,
                       String              functionName,
                       boolean             distinct,
-                      List<Expression<?>> distinctOn,
-                      List<Expression<?>> arguments,
-                      Select              select,
+                      List<Expression<?, String>> distinctOn,
+                      List<Expression<?, ?>> arguments,
                       boolean             star,
-                      List<Expression<?>> partitions,
+                      List<Expression<?, String>> partitions,
                       List<Order>         orderBy) {
     super(context, functionName,
           of("distinct",   new Esql<>(context, distinct)),
           of("distinctOn", new Esql<>(context, "distinctOn", distinctOn)),
           of("arguments",  new Esql<>(context, "arguments", arguments)),
-          of("select",     select),
           of("star",       new Esql<>(context, star)),
           of("partitions", new Esql<>(context, "partitions", partitions)),
           of("orderBy",    new Esql<>(context, "orderBy", orderBy)));
@@ -66,7 +64,7 @@ public class FunctionCall extends Expression<String> implements Macro {
   @Override
   public Type type() {
     Type type = Types.TopType;
-    List<Expression<?>> arguments = arguments();
+    List<Expression<?, ?>> arguments = arguments();
     Function function = context.structure.function(functionName());
     if (function != null) {
       type = function.returnType;
@@ -102,7 +100,7 @@ public class FunctionCall extends Expression<String> implements Macro {
     /*
      * add window suffix
      */
-    List<Expression<?>> partitions = partitions();
+    List<Expression<?, String>> partitions = partitions();
     List<Order> orderBy = orderBy();
     if ((partitions != null && !partitions.isEmpty()) ||
         (orderBy != null && !orderBy.isEmpty())) {
@@ -138,7 +136,7 @@ public class FunctionCall extends Expression<String> implements Macro {
       if (distinctOn() != null && !distinctOn().isEmpty()) {
         boolean first = true;
         st.append('(');
-        for (Expression<?> e: distinctOn()) {
+        for (Expression<?, String> e: distinctOn()) {
           if (first) { first = false; }
           else       { st.append(", "); }
           e._toString(st, level, indent);
@@ -147,20 +145,17 @@ public class FunctionCall extends Expression<String> implements Macro {
       }
     }
     boolean first = true;
-    for (Expression<?> e: arguments()) {
+    for (Expression<?, ?> e: arguments()) {
       if (first) { first = false; }
       else       { st.append(", "); }
       e._toString(st, level, indent);
-    }
-    if (select() != null) {
-      select()._toString(st, level, indent);
     }
     if (star()) {
       st.append('*');
     }
     st.append(')');
 
-    List<Expression<?>> partitions = partitions();
+    List<Expression<?, String>> partitions = partitions();
     List<Order> orderBy = orderBy();
     if ((partitions != null && !partitions.isEmpty()) ||
         (orderBy != null && !orderBy.isEmpty())) {
@@ -168,7 +163,7 @@ public class FunctionCall extends Expression<String> implements Macro {
       if (partitions != null && !partitions.isEmpty()) {
         st.append(" over (partition by ");
         first = true;
-        for (Expression<?> e: partitions()) {
+        for (Expression<?, String> e: partitions()) {
           if (first) { first = false; }
           else       { st.append(", "); }
           e._toString(st, level, indent);
@@ -206,28 +201,24 @@ public class FunctionCall extends Expression<String> implements Macro {
     return this;
   }
 
-  public List<Expression<?>> distinctOn() {
+  public List<Expression<?, String>> distinctOn() {
     return child("distinctOn").childrenList();
   }
 
-  public FunctionCall distinctOn(List<Expression<?>> on) {
+  public FunctionCall distinctOn(List<Expression<?, String>> on) {
     childrenList("distinctOn", on);
     return this;
   }
 
-  public List<Expression<?>> arguments() {
+  public List<Expression<?, ?>> arguments() {
     return child("arguments").childrenList();
-  }
-
-  public Select select() {
-    return child("select");
   }
 
   public boolean star() {
     return childValue("star");
   }
 
-  public List<Expression<?>> partitions() {
+  public List<Expression<?, String>> partitions() {
     return child("partitions").childrenList();
   }
 

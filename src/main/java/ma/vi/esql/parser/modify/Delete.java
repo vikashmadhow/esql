@@ -27,7 +27,7 @@ public class Delete extends QueryUpdate {
   public Delete(Context       context,
                 String        deleteTableAlias,
                 TableExpr     from,
-                Expression<?> where,
+                Expression<?, String> where,
                 Metadata      returnMetadata,
                 List<Column>  returnColumns) {
     super(context, "Delete",

@@ -13,8 +13,8 @@ import ma.vi.esql.parser.Context;
  */
 public class Addition extends ArithmeticOperator {
   public Addition(Context context,
-                  Expression<?> expr1,
-                  Expression<?> expr2) {
+                  Expression<?, String> expr1,
+                  Expression<?, String> expr2) {
     super(context, "+", expr1, expr2);
   }
 

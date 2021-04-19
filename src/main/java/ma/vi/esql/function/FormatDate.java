@@ -53,8 +53,8 @@ public class FormatDate extends Function {
 
   @Override
   public String translate(FunctionCall call, Translatable.Target target) {
-    List<Expression<?>> args = call.arguments();
-    Expression<?> date = args.get(0);
+    List<Expression<?, ?>> args = call.arguments();
+    Expression<?, ?> date = args.get(0);
 
     String format = null;
     if (args.size() >= 2) {

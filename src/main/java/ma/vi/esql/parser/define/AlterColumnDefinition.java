@@ -18,7 +18,7 @@ public class AlterColumnDefinition extends Define<String> {
   public AlterColumnDefinition(Context context,
                                String toName, Type toType,
                                boolean setNotNull, boolean dropNotNull,
-                               Expression<?> setDefault, boolean dropDefault,
+                               Expression<?, String> setDefault, boolean dropDefault,
                                Metadata metadata) {
     super(context, toName,
         T2.of("toType", new Esql<>(context, toType)),
@@ -74,7 +74,7 @@ public class AlterColumnDefinition extends Define<String> {
     return childValue("dropNotNull");
   }
 
-  public Expression<?> setDefault() {
+  public Expression<?, String> setDefault() {
     return child("setDefault");
   }
 

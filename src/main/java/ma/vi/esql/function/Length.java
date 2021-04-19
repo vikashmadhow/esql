@@ -28,7 +28,7 @@ public class Length extends Function {
 
   @Override
   public String translate(FunctionCall call, Translatable.Target target) {
-    List<Expression<?>> args = call.arguments();
+    List<Expression<?, ?>> args = call.arguments();
     if (target == SQLSERVER) {
       return "len(" + args.get(0).translate(target) + ')';
 

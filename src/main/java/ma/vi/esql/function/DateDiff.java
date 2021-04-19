@@ -30,7 +30,7 @@ public class DateDiff extends Function {
 
   @Override
   public String translate(FunctionCall call, Translatable.Target target) {
-    List<Expression<?>> args = call.arguments();
+    List<Expression<?, ?>> args = call.arguments();
     if (target == POSTGRESQL) {
       return "extract(" + part.postgresqlName + " from age(" + args.get(0).translate(target) + ", " +
           args.get(1).translate(target) + "))";

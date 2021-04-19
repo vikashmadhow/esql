@@ -33,7 +33,7 @@ public class NewDateTime extends Function {
 
   @Override
   public String translate(FunctionCall call, Translatable.Target target) {
-    List<Expression<?>> args = call.arguments();
+    List<Expression<?, ?>> args = call.arguments();
     if (target == POSTGRESQL) {
       return "make_timestamp("
           + args.get(0).translate(target) + ", "
@@ -47,7 +47,7 @@ public class NewDateTime extends Function {
       // precision and fractional second values must agree in SQL Server
       int fractional = 0;
       int precision = 0;
-      String seconds = args.get(5).translate(target);
+      String seconds = args.get(5).translate(target).toString();
       int pos = seconds.indexOf('.');
       if (pos != -1) {
         String fraction = seconds.substring(pos + 1);

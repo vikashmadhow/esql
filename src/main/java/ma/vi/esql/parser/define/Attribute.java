@@ -19,7 +19,7 @@ import java.util.Map;
 public class Attribute extends Esql<String, String> {
   public Attribute(Context context,
                    String name,
-                   Expression<?> value) {
+                   Expression<?, String> value) {
     super(context, name, T2.of("value", value));
   }
 
@@ -60,11 +60,11 @@ public class Attribute extends Esql<String, String> {
     return value;
   }
 
-  public Expression<?> attributeValue() {
+  public Expression<?, String> attributeValue() {
     return child("value");
   }
 
-  public void attributeValue(Expression<?> value) {
+  public void attributeValue(Expression<?, String> value) {
     child("value", value);
   }
 }

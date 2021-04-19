@@ -27,9 +27,9 @@ public class Lower extends Function {
 
   @Override
   public String translate(FunctionCall call, Translatable.Target target) {
-    List<Expression<?>> args = call.arguments();
+    List<Expression<?, ?>> args = call.arguments();
     if (target == JAVASCRIPT) {
-      return '(' + args.get(0).translate(target) + ").toLowerCase()";
+      return '(' + args.get(0).translate(target).toString() + ").toLowerCase()";
 
     } else {
       // ESQL and all databases

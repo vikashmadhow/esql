@@ -12,8 +12,8 @@ import ma.vi.esql.type.Type;
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-abstract class SingleSubExpression extends Expression<Expression<?>> {
-  public SingleSubExpression(Context context, Expression<?> expr) {
+abstract class SingleSubExpression extends Expression<Expression<?, String>, String> {
+  public SingleSubExpression(Context context, Expression<?, String> expr) {
     super(context, expr);
   }
 
@@ -29,7 +29,7 @@ abstract class SingleSubExpression extends Expression<Expression<?>> {
     return expr().type();
   }
 
-  public Expression<?> expr() {
+  public Expression<?, String> expr() {
     return value;
   }
 }

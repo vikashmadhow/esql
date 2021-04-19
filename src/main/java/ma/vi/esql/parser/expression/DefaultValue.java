@@ -15,7 +15,7 @@ import java.util.Map;
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public class DefaultValue extends Expression<String> {
+public class DefaultValue extends Expression<String, String> {
   public DefaultValue(Context context) {
     super(context, "default");
   }

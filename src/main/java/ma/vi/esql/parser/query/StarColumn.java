@@ -114,7 +114,7 @@ public class StarColumn extends Column { // implements Macro {
 //          /*
 //           * Transient: column may be an expression: qualify if necessary
 //           */
-//          Expression<?> colExpr = field.expression().expression();
+//          Expression<?, String> colExpr = field.expression().expression();
 ////                    if (qualifier != null) {
 ////                        colExpr = ColumnRef.qualify(colExpr, qualifier, false);
 ////                    }

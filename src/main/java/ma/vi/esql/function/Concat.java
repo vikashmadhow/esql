@@ -29,7 +29,7 @@ public class Concat extends Function {
   @Override
   public String translate(FunctionCall call, Translatable.Target target) {
     StringBuilder sb = new StringBuilder();
-    Iterator<Expression<?>> args = call.arguments().iterator();
+    Iterator<Expression<?, ?>> args = call.arguments().iterator();
 
     if (target == JAVASCRIPT) {
       sb.append("(").append(args.next().translate(target)).append(").concat(");

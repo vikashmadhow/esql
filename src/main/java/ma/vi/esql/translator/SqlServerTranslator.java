@@ -44,9 +44,9 @@ public class SqlServerTranslator extends AbstractTranslator {
     boolean hasComplexGroups = false;
     GroupBy groupBy = select.groupBy();
     if (groupBy != null) {
-      List<Expression<?>> newGroupExpressions = new ArrayList<>();
+      List<Expression<?, String>> newGroupExpressions = new ArrayList<>();
       boolean groupExpressionsChanged = false;
-      for (Expression<?> expr: groupBy.groupBy()) {
+      for (Expression<?, String> expr: groupBy.groupBy()) {
         if (expr.firstChild(Select.class) != null) {
           hasComplexGroups = true;
         }
@@ -67,7 +67,7 @@ public class SqlServerTranslator extends AbstractTranslator {
       }
     }
 
-    List<Expression<?>> distinctOn = select.distinctOn();
+    List<Expression<?, String>> distinctOn = select.distinctOn();
     boolean subSelect = select.ancestor("tables") != null || select.ancestor(Cte.class) != null;
     if (select.distinct() && distinctOn != null && !distinctOn.isEmpty()) {
       String subquery = "q_" + Strings.random();
@@ -171,11 +171,11 @@ public class SqlServerTranslator extends AbstractTranslator {
         String innerSelectAlias = "t" + Strings.random(4);
         List<Column> innerCols = new ArrayList<>();
         List<Column> outerCols = new ArrayList<>();
-        List<Expression<?>> outerGroups = new ArrayList<>();
+        List<Expression<?, String>> outerGroups = new ArrayList<>();
         Map<String, String> addedInnerCols = new HashMap<>();
-        Set<Expression<?>> groups = new HashSet<>(select.groupBy().groupBy());
+        Set<Expression<?, String>> groups = new HashSet<>(select.groupBy().groupBy());
         for (Column column: select.columns()) {
-          Expression<?> colExpr = column.expr();
+          Expression<?, String> colExpr = column.expr();
           AtomicBoolean aggregate = new AtomicBoolean();
           colExpr.forEach(e -> {
             if (e instanceof FunctionCall) {
@@ -192,7 +192,7 @@ public class SqlServerTranslator extends AbstractTranslator {
              * For an aggregate add columns that it refers to
              * to the inner query.
              */
-            Expression<?> remapped = select.remapExpression(colExpr, addedInnerCols, innerCols, innerSelectAlias);
+            Expression<?, String> remapped = select.remapExpression(colExpr, addedInnerCols, innerCols, innerSelectAlias);
             outerCols.add(new Column(
                 select.context,
                 column.alias(),
@@ -228,8 +228,8 @@ public class SqlServerTranslator extends AbstractTranslator {
           }
         }
 
-        Expression<?> outerHaving = null;
-        Expression<?> having = select.having();
+        Expression<?, String> outerHaving = null;
+        Expression<?, String> having = select.having();
         if (having != null) {
           /*
            * Add the aggregate to the outer query.

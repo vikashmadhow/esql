@@ -49,7 +49,7 @@ public class Function {
     StringBuilder st = new StringBuilder(functionName).append('(');
     if (call.distinct()) {
       st.append("distinct ");
-      List<Expression<?>> distinctOn = call.distinctOn();
+      List<Expression<?, String>> distinctOn = call.distinctOn();
       if (distinctOn != null && !distinctOn.isEmpty()) {
         st.append(target != HSQLDB ? "on (" : "(")
           .append(distinctOn.stream()
@@ -58,22 +58,18 @@ public class Function {
           .append(") ");
       }
     }
-    Select select = call.select();
-    if (select != null) {
-      st.append(select.translate(target).statement);
-
-    } else if (call.star()) {
+    if (call.star()) {
       st.append('*');
 
     } else if (call.arguments() != null) {
       boolean first = true;
-      for (Expression<?> e: call.arguments()) {
+      for (Expression<?, ?> e: call.arguments()) {
         if (first) {
           first = false;
         } else {
           st.append(", ");
         }
-        st.append(e.translate(target));
+        st.append(e.translate(target).toString());
       }
     }
     return st.append(')').toString();

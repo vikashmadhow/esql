@@ -42,7 +42,7 @@ public class Parser {
     }
   }
 
-  public Expression<?> parseExpression(String expression) {
+  public Expression<?, String> parseExpression(String expression) {
     return parseExpression(structure, expression);
   }
 
@@ -92,8 +92,8 @@ public class Parser {
   /**
    * Parses a database expression passed in string form.
    */
-  public static Expression<?> parseExpression(Structure structure, String expression) {
-    return (Expression<?>)parse(structure, parser(expression).expr());
+  public static Expression<?, String> parseExpression(Structure structure, String expression) {
+    return (Expression<?, String>)parse(structure, parser(expression).expr());
   }
 
   public interface Rules {

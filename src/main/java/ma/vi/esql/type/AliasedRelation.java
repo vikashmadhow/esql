@@ -81,17 +81,17 @@ public class AliasedRelation extends Relation {
   }
 
   @Override
-  public Expression<?> attribute(String name, Expression<?> value) {
+  public Expression<?, String> attribute(String name, Expression<?, String> value) {
     return relation.attribute(name, value);
   }
 
   @Override
-  public Expression<?> attribute(String name) {
+  public Expression<?, String> attribute(String name) {
     return relation.attribute(name);
   }
 
   @Override
-  public void attributes(Map<String, Expression<?>> attributes) {
+  public void attributes(Map<String, Expression<?, String>> attributes) {
     relation.attributes(attributes);
   }
 

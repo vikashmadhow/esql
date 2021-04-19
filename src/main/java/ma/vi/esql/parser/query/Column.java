@@ -35,11 +35,11 @@ import static ma.vi.esql.parser.Translatable.Target.ESQL;
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public class Column extends MetadataContainer<Expression<?>, String> {
+public class Column extends MetadataContainer<Expression<?, String>, String> {
 
   public Column(Context context,
                 String alias,
-                Expression<?> expr,
+                Expression<?, String> expr,
                 Metadata metadata) {
     super(context,
           expr,
@@ -71,7 +71,7 @@ public class Column extends MetadataContainer<Expression<?>, String> {
       columnType = def.type();
     }
     Boolean notNull = def.notNull();
-    Expression<?> defaultExpr = def.expression();
+    Expression<?, String> defaultExpr = def.expression();
 
     Column col = new Column(def.context,
                             def.name(),
@@ -176,7 +176,7 @@ public class Column extends MetadataContainer<Expression<?>, String> {
     metadata().attribute(ID, id);
   }
 
-  public Expression<?> defaultExpression() {
+  public Expression<?, String> defaultExpression() {
     if (metadata() != null
      && metadata().attribute(EXPRESSION) != null) {
       return metadata().attribute(EXPRESSION).attributeValue();
@@ -185,7 +185,7 @@ public class Column extends MetadataContainer<Expression<?>, String> {
     }
   }
 
-  public void defaultExpression(Expression<?> expr) {
+  public void defaultExpression(Expression<?, String> expr) {
     if (metadata() == null) {
       metadata(new Metadata(context, new ArrayList<>()));
     }
@@ -193,7 +193,7 @@ public class Column extends MetadataContainer<Expression<?>, String> {
   }
 
   @Override
-  public void attribute(String name, Expression<?> value) {
+  public void attribute(String name, Expression<?, String> value) {
     if (metadata() == null) {
       metadata(new Metadata(context, new ArrayList<>()));
     }
@@ -258,11 +258,11 @@ public class Column extends MetadataContainer<Expression<?>, String> {
     }
   }
 
-  public Expression<?> expr() {
+  public Expression<?, String> expr() {
     return value;
   }
 
-  public void expr(Expression<?> expr) {
+  public void expr(Expression<?, String> expr) {
     value = expr;
   }
 

@@ -18,8 +18,8 @@ import static ma.vi.esql.parser.Translatable.Target.JSON;
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public class NamedArgument extends Expression<String> {
-  public NamedArgument(Context context, String name, Expression<?> arg) {
+public class NamedArgument extends Expression<String, String> {
+  public NamedArgument(Context context, String name, Expression<?, String> arg) {
     super(context, name, T2.of("arg", arg));
   }
 
@@ -68,7 +68,7 @@ public class NamedArgument extends Expression<String> {
     return value;
   }
 
-  public Expression<?> arg() {
+  public Expression<?, String> arg() {
     return child("arg");
   }
 }

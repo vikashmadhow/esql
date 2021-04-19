@@ -7,7 +7,6 @@ package ma.vi.esql.parser.expression;
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.parser.Context;
 import ma.vi.esql.parser.Esql;
-import ma.vi.esql.parser.query.Select;
 import ma.vi.esql.type.Type;
 import ma.vi.esql.type.Types;
 
@@ -21,12 +20,14 @@ import static java.util.stream.Collectors.joining;
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public class In extends Expression<Expression<?>> {
-  public In(Context context, Expression expr, boolean not, List<Expression<?>> expressionList, Select select) {
+public class In extends Expression<Expression<?, ?>, String> {
+  public In(Context context,
+            Expression<?, ?> expr,
+            boolean not,
+            List<Expression<?, ?>> expressionList) {
     super(context, expr,
         T2.of("not", new Esql<>(context, not)),
-        T2.of("list", new Esql<>(context, null, expressionList)),
-        T2.of("select", select));
+        T2.of("list", new Esql<>(context, null, expressionList)));
   }
 
   public In(In other) {
@@ -55,10 +56,9 @@ public class In extends Expression<Expression<?>> {
   @Override
   public String translate(Target target, Map<String, Object> parameters) {
     return expr().translate(target, parameters) + (not() ? " not in (" : " in (")
-        + (select() != null ? select().translate(target, parameters)
-                            : list().stream()
-                                    .map(e -> e.translate(target, parameters))
-                                    .collect(joining(", ")))
+        + list().stream()
+                .map(e -> e.translate(target, parameters))
+                .collect(joining(", "))
         + ')';
   }
 
@@ -67,20 +67,16 @@ public class In extends Expression<Expression<?>> {
     expr()._toString(st, level, indent);
     st.append(not() ? " not in (" : " in (");
 
-    if (select() != null) {
-      select()._toString(st, level, indent);
-    } else {
-      boolean first = true;
-      for (Expression<?> e: list()) {
-        if (first) { first = false; }
-        else       { st.append(", "); }
-        e._toString(st, level, indent);
-      }
+    boolean first = true;
+    for (Expression<?, String> e: list()) {
+      if (first) { first = false; }
+      else       { st.append(", "); }
+      e._toString(st, level, indent);
     }
     st.append(')');
   }
 
-  public Expression<?> expr() {
+  public Expression<?, ?> expr() {
     return value;
   }
 
@@ -88,11 +84,7 @@ public class In extends Expression<Expression<?>> {
     return childValue("not");
   }
 
-  public List<Expression<?>> list() {
+  public List<Expression<?, String>> list() {
     return child("list").childrenList();
-  }
-
-  public Select select() {
-    return child("select");
   }
 }

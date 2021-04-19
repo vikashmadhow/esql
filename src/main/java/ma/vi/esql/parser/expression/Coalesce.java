@@ -19,7 +19,7 @@ import static ma.vi.esql.parser.Translatable.Target.JSON;
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 public class Coalesce extends MultipleSubExpressions<String> {
-  public Coalesce(Context context, List<Expression<?>> expressions) {
+  public Coalesce(Context context, List<Expression<?, ?>> expressions) {
     super(context, "coalesce", expressions);
   }
 
@@ -46,7 +46,7 @@ public class Coalesce extends MultipleSubExpressions<String> {
     switch (target) {
       case JSON, JAVASCRIPT -> {
         StringBuilder st = new StringBuilder();
-        for (Expression<?> e: expressions()) {
+        for (Expression<?, String> e: expressions()) {
           if (st.length() > 0) {
             st.append(" || ");
           }
@@ -62,7 +62,7 @@ public class Coalesce extends MultipleSubExpressions<String> {
 
       case ESQL -> {
         StringBuilder st = new StringBuilder();
-        for (Expression<?> e: expressions()) {
+        for (Expression<?, String> e: expressions()) {
           st.append(st.length() == 0 ? "" : "?").append(e.translate(target, parameters));
         }
         return st.toString();
@@ -79,7 +79,7 @@ public class Coalesce extends MultipleSubExpressions<String> {
         }
         st.append("coalesce(");
         boolean first = true;
-        for (Expression<?> e: expressions()) {
+        for (Expression<?, String> e: expressions()) {
           if (first) { first = false;   }
           else       { st.append(", "); }
           st.append(e.translate(target, parameters));

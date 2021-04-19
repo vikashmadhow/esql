@@ -21,6 +21,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Support for Oracle database.
 - Make into Java 9 module.
 
+## [Unreleased]
+### Added
+- Everything, bar program, is now an expression in ESQL. This allows for some 
+  grammatically wrong statements (such as putting an insert into a function call)
+  to parse correctly, but also allows for more complex constructions, such as
+  assigning a select to a variable.
+
 ## [0.4.4] - 2021-04-16
 ### Added 
 - Completed documentation .g4 antlr grammar and github wiki page on ESQL grammar.

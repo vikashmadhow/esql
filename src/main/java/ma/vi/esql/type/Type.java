@@ -42,7 +42,7 @@ public interface Type extends Close, Copy<Type>, Translatable<String> {
   /**
    * Type attributes.
    */
-  ConcurrentMap<String, Expression<?>> attributes();
+  ConcurrentMap<String, Expression<?, String>> attributes();
 
   /**
    * Returns a copy of this type which can be modified without impacting
@@ -74,16 +74,16 @@ public interface Type extends Close, Copy<Type>, Translatable<String> {
     return name();
   }
 
-  default Expression<?> attribute(String name, Expression<?> value) {
+  default Expression<?, String> attribute(String name, Expression<?, String> value) {
     return attributes().put(name, value);
   }
 
-  default Expression<?> attribute(String name) {
+  default Expression<?, String> attribute(String name) {
     return attributes().get(name);
   }
 
-  default void attributes(Map<String, Expression<?>> attributes) {
-    for (Map.Entry<String, Expression<?>> a: attributes.entrySet()) {
+  default void attributes(Map<String, Expression<?, String>> attributes) {
+    for (Map.Entry<String, Expression<?, String>> a: attributes.entrySet()) {
       attribute(a.getKey(), a.getValue());
     }
   }
@@ -129,7 +129,7 @@ public interface Type extends Close, Copy<Type>, Translatable<String> {
     }
 
     @Override
-    public ConcurrentMap<String, Expression<?>> attributes() {
+    public ConcurrentMap<String, Expression<?, String>> attributes() {
       return null;
     }
 

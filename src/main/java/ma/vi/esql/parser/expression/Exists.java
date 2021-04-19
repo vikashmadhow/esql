@@ -16,7 +16,7 @@ import java.util.Map;
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public class Exists extends Expression<Select> {
+public class Exists extends Expression<Select, String> {
   public Exists(Context context, Select select) {
     super(context, select);
   }

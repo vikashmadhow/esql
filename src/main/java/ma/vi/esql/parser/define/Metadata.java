@@ -85,7 +85,7 @@ public class Metadata extends TableDefinition {
     if (a == null) {
       return null;
     } else {
-      Expression<?> expr = a.attributeValue();
+      Expression<?, String> expr = a.attributeValue();
       return (T)expr.value(Target.ESQL);
     }
   }
@@ -106,7 +106,7 @@ public class Metadata extends TableDefinition {
     return attribute(name, new IntegerLiteral(context, (long)value));
   }
 
-  public Attribute attribute(String name, Expression<?> value) {
+  public Attribute attribute(String name, Expression<?, String> value) {
     Attribute a = new Attribute(context, name, value);
     attributes().put(name, a);
     return a;

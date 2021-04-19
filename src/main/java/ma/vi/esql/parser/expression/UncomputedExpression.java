@@ -17,7 +17,7 @@ import java.util.Map;
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 public class UncomputedExpression extends SingleSubExpression {
-  public UncomputedExpression(Context context, Expression<?> expr) {
+  public UncomputedExpression(Context context, Expression<?, String> expr) {
     super(context, expr);
   }
 

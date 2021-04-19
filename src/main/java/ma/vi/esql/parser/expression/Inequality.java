@@ -17,7 +17,7 @@ import static ma.vi.esql.parser.Translatable.Target.JSON;
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 public class Inequality extends RelationalOperator {
-  public Inequality(Context context, Expression<?> expr1, Expression<?> expr2) {
+  public Inequality(Context context, Expression<?, String> expr1, Expression<?, String> expr2) {
     super(context, "!=", expr1, expr2);
   }
 

@@ -30,7 +30,7 @@ public class Update extends QueryUpdate {
                 String        updateTableAlias,
                 TableExpr     from,
                 Metadata      set,
-                Expression<?> where,
+                Expression<?, String> where,
                 Metadata      returnMetadata,
                 List<Column>  returnColumns) {
     super(context, "Update",

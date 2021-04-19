@@ -19,7 +19,8 @@ package ma.vi.esql.grammar;
  * An ESQL program is a semi-colon separated sequence of ESQL statements.
  */
 program
-    : statement (';' statement)* ';'?
+//    : statement (';' statement)* ';'?
+    : expr (';' expr)* ';'?
     ;
 
 /**
@@ -40,12 +41,12 @@ noop
  * statements for modifying data (insert, update and delete) which are grouped
  * into modify statements.
  */
-statement
-    : select
-    | modify
-    | define
-    | noop
-    ;
+//statement
+//    : select
+//    | modify
+//    | define
+//    | noop
+//    ;
 
 /**
  * The 3 data modifying statements are update, insert and delete.
@@ -587,11 +588,16 @@ delete
  * tokens which can be computed to return a single-value.
  */
 expr
+    : select                                                    #SelectStatement
+    | modify                                                    #ModifyStatement
+    | define                                                    #DefineStatement
+    | noop                                                      #NoopStatement
+
       /*
        * Parentheses controls the order in which expressions are computed when
        * they are part of larger expressions.
        */
-    : '(' expr ')'                                              #GroupingExpr
+    | '(' expr ')'                                              #GroupingExpr
 
       /*
        * An expression surrounded by '$(' and ')' is known as an uncomputed
@@ -694,7 +700,7 @@ expr
        * applicable to certain aggregate functions (such as `count`).
        */
     | qualifiedName
-      '(' distinct? (expressionList | select | star='*')? ')'
+      '(' distinct? (expressionList | star='*')? ')'
       window?                                                   #FunctionInvocation
 
       /*
@@ -731,7 +737,7 @@ expr
        * True if the expression matches one of the expression in the `in` list
        * or a value returned by the `select`.
        */
-    | expr Not? 'in' '(' (expressionList | select) ')'          #InExpression
+    | expr Not? 'in' '(' (expressionList) ')'                   #InExpression
 
       /*
        * True if a comparable expression is in the range provided in the
@@ -802,7 +808,7 @@ simpleExpr
     | left=simpleExpr op=('*' | '/' | '%') right=simpleExpr                           #SimpleMultiplicationExpr
     | left=simpleExpr op=('+' | '-') right=simpleExpr                                 #SimpleAdditionExpr
     | selectExpression                                                                #SimpleSelectExpr
-    | qualifiedName '(' distinct? (expressionList | select | star='*')? ')' window?   #SimpleFunctionInvocation
+    | qualifiedName '(' distinct? (expressionList | star='*')? ')' window?            #SimpleFunctionInvocation
     | columnReference                                                                 #SimpleColumnExpr
     | <assoc=right> simpleExpr ('if' simpleExpr 'else' simpleExpr)+                   #SimpleCaseExpr
     ;

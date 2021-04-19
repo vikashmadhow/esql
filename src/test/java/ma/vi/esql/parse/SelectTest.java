@@ -15,6 +15,7 @@ import ma.vi.esql.parser.Context;
 import ma.vi.esql.parser.Parser;
 import ma.vi.esql.parser.Program;
 import ma.vi.esql.parser.Statement;
+import ma.vi.esql.parser.expression.Expression;
 import ma.vi.esql.parser.query.Select;
 import ma.vi.esql.type.AmbiguousColumnException;
 import org.junit.jupiter.api.DynamicTest;
@@ -309,7 +310,7 @@ public class SelectTest extends DataTest {
                                         "          y.x," +
                                         "          T.b asc");
 
-    List<Statement<?, ?>> st = program.statements();
+    List<Expression<?, ?>> st = program.expressions();
     assertEquals(1, st.size());
 
     assertTrue(st.get(0) instanceof Select);

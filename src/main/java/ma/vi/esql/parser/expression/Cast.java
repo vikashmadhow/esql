@@ -15,8 +15,8 @@ import java.util.Map;
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public class Cast extends Expression<Type> {
-  public Cast(Context context, Expression<?> expr, Type toType) {
+public class Cast extends Expression<Type, String> {
+  public Cast(Context context, Expression<?, ?> expr, Type toType) {
     super(context, toType, T2.of("expr", expr));
   }
 
@@ -47,9 +47,9 @@ public class Cast extends Expression<Type> {
   public String translate(Target target, Map<String, Object> parameters) {
     return switch (target) {
       case ESQL       -> toType().translate(target, parameters) + '<' + expr().translate(target, parameters) + '>';
-      case POSTGRESQL -> expr().translate(target, parameters) + "::" + toType().translate(target, parameters);
+      case POSTGRESQL -> '(' + expr().translate(target, parameters) + ")::" + toType().translate(target, parameters);
       case JSON,
-          JAVASCRIPT  -> expr().translate(target, parameters);    // ignore cast for Javascript
+           JAVASCRIPT -> expr().translate(target, parameters);    // ignore cast for Javascript
       default         -> "cast(" + expr().translate(target, parameters) + " as " + toType().translate(target, parameters) + ')';
     };
   }
@@ -65,7 +65,7 @@ public class Cast extends Expression<Type> {
     return value;
   }
 
-  public Expression<?> expr() {
+  public Expression<?, String> expr() {
     return child("expr");
   }
 }

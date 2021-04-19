@@ -17,7 +17,7 @@ import static ma.vi.esql.parser.Translatable.Target.JSON;
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 public class Equality extends RelationalOperator {
-  public Equality(Context context, Expression<?> expr1, Expression<?> expr2) {
+  public Equality(Context context, Expression<?, ?> expr1, Expression<?, ?> expr2) {
     super(context, "=", expr1, expr2);
   }
 

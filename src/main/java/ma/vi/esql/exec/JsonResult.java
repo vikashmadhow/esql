@@ -456,12 +456,12 @@ public class JsonResult {
 //   * 4. Edit of the whole row having a one-to-many association to an element of another row type
 //   */
 //
-//  private static Object forExpression(Expression<?> expression) {
+//  private static Object forExpression(Expression<?, String> expression) {
 //    return forExpression(expression, "this.row", ".$v");
 //  }
 //
-//  private static Object forExpression(Expression<?> expression, String qualifier, String suffix) {
-//    Expression<?> qualified = ColumnRef.qualify(expression.copy(), qualifier, suffix, true);
+//  private static Object forExpression(Expression<?, String> expression, String qualifier, String suffix) {
+//    Expression<?, String> qualified = ColumnRef.qualify(expression.copy(), qualifier, suffix, true);
 //    Object value = qualified.value(JAVASCRIPT);
 //    if (qualified instanceof Literal || qualified instanceof Symbol) {
 //      return value;

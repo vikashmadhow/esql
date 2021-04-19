@@ -17,7 +17,9 @@ import static ma.vi.esql.parser.Translatable.Target.JSON;
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 public class LogicalOr extends RelationalOperator {
-  public LogicalOr(Context context, Expression<?> expr1, Expression<?> expr2) {
+  public LogicalOr(Context context,
+                   Expression<?, String> expr1,
+                   Expression<?, String> expr2) {
     super(context, "or", expr1, expr2);
   }
 

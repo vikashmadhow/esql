@@ -102,7 +102,7 @@ public class DeleteBuilder implements Builder<Delete> {
     return where(parser.parseExpression(expression));
   }
 
-  public DeleteBuilder where(Expression<?> expression) {
+  public DeleteBuilder where(Expression<?, String> expression) {
     this.where = expression;
     return this;
   }
@@ -111,7 +111,7 @@ public class DeleteBuilder implements Builder<Delete> {
     return returning(expression == null ? null : parser.parseExpression(expression), alias, metadata);
   }
 
-  public DeleteBuilder returning(Expression<?> expression, String alias, Attr... metadata) {
+  public DeleteBuilder returning(Expression<?, String> expression, String alias, Attr... metadata) {
     this.returnColumns.add(
       new Column(context,
                  alias,
@@ -133,7 +133,7 @@ public class DeleteBuilder implements Builder<Delete> {
   private String deleteTableAlias;
 
   private TableExpr from;
-  private Expression<?> where;
+  private Expression<?, String> where;
 
   private final List<Attribute> returnMetadata = new ArrayList<>();
   private final List<Column> returnColumns = new ArrayList<>();

@@ -83,7 +83,7 @@ public class DynamicTableExpr extends AbstractAliasTableExpr {
            i = rows.size() <= 100 ? i + 1 : random.nextInt(rows.size()), rowsChecked++) {
         InsertRow row = rows.get(i);
         boolean hasAbstractTypes = false;
-        List<Expression<?>> values = row.values();
+        List<Expression<?, String>> values = row.values();
         for (int j = 0; j < values.size(); j++) {
           Type type = values.get(j).type();
           hasAbstractTypes |= columnTypes.get(j).isAbstract() && type.isAbstract();

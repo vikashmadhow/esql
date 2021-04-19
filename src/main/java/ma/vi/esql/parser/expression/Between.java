@@ -20,12 +20,12 @@ import static ma.vi.esql.parser.Translatable.Target.JSON;
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public class Between extends Expression<Expression<?>> {
+public class Between extends Expression<Expression<?, ?>, String> {
   public Between(Context context,
                  boolean not,
-                 Expression<?> compare,
-                 Expression<?> from,
-                 Expression<?> to) {
+                 Expression<?, ?> compare,
+                 Expression<?, ?> from,
+                 Expression<?, ?> to) {
     super(context, compare,
           T2.of("not", new Esql<>(context, not)),
           T2.of("from", from),
@@ -88,15 +88,15 @@ public class Between extends Expression<Expression<?>> {
     return childValue("not");
   }
 
-  public Expression<?> compare() {
+  public Expression<?, ?> compare() {
     return value;
   }
 
-  public Expression<?> from() {
+  public Expression<?, ?> from() {
     return child("from");
   }
 
-  public Expression<?> to() {
+  public Expression<?, ?> to() {
     return child("to");
   }
 }

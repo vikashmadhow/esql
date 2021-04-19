@@ -18,7 +18,7 @@ import java.util.List;
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public abstract class MetadataContainer<V, R> extends Statement<V, R> {
+public abstract class MetadataContainer<V, R> extends Expression<V, R> {
   public MetadataContainer(Context context, V value, T2<String, ? extends Esql<?, ?>>... children) {
     super(context, value, children);
   }
@@ -27,7 +27,7 @@ public abstract class MetadataContainer<V, R> extends Statement<V, R> {
     super(context, value, children);
   }
 
-  public MetadataContainer(Statement<V, R> other) {
+  public MetadataContainer(MetadataContainer<V, R> other) {
     super(other);
   }
 
@@ -52,7 +52,7 @@ public abstract class MetadataContainer<V, R> extends Statement<V, R> {
     return metadata() == null ? null : metadata().attribute(name);
   }
 
-  public void attribute(String name, Expression<?> value) {
+  public void attribute(String name, Expression<?, String> value) {
     if (metadata() == null) {
       metadata(new Metadata(context, new ArrayList<>()));
     }

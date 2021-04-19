@@ -8,6 +8,7 @@ import ma.vi.base.collections.Maps;
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.database.Database;
 import ma.vi.esql.parser.*;
+import ma.vi.esql.parser.expression.Expression;
 import ma.vi.esql.parser.expression.Literal;
 import ma.vi.esql.parser.expression.NamedParameter;
 import ma.vi.esql.parser.expression.NullLiteral;
@@ -72,8 +73,8 @@ public class EsqlConnectionImpl implements EsqlConnection {
     try {
       if (esql instanceof Program) {
         return exec((Program)esql, params);
-      } else if (esql instanceof Statement) {
-        return exec((Statement<?, ?>)esql, params);
+      } else if (esql instanceof Expression) {
+        return exec((Expression<?, ?>)esql, params);
       } else {
         throw new RuntimeException("Can't execute " + esql);
       }
@@ -91,14 +92,14 @@ public class EsqlConnectionImpl implements EsqlConnection {
    */
   private Result exec(Program program, Param... params) {
     Result result = null;
-    for (Statement<?, ?> s: program.statements()) {
+    for (Expression<?, ?> s: program.expressions()) {
       result = exec(s, params);
     }
     return result;
   }
 
-  private Result exec(Statement<?, ?> statement, Param... params) {
-    Statement<?, ?> st = statement;
+  private Result exec(Expression<?, ?> expression, Param... params) {
+    Expression<?, ?> st = expression;
     if (params.length > 0) {
       /*
        * Substitute parameters into statement.
@@ -107,12 +108,12 @@ public class EsqlConnectionImpl implements EsqlConnection {
       for (Param p: params) {
         parameters.put(p.a, p);
       }
-      st = (Statement<?, ?>)statement.map(e -> {
+      st = (Expression<?, ?>)expression.map(e -> {
         if (e instanceof NamedParameter) {
           String paramName = ((NamedParameter)e).name();
           if (!parameters.containsKey(paramName)) {
-            throw new TranslationException("Parameter named " + paramName + " is present in statement ("
-                                         + statement + ") but has not been supplied.");
+            throw new TranslationException("Parameter named " + paramName + " is present in expression ("
+                                         + expression + ") but has not been supplied.");
           } else {
             Param param = parameters.get(paramName);
             Object value = param.b;
@@ -120,14 +121,14 @@ public class EsqlConnectionImpl implements EsqlConnection {
               return (Esql<?, ?>)value;
 
             } else if (value == null) {
-              return new NullLiteral(statement.context);
+              return new NullLiteral(expression.context);
 
             } else if (param instanceof ExpressionParam) {
-              Parser parser = new Parser(statement.context.structure);
+              Parser parser = new Parser(expression.context.structure);
               return parser.parseExpression(value.toString());
 
             } else {
-              return Literal.makeLiteral(statement.context, value);
+              return Literal.makeLiteral(expression.context, value);
             }
           }
         }

@@ -50,7 +50,7 @@ public class SelectBuilder implements Builder<Select> {
     return this;
   }
 
-  public SelectBuilder distinctOn(Expression<?> distinctOn) {
+  public SelectBuilder distinctOn(Expression<?, String> distinctOn) {
     this.distinctOn.add(distinctOn);
     return this;
   }
@@ -64,7 +64,7 @@ public class SelectBuilder implements Builder<Select> {
     return column(expression == null ? null : parser.parseExpression(expression), alias, metadata);
   }
 
-  public SelectBuilder column(Expression<?> expression, String alias, Attr... metadata) {
+  public SelectBuilder column(Expression<?, String> expression, String alias, Attr... metadata) {
     this.columns.add(
       new Column(context,
                  alias,
@@ -140,7 +140,7 @@ public class SelectBuilder implements Builder<Select> {
     return where(parser.parseExpression(expression));
   }
 
-  public SelectBuilder where(Expression<?> expression) {
+  public SelectBuilder where(Expression<?, String> expression) {
     this.where = expression;
     return this;
   }
@@ -174,7 +174,7 @@ public class SelectBuilder implements Builder<Select> {
     return orderBy(parser.parseExpression(expression), dir);
   }
 
-  public SelectBuilder orderBy(Expression<?> expression, String dir) {
+  public SelectBuilder orderBy(Expression<?, String> expression, String dir) {
     orderBy.add(new Order(context, expression, dir));
     return this;
   }
@@ -190,18 +190,18 @@ public class SelectBuilder implements Builder<Select> {
   }
 
   private boolean distinct;
-  private final List<Expression<?>> distinctOn = new ArrayList<>();
+  private final List<Expression<?, String>> distinctOn = new ArrayList<>();
   private boolean explicit;
   private final List<Attribute> metadata = new ArrayList<>();
   private final List<Column> columns = new ArrayList<>();
   private TableExpr from;
-  private Expression<?> where;
+  private Expression<?, String> where;
   private final List<Order> orderBy = new ArrayList<>();
-  private final List<Expression<?>> groupBy = new ArrayList<>();
+  private final List<Expression<?, String>> groupBy = new ArrayList<>();
   private GroupBy.Type groupType = Simple;
-  private Expression<?> having;
-  private Expression<?> offset;
-  private Expression<?> limit;
+  private Expression<?, String> having;
+  private Expression<?, String> offset;
+  private Expression<?, String> limit;
 
   private final Context context;
   private final Parser parser;

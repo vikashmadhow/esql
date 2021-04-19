@@ -28,7 +28,7 @@ public class GroupBy extends Esql<String, String> {
   }
 
   public GroupBy(Context context,
-                 List<Expression<?>> groupBy,
+                 List<Expression<?, String>> groupBy,
                  Type groupType) {
     super(context, "groupBy",
         T2.of("groupBy", new Esql<>(context, "groupBy", groupBy)),
@@ -67,7 +67,7 @@ public class GroupBy extends Esql<String, String> {
         + (type != Type.Simple ? ")" : "");
   }
 
-  public List<Expression<?>> groupBy() {
+  public List<Expression<?, String>> groupBy() {
     return child("groupBy").childrenList();
   }
 

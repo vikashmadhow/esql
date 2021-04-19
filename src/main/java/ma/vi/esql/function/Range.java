@@ -37,9 +37,9 @@ public class Range extends Function {
 
   @Override
   public String translate(FunctionCall call, Translatable.Target target) {
-    List<Expression<?>> args = call.arguments();
-    Iterator<Expression<?>> i = args.iterator();
-    Expression<?> value = i.next();
+    List<Expression<?, ?>> args = call.arguments();
+    Iterator<Expression<?, ?>> i = args.iterator();
+    Expression<?, ?> value = i.next();
 
     if (target == POSTGRESQL) {
       StringBuilder func = new StringBuilder("_core.range((" + value.translate(target) + ")::double precision");

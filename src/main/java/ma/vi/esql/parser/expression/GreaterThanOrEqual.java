@@ -12,7 +12,9 @@ import ma.vi.esql.parser.Context;
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 public class GreaterThanOrEqual extends RelationalOperator {
-  public GreaterThanOrEqual(Context context, Expression<?> expr1, Expression<?> expr2) {
+  public GreaterThanOrEqual(Context context,
+                            Expression<?, String> expr1,
+                            Expression<?, String> expr2) {
     super(context, ">=", expr1, expr2);
   }
 

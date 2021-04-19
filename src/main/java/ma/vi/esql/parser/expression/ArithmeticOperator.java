@@ -15,7 +15,10 @@ import ma.vi.esql.type.Type;
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 abstract class ArithmeticOperator extends BinaryOperator {
-  public ArithmeticOperator(Context context, String op, Expression<?> expr1, Expression<?> expr2) {
+  public ArithmeticOperator(Context context,
+                            String op,
+                            Expression<?, String> expr1,
+                            Expression<?, String> expr2) {
     super(context, op, expr1, expr2);
   }
 

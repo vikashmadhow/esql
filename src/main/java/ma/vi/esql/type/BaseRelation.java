@@ -65,7 +65,7 @@ public class BaseRelation extends Relation {
     Set<String> aliases = new HashSet<>();
     for (Column column: this.columns) {
       if (column.alias() == null) {
-        Expression<?> expr = column.expr();
+        Expression<?, String> expr = column.expr();
         if (expr instanceof ColumnRef) {
           column.alias(((ColumnRef)expr).name());
         } else {
@@ -175,7 +175,7 @@ public class BaseRelation extends Relation {
                .collect(toList());
   }
 
-  @Override public Expression<?> attribute(String name, Expression<?> value) {
+  @Override public Expression<?, String> attribute(String name, Expression<?, String> value) {
     value = attributes().put(name, value);
     if (value != null) {
       value = expandDerived(value, columnsByAlias, name, new HashSet<>());
@@ -183,19 +183,19 @@ public class BaseRelation extends Relation {
     return value;
   }
 
-  public Expression<?> expandDerived(Expression<?> derivedExpression,
+  public Expression<?, String> expandDerived(Expression<?, String> derivedExpression,
                                      String columnName,
                                      Set<String> seen) {
     return expandDerived(derivedExpression, columnsByAlias, columnName, seen);
   }
 
-  public static Expression<?> expandDerived(Expression<?> derivedExpression,
+  public static Expression<?, String> expandDerived(Expression<?, String> derivedExpression,
                                             PathTrie<Column> columns,
                                             String columnName,
                                             Set<String> seen) {
     try {
       seen.add(columnName);
-      return (Expression<?>)derivedExpression.map(e -> {
+      return (Expression<?, String>)derivedExpression.map(e -> {
           if (e instanceof ColumnRef) {
             ColumnRef ref = (ColumnRef)e;
             String colName = ref.name();
@@ -244,7 +244,7 @@ public class BaseRelation extends Relation {
                                                  Map<String, String> aliased) {
     List<Column> cols = new ArrayList<>();
     String attrPrefix = prefix + attr.name();
-    Expression<?> expr = attr.attributeValue().copy();
+    Expression<?, String> expr = attr.attributeValue().copy();
     cols.add(new Column(
         attr.context,
         attrPrefix,
@@ -279,7 +279,7 @@ public class BaseRelation extends Relation {
     for (Column column: this.columns) {
       column.parent = new Esql<>(context, this);
       if (column.alias() == null) {
-        Expression<?> expr = column.expr();
+        Expression<?, String> expr = column.expr();
         if (expr instanceof ColumnRef) {
           column.alias(((ColumnRef)expr).name());
         } else {
@@ -364,8 +364,8 @@ public class BaseRelation extends Relation {
     return newCols;
   }
 
-  public static Expression<?> rename(Expression<?> expr, Map<String, String> aliased) {
-    return (Expression<?>)expr.map(e -> {
+  public static Expression<?, String> rename(Expression<?, String> expr, Map<String, String> aliased) {
+    return (Expression<?, String>)expr.map(e -> {
       if (e instanceof ColumnRef) {
         String name = ((ColumnRef)e).name();
         if (aliased.containsKey(name)) {
@@ -384,7 +384,7 @@ public class BaseRelation extends Relation {
   private static Map<String, String> aliasedColumns(List<Column> columns) {
     Map<String, String> aliased = new HashMap<>();
     for (Column col: columns) {
-      Expression<?> expr = col.expr();
+      Expression<?, String> expr = col.expr();
       if (expr instanceof ColumnRef) {
         String name = ((ColumnRef)expr).name();
         String alias = col.alias();

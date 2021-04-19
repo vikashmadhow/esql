@@ -14,7 +14,7 @@ import java.util.Map;
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 public class GroupedExpression extends SingleSubExpression {
-  public GroupedExpression(Context context, Expression<?> expr) {
+  public GroupedExpression(Context context, Expression<?, String> expr) {
     super(context, expr);
   }
 

@@ -94,29 +94,34 @@ public class Analyser extends EsqlBaseListener {
 
   @Override
   public void exitProgram(ProgramContext ctx) {
-    put(ctx, new Program(context, ctx.statement().stream()
-                                     .map(s -> (Statement<?, ?>)get(s))
+    put(ctx, new Program(context, ctx.expr().stream()
+                                     .map(s -> (Expression<?, ?>)get(s))
                                      .collect(toList())));
   }
 
+//  @Override
+//  public void exitStatement(StatementContext ctx) {
+//    if (ctx.select() != null) {
+//      put(ctx, get(ctx.select()));
+//
+//    } else if (ctx.modify() != null) {
+//      if (ctx.modify().insert() != null) {
+//        put(ctx, get(ctx.modify().insert()));
+//
+//      } else if (ctx.modify().delete() != null) {
+//        put(ctx, get(ctx.modify().delete()));
+//
+//      } else if (ctx.modify().update() != null) {
+//        put(ctx, get(ctx.modify().update()));
+//      }
+//    } else if (ctx.define() != null) {
+//      put(ctx, get(ctx.define()));
+//    }
+//  }
+
   @Override
-  public void exitStatement(StatementContext ctx) {
-    if (ctx.select() != null) {
-      put(ctx, get(ctx.select()));
-
-    } else if (ctx.modify() != null) {
-      if (ctx.modify().insert() != null) {
-        put(ctx, get(ctx.modify().insert()));
-
-      } else if (ctx.modify().delete() != null) {
-        put(ctx, get(ctx.modify().delete()));
-
-      } else if (ctx.modify().update() != null) {
-        put(ctx, get(ctx.modify().update()));
-      }
-    } else if (ctx.define() != null) {
-      put(ctx, get(ctx.define()));
-    }
+  public void exitNoopStatement(NoopStatementContext ctx) {
+    put(ctx, get(ctx.noop()));
   }
 
   @Override
@@ -126,6 +131,21 @@ public class Analyser extends EsqlBaseListener {
 
   // select
   ////////////////////////////////////////////////
+
+  @Override
+  public void exitSelectStatement(SelectStatementContext ctx) {
+    put(ctx, get(ctx.select()));
+  }
+
+  @Override
+  public void exitModifyStatement(ModifyStatementContext ctx) {
+    put(ctx, get(ctx.modify()));
+  }
+
+  @Override
+  public void exitDefineStatement(DefineStatementContext ctx) {
+    put(ctx, get(ctx.define()));
+  }
 
   @Override
   public void exitBaseSelection(BaseSelectionContext ctx) {
@@ -570,18 +590,18 @@ public class Analyser extends EsqlBaseListener {
        * Thus (concatenation || e3) where concatenation is (e1 || e2) is combined into
        * (e1 || e2 || e3)
        */
-      Expression<?> first = get(expressions.get(0));
-      Expression<?> second = get(expressions.get(1));
+      Expression<?, String> first = get(expressions.get(0));
+      Expression<?, String> second = get(expressions.get(1));
       if (first instanceof Concatenation) {
         Concatenation concat = (Concatenation)first;
-        List<Expression<?>> concatExprs = new ArrayList<>(concat.expressions());
+        List<Expression<?, ?>> concatExprs = new ArrayList<>(concat.expressions());
         concatExprs.add(second);
         put(ctx, new Concatenation(context, concatExprs));
         optimised = true;
 
       } if (second instanceof Concatenation) {
         Concatenation concat = (Concatenation)second;
-        List<Expression<?>> concatExprs = new ArrayList<>(concat.expressions());
+        List<Expression<?, ?>> concatExprs = new ArrayList<>(concat.expressions());
         concatExprs.add(0, first);
         put(ctx, new Concatenation(context, concatExprs));
         optimised = true;
@@ -589,7 +609,7 @@ public class Analyser extends EsqlBaseListener {
     }
     if (!optimised) {
       put(ctx, new Concatenation(context, expressions.stream()
-                                                     .map(e -> (Expression<?>)get(e))
+                                                     .map(e -> (Expression<?, String>)get(e))
                                                      .collect(toList())));
     }
   }
@@ -717,14 +737,14 @@ public class Analyser extends EsqlBaseListener {
   public void exitFunctionInvocation(FunctionInvocationContext ctx) {
     createFunctionInvocation(ctx, ctx.distinct(), ctx.window(),
                              ctx.qualifiedName(), ctx.expressionList(),
-                             ctx.select(), ctx.star);
+                             ctx.star);
   }
 
   @Override
   public void exitSimpleFunctionInvocation(SimpleFunctionInvocationContext ctx) {
     createFunctionInvocation(ctx, ctx.distinct(), ctx.window(),
                              ctx.qualifiedName(), ctx.expressionList(),
-                             ctx.select(), ctx.star);
+                             ctx.star);
   }
 
   public void createFunctionInvocation(ParserRuleContext ctx,
@@ -732,23 +752,22 @@ public class Analyser extends EsqlBaseListener {
                                        WindowContext window,
                                        ParserRuleContext qualifiedName,
                                        ParserRuleContext expressionList,
-                                       ParserRuleContext select,
                                        Token star) {
-    put(ctx, new FunctionCall(context,
-        value(qualifiedName),
-        distinct != null && distinct.getText().startsWith("distinct"),
-        distinct != null && distinct.expressionList() != null ? value(distinct.expressionList()) : null,
-        value(expressionList),
-        select != null ? get(select) : null,
-        star != null,
-        window != null ? value(window.partition() != null ? window.partition().expressionList() : null) : null,
-        window != null ? value(window.orderByList()) : null));
+    put(ctx,
+        new FunctionCall(context,
+                         value(qualifiedName),
+                         distinct != null && distinct.getText().startsWith("distinct"),
+                         distinct != null && distinct.expressionList() != null ? value(distinct.expressionList()) : null,
+                         value(expressionList),
+                         star != null,
+                         window != null ? value(window.partition() != null ? window.partition().expressionList() : null) : null,
+                         window != null ? value(window.orderByList()) : null));
   }
 
   @Override
   public void exitExpressionList(ExpressionListContext ctx) {
     put(ctx, new Esql<>(context, ctx.expr().stream()
-                                    .map(e -> (Expression<?>)get(e))
+                                    .map(e -> (Expression<?, ?>)get(e))
                                     .collect(toList())));
   }
 
@@ -790,8 +809,7 @@ public class Analyser extends EsqlBaseListener {
     put(ctx, new In(context,
                     get(ctx.expr()),
                     ctx.Not() != null,
-                    value(ctx.expressionList()),
-                    get(ctx.select())));
+                    value(ctx.expressionList())));
    }
 
   @Override
@@ -856,18 +874,18 @@ public class Analyser extends EsqlBaseListener {
        * Thus (coalesce ? e3) where coalesce is (e1 ? e2) is combined into
        * (e1 ? e2 ? e3)
        */
-      Expression<?> first = get(expressions.get(0));
-      Expression<?> second = get(expressions.get(1));
+      Expression<?, String> first = get(expressions.get(0));
+      Expression<?, String> second = get(expressions.get(1));
       if (first instanceof Coalesce) {
         Coalesce coalesce = (Coalesce)first;
-        List<Expression<?>> coalesceExprs = new ArrayList<>(coalesce.expressions());
+        List<Expression<?, ?>> coalesceExprs = new ArrayList<>(coalesce.expressions());
         coalesceExprs.add(second);
         put(ctx, new Coalesce(context, coalesceExprs));
         optimised = true;
 
       } else if (second instanceof Coalesce) {
         Coalesce coalesce = (Coalesce)second;
-        List<Expression<?>> coalesceExprs = new ArrayList<>(coalesce.expressions());
+        List<Expression<?, ?>> coalesceExprs = new ArrayList<>(coalesce.expressions());
         coalesceExprs.add(0, first);
         put(ctx, new Coalesce(context, coalesceExprs));
         optimised = true;
@@ -875,7 +893,7 @@ public class Analyser extends EsqlBaseListener {
     }
     if (!optimised) {
       put(ctx, new Coalesce(context, expressions.stream()
-                                                .map(e -> (Expression<?>)get(e))
+                                                .map(e -> (Expression<?, String>)get(e))
                                                 .collect(toList())));
     }
   }
@@ -907,7 +925,7 @@ public class Analyser extends EsqlBaseListener {
       Esql<?, ?> last = get(expressions.get(2));
       if (last instanceof Case) {
         Case lastCase = (Case)last;
-        List<Expression<?>> caseExprs = new ArrayList<>();
+        List<Expression<?, ?>> caseExprs = new ArrayList<>();
         caseExprs.add(get(expressions.get(0)));
         caseExprs.add(get(expressions.get(1)));
         caseExprs.addAll(lastCase.expressions());
@@ -917,7 +935,7 @@ public class Analyser extends EsqlBaseListener {
     }
     if (!optimised) {
       put(ctx, new Case(context, expressions.stream()
-                                    .map(e -> (Expression<?>)get(e))
+                                    .map(e -> (Expression<?, String>)get(e))
                                     .collect(toList())));
     }
   }

@@ -59,7 +59,7 @@ public class CreateTable extends Define<String> {
                                         .filter(c -> !(c instanceof DerivedColumnDefinition))
                                         .map(ColumnDefinition::name)
                                         .collect(Collectors.toSet());
-    Map<String, Expression<?>> derivedCols = columns.stream()
+    Map<String, Expression<?, String>> derivedCols = columns.stream()
                                                     .filter(c -> c instanceof DerivedColumnDefinition)
                                                     .collect(Collectors.toMap(ColumnDefinition::name,
                                                                               ColumnDefinition::expression));
@@ -72,9 +72,9 @@ public class CreateTable extends Define<String> {
   }
 
   public static void circular(String column,
-                              Expression<?> expression,
+                              Expression<?, String> expression,
                               Set<String> persistentCols,
-                              Map<String, Expression<?>> derivedCols,
+                              Map<String, Expression<?, String>> derivedCols,
                               List<String> circularPath) {
     try {
       circularPath.add(column);
@@ -264,7 +264,7 @@ public class CreateTable extends Define<String> {
             boolean dropNotNull = (column.notNull() == null || !column.notNull())
                 && existingColumn.notNull();
 
-            Expression<?> setDefault = null;
+            Expression<?, String> setDefault = null;
             if (column.expression() != null
              && !column.expression().equals(existingColumn.defaultExpression())) {
               setDefault = column.expression();

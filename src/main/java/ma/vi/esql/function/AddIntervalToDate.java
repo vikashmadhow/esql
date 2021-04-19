@@ -33,10 +33,10 @@ public class AddIntervalToDate extends Function {
 
   @Override
   public String translate(FunctionCall call, Translatable.Target target) {
-    List<Expression<?>> args = call.arguments();
+    List<Expression<?, ?>> args = call.arguments();
     if (target == POSTGRESQL) {
-      return '(' + args.get(0).translate(target) + " + " +
-          args.get(1).translate(target) + ')';
+      return '(' + args.get(0).translate(target).toString() + " + "
+           + args.get(1).translate(target) + ')';
 
     } else if (target == SQLSERVER) {
       return "_core.add_interval("

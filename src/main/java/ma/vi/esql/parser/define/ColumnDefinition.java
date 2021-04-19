@@ -25,7 +25,7 @@ public class ColumnDefinition extends TableDefinition {
                           String name,
                           Type type,
                           boolean notNull,
-                          Expression<?> expression,
+                          Expression<?, String> expression,
                           Metadata metadata) {
     super(context, name,
         T2.of("type",       new Esql<>(context, type)),
@@ -101,7 +101,7 @@ public class ColumnDefinition extends TableDefinition {
     return childValue("notNull");
   }
 
-  public Expression<?> expression() {
+  public Expression<?, String> expression() {
     return child("expression");
   }
 

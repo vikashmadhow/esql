@@ -20,8 +20,8 @@ import static ma.vi.esql.translator.SqlServerTranslator.requireIif;
 public class Like extends RelationalOperator {
   public Like(Context context,
               boolean not,
-              Expression<?> expr1,
-              Expression<?> expr2) {
+              Expression<?, String> expr1,
+              Expression<?, String> expr2) {
     super(context, "like", expr1, expr2);
     child("not", new Esql<>(context, not));
   }

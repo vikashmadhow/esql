@@ -25,7 +25,7 @@ import static ma.vi.esql.parser.Translatable.Target.JSON;
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 public class Case extends MultipleSubExpressions<String> {
-  public Case(Context context, List<Expression<?>> expressions) {
+  public Case(Context context, List<Expression<?, ?>> expressions) {
     super(context, "case", expressions);
   }
 
@@ -52,8 +52,8 @@ public class Case extends MultipleSubExpressions<String> {
     switch (target) {
       case JSON, JAVASCRIPT -> {
         StringBuilder est = new StringBuilder();
-        for (Iterator<Expression<?>> i = expressions().iterator(); i.hasNext(); ) {
-          Expression<?> e = i.next();
+        for (Iterator<Expression<?, String>> i = expressions().iterator(); i.hasNext(); ) {
+          Expression<?, String> e = i.next();
           if (est.length() > 0) {
             est.append(" : ");
           }
@@ -74,8 +74,8 @@ public class Case extends MultipleSubExpressions<String> {
 
       case ESQL -> {
         StringBuilder est = new StringBuilder();
-        for (Iterator<Expression<?>> i = expressions().iterator(); i.hasNext(); ) {
-          Expression<?> e = i.next();
+        for (Iterator<Expression<?, String>> i = expressions().iterator(); i.hasNext(); ) {
+          Expression<?, String> e = i.next();
           if (est.length() > 0) {
             est.append(" else ");
           }
@@ -95,8 +95,8 @@ public class Case extends MultipleSubExpressions<String> {
         addIif.put("addIif", true);
         Map<String, Object> dontAddIif = new HashMap<>(parameters);
         dontAddIif.put("addIif", false);
-        for (Iterator<Expression<?>> i = expressions().iterator(); i.hasNext(); ) {
-          Expression<?> e = i.next();
+        for (Iterator<Expression<?, String>> i = expressions().iterator(); i.hasNext(); ) {
+          Expression<?, String> e = i.next();
           if (i.hasNext()) {
             st.append(" when ").append(i.next().translate(target, dontAddIif))
               .append(" then ").append(e.translate(target, addIif));
@@ -110,8 +110,8 @@ public class Case extends MultipleSubExpressions<String> {
 
       default -> {
         StringBuilder st = new StringBuilder("case");
-        for (Iterator<Expression<?>> i = expressions().iterator(); i.hasNext(); ) {
-          Expression<?> e = i.next();
+        for (Iterator<Expression<?, String>> i = expressions().iterator(); i.hasNext(); ) {
+          Expression<?, String> e = i.next();
           if (i.hasNext()) {
             st.append(" when ").append(i.next().translate(target, parameters))
               .append(" then ").append(e.translate(target, parameters));
@@ -128,8 +128,8 @@ public class Case extends MultipleSubExpressions<String> {
   @Override
   public void _toString(StringBuilder st, int level, int indent) {
     boolean first = true;
-    for (Iterator<Expression<?>> i = expressions().iterator(); i.hasNext(); ) {
-      Expression<?> e = i.next();
+    for (Iterator<Expression<?, String>> i = expressions().iterator(); i.hasNext(); ) {
+      Expression<?, String> e = i.next();
       if (first) { first = false; }
       else       { st.append(" else "); }
 

@@ -17,7 +17,7 @@ import static ma.vi.esql.parser.Translatable.Target.JSON;
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 public class Not extends SingleSubExpression {
-  public Not(Context context, Expression<?> expr) {
+  public Not(Context context, Expression<?, String> expr) {
     super(context, expr);
   }
 

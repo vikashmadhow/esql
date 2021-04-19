@@ -113,9 +113,9 @@ public class CompositeSelects extends Select {
    */
   private void mergeMetadata(List<? extends MetadataContainer<?, ?>> containers) {
     // first, split each set of metadata attributes into a map for faster comparison
-    Map<MetadataContainer<?, ?>, Map<String, Expression<?>>> containerAttrs = new HashMap<>();
+    Map<MetadataContainer<?, ?>, Map<String, Expression<?, String>>> containerAttrs = new HashMap<>();
     for (MetadataContainer<?, ?> container: containers) {
-      Map<String, Expression<?>> attrMap = new HashMap<>();
+      Map<String, Expression<?, String>> attrMap = new HashMap<>();
       containerAttrs.put(container, attrMap);
       if (container.metadata() != null) {
         for (Attribute a: container.metadata().attributes().values()) {
@@ -125,8 +125,8 @@ public class CompositeSelects extends Select {
     }
 
     // go through each container and create the union of the attributes by attribute names
-    Map<String, Expression<?>> combinedAttr = new HashMap<>();
-    for (Map<String, Expression<?>> containerAttr: containerAttrs.values()) {
+    Map<String, Expression<?, String>> combinedAttr = new HashMap<>();
+    for (Map<String, Expression<?, String>> containerAttr: containerAttrs.values()) {
       for (String attrName: containerAttr.keySet()) {
         if (!combinedAttr.containsKey(attrName)) {
           combinedAttr.put(attrName, containerAttr.get(attrName));
@@ -136,7 +136,7 @@ public class CompositeSelects extends Select {
 
     // Using the combined attributes name, add missing attributes to each metadata container;
     // at the end of this all metadata containers will have the same named attributes
-    for (Map<String, Expression<?>> containerAttr: containerAttrs.values()) {
+    for (Map<String, Expression<?, String>> containerAttr: containerAttrs.values()) {
       for (String attrName: combinedAttr.keySet()) {
         if (!containerAttr.containsKey(attrName)) {
           containerAttr.put(attrName, combinedAttr.get(attrName));
@@ -145,11 +145,11 @@ public class CompositeSelects extends Select {
     }
 
     // repack select attributes into metadata (list of attributes)
-    for (Map.Entry<MetadataContainer<?, ?>, Map<String, Expression<?>>> e: containerAttrs.entrySet()) {
+    for (Map.Entry<MetadataContainer<?, ?>, Map<String, Expression<?, String>>> e: containerAttrs.entrySet()) {
       MetadataContainer<?, ?> container = e.getKey();
-      Map<String, Expression<?>> containerAttr = e.getValue();
+      Map<String, Expression<?, String>> containerAttr = e.getValue();
       List<Attribute> attrs = new ArrayList<>();
-      for (Map.Entry<String, Expression<?>> a: containerAttr.entrySet()) {
+      for (Map.Entry<String, Expression<?, String>> a: containerAttr.entrySet()) {
         attrs.add(new Attribute(context, a.getKey(), a.getValue()));
       }
       container.metadata(new Metadata(context, attrs));

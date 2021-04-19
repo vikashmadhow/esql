@@ -53,8 +53,8 @@ public class DatePart extends Function {
 
   @Override
   public String translate(FunctionCall call, Translatable.Target target) {
-    List<Expression<?>> args = call.arguments();
-    String arg = args.get(0).translate(target);
+    List<Expression<?, ?>> args = call.arguments();
+    String arg = args.get(0).translate(target).toString();
     if (target == POSTGRESQL) {
       if (part == Semester) {
         return "case date_part('" + Quarter.postgresqlName + "', " + arg + ") "

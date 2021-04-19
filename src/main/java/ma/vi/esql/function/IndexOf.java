@@ -29,7 +29,7 @@ public class IndexOf extends Function {
 
   @Override
   public String translate(FunctionCall call, Translatable.Target target) {
-    List<Expression<?>> args = call.arguments();
+    List<Expression<?, ?>> args = call.arguments();
     if (target == POSTGRESQL) {
       if (args.size() > 2) {
         return "strpos("

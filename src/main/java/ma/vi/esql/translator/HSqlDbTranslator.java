@@ -34,7 +34,7 @@ public class HSqlDbTranslator extends AbstractTranslator {
     StringBuilder st = new StringBuilder("select ");
     if (select.distinct()) {
       st.append("distinct ");
-      List<Expression<?>> distinctOn = select.distinctOn();
+      List<Expression<?, String>> distinctOn = select.distinctOn();
       if (distinctOn != null && !distinctOn.isEmpty()) {
         st.append('(')
           .append(distinctOn.stream().map(e -> e.translate(target(), parameters)).collect(joining(", ")))

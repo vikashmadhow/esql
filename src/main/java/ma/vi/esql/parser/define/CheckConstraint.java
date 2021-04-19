@@ -19,7 +19,7 @@ import java.util.Map;
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 public class CheckConstraint extends ConstraintDefinition {
-  public CheckConstraint(Context context, String name, Expression<?> expression) {
+  public CheckConstraint(Context context, String name, Expression<?, String> expression) {
     super(context, name, T2.of("expr", expression));
     List<String> columns = new ArrayList<>();
     expression.forEach(e -> {
@@ -70,7 +70,7 @@ public class CheckConstraint extends ConstraintDefinition {
     return "ck_";
   }
 
-  public Expression<?> expr() {
+  public Expression<?, String> expr() {
     return child("expr");
   }
 }

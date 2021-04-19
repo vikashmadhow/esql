@@ -33,7 +33,7 @@ import static ma.vi.esql.type.Type.Kind.BASE;
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public abstract class Literal<V> extends Expression<V> {
+public abstract class Literal<V> extends Expression<V, String> {
   public Literal(Context context, V value) {
     super(context, value);
   }
@@ -196,7 +196,7 @@ public abstract class Literal<V> extends Expression<V> {
 //     * Creates an expression of the value if the expression starts with '('
 //     * and ends with ')'; otherwise parse the value as a literal.
 //     */
-//    public static Expression<?> makeExpression(Context context, Object value) {
+//    public static Expression<?, String> makeExpression(Context context, Object value) {
 //        if (value instanceof String
 //                && ((String)value).startsWith("(")
 //                && ((String)value).endsWith(")")) {

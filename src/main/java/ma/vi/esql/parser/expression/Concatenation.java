@@ -18,7 +18,7 @@ import static ma.vi.esql.parser.Translatable.Target.JSON;
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 public class Concatenation extends MultipleSubExpressions<String> {
-  public Concatenation(Context context, List<Expression<?>> expressions) {
+  public Concatenation(Context context, List<Expression<?, ?>> expressions) {
     super(context, "concat", expressions);
   }
 
@@ -45,7 +45,7 @@ public class Concatenation extends MultipleSubExpressions<String> {
     switch (target) {
       case JSON, JAVASCRIPT -> {
         StringBuilder st = new StringBuilder();
-        for (Expression<?> e: expressions()) {
+        for (Expression<?, String> e: expressions()) {
           st.append(st.length() == 0 ? "" : " + ")
             .append('(')
             .append(e.translate(target, parameters))
@@ -59,7 +59,7 @@ public class Concatenation extends MultipleSubExpressions<String> {
       }
       case SQLSERVER -> {
         StringBuilder st = new StringBuilder();
-        for (Expression<?> e: expressions()) {
+        for (Expression<?, String> e: expressions()) {
           st.append(st.length() == 0 ? "" : " + ")
 //            .append("cast(")
             .append(e.translate(target, parameters));
@@ -70,7 +70,7 @@ public class Concatenation extends MultipleSubExpressions<String> {
       // ESQL, POSTGRESQL
       default -> {
         StringBuilder st = new StringBuilder();
-        for (Expression<?> e: expressions()) {
+        for (Expression<?, String> e: expressions()) {
           st.append(st.length() == 0 ? "" : " || ")
             .append(e.translate(target, parameters));
         }

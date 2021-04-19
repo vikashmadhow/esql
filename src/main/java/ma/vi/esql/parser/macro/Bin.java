@@ -55,7 +55,7 @@ public class Bin extends Function implements Macro {
   public boolean expand(String name, Esql<?, ?> esql) {
     FunctionCall call = (FunctionCall)esql;
     Context ctx = call.context;
-    List<Expression<?>> args = call.arguments();
+    List<Expression<?, ?>> args = call.arguments();
     if (args.size() < 3) {
       throw new TranslationException("bin requires at least 3 arguments: the value to bin, a human-readable "
                                    + "name of the value to bin, and at least 1 value defining the intervals of "
@@ -64,21 +64,21 @@ public class Bin extends Function implements Macro {
     }
 
     int order = 2;
-    List<Expression<?>> cases = new ArrayList<>();
-    Iterator<Expression<?>> i = args.iterator();
-    Expression<?> binVar = i.next();
-    Expression<?> varName = i.next();
-    Expression<?> lower = null;
-    Expression<?> upper = i.next();
+    List<Expression<?, ?>> cases = new ArrayList<>();
+    Iterator<Expression<?, ?>> i = args.iterator();
+    Expression<?, ?> binVar = i.next();
+    Expression<?, ?> varName = i.next();
+    Expression<?, ?> lower = null;
+    Expression<?, ?> upper = i.next();
     while (upper != null) {
       if (lower == null) {
         cases.add(new Concatenation(ctx,
                                     Arrays.asList(
                                         new StringLiteral(ctx, "01. "),
-                                        varName,
+                                        (Expression<?, String>)varName,
                                         new StringLiteral(ctx, " < "),
                                         new Cast(ctx, upper, Types.StringType))));
-        cases.add(new LessThan(ctx, binVar, upper));
+        cases.add(new LessThan(ctx, (Expression<?, String>)binVar, (Expression<?, String>)upper));
       }
       lower = upper;
       upper = i.hasNext() ? i.next() : null;
@@ -86,7 +86,7 @@ public class Bin extends Function implements Macro {
         cases.add(new Concatenation(ctx,
                                     Arrays.asList(
                                         new StringLiteral(ctx, leftPad(valueOf(order), 2, '0') + ". "),
-                                        varName,
+                                        (Expression<?, String>)varName,
                                         new StringLiteral(ctx, " >= "),
                                         new Cast(ctx, lower, Types.StringType))));
       } else {
@@ -95,10 +95,15 @@ public class Bin extends Function implements Macro {
                                         new StringLiteral(ctx, leftPad(valueOf(order), 2, '0') + ". "),
                                         new Cast(ctx, lower, Types.StringType),
                                         new StringLiteral(ctx," <= "),
-                                        varName,
+                                        (Expression<?, String>)varName,
                                         new StringLiteral(ctx," < "),
                                         new Cast(ctx, upper, Types.StringType))));
-        cases.add(new Range(ctx, lower, "<=", binVar, "<", upper));
+        cases.add(new Range(ctx,
+                            (Expression<?, String>)lower,
+                            "<=",
+                            (Expression<?, String>)binVar,
+                            "<",
+                            (Expression<?, String>)upper));
         order += 1;
       }
     }

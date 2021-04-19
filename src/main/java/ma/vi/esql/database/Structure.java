@@ -49,7 +49,7 @@ public class Structure {
         StringBuilder st = new StringBuilder(functionName).append('(');
         if (call.distinct()) {
           st.append("distinct ");
-          List<Expression<?>> distinctOn = call.distinctOn();
+          List<Expression<?, String>> distinctOn = call.distinctOn();
           if (distinctOn != null && !distinctOn.isEmpty()) {
             st.append("on (")
               .append(distinctOn.stream()
@@ -58,10 +58,10 @@ public class Structure {
               .append(") ");
           }
         }
-        List<Expression<?>> arguments = call.arguments();
+        List<Expression<?, ?>> arguments = call.arguments();
         if (arguments != null) {
           boolean first = true;
-          for (Expression<?> e: arguments) {
+          for (Expression<?, ?> e: arguments) {
             if (first) {
               first = false;
             } else {

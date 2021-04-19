@@ -21,7 +21,7 @@ import static ma.vi.esql.parser.Translatable.Target.ESQL;
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public class SelectExpression extends Expression<Select> {
+public class SelectExpression extends Expression<Select, String> {
   public SelectExpression(Context context, Select select) {
     super(context, select);
   }
@@ -56,7 +56,7 @@ public class SelectExpression extends Expression<Select> {
       StringBuilder st = new StringBuilder("(");
       if (sel.distinct()) {
         st.append("distinct ");
-        List<Expression<?>> distinctOn = sel.distinctOn();
+        List<Expression<?, String>> distinctOn = sel.distinctOn();
         if (distinctOn != null && !distinctOn.isEmpty()) {
           st.append("on (")
             .append(distinctOn.stream().map(e -> e.translate(target, parameters)).collect(joining(", ")))
@@ -106,7 +106,7 @@ public class SelectExpression extends Expression<Select> {
       if (sel.distinctOn() != null && !sel.distinctOn().isEmpty()) {
         st.append('(');
         boolean first = true;
-        for (Expression<?> e: sel.distinctOn()) {
+        for (Expression<?, String> e: sel.distinctOn()) {
           if (first) { first = false; }
           else       { st.append(", "); }
           e._toString(st, level, indent);

@@ -21,8 +21,8 @@ import java.util.Map;
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public class QuantifiedComparison extends Expression<Expression<?>> {
-  public QuantifiedComparison(Context context, Expression<?> expr, String compareOp,
+public class QuantifiedComparison extends Expression<Expression<?, String>, String> {
+  public QuantifiedComparison(Context context, Expression<?, String> expr, String compareOp,
                               String quantifier, Select select) {
     super(context, expr,
         T2.of("compareOp", new Esql<>(context, compareOp)),
@@ -66,7 +66,7 @@ public class QuantifiedComparison extends Expression<Expression<?>> {
     select()._toString(st, level, indent);
   }
 
-  public Expression<?> expr() {
+  public Expression<?, String> expr() {
     return value;
   }
 

@@ -14,7 +14,7 @@ import java.util.Map;
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public class NamedParameter extends Expression<String> {
+public class NamedParameter extends Expression<String, String> {
   public NamedParameter(Context context, String name) {
     super(context, name);
   }

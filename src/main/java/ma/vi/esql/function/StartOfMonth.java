@@ -28,8 +28,8 @@ public class StartOfMonth extends Function {
 
   @Override
   public String translate(FunctionCall call, Translatable.Target target) {
-    List<Expression<?>> args = call.arguments();
-    String arg = args.get(0).translate(target);
+    List<Expression<?, ?>> args = call.arguments();
+    String arg = args.get(0).translate(target).toString();
     if (target == POSTGRESQL) {
       return "(date_trunc('MONTH', " + arg + ") + INTERVAL '-1 MONTH + 1 day')::DATE";
 

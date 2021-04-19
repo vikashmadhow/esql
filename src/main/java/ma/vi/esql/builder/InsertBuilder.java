@@ -62,14 +62,14 @@ public class InsertBuilder implements Builder<Insert> {
   }
 
   public InsertBuilder insertRow(String... expressions) {
-    List<Expression<?>> exp = new ArrayList<>();
+    List<Expression<?, String>> exp = new ArrayList<>();
     for (String e: expressions) {
       exp.add(parser.parseExpression(e));
     }
     return insertRow(new InsertRow(context, exp));
   }
 
-  public InsertBuilder insertRow(Expression<?>... expressions) {
+  public InsertBuilder insertRow(Expression<?, String>... expressions) {
     return insertRow(new InsertRow(context, Arrays.asList(expressions)));
   }
 
@@ -96,7 +96,7 @@ public class InsertBuilder implements Builder<Insert> {
     return returning(expression == null ? null : parser.parseExpression(expression), alias, metadata);
   }
 
-  public InsertBuilder returning(Expression<?> expression, String alias, Attr... metadata) {
+  public InsertBuilder returning(Expression<?, String> expression, String alias, Attr... metadata) {
     this.returnColumns.add(
       new Column(context,
                  alias,

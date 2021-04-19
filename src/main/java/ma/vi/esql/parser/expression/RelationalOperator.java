@@ -19,7 +19,10 @@ import static ma.vi.esql.translator.SqlServerTranslator.requireIif;
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 public class RelationalOperator extends BinaryOperator {
-  public RelationalOperator(Context context, String op, Expression<?> expr1, Expression<?> expr2) {
+  public RelationalOperator(Context context,
+                            String op,
+                            Expression<?, ?> expr1,
+                            Expression<?, ?> expr2) {
     super(context, op, expr1, expr2);
   }
 

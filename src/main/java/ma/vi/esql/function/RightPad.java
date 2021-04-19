@@ -29,10 +29,10 @@ public class RightPad extends Function {
 
   @Override
   public String translate(FunctionCall call, Translatable.Target target) {
-    List<Expression<?>> args = call.arguments();
-    String str = args.get(0).translate(target);
-    String length = args.get(1).translate(target);
-    String pad = args.size() > 2 ? args.get(2).translate(target) : "' '";
+    List<Expression<?, ?>> args = call.arguments();
+    String str = args.get(0).translate(target).toString();
+    String length = args.get(1).translate(target).toString();
+    String pad = args.size() > 2 ? args.get(2).translate(target).toString() : "' '";
 
     if (target == JAVASCRIPT) {
       return "(" + str + ").padEnd(" + length + ", " + pad + ")";

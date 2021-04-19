@@ -22,13 +22,13 @@ import static ma.vi.esql.translator.SqlServerTranslator.requireIif;
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public class Range extends Expression<Expression<?>> {
+public class Range extends Expression<Expression<?, String>, String> {
   public Range(Context context,
-               Expression<?> leftExpression,
+               Expression<?, String> leftExpression,
                String leftCompare,
-               Expression<?> compareExpression,
+               Expression<?, String> compareExpression,
                String rightCompare,
-               Expression<?> rightExpression) {
+               Expression<?, String> rightExpression) {
     super(context, compareExpression,
         T2.of("leftExpression", leftExpression),
         T2.of("leftCompare", new Esql<>(context, leftCompare)),
@@ -90,7 +90,7 @@ public class Range extends Expression<Expression<?>> {
     rightExpression()._toString(st, level, indent);
   }
 
-  public Expression<?> leftExpression() {
+  public Expression<?, String> leftExpression() {
     return child("leftExpression");
   }
 
@@ -98,7 +98,7 @@ public class Range extends Expression<Expression<?>> {
     return childValue("leftCompare");
   }
 
-  public Expression<?> compareExpression() {
+  public Expression<?, String> compareExpression() {
     return value;
   }
 
@@ -106,7 +106,7 @@ public class Range extends Expression<Expression<?>> {
     return childValue("rightCompare");
   }
 
-  public Expression<?> rightExpression() {
+  public Expression<?, String> rightExpression() {
     return child("rightExpression");
   }
 }

@@ -13,8 +13,11 @@ import ma.vi.esql.type.Type;
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-abstract class DoubleSubExpressions<V> extends Expression<V> {
-  public DoubleSubExpressions(Context context, V value, Expression<?> expr1, Expression<?> expr2) {
+abstract class DoubleSubExpressions<V> extends Expression<V, String> {
+  public DoubleSubExpressions(Context context,
+                              V value,
+                              Expression<?, ?> expr1,
+                              Expression<?, ?> expr2) {
     super(context, value, T2.of("expr1", expr1), T2.of("expr2", expr2));
   }
 
@@ -37,11 +40,11 @@ abstract class DoubleSubExpressions<V> extends Expression<V> {
     expr2()._toString(st, level, indent);
   }
 
-  public Expression<?> expr1() {
+  public Expression<?, String> expr1() {
     return child("expr1");
   }
 
-  public Expression<?> expr2() {
+  public Expression<?, String> expr2() {
     return child("expr2");
   }
 }

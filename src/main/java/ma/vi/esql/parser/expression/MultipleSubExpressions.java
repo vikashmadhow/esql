@@ -15,8 +15,8 @@ import java.util.List;
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-abstract class MultipleSubExpressions<V> extends Expression<V> {
-  public MultipleSubExpressions(Context context, V value, List<Expression<?>> expressions) {
+abstract class MultipleSubExpressions<V> extends Expression<V, String> {
+  public MultipleSubExpressions(Context context, V value, List<Expression<?, ?>> expressions) {
     super(context, value, expressions);
   }
 
@@ -29,7 +29,7 @@ abstract class MultipleSubExpressions<V> extends Expression<V> {
 
   @Override
   public Type type() {
-    for (Expression<?> e: expressions()) {
+    for (Expression<?, ?> e: expressions()) {
       Type type = e.type();
       if (!type.equals(Types.NullType)) {
         return type;
@@ -38,7 +38,7 @@ abstract class MultipleSubExpressions<V> extends Expression<V> {
     return Types.TopType;
   }
 
-  public List<Expression<?>> expressions() {
+  public List<Expression<?, String>> expressions() {
     return childrenList();
   }
 }

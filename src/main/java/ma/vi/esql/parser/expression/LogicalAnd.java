@@ -17,7 +17,9 @@ import static ma.vi.esql.parser.Translatable.Target.JSON;
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 public class LogicalAnd extends RelationalOperator {
-  public LogicalAnd(Context context, Expression<?> expr1, Expression<?> expr2) {
+  public LogicalAnd(Context context,
+                    Expression<?, String> expr1,
+                    Expression<?, String> expr2) {
     super(context, "and", expr1, expr2);
   }
 

@@ -50,7 +50,7 @@ public class UpdateBuilder implements Builder<Update> {
     return set(name, parser.parseExpression(expression));
   }
 
-  public UpdateBuilder set(String name, Expression<?> expression) {
+  public UpdateBuilder set(String name, Expression<?, String> expression) {
     this.returnMetadata.add(new Attribute(context, name, expression));
     return this;
   }
@@ -112,7 +112,7 @@ public class UpdateBuilder implements Builder<Update> {
     return where(parser.parseExpression(expression));
   }
 
-  public UpdateBuilder where(Expression<?> expression) {
+  public UpdateBuilder where(Expression<?, String> expression) {
     this.where = expression;
     return this;
   }
@@ -121,7 +121,7 @@ public class UpdateBuilder implements Builder<Update> {
     return returning(expression == null ? null : parser.parseExpression(expression), alias, metadata);
   }
 
-  public UpdateBuilder returning(Expression<?> expression, String alias, Attr... metadata) {
+  public UpdateBuilder returning(Expression<?, String> expression, String alias, Attr... metadata) {
     this.returnColumns.add(
       new Column(context,
                  alias,
@@ -145,7 +145,7 @@ public class UpdateBuilder implements Builder<Update> {
 
   private final List<Attribute> set = new ArrayList<>();
 
-  private Expression<?> where;
+  private Expression<?, String> where;
 
   private final List<Attribute> returnMetadata = new ArrayList<>();
   private final List<Column> returnColumns = new ArrayList<>();

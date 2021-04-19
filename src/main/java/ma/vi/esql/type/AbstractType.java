@@ -26,13 +26,13 @@ public abstract class AbstractType implements Type {
   AbstractType(AbstractType other) {
     this.name = other.name;
     if (!other.attributesIsNull()) {
-      for (Map.Entry<String, Expression<?>> a: other.attributes().entrySet()) {
+      for (Map.Entry<String, Expression<?, String>> a: other.attributes().entrySet()) {
         this.attribute(a.getKey(), a.getValue());
       }
     }
   }
 
-  public ConcurrentMap<String, Expression<?>> attributes() {
+  public ConcurrentMap<String, Expression<?, String>> attributes() {
     if (this.attributes == null) {
       this.attributes = new ConcurrentHashMap<>();
     }
@@ -139,5 +139,5 @@ public abstract class AbstractType implements Type {
    */
   protected String name;
 
-  private ConcurrentMap<String, Expression<?>> attributes;
+  private ConcurrentMap<String, Expression<?, String>> attributes;
 }

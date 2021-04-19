@@ -6,6 +6,7 @@ package ma.vi.esql.parser;
 
 import ma.vi.esql.database.Database;
 import ma.vi.esql.exec.Result;
+import ma.vi.esql.parser.expression.Expression;
 
 import java.sql.Connection;
 import java.util.List;
@@ -19,8 +20,8 @@ import static java.util.stream.Collectors.toList;
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 public class Program extends Esql<String, List<?>> {
-  public Program(Context context, List<Statement<?, ?>> statements) {
-    super(context, "program", statements);
+  public Program(Context context, List<Expression<?, ?>> expressions) {
+    super(context, "program", expressions);
   }
 
   public Program(Program other) {
@@ -43,7 +44,7 @@ public class Program extends Esql<String, List<?>> {
 
   @Override
   public List<?> translate(Target target, Map<String, Object> parameters) {
-    return statements().stream()
+    return expressions().stream()
                        .map(s -> s.translate(target, parameters))
                        .collect(toList());
   }
@@ -51,7 +52,7 @@ public class Program extends Esql<String, List<?>> {
   @Override
   public Result execute(Database database, Connection connection) {
     Result result = Result.Nothing;
-    for (Statement<?, ?> st: statements()) {
+    for (Expression<?, ?> st: expressions()) {
       Result r = st.execute(database, connection);
       if (r != Result.Nothing) {
         result = r;
@@ -60,7 +61,7 @@ public class Program extends Esql<String, List<?>> {
     return result;
   }
 
-  public List<Statement<?, ?>> statements() {
+  public List<Expression<?, ?>> expressions() {
     return childrenList();
   }
 }

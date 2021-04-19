@@ -14,8 +14,8 @@ import java.util.Map;
 
 import static java.util.stream.Collectors.joining;
 
-public class InsertRow extends Expression<List<Expression<?>>> {
-  public InsertRow(Context context, List<Expression<?>> values) {
+public class InsertRow extends Expression<List<Expression<?, String>>, String> {
+  public InsertRow(Context context, List<Expression<?, String>> values) {
     super(context, values);
   }
 
@@ -53,7 +53,7 @@ public class InsertRow extends Expression<List<Expression<?>>> {
   public void _toString(StringBuilder st, int level, int indent) {
     st.append('(');
     boolean first = true;
-    for (Expression<?> e: values()) {
+    for (Expression<?, String> e: values()) {
       if (first) { first = false; }
       else       { st.append(", "); }
       e._toString(st, level, indent);
@@ -61,7 +61,7 @@ public class InsertRow extends Expression<List<Expression<?>>> {
     st.append(')');
   }
 
-  public List<Expression<?>> values() {
+  public List<Expression<?, String>> values() {
     return value;
   }
 }

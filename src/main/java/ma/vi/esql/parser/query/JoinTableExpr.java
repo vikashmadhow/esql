@@ -18,7 +18,11 @@ import java.util.Map;
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 public class JoinTableExpr extends AbstractJoinTableExpr {
-  public JoinTableExpr(Context context, TableExpr left, String joinType, TableExpr right, Expression<?> on) {
+  public JoinTableExpr(Context context,
+                       TableExpr left,
+                       String joinType,
+                       TableExpr right,
+                       Expression<?, String> on) {
     super(context, joinType, left, right);
     child("on", on);
     child("joinType", new Esql<>(context, joinType));
@@ -54,7 +58,7 @@ public class JoinTableExpr extends AbstractJoinTableExpr {
     return childValue("joinType");
   }
 
-  public Expression<?> on() {
+  public Expression<?, String> on() {
     return child("on");
   }
 

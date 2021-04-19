@@ -36,7 +36,7 @@ public class InMonth extends Function implements Macro {
   public boolean expand(String name, Esql<?, ?> esql) {
     FunctionCall call = (FunctionCall)esql;
     Context ctx = call.context;
-    List<Expression<?>> arguments = call.arguments();
+    List<Expression<?, ?>> arguments = call.arguments();
 
     if (arguments.isEmpty()) {
       throw new TranslationException("inmonth function needs at 3 arguments (the date to check "
@@ -46,12 +46,13 @@ public class InMonth extends Function implements Macro {
     /*
      * Load arguments
      */
-    Expression<?> date = arguments.get(0);
-    Expression<?> month = arguments.get(1);
-    Expression<?> year = arguments.get(2);
+    Expression<?, ?> date = arguments.get(0);
+    Expression<?, ?> month = arguments.get(1);
+    Expression<?, ?> year = arguments.get(2);
 
     if (month instanceof IntegerLiteral && year instanceof IntegerLiteral) {
-      String prefix = year.translate(ESQL) + '-' + StringUtils.leftPad(month.translate(ESQL), 2, '0') + '-';
+      String prefix = year.translate(ESQL).toString() + '-'
+                    + StringUtils.leftPad(month.translate(ESQL).toString(), 2, '0') + '-';
       String startDate = prefix + "01";
       LocalDate end = LocalDate.of(((IntegerLiteral)year).value.intValue(),
                                    ((IntegerLiteral)month).value.intValue(), 1);
@@ -63,7 +64,7 @@ public class InMonth extends Function implements Macro {
                                           new DateLiteral(ctx, startDate),
                                           new DateLiteral(ctx, endDate)));
     } else {
-      List<Expression<?>> funcArgs = singletonList(date);
+      List<Expression<?, ?>> funcArgs = singletonList(date);
       call.parent.replaceWith(name,
                               new GroupedExpression(
                                   ctx,
@@ -73,7 +74,7 @@ public class InMonth extends Function implements Macro {
                                           ctx,
                                           new FunctionCall(ctx, "month",
                                                            false, null,
-                                                           funcArgs, null, false,
+                                                           funcArgs, false,
                                                            null, null),
                                           month
                                       ),
@@ -81,7 +82,7 @@ public class InMonth extends Function implements Macro {
                                           ctx,
                                           new FunctionCall(ctx, "year",
                                                            false, null,
-                                                           funcArgs, null, false,
+                                                           funcArgs, false,
                                                            null, null),
                                           year
                                       )

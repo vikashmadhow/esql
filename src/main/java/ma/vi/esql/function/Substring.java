@@ -30,7 +30,7 @@ public class Substring extends Function {
 
   @Override
   public String translate(FunctionCall call, Translatable.Target target) {
-    List<Expression<?>> args = call.arguments();
+    List<Expression<?, ?>> args = call.arguments();
     if (target == POSTGRESQL) {
       return "substr("
           + args.get(0).translate(target) + ", "

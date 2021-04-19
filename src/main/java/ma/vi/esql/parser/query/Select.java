@@ -34,16 +34,16 @@ public class Select extends QueryUpdate implements Macro {
   public Select(Context             context,
                 Metadata            metadata,
                 boolean             distinct,
-                List<Expression<?>> distinctOn,
+                List<Expression<?, String>> distinctOn,
                 boolean             explicit,
                 List<Column>        columns,
                 TableExpr           from,
-                Expression<?>       where,
+                Expression<?, String>       where,
                 GroupBy             groupBy,
-                Expression<?>       having,
+                Expression<?, String>       having,
                 List<Order>         orderBy,
-                Expression<?>       offset,
-                Expression<?>       limit) {
+                Expression<?, String>       offset,
+                Expression<?, String>       limit) {
     super(context, "Select",
         of("distinct",    new Esql<>(context, distinct)),
         of("distinctOn",  new Esql<>(context, "distinctOn", distinctOn)),
@@ -220,7 +220,7 @@ public class Select extends QueryUpdate implements Macro {
        * such as count or max.
        */
       Column col = columns().get(0);
-      Expression<?> expr = col.expr();
+      Expression<?, String> expr = col.expr();
       if (expr instanceof FunctionCall) {
         FunctionCall fc = (FunctionCall)expr;
         Function function = context.structure.function(fc.functionName());
@@ -239,7 +239,7 @@ public class Select extends QueryUpdate implements Macro {
    *         the outer query.</li>
    * </ol>
    */
-  public Expression<?> remapExpression(Expression<?> expression,
+  public Expression<?, String> remapExpression(Expression<?, String> expression,
                                        Map<String, String> addedInnerCols,
                                        List<Column> innerCols,
                                        String innerSelectAlias) {
@@ -264,7 +264,7 @@ public class Select extends QueryUpdate implements Macro {
     /*
      * Remap expression to be added to outer query.
      */
-    return (Expression<?>)expression.map(e -> {
+    return (Expression<?, String>)expression.map(e -> {
       if (e instanceof ColumnRef) {
         ColumnRef ref = (ColumnRef)e;
         String qualifiedName = ref.qualifiedName();
@@ -286,11 +286,11 @@ public class Select extends QueryUpdate implements Macro {
     return this;
   }
 
-  public List<Expression<?>> distinctOn() {
+  public List<Expression<?, String>> distinctOn() {
     return child("distinctOn").childrenList();
   }
 
-  public Select distinctOn(List<Expression<?>> on) {
+  public Select distinctOn(List<Expression<?, String>> on) {
     childrenList("distinctOn", on);
     return this;
   }
@@ -313,11 +313,11 @@ public class Select extends QueryUpdate implements Macro {
     return this;
   }
 
-  public Expression<?> having() {
+  public Expression<?, String> having() {
     return child("having");
   }
 
-  public Select having(Expression<?> having) {
+  public Select having(Expression<?, String> having) {
     child("having", having);
     return this;
   }
@@ -331,20 +331,20 @@ public class Select extends QueryUpdate implements Macro {
     return this;
   }
 
-  public Expression<?> offset() {
+  public Expression<?, String> offset() {
     return child("offset");
   }
 
-  public Select offset(Expression<?> offset) {
+  public Select offset(Expression<?, String> offset) {
     child("offset", offset);
     return this;
   }
 
-  public Expression<?> limit() {
+  public Expression<?, String> limit() {
     return child("limit");
   }
 
-  public Select limit(Expression<?> limit) {
+  public Select limit(Expression<?, String> limit) {
     child("limit", limit);
     return this;
   }

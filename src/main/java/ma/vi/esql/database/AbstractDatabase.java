@@ -921,7 +921,7 @@ public abstract class AbstractDatabase implements Database {
           }
         }
 
-        Expression<?> expr = expression != null ? parser.parseExpression(expression) : null;
+        Expression<?, String> expr = expression != null ? parser.parseExpression(expression) : null;
         if (derivedColumn) {
           metadata.attribute(DERIVED, true);
           Column col = new Column(context, columnName, expr, metadata);
@@ -1096,7 +1096,7 @@ public abstract class AbstractDatabase implements Database {
 
           if (table.attributes() != null) {
             Insert insertRelAttr = p.parse(INSERT_TABLE_ATTRIBUTE, "insert");
-            for (Map.Entry<String, Expression<?>> a: table.attributes().entrySet()) {
+            for (Map.Entry<String, Expression<?, String>> a: table.attributes().entrySet()) {
               econ.exec(insertRelAttr,
                         Param.of("tableId", table.id()),
                         Param.of("name", a.getKey()),
@@ -1208,7 +1208,7 @@ public abstract class AbstractDatabase implements Database {
                                  Insert insertColAttr) {
     if (column.metadata() != null && column.metadata().attributes() != null) {
       for (Attribute attr: column.metadata().attributes().values()) {
-        Expression<?> value = attr.attributeValue();
+        Expression<?, String> value = attr.attributeValue();
         econ.exec(insertColAttr,
                   Param.of("columnId", column.id()),
                   Param.of("name", attr.name()),
@@ -1321,7 +1321,7 @@ public abstract class AbstractDatabase implements Database {
                 Param.of("relation", tableId),
                 Param.of("type", String.valueOf(ConstraintDefinition.Type.UNIQUE.marker)),
                 Param.of("checkExpr", null),
-                Param.of("sourceColumns", unique.columns().toArray(new String[0])),
+                Param.of("sourceColumns", unique.referredColumns().toArray(new String[0])),
                 Param.of("targetRelation", null),
                 Param.of("targetColumns", null),
                 Param.of("forwardCost", 1),
@@ -1336,7 +1336,7 @@ public abstract class AbstractDatabase implements Database {
                 Param.of("relation", tableId),
                 Param.of("type", String.valueOf(ConstraintDefinition.Type.PRIMARY_KEY.marker)),
                 Param.of("checkExpr", null),
-                Param.of("sourceColumns", primary.columns().toArray(new String[0])),
+                Param.of("sourceColumns", primary.referredColumns().toArray(new String[0])),
                 Param.of("targetRelation", null),
                 Param.of("targetColumns", null),
                 Param.of("forwardCost", 1),
@@ -1369,7 +1369,7 @@ public abstract class AbstractDatabase implements Database {
                 Param.of("relation", tableId),
                 Param.of("type", String.valueOf(ConstraintDefinition.Type.CHECK.marker)),
                 Param.of("checkExpr", checkExpression),
-                Param.of("sourceColumns", check.expr().columns().toArray(new String[0])),
+                Param.of("sourceColumns", check.expr().referredColumns().toArray(new String[0])),
                 Param.of("targetRelation", null),
                 Param.of("targetColumns", null),
                 Param.of("forwardCost", 1),
@@ -1418,7 +1418,7 @@ public abstract class AbstractDatabase implements Database {
                                     "(_id, relation_id, attribute, value) values" +
                                     "(newid(), :relation, :name, :value)", "insert");
         for (Attribute attr: metadata.attributes().values()) {
-          Expression<?> value = attr.attributeValue();
+          Expression<?, String> value = attr.attributeValue();
           econ.exec(insert,
                     Param.of("relation", tableId),
                     Param.of("name", attr.name()),

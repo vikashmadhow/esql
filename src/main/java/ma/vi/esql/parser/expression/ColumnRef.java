@@ -23,7 +23,7 @@ import static ma.vi.esql.translator.SqlServerTranslator.requireIif;
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public class ColumnRef extends Expression<String> implements Macro {
+public class ColumnRef extends Expression<String, String> implements Macro {
   public ColumnRef(Context context, String qualifier, String name) {
     super(context, name, T2.of("qualifier", new Esql<>(context, qualifier)));
   }
@@ -168,7 +168,7 @@ public class ColumnRef extends Expression<String> implements Macro {
       || (rel instanceof AliasedRelation && ((AliasedRelation)rel).relation instanceof BaseRelation)) {
         Column column = rel.column(qualifier(), name());
         if (column.derived()) {
-          Expression<?> expr = column.expr().copy();
+          Expression<?, String> expr = column.expr().copy();
           if (qualifier() != null) {
             qualify(expr, qualifier(), null, true);
           }

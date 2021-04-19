@@ -33,7 +33,7 @@ public class AddIntervals extends Function {
 
   @Override
   public String translate(FunctionCall call, Translatable.Target target) {
-    List<Expression<?>> args = call.arguments();
+    List<Expression<?, ?>> args = call.arguments();
     if (target == POSTGRESQL) {
       return "interval " + args.get(0).translate(target) +
           " + interval " + args.get(1).translate(target);

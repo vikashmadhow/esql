@@ -19,8 +19,8 @@ import static ma.vi.esql.parser.Translatable.Target.JSON;
 abstract class BinaryOperator extends DoubleSubExpressions<String> {
   public BinaryOperator(Context context,
                         String op,
-                        Expression<?> expr1,
-                        Expression<?> expr2) {
+                        Expression<?, ?> expr1,
+                        Expression<?, ?> expr2) {
     super(context, op, expr1, expr2);
   }
 

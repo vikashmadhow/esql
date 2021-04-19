@@ -17,7 +17,7 @@ import java.util.Map;
 public class DerivedColumnDefinition extends ColumnDefinition {
   public DerivedColumnDefinition(Context context,
                                  String name,
-                                 Expression<?> expression,
+                                 Expression<?, String> expression,
                                  Metadata metadata) {
     super(context, name, null, false, expression, metadata);
   }

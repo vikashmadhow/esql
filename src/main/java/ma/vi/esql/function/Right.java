@@ -29,7 +29,7 @@ public class Right extends Function {
 
   @Override
   public String translate(FunctionCall call, Translatable.Target target) {
-    List<Expression<?>> args = call.arguments();
+    List<Expression<?, ?>> args = call.arguments();
     if (target == JAVASCRIPT) {
       return
           "(" + args.get(0).translate(target) + ").substring(("

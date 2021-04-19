@@ -17,7 +17,7 @@ import java.util.Set;
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public class Expression<V> extends Esql<V, String> {
+public class Expression<V, R> extends Esql<V, R> {
   public Expression(Context context,
                     V value,
                     T2<String, ? extends Esql<?, ?>>... children) {
@@ -32,16 +32,16 @@ public class Expression<V> extends Esql<V, String> {
     super(context, value, children);
   }
 
-  public Expression(Expression<V> other) {
+  public Expression(Expression<V, R> other) {
     super(other);
   }
 
   @Override
-  public Expression<V> copy() {
+  public Expression<V, R> copy() {
     if (!copying()) {
       try {
         copying(true);
-        return new Expression<V>(this);
+        return new Expression<V, R>(this);
       } finally {
         copying(false);
       }
@@ -53,17 +53,17 @@ public class Expression<V> extends Esql<V, String> {
   /**
    * Find the list of all columns referred to in the expression and add them to the set.
    */
-  public Set<String> columns() {
-    return columns(this, new HashSet<>());
+  public Set<String> referredColumns() {
+    return referredColumns(this, new HashSet<>());
   }
 
-  private Set<String> columns(Expression<?> expr, Set<String> columns) {
+  private Set<String> referredColumns(Expression<?, ?> expr, Set<String> columns) {
     if (expr instanceof ColumnRef) {
       columns.add(((ColumnRef)expr).name());
     }
     for (Esql<?, ?> child: expr.children.values()) {
-      if (child instanceof Expression<?>) {
-        columns((Expression<?>)child, columns);
+      if (child instanceof Expression<?, ?>) {
+        referredColumns((Expression<?, ?>)child, columns);
       }
     }
     return columns;

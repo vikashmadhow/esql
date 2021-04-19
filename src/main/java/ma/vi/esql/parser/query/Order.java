@@ -18,8 +18,8 @@ import java.util.Map;
  *
  * @author vikash.madhow@gmail.com
  */
-public class Order extends Esql<Expression<?>, String> {
-  public Order(Context context, Expression<?> expression, String dir) {
+public class Order extends Esql<Expression<?, String>, String> {
+  public Order(Context context, Expression<?, String> expression, String dir) {
     super(context, expression, T2.of("dir", new Esql<>(context, dir)));
   }
 
@@ -60,7 +60,7 @@ public class Order extends Esql<Expression<?>, String> {
     }
   }
 
-  public Expression<?> order() {
+  public Expression<?, String> order() {
     return value;
   }
 
