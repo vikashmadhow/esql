@@ -48,7 +48,7 @@ public class Case extends MultipleSubExpressions<String> {
   }
 
   @Override
-  public String translate(Target target, Map<String, Object> parameters) {
+  protected String trans(Target target, Map<String, Object> parameters) {
     switch (target) {
       case JSON, JAVASCRIPT -> {
         StringBuilder est = new StringBuilder();

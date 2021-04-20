@@ -7,7 +7,6 @@ package ma.vi.esql.function;
 import ma.vi.esql.parser.Translatable;
 import ma.vi.esql.parser.expression.Expression;
 import ma.vi.esql.parser.expression.FunctionCall;
-import ma.vi.esql.parser.query.Select;
 import ma.vi.esql.type.Type;
 
 import java.util.List;

@@ -42,7 +42,7 @@ public class LogicalAnd extends RelationalOperator {
   }
 
   @Override
-  public String translate(Target target, Map<String, Object> parameters) {
+  protected String trans(Target target, Map<String, Object> parameters) {
     switch (target) {
       case JSON, JAVASCRIPT -> {
         String e = expr1().translate(target, parameters) + " && " + expr2().translate(target, parameters);
@@ -58,11 +58,11 @@ public class LogicalAnd extends RelationalOperator {
            */
           return "cast(" + expr1().translate(target, parameters) + " & " + expr2().translate(target, parameters) + " as bit)";
         } else {
-          return super.translate(target, parameters);
+          return super.trans(target, parameters);
         }
       }
       default -> {
-        return super.translate(target, parameters);
+        return super.trans(target, parameters);
       }
     }
   }

@@ -54,7 +54,7 @@ public class In extends Expression<Expression<?, ?>, String> {
   }
 
   @Override
-  public String translate(Target target, Map<String, Object> parameters) {
+  protected String trans(Target target, Map<String, Object> parameters) {
     return expr().translate(target, parameters) + (not() ? " not in (" : " in (")
         + list().stream()
                 .map(e -> e.translate(target, parameters))

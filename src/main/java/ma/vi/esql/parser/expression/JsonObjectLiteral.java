@@ -52,7 +52,7 @@ public class JsonObjectLiteral extends Literal<List<Attribute>> {
   }
 
   @Override
-  public String translate(Target target, Map<String, Object> parameters) {
+  protected String trans(Target target, Map<String, Object> parameters) {
     return members().stream()
                     .map(e -> e.translate(target, parameters))
                     .collect(joining(",", "{", "}"));

@@ -46,7 +46,7 @@ public class StringLiteral extends BaseLiteral<String> {
   }
 
   @Override
-  public String translate(Target target, Map<String, Object> parameters) {
+  protected String trans(Target target, Map<String, Object> parameters) {
     /*
      * In sql server special characters can be sent as-is
      * to the database. Sql server has no support for escape

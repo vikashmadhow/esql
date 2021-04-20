@@ -120,7 +120,7 @@ public class CreateTable extends Define<String> {
   }
 
   @Override
-  public String translate(Target target, Map<String, Object> parameters) {
+  protected String trans(Target target, Map<String, Object> parameters) {
     StringBuilder st = new StringBuilder("create table ");
     if (target != SQLSERVER) {
       st.append("if not exists ");

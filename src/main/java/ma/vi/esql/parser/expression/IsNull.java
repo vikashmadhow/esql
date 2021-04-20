@@ -51,7 +51,7 @@ public class IsNull extends SingleSubExpression {
   }
 
   @Override
-  public String translate(Target target, Map<String, Object> parameters) {
+  protected String trans(Target target, Map<String, Object> parameters) {
     switch (target) {
       case JSON:
       case JAVASCRIPT:

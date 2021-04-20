@@ -45,7 +45,7 @@ public class UuidLiteral extends BaseLiteral<UUID> {
   }
 
   @Override
-  public String translate(Target target, Map<String, Object> parameters) {
+  protected String trans(Target target, Map<String, Object> parameters) {
     return switch(target) {
       case ESQL       -> "u'" + value + "'";
       case POSTGRESQL -> "'" + value + "'::uuid";

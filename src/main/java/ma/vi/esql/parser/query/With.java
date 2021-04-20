@@ -61,7 +61,7 @@ public class With extends QueryUpdate {
   }
 
   @Override
-  public QueryTranslation translate(Target target, Map<String, Object> parameters) {
+  public QueryTranslation trans(Target target, Map<String, Object> parameters) {
     /*
      * Ensure all CTE types are added to context-specific (local) type registry.
      */

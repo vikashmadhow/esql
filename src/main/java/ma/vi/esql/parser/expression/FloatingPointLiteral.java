@@ -47,7 +47,7 @@ public class FloatingPointLiteral extends BaseLiteral<String> {
   }
 
   @Override
-  public String translate(Target target, Map<String, Object> parameters) {
+  protected String trans(Target target, Map<String, Object> parameters) {
     return value;
   }
 

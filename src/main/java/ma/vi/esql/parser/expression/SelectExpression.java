@@ -14,7 +14,6 @@ import java.util.List;
 import java.util.Map;
 
 import static java.util.stream.Collectors.joining;
-import static ma.vi.esql.parser.Translatable.Target.ESQL;
 
 /**
  * A single-column, single-row select in a column list.
@@ -50,7 +49,7 @@ public class SelectExpression extends Expression<Select, String> {
   }
 
   @Override
-  public String translate(Target target, Map<String, Object> parameters) {
+  protected String trans(Target target, Map<String, Object> parameters) {
     if (target == Target.ESQL) {
       Select sel = select();
       StringBuilder st = new StringBuilder("(");

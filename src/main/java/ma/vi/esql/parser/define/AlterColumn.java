@@ -36,7 +36,7 @@ public class AlterColumn extends Alteration {
   }
 
   @Override
-  public String translate(Target target, Map<String, Object> parameters) {
+  protected String trans(Target target, Map<String, Object> parameters) {
     return "alter column " + columnName() + ' ' + definition().translate(target, parameters);
   }
 

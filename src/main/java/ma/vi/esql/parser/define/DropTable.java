@@ -41,7 +41,7 @@ public class DropTable extends Define<String> {
   }
 
   @Override
-  public String translate(Target target, Map<String, Object> parameters) {
+  protected String trans(Target target, Map<String, Object> parameters) {
     return "drop table " + (target == ESQL ? name() : dbTableName(name(), target));
   }
 

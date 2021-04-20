@@ -53,7 +53,7 @@ public class ColumnDefinition extends TableDefinition {
   }
 
   @Override
-  public String translate(Target target, Map<String, Object> parameters) {
+  protected String trans(Target target, Map<String, Object> parameters) {
     if (target == ESQL) {
       StringBuilder st = new StringBuilder('"' + name() + "\" "
                                                + type().translate(target, parameters)

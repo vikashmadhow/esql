@@ -54,7 +54,7 @@ public class QuantifiedComparison extends Expression<Expression<?, String>, Stri
   }
 
   @Override
-  public String translate(Target target, Map<String, Object> parameters) {
+  protected String trans(Target target, Map<String, Object> parameters) {
     return expr().translate(target, parameters) + ' ' + compareOp() + ' ' + quantifier() +
         select().translate(target, parameters);
   }

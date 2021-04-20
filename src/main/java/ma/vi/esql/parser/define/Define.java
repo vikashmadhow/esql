@@ -16,7 +16,7 @@ import ma.vi.esql.parser.expression.Expression;
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public abstract class Define<V> extends Expression<V, String> {
+public abstract class Define<V> extends Expression<V, String> implements Statement {
   Define(Context context, V value, T2<String, ? extends Esql<?, ?>>... children) {
     super(context, value, children);
   }

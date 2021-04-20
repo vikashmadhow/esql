@@ -47,7 +47,7 @@ public class JoinTableExpr extends AbstractJoinTableExpr {
   }
 
   @Override
-  public String translate(Target target, Map<String, Object> parameters) {
+  protected String trans(Target target, Map<String, Object> parameters) {
     return left().translate(target, parameters)
          + (joinType() == null ? " join " : ' ' + joinType() + " join ")
          + right().translate(target, parameters) + " on "

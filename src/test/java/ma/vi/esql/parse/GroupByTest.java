@@ -13,7 +13,6 @@ import org.junit.jupiter.api.TestFactory;
 import java.util.UUID;
 import java.util.stream.Stream;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.DynamicTest.dynamicTest;
 
 public class GroupByTest extends DataTest {

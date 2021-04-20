@@ -44,7 +44,7 @@ public class NoOp extends Esql<Void, Void> {
   }
 
   @Override
-  public Void translate(Target target, Map<String, Object> parameters) {
+  public Void trans(Target target, Map<String, Object> parameters) {
     return null;
   }
 }

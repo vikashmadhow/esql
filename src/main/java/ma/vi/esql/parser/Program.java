@@ -43,7 +43,7 @@ public class Program extends Esql<String, List<?>> {
   }
 
   @Override
-  public List<?> translate(Target target, Map<String, Object> parameters) {
+  public List<?> trans(Target target, Map<String, Object> parameters) {
     return expressions().stream()
                        .map(s -> s.translate(target, parameters))
                        .collect(toList());

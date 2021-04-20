@@ -7,9 +7,11 @@ package ma.vi.esql.parser.expression;
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.parser.Context;
 import ma.vi.esql.parser.Esql;
+import ma.vi.esql.parser.Statement;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -67,6 +69,15 @@ public class Expression<V, R> extends Esql<V, R> {
       }
     }
     return columns;
+  }
+
+  @Override
+  public R translate(Target target, Map<String, Object> parameters) {
+    if (ancestor(Statement.class) == null) {
+      return (R)("select " + trans(target, parameters));
+    } else {
+      return trans(target, parameters);
+    }
   }
 
 //  public void basedOn(Field basedOn) {

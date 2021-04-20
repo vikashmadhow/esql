@@ -53,7 +53,7 @@ public class Metadata extends TableDefinition {
   }
 
   @Override
-  public String translate(Target target, Map<String, Object> parameters) {
+  protected String trans(Target target, Map<String, Object> parameters) {
     return attributes().values()
                        .stream()
                        .map(a -> a.translate(target, parameters))

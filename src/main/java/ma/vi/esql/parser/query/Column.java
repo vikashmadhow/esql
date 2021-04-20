@@ -108,7 +108,7 @@ public class Column extends MetadataContainer<Expression<?, String>, String> {
   }
 
   @Override
-  public String translate(Target target, Map<String, Object> parameters) {
+  protected String trans(Target target, Map<String, Object> parameters) {
     if (target == ESQL) {
       StringBuilder st = new StringBuilder();
       if (alias() != null) {

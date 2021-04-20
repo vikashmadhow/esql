@@ -14,7 +14,6 @@ import ma.vi.esql.exec.Result;
 import ma.vi.esql.parser.Context;
 import ma.vi.esql.parser.Parser;
 import ma.vi.esql.parser.Program;
-import ma.vi.esql.parser.Statement;
 import ma.vi.esql.parser.expression.Expression;
 import ma.vi.esql.parser.query.Select;
 import ma.vi.esql.type.AmbiguousColumnException;

@@ -45,7 +45,7 @@ public class ILike extends RelationalOperator {
   }
 
   @Override
-  public String translate(Target target, Map<String, Object> parameters) {
+  protected String trans(Target target, Map<String, Object> parameters) {
     if (target == SQLSERVER) {
       /*
        * SQL Server requires collation for case-insensitive like.
@@ -58,7 +58,7 @@ public class ILike extends RelationalOperator {
       }
       return e;
     } else {
-      return super.translate(target, parameters);
+      return super.trans(target, parameters);
     }
   }
 

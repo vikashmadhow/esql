@@ -59,7 +59,7 @@ public class CheckConstraint extends ConstraintDefinition {
   }
 
   @Override
-  public String translate(Target target, Map<String, Object> parameters) {
+  protected String trans(Target target, Map<String, Object> parameters) {
     return "constraint "
         + '"' + (name() != null ? name() : defaultConstraintName(target, namePrefix())) + '"'
         + " check(" + expr().translate(target, parameters) + ')';

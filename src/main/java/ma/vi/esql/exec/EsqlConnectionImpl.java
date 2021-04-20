@@ -117,19 +117,22 @@ public class EsqlConnectionImpl implements EsqlConnection {
           } else {
             Param param = parameters.get(paramName);
             Object value = param.b;
+            Esql<?, ?> replace;
             if (value instanceof Esql) {
-              return (Esql<?, ?>)value;
+              replace = (Esql<?, ?>)value;
 
             } else if (value == null) {
-              return new NullLiteral(expression.context);
+              replace = new NullLiteral(expression.context);
 
             } else if (param instanceof ExpressionParam) {
               Parser parser = new Parser(expression.context.structure);
-              return parser.parseExpression(value.toString());
+              replace = parser.parseExpression(value.toString());
 
             } else {
-              return Literal.makeLiteral(expression.context, value);
+              replace = Literal.makeLiteral(expression.context, value);
             }
+            replace.parent = e.parent;
+            return replace;
           }
         }
         return e;

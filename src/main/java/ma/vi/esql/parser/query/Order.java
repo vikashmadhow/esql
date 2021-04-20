@@ -47,7 +47,7 @@ public class Order extends Esql<Expression<?, String>, String> {
   }
 
   @Override
-  public String translate(Target target, Map<String, Object> parameters) {
+  protected String trans(Target target, Map<String, Object> parameters) {
     String dir = dir();
     return order().translate(target, parameters) + (dir == null ? "" : ' ' + dir);
   }

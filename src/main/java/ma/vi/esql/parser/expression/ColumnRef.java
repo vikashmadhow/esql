@@ -181,7 +181,7 @@ public class ColumnRef extends Expression<String, String> implements Macro {
   }
 
   @Override
-  public String translate(Target target, Map<String, Object> parameters) {
+  protected String trans(Target target, Map<String, Object> parameters) {
     boolean sqlServerBool = target == Target.SQLSERVER
                          && type() == Types.BoolType
                          && !requireIif(this, parameters)

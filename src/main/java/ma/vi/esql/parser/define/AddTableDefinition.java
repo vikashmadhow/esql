@@ -33,7 +33,7 @@ public class AddTableDefinition extends Alteration {
   }
 
   @Override
-  public String translate(Target target, Map<String, Object> parameters) {
+  protected String trans(Target target, Map<String, Object> parameters) {
     return "add " + definition().translate(target, parameters);
   }
 

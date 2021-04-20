@@ -44,7 +44,7 @@ public class Cast extends Expression<Type, String> {
   }
 
   @Override
-  public String translate(Target target, Map<String, Object> parameters) {
+  protected String trans(Target target, Map<String, Object> parameters) {
     return switch (target) {
       case ESQL       -> toType().translate(target, parameters) + '<' + expr().translate(target, parameters) + '>';
       case POSTGRESQL -> '(' + expr().translate(target, parameters) + ")::" + toType().translate(target, parameters);

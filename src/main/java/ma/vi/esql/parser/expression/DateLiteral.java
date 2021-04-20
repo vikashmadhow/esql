@@ -62,7 +62,7 @@ public class DateLiteral extends BaseLiteral<String> {
   }
 
   @Override
-  public String translate(Target target, Map<String, Object> parameters) {
+  protected String trans(Target target, Map<String, Object> parameters) {
     Type type = type();
     switch (target) {
       case POSTGRESQL:

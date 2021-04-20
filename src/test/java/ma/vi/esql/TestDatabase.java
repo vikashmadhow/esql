@@ -4,6 +4,8 @@
 
 package ma.vi.esql;
 
+import ma.vi.esql.database.Database;
+import ma.vi.esql.database.Structure;
 import ma.vi.esql.parser.Context;
 import ma.vi.esql.parser.EsqlTransformer;
 import ma.vi.esql.parser.Parser;
@@ -12,8 +14,6 @@ import ma.vi.esql.parser.define.Attribute;
 import ma.vi.esql.parser.define.ConstraintDefinition;
 import ma.vi.esql.parser.define.Metadata;
 import ma.vi.esql.parser.query.Column;
-import ma.vi.esql.database.Database;
-import ma.vi.esql.database.Structure;
 import ma.vi.esql.translator.*;
 import ma.vi.esql.type.BaseRelation;
 

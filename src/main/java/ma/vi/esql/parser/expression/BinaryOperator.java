@@ -32,7 +32,7 @@ abstract class BinaryOperator extends DoubleSubExpressions<String> {
   public abstract BinaryOperator copy();
 
   @Override
-  public String translate(Target target, Map<String, Object> parameters) {
+  protected String trans(Target target, Map<String, Object> parameters) {
     String e = expr1().translate(target, parameters) + ' ' + op() + ' ' + expr2().translate(target, parameters);
     return target == JSON ? '"' + escapeJsonString(e) + '"' : e;
   }

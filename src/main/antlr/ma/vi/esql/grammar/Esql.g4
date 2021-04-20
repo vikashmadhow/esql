@@ -593,6 +593,9 @@ expr
     | define                                                    #DefineStatement
     | noop                                                      #NoopStatement
 
+    | 'var' Identifier (':' type)? (':=' expr)?                 #Declaration
+    | Identifier ':=' expr                                      #Assignment
+
       /*
        * Parentheses controls the order in which expressions are computed when
        * they are part of larger expressions.

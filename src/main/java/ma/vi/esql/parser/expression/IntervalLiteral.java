@@ -48,7 +48,7 @@ public class IntervalLiteral extends BaseLiteral<String> {
   }
 
   @Override
-  public String translate(Target target, Map<String, Object> parameters) {
+  protected String trans(Target target, Map<String, Object> parameters) {
     switch (target) {
       case POSTGRESQL:
         return '\'' + value + "'::interval";

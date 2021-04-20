@@ -42,7 +42,7 @@ public class Attribute extends Esql<String, String> {
   }
 
   @Override
-  public String translate(Target target, Map<String, Object> parameters) {
+  protected String trans(Target target, Map<String, Object> parameters) {
     return name() + ": " + (attributeValue() == null ? "null" : attributeValue().translate(target, parameters));
   }
 

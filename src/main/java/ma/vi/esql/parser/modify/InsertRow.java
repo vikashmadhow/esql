@@ -43,7 +43,7 @@ public class InsertRow extends Expression<List<Expression<?, String>>, String> {
   }
 
   @Override
-  public String translate(Target target, Map<String, Object> parameters) {
+  protected String trans(Target target, Map<String, Object> parameters) {
     return values().stream()
                    .map(e -> e.translate(target, parameters))
                    .collect(joining(", ", "(", ")"));

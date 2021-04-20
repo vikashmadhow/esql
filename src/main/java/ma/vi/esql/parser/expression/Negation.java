@@ -37,7 +37,7 @@ public class Negation extends SingleSubExpression {
   }
 
   @Override
-  public String translate(Target target, Map<String, Object> parameters) {
+  protected String trans(Target target, Map<String, Object> parameters) {
     return '-' + expr().translate(target, parameters);
   }
 

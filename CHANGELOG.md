@@ -23,11 +23,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
-- Everything, bar program, is now an expression in ESQL. This allows for some 
-  grammatically wrong statements (such as putting an insert into a function call)
-  to parse correctly, but also allows for more complex constructions, such as
-  assigning a select to a variable.
+- Statements are now expressions in ESQL which allows for some grammatically 
+  wrong statements (such as putting an insert into a function call) to parse 
+  correctly, but also allows for more complex constructions, such as assigning 
+  a select to a variable.
+- `translate` method delegate to the protected `trans` method in ESQL to allow 
+  for subclasses to provide richer translation behaviour, such as adding prefixes
+  and suffixed to the translation.
 
+### Fixed
+- Set the parent of substituted parameter values to the parent of the NamedParameter
+  being substituted. This conserve the hierarchy of the ESQL object and allows 
+  traversal search, such as for looking for ancestors, to continue working as 
+  prior to the substitution.
+  
 ## [0.4.4] - 2021-04-16
 ### Added 
 - Completed documentation .g4 antlr grammar and github wiki page on ESQL grammar.

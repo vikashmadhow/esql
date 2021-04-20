@@ -40,7 +40,7 @@ public class Inequality extends RelationalOperator {
   }
 
   @Override
-  public String translate(Target target, Map<String, Object> parameters) {
+  protected String trans(Target target, Map<String, Object> parameters) {
     switch (target) {
       case JSON:
       case JAVASCRIPT:
@@ -48,7 +48,7 @@ public class Inequality extends RelationalOperator {
         return target == JSON ? '"' + escapeJsonString(e) + '"' : e;
 
       default:
-        return super.translate(target, parameters);
+        return super.trans(target, parameters);
     }
   }
 }

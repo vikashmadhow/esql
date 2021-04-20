@@ -41,7 +41,7 @@ public class DerivedColumnDefinition extends ColumnDefinition {
   }
 
   @Override
-  public String translate(Target target, Map<String, Object> parameters) {
+  protected String trans(Target target, Map<String, Object> parameters) {
     if (target == Target.ESQL) {
       StringBuilder st = new StringBuilder("derived \"" + name() + "\" " + expression().translate(target, parameters));
       addMetadata(st, target);

@@ -45,7 +45,7 @@ public class Exists extends Expression<Select, String> {
   }
 
   @Override
-  public String translate(Target target, Map<String, Object> parameters) {
+  protected String trans(Target target, Map<String, Object> parameters) {
     return "exists(" + select().translate(target, parameters) + ")";
   }
 

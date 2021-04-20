@@ -54,7 +54,7 @@ public class GroupBy extends Esql<String, String> {
   }
 
   @Override
-  public String translate(Target target, Map<String, Object> parameters) {
+  protected String trans(Target target, Map<String, Object> parameters) {
     Type type = groupType();
     return " group by "
         + (type == Type.Rollup ? "rollup(" :

@@ -40,7 +40,7 @@ import static ma.vi.base.string.Strings.random;
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public abstract class QueryUpdate extends MetadataContainer<String, QueryTranslation>  {
+public abstract class QueryUpdate extends MetadataContainer<String, QueryTranslation> implements Statement  {
   public QueryUpdate(Context context,
                      String value,
                      T2<String, ? extends Esql<?, ?>>... children) {

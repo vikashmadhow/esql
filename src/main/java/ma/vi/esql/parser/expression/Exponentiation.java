@@ -40,7 +40,7 @@ public class Exponentiation extends ArithmeticOperator {
   }
 
   @Override
-  public String translate(Target target, Map<String, Object> parameters) {
+  protected String trans(Target target, Map<String, Object> parameters) {
     if (target == Target.SQLSERVER) {
       return "POWER(" + expr1().translate(target, parameters) + ", " + expr2().translate(target, parameters) + ")";
     } else {

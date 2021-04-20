@@ -39,7 +39,7 @@ public class CrossProductTableExpr extends AbstractJoinTableExpr {
   }
 
   @Override
-  public String translate(Target target, Map<String, Object> parameters) {
+  protected String trans(Target target, Map<String, Object> parameters) {
     return left().translate(target, parameters)
         + (target == ESQL ? " times " : " cross join ")
         + right().translate(target, parameters);

@@ -48,7 +48,7 @@ public class AlterColumnDefinition extends Define<String> {
   }
 
   @Override
-  public String translate(Target target, Map<String, Object> parameters) {
+  protected String trans(Target target, Map<String, Object> parameters) {
     return (toName() == null ? "" : toName() + ' ') +
         (toType() == null ? "" : type().translate(target, parameters) + ' ') +
         (setNotNull() ? "null " : "") +

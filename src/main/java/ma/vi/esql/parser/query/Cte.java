@@ -121,7 +121,7 @@ public class Cte extends QueryUpdate {
   }
 
   @Override
-  public QueryTranslation translate(Target target, Map<String, Object> parameters) {
+  public QueryTranslation trans(Target target, Map<String, Object> parameters) {
     /*
      * translate query and surround by CTE fields definition
      */

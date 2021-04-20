@@ -33,7 +33,7 @@ public class NameWithMetadata extends TableDefinition {
   }
 
   @Override
-  public String translate(Target target, Map<String, Object> parameters) {
+  protected String trans(Target target, Map<String, Object> parameters) {
     String sql = '"' + name() + "\" ";
     if (target == Target.ESQL) {
       StringBuilder st = new StringBuilder(sql);

@@ -41,7 +41,7 @@ public class Concatenation extends MultipleSubExpressions<String> {
   }
 
   @Override
-  public String translate(Target target, Map<String, Object> parameters) {
+  protected String trans(Target target, Map<String, Object> parameters) {
     switch (target) {
       case JSON, JAVASCRIPT -> {
         StringBuilder st = new StringBuilder();
@@ -80,7 +80,7 @@ public class Concatenation extends MultipleSubExpressions<String> {
   }
 
 //  @Override
-//  public String translate(Target target, Map<String, Object> parameters) {
+//  protected String trans(Target target, Map<String, Object> parameters) {
 //    switch (target) {
 //      case POSTGRESQL:
 //      case ESQL:

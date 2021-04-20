@@ -123,7 +123,7 @@ public class DynamicTableExpr extends AbstractAliasTableExpr {
   }
 
   @Override
-  public String translate(Target target, Map<String, Object> parameters) {
+  protected String trans(Target target, Map<String, Object> parameters) {
     return "(values "
          + rows().stream()
                  .map(r -> r.translate(target, parameters))

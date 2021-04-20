@@ -50,10 +50,10 @@ public class RelationalOperator extends BinaryOperator {
   }
 
   @Override
-  public String translate(Target target, Map<String, Object> parameters) {
+  protected String trans(Target target, Map<String, Object> parameters) {
     boolean sqlServerBool = target == Target.SQLSERVER && requireIif(this, parameters);
     return (sqlServerBool ? "iif" : "") + '('
-         + super.translate(target, parameters)
+         + super.trans(target, parameters)
          + (sqlServerBool ? ", 1, 0" : "") + ')';
   }
 }

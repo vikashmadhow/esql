@@ -4,10 +4,10 @@
 
 package ma.vi.esql;
 
+import ma.vi.esql.database.Structure;
 import ma.vi.esql.parser.Esql;
 import ma.vi.esql.parser.Parser;
 import ma.vi.esql.parser.Program;
-import ma.vi.esql.database.Structure;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;

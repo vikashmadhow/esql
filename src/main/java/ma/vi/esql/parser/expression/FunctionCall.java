@@ -10,7 +10,6 @@ import ma.vi.esql.parser.Context;
 import ma.vi.esql.parser.Esql;
 import ma.vi.esql.parser.Macro;
 import ma.vi.esql.parser.query.Order;
-import ma.vi.esql.parser.query.Select;
 import ma.vi.esql.type.Type;
 import ma.vi.esql.type.Types;
 
@@ -88,7 +87,7 @@ public class FunctionCall extends Expression<String, String> implements Macro {
   }
 
   @Override
-  public String translate(Target target, Map<String, Object> parameters) {
+  protected String trans(Target target, Map<String, Object> parameters) {
     String functionName = functionName();
     Structure s = context.structure;
     Function function = s.function(functionName);

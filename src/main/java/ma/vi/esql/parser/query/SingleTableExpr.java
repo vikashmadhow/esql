@@ -91,7 +91,7 @@ public class SingleTableExpr extends AbstractAliasTableExpr {
   }
 
   @Override
-  public String translate(Target target, Map<String, Object> parameters) {
+  protected String trans(Target target, Map<String, Object> parameters) {
     String table = tableName();
     String alias = alias();
     if (target == Target.ESQL) {

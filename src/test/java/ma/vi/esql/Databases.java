@@ -5,17 +5,10 @@
 package ma.vi.esql;
 
 import ma.vi.esql.database.*;
-import ma.vi.esql.exec.EsqlConnection;
-import ma.vi.esql.exec.Param;
-import ma.vi.esql.exec.Result;
-import ma.vi.esql.parser.Parser;
 
 import java.util.Map;
-import java.util.UUID;
 
-import static java.lang.System.Logger.Level.INFO;
 import static ma.vi.esql.database.Database.*;
-import static ma.vi.esql.parser.expression.StringLiteral.escapeEsqlString;
 
 /**
  * @author Vikash Madhow (vikash.madhow@gmail.com)

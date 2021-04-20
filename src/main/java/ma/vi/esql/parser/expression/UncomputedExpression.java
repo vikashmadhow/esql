@@ -50,7 +50,7 @@ public class UncomputedExpression extends SingleSubExpression {
   }
 
   @Override
-  public String translate(Target target, Map<String, Object> parameters) {
+  protected String trans(Target target, Map<String, Object> parameters) {
     return switch (target) {
       case JAVASCRIPT -> '`' + expr().translate(target, parameters) + '`';
       case ESQL       -> "$(" + expr().translate(target, parameters) + ')';

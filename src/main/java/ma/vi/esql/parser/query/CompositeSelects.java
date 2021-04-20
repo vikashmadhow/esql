@@ -85,7 +85,7 @@ public class CompositeSelects extends Select {
     }
   }
 
-  public QueryTranslation translate(Target target, Map<String, Object> parameters) {
+  public QueryTranslation trans(Target target, Map<String, Object> parameters) {
     boolean first = true;
     StringBuilder st = new StringBuilder();
     QueryTranslation q = null;

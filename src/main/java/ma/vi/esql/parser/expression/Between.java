@@ -56,7 +56,7 @@ public class Between extends Expression<Expression<?, ?>, String> {
   }
 
   @Override
-  public String translate(Target target, Map<String, Object> parameters) {
+  protected String trans(Target target, Map<String, Object> parameters) {
     switch (target) {
       case JSON, JAVASCRIPT:
         String e = (not() ? "!" : "") + '('

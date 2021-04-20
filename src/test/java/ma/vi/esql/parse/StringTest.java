@@ -5,11 +5,11 @@
 package ma.vi.esql.parse;
 
 import ma.vi.esql.Databases;
+import ma.vi.esql.database.Structure;
+import ma.vi.esql.grammar.EsqlParser;
 import ma.vi.esql.parser.Parser;
 import ma.vi.esql.parser.define.Metadata;
 import ma.vi.esql.parser.expression.StringLiteral;
-import ma.vi.esql.database.Structure;
-import ma.vi.esql.grammar.EsqlParser;
 import org.junit.jupiter.api.Test;
 
 import static ma.vi.esql.parser.Translatable.Target.*;
@@ -21,9 +21,9 @@ public class StringTest {
     Parser parser = new Parser(Databases.HSqlDb().structure());
     StringLiteral expr = (StringLiteral)parser.parseExpression("'this is a \n\ttest\n...\tMX3\f\\c'");
     assertEquals("'this is a \n\ttest\n...\tMX3\f\\c'", expr.value);
-    assertEquals("N'this is a \n\ttest\n...\tMX3\f\\c'", expr.translate(SQLSERVER));
-    assertEquals("'this is a \n\ttest\n...\tMX3\f\\c'", expr.translate(HSQLDB));
-    assertEquals("E'this is a \\n\\ttest\\n...\\tMX3\\f\\\\c'", expr.translate(POSTGRESQL));
+    assertEquals("select N'this is a \n\ttest\n...\tMX3\f\\c'", expr.translate(SQLSERVER));
+    assertEquals("select 'this is a \n\ttest\n...\tMX3\f\\c'", expr.translate(HSQLDB));
+    assertEquals("select E'this is a \\n\\ttest\\n...\\tMX3\\f\\\\c'", expr.translate(POSTGRESQL));
   }
 
   @Test

@@ -221,6 +221,10 @@ public class  Esql<V, R> implements Close, Copy<Esql<V, R>>, Translatable<R> {
 
   @Override
   public R translate(Target target, Map<String, Object> parameters) {
+    return trans(target, parameters);
+  }
+
+  protected R trans(Target target, Map<String, Object> parameters) {
     return TranslatorFactory.get(target).translate(this, parameters);
   }
 
@@ -363,7 +367,7 @@ public class  Esql<V, R> implements Close, Copy<Esql<V, R>>, Translatable<R> {
    * which is an instance of the specified class. Returns null if no such instance
    * can be found.
    */
-  public <T extends Esql<?, ?>> T ancestor(Class<T> cls) {
+  public <T> T ancestor(Class<T> cls) {
     if (cls.isAssignableFrom(getClass())) {
       return (T)this;
     } else if (parent != null) {
@@ -392,7 +396,7 @@ public class  Esql<V, R> implements Close, Copy<Esql<V, R>>, Translatable<R> {
    * Returns the ancestor by the specified name if this esql is a
    * descendant of that ancestor.
    */
-  public <T extends Esql<?, ?>> T ancestor(String name) {
+  public <T> T ancestor(String name) {
     if (parent == null) {
       return null;
     } else if (parent.children.containsKey(name)
@@ -424,7 +428,7 @@ public class  Esql<V, R> implements Close, Copy<Esql<V, R>>, Translatable<R> {
    * Return the first child (or itself) of the specified type in the Esql.
    * Return null if no such child exist.
    */
-  public <T extends Esql<?, ?>> T firstChild(Class<T> cls) {
+  public <T> T firstChild(Class<T> cls) {
     if (cls.isAssignableFrom(getClass())) {
       return (T)this;
     }

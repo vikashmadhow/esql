@@ -36,7 +36,7 @@ public class RenameColumn extends Alteration {
   }
 
   @Override
-  public String translate(Target target, Map<String, Object> parameters) {
+  protected String trans(Target target, Map<String, Object> parameters) {
     return "rename column \"" + from() + "\" to \"" + to() + '"';
   }
 
