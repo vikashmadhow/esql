@@ -20,6 +20,10 @@ package ma.vi.esql.grammar;
  */
 program
 //    : statement (';' statement)* ';'?
+    : expressions
+    ;
+
+expressions
     : expr (';' expr)* ';'?
     ;
 
@@ -593,8 +597,22 @@ expr
     | define                                                    #DefineStatement
     | noop                                                      #NoopStatement
 
-    | 'var' Identifier (':' type)? (':=' expr)?                 #Declaration
-    | Identifier ':=' expr                                      #Assignment
+//    | 'var' Identifier (':' type)? (':=' expr)?                 #Declaration
+//    | Identifier ':=' expr                                      #Assignment
+//    | 'for' Identifier 'in' expr 'do'
+//        expressions
+//      'end'                                                     #ForLoop
+//    | 'while' expr 'do'
+//        expressions
+//      'end'                                                     #WhileLoop
+//    | 'if' expr 'then'
+//        expressions
+//      ('elseif' expr 'then' expressions)?
+//      ('else' expressions)?
+//      'end'                                                     #If
+//    | 'def' Identifier '(' (Identifier ':' type)* ')'
+//        expressions
+//      'end'                                                     #Def
 
       /*
        * Parentheses controls the order in which expressions are computed when
