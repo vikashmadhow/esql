@@ -94,9 +94,14 @@ public class Analyser extends EsqlBaseListener {
 
   @Override
   public void exitProgram(ProgramContext ctx) {
-    put(ctx, new Program(context, ctx.expr().stream()
-                                     .map(s -> (Expression<?, ?>)get(s))
-                                     .collect(toList())));
+    put(ctx, new Program(context, value(ctx.expressions())));
+  }
+
+  @Override
+  public void exitExpressions(ExpressionsContext ctx) {
+    put(ctx, new Esql<>(context, ctx.expr().stream()
+                                    .map(e -> (Expression<?, ?>)get(e))
+                                    .collect(toList())));
   }
 
 //  @Override

@@ -63,22 +63,6 @@ public class ArrayType extends AbstractType {
     return false;
   }
 
-  @Override
-  public void close() {
-//    if (!closed() && !closing()) {
-//      try {
-//        closing(true);
-//        if (componentType != null) {
-//          componentType.close();
-//        }
-//      } finally {
-//        closing(false);
-//        closed(true);
-//      }
-//      super.close();
-//    }
-  }
-
   /**
    * The type of the components of the array.
    */

@@ -21,7 +21,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Support for Oracle database.
 - Make into Java 9 module.
 
-## [Unreleased]
+## [0.5.1] - 2021-04-25
+### Deprecated
+- Close interface no longer implemented as not required. Will be removed in a 
+  future release
+
+## [0.5.0] - 2021-04-22
 ### Added
 - Statements are now expressions in ESQL which allows for some grammatically 
   wrong statements (such as putting an insert into a function call) to parse 

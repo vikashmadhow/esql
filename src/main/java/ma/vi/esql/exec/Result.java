@@ -82,10 +82,8 @@ public class Result implements AutoCloseable {
   }
 
   /**
-   * Loads the next row in the result if there are any and returns true,
-   * returns false if there are no more rows left. Initially the result is
-   * positioned before any row and this method must be called to load the
-   * first row, if there's any.
+   * Loads the previous row in the result if there are any and returns true,
+   * returns false if there are no previous rows available.
    */
   public boolean previous() {
     try {
@@ -250,7 +248,7 @@ public class Result implements AutoCloseable {
   }
 
   public static final Result Nothing = new Result(null, null, null, emptyList(),
-                                                  emptyMap(), emptyList(), emptyMap());
+                                                   emptyMap(), emptyList(), emptyMap());
 
   private final Structure structure;
 

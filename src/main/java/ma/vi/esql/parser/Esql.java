@@ -30,7 +30,7 @@ import static org.apache.commons.lang3.StringUtils.repeat;
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public class  Esql<V, R> implements Close, Copy<Esql<V, R>>, Translatable<R> {
+public class  Esql<V, R> implements Copy<Esql<V, R>>, Translatable<R> {
   public Esql(Context context,
               V value,
               T2<String, ? extends Esql<?, ?>>... children) {
@@ -549,58 +549,6 @@ public class  Esql<V, R> implements Close, Copy<Esql<V, R>>, Translatable<R> {
   }
 
   @Override
-  public void close() {
-//    if (!closed() && !closing()) {
-//      try {
-//        closing(true);
-//        if (value instanceof Esql) {
-//          ((Esql)value).close();
-//
-//        } else if (value instanceof List<?>) {
-//          for (Object e: (List<?>)value) {
-//            if (e instanceof Esql) {
-//              ((Esql)e).close();
-//            }
-//          }
-//        }
-//        value = null;
-//        for (Esql<?, ?> e: children.values()) {
-//          e.close();
-//        }
-//        children.clear();
-//        if (parent != null) {
-//          parent.close();
-//        }
-//        parent = null;
-//
-//      } finally {
-//        closing(false);
-//        closed(true);
-//      }
-//    }
-  }
-
-  @Override
-  public boolean closed() {
-    return closed;
-  }
-
-  @Override
-  public void closed(boolean closed) {
-    this.closed = closed;
-  }
-
-  @Override
-  public boolean closing() {
-    return closing;
-  }
-
-  @Override
-  public void closing(boolean closing) {
-    this.closing = closing;
-  }
-
-  @Override
   public boolean copying() {
     return copying;
   }
@@ -614,16 +562,6 @@ public class  Esql<V, R> implements Close, Copy<Esql<V, R>>, Translatable<R> {
    * Set to true while copying.
    */
   private volatile boolean copying;
-
-  /**
-   * Set to true while closing.
-   */
-  private volatile boolean closing;
-
-  /*
-   * True when the object is closed.
-   */
-  private volatile boolean closed;
 
   /**
    * The syntactic parent of the current statement or null if this is the

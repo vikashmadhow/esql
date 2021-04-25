@@ -5,7 +5,6 @@
 package ma.vi.esql.type;
 
 import ma.vi.base.tuple.T2;
-import ma.vi.esql.parser.Close;
 import ma.vi.esql.parser.Copy;
 import ma.vi.esql.parser.Translatable;
 import ma.vi.esql.parser.expression.Expression;
@@ -21,7 +20,7 @@ import static ma.vi.esql.parser.Translatable.Target.*;
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public interface Type extends Close, Copy<Type>, Translatable<String> {
+public interface Type extends Copy<Type>, Translatable<String> {
   /**
    * The name of the type.
    */
@@ -63,10 +62,6 @@ public interface Type extends Close, Copy<Type>, Translatable<String> {
    */
   enum Kind {
     BASE, ARRAY, COMPOSITE
-  }
-
-  @Override
-  default void close() {
   }
 
   @Override
@@ -131,28 +126,6 @@ public interface Type extends Close, Copy<Type>, Translatable<String> {
     @Override
     public ConcurrentMap<String, Expression<?, String>> attributes() {
       return null;
-    }
-
-    @Override
-    public void close() {
-    }
-
-    @Override
-    public boolean closing() {
-      return false;
-    }
-
-    @Override
-    public void closing(boolean closing) {
-    }
-
-    @Override
-    public boolean closed() {
-      return false;
-    }
-
-    @Override
-    public void closed(boolean closed) {
     }
 
     @Override

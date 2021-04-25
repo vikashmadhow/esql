@@ -597,14 +597,19 @@ expr
     | define                                                    #DefineStatement
     | noop                                                      #NoopStatement
 
-//    | 'var' Identifier (':' type)? (':=' expr)?                 #Declaration
+//    | 'let' Identifier (':' type)? (':=' expr)?                 #Declaration
 //    | Identifier ':=' expr                                      #Assignment
-//    | 'for' Identifier 'in' expr 'do'
+//    | 'for' (key=Identifier ',')? value=Identifier 'in' expr 'do'
+//        expressions
+//      'end'                                                     #Iterator
+//    | 'for' init=expr, cond=expr, inc=expr 'do'
 //        expressions
 //      'end'                                                     #ForLoop
 //    | 'while' expr 'do'
 //        expressions
 //      'end'                                                     #WhileLoop
+//    | 'break'                                                   #BreakStatement
+//    | 'continue'                                                #ContinueStatement
 //    | 'if' expr 'then'
 //        expressions
 //      ('elseif' expr 'then' expressions)?

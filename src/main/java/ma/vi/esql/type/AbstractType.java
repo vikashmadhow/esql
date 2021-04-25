@@ -72,44 +72,6 @@ public abstract class AbstractType implements Type {
   }
 
   @Override
-  public void close() {
-//    if (!closed() && !closing()) {
-//      try {
-//        closing(true);
-//        if (attributes != null) {
-//          for (DbExpression expr: attributes.values()) {
-//            expr.close();
-//          }
-//          attributes.clear();
-//        }
-//      } finally {
-//        closing(false);
-//        closed(true);
-//      }
-//    }
-  }
-
-  @Override
-  public boolean closed() {
-    return closed;
-  }
-
-  @Override
-  public void closed(boolean closed) {
-    this.closed = closed;
-  }
-
-  @Override
-  public boolean closing() {
-    return closing;
-  }
-
-  @Override
-  public void closing(boolean closing) {
-    this.closing = closing;
-  }
-
-  @Override
   public boolean copying() {
     return copying;
   }
