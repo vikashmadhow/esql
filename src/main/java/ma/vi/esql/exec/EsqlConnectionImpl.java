@@ -7,11 +7,11 @@ package ma.vi.esql.exec;
 import ma.vi.base.collections.Maps;
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.database.Database;
-import ma.vi.esql.parser.*;
-import ma.vi.esql.parser.expression.Expression;
-import ma.vi.esql.parser.expression.Literal;
-import ma.vi.esql.parser.expression.NamedParameter;
-import ma.vi.esql.parser.expression.NullLiteral;
+import ma.vi.esql.syntax.*;
+import ma.vi.esql.syntax.expression.Expression;
+import ma.vi.esql.syntax.expression.Literal;
+import ma.vi.esql.syntax.expression.NamedParameter;
+import ma.vi.esql.syntax.expression.NullLiteral;
 
 import java.sql.Connection;
 import java.sql.SQLException;

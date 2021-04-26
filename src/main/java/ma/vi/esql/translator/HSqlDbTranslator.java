@@ -1,16 +1,16 @@
 package ma.vi.esql.translator;
 
-import ma.vi.esql.parser.Translatable;
-import ma.vi.esql.parser.TranslationException;
-import ma.vi.esql.parser.expression.Expression;
-import ma.vi.esql.parser.modify.Delete;
-import ma.vi.esql.parser.modify.Insert;
-import ma.vi.esql.parser.modify.InsertRow;
-import ma.vi.esql.parser.modify.Update;
-import ma.vi.esql.parser.query.QueryTranslation;
-import ma.vi.esql.parser.query.Select;
-import ma.vi.esql.parser.query.SingleTableExpr;
-import ma.vi.esql.parser.query.TableExpr;
+import ma.vi.esql.syntax.Translatable;
+import ma.vi.esql.syntax.TranslationException;
+import ma.vi.esql.syntax.expression.Expression;
+import ma.vi.esql.syntax.modify.Delete;
+import ma.vi.esql.syntax.modify.Insert;
+import ma.vi.esql.syntax.modify.InsertRow;
+import ma.vi.esql.syntax.modify.Update;
+import ma.vi.esql.syntax.query.QueryTranslation;
+import ma.vi.esql.syntax.query.Select;
+import ma.vi.esql.syntax.query.SingleTableExpr;
+import ma.vi.esql.syntax.query.TableExpr;
 import ma.vi.esql.type.Type;
 
 import java.util.List;

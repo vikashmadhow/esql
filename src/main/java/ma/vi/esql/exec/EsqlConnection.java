@@ -5,8 +5,8 @@
 package ma.vi.esql.exec;
 
 import ma.vi.esql.database.Database;
-import ma.vi.esql.parser.Esql;
-import ma.vi.esql.parser.Parser;
+import ma.vi.esql.syntax.Esql;
+import ma.vi.esql.syntax.Parser;
 
 import java.sql.Connection;
 

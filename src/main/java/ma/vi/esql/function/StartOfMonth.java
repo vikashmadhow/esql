@@ -4,15 +4,15 @@
 
 package ma.vi.esql.function;
 
-import ma.vi.esql.parser.Translatable;
-import ma.vi.esql.parser.expression.Expression;
-import ma.vi.esql.parser.expression.FunctionCall;
+import ma.vi.esql.syntax.Translatable;
+import ma.vi.esql.syntax.expression.Expression;
+import ma.vi.esql.syntax.expression.FunctionCall;
 import ma.vi.esql.type.Types;
 
 import java.util.List;
 
 import static java.util.Collections.singletonList;
-import static ma.vi.esql.parser.Translatable.Target.*;
+import static ma.vi.esql.syntax.Translatable.Target.*;
 
 /**
  * Function returning the start of the month of the supplied date.

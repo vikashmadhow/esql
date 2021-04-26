@@ -4,15 +4,15 @@
 
 package ma.vi.esql.function;
 
-import ma.vi.esql.parser.Translatable;
-import ma.vi.esql.parser.expression.Expression;
-import ma.vi.esql.parser.expression.FunctionCall;
+import ma.vi.esql.syntax.Translatable;
+import ma.vi.esql.syntax.expression.Expression;
+import ma.vi.esql.syntax.expression.FunctionCall;
 import ma.vi.esql.type.Types;
 
 import java.util.Arrays;
 import java.util.List;
 
-import static ma.vi.esql.parser.Translatable.Target.*;
+import static ma.vi.esql.syntax.Translatable.Target.*;
 
 /**
  * Function to left pad strings.

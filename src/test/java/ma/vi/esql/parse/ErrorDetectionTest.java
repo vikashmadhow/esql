@@ -6,8 +6,8 @@ package ma.vi.esql.parse;
 
 import ma.vi.esql.Databases;
 import ma.vi.esql.TestDatabase;
-import ma.vi.esql.parser.Parser;
-import ma.vi.esql.parser.SyntaxException;
+import ma.vi.esql.syntax.Parser;
+import ma.vi.esql.syntax.SyntaxException;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;

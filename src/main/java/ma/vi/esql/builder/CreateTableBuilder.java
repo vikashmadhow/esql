@@ -5,9 +5,9 @@
 package ma.vi.esql.builder;
 
 import ma.vi.base.lang.Builder;
-import ma.vi.esql.parser.Context;
-import ma.vi.esql.parser.Parser;
-import ma.vi.esql.parser.define.*;
+import ma.vi.esql.syntax.Context;
+import ma.vi.esql.syntax.Parser;
+import ma.vi.esql.syntax.define.*;
 import ma.vi.esql.type.Types;
 
 import java.util.ArrayList;

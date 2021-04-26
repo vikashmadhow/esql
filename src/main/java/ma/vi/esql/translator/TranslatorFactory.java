@@ -1,7 +1,7 @@
 package ma.vi.esql.translator;
 
 import ma.vi.base.lang.NotFoundException;
-import ma.vi.esql.parser.Translatable;
+import ma.vi.esql.syntax.Translatable;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;

@@ -4,9 +4,9 @@
 
 package ma.vi.esql.function;
 
-import ma.vi.esql.parser.Translatable;
-import ma.vi.esql.parser.expression.Expression;
-import ma.vi.esql.parser.expression.FunctionCall;
+import ma.vi.esql.syntax.Translatable;
+import ma.vi.esql.syntax.expression.Expression;
+import ma.vi.esql.syntax.expression.FunctionCall;
 import ma.vi.esql.type.Type;
 
 import java.util.List;
@@ -14,7 +14,7 @@ import java.util.Map;
 
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.joining;
-import static ma.vi.esql.parser.Translatable.Target.HSQLDB;
+import static ma.vi.esql.syntax.Translatable.Target.HSQLDB;
 
 /**
  * A stored database function.

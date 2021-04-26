@@ -6,17 +6,17 @@ package ma.vi.esql.type;
 
 import ma.vi.base.trie.PathTrie;
 import ma.vi.base.tuple.T2;
-import ma.vi.esql.parser.CircularReferenceException;
-import ma.vi.esql.parser.Context;
-import ma.vi.esql.parser.Esql;
-import ma.vi.esql.parser.TranslationException;
-import ma.vi.esql.parser.define.Attribute;
-import ma.vi.esql.parser.define.ConstraintDefinition;
-import ma.vi.esql.parser.define.ForeignKeyConstraint;
-import ma.vi.esql.parser.define.PrimaryKeyConstraint;
-import ma.vi.esql.parser.expression.*;
-import ma.vi.esql.parser.query.Column;
-import ma.vi.esql.parser.query.Select;
+import ma.vi.esql.syntax.CircularReferenceException;
+import ma.vi.esql.syntax.Context;
+import ma.vi.esql.syntax.Esql;
+import ma.vi.esql.syntax.TranslationException;
+import ma.vi.esql.syntax.define.Attribute;
+import ma.vi.esql.syntax.define.ConstraintDefinition;
+import ma.vi.esql.syntax.define.ForeignKeyConstraint;
+import ma.vi.esql.syntax.define.PrimaryKeyConstraint;
+import ma.vi.esql.syntax.expression.*;
+import ma.vi.esql.syntax.query.Column;
+import ma.vi.esql.syntax.query.Select;
 
 import java.util.*;
 
@@ -26,7 +26,7 @@ import static java.util.stream.Collectors.*;
 import static ma.vi.base.string.Strings.makeUnique;
 import static ma.vi.base.string.Strings.random;
 import static ma.vi.esql.builder.Attributes.DERIVED;
-import static ma.vi.esql.parser.expression.ColumnRef.qualify;
+import static ma.vi.esql.syntax.expression.ColumnRef.qualify;
 
 /**
  * A relation is a composite type with a qualified name (i.e. with a schema name included).

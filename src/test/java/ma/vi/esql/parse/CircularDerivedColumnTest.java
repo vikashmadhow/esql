@@ -2,9 +2,9 @@ package ma.vi.esql.parse;
 
 import ma.vi.esql.DataTest;
 import ma.vi.esql.exec.EsqlConnection;
-import ma.vi.esql.parser.CircularReferenceException;
-import ma.vi.esql.parser.Parser;
-import ma.vi.esql.parser.Program;
+import ma.vi.esql.syntax.CircularReferenceException;
+import ma.vi.esql.syntax.Parser;
+import ma.vi.esql.syntax.Program;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;

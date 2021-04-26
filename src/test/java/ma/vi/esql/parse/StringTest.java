@@ -7,12 +7,12 @@ package ma.vi.esql.parse;
 import ma.vi.esql.Databases;
 import ma.vi.esql.database.Structure;
 import ma.vi.esql.grammar.EsqlParser;
-import ma.vi.esql.parser.Parser;
-import ma.vi.esql.parser.define.Metadata;
-import ma.vi.esql.parser.expression.StringLiteral;
+import ma.vi.esql.syntax.Parser;
+import ma.vi.esql.syntax.define.Metadata;
+import ma.vi.esql.syntax.expression.StringLiteral;
 import org.junit.jupiter.api.Test;
 
-import static ma.vi.esql.parser.Translatable.Target.*;
+import static ma.vi.esql.syntax.Translatable.Target.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class StringTest {

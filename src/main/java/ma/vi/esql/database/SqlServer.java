@@ -8,7 +8,7 @@ import com.microsoft.sqlserver.jdbc.SQLServerConnectionPoolDataSource;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import ma.vi.base.util.Convert;
-import ma.vi.esql.parser.Translatable;
+import ma.vi.esql.syntax.Translatable;
 
 import java.lang.reflect.Array;
 import java.sql.*;
@@ -17,7 +17,7 @@ import java.util.Properties;
 
 import static ma.vi.base.collections.ArrayUtils.ARRAY_ESCAPE;
 import static ma.vi.base.lang.Errors.unchecked;
-import static ma.vi.esql.parser.Translatable.Target.SQLSERVER;
+import static ma.vi.esql.syntax.Translatable.Target.SQLSERVER;
 import static ma.vi.esql.type.BaseType.BASE_TYPE;
 
 /**

@@ -1,7 +1,7 @@
 package ma.vi.esql.translator;
 
-import ma.vi.esql.parser.Esql;
-import ma.vi.esql.parser.Translatable;
+import ma.vi.esql.syntax.Esql;
+import ma.vi.esql.syntax.Translatable;
 
 import java.util.Map;
 

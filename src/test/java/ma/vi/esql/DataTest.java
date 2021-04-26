@@ -7,8 +7,8 @@ package ma.vi.esql;
 import ma.vi.esql.database.Database;
 import ma.vi.esql.exec.EsqlConnection;
 import ma.vi.esql.exec.Result;
-import ma.vi.esql.parser.Parser;
-import ma.vi.esql.parser.Program;
+import ma.vi.esql.syntax.Parser;
+import ma.vi.esql.syntax.Program;
 import org.junit.jupiter.api.BeforeAll;
 
 import static org.apache.commons.lang3.StringUtils.*;

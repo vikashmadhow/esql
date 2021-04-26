@@ -4,7 +4,7 @@
 
 package ma.vi.esql.type;
 
-import ma.vi.esql.parser.expression.Expression;
+import ma.vi.esql.syntax.expression.Expression;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;

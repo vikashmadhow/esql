@@ -1,15 +1,15 @@
 package ma.vi.esql.translator;
 
 import ma.vi.base.tuple.T2;
-import ma.vi.esql.parser.Translatable;
-import ma.vi.esql.parser.TranslationException;
-import ma.vi.esql.parser.define.Attribute;
-import ma.vi.esql.parser.expression.Expression;
-import ma.vi.esql.parser.modify.Delete;
-import ma.vi.esql.parser.modify.Insert;
-import ma.vi.esql.parser.modify.InsertRow;
-import ma.vi.esql.parser.modify.Update;
-import ma.vi.esql.parser.query.*;
+import ma.vi.esql.syntax.Translatable;
+import ma.vi.esql.syntax.TranslationException;
+import ma.vi.esql.syntax.define.Attribute;
+import ma.vi.esql.syntax.expression.Expression;
+import ma.vi.esql.syntax.modify.Delete;
+import ma.vi.esql.syntax.modify.Insert;
+import ma.vi.esql.syntax.modify.InsertRow;
+import ma.vi.esql.syntax.modify.Update;
+import ma.vi.esql.syntax.query.*;
 import ma.vi.esql.type.Type;
 
 import java.util.ArrayList;
@@ -21,8 +21,8 @@ import java.util.stream.IntStream;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 import static java.util.stream.Collectors.joining;
-import static ma.vi.esql.parser.Translatable.Target.ESQL;
-import static ma.vi.esql.parser.modify.Delete.findSingleTable;
+import static ma.vi.esql.syntax.Translatable.Target.ESQL;
+import static ma.vi.esql.syntax.modify.Delete.findSingleTable;
 
 /**
  * @author Vikash Madhow (vikash.madhow@gmail.com)

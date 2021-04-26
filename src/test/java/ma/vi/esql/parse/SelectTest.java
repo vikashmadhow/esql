@@ -11,11 +11,11 @@ import ma.vi.esql.builder.Attr;
 import ma.vi.esql.builder.SelectBuilder;
 import ma.vi.esql.exec.EsqlConnection;
 import ma.vi.esql.exec.Result;
-import ma.vi.esql.parser.Context;
-import ma.vi.esql.parser.Parser;
-import ma.vi.esql.parser.Program;
-import ma.vi.esql.parser.expression.Expression;
-import ma.vi.esql.parser.query.Select;
+import ma.vi.esql.syntax.Context;
+import ma.vi.esql.syntax.Parser;
+import ma.vi.esql.syntax.Program;
+import ma.vi.esql.syntax.expression.Expression;
+import ma.vi.esql.syntax.query.Select;
 import ma.vi.esql.type.AmbiguousColumnException;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Test;
@@ -24,7 +24,7 @@ import org.junit.jupiter.api.TestFactory;
 import java.util.List;
 import java.util.stream.Stream;
 
-import static ma.vi.esql.parser.Parser.Rules.SELECT;
+import static ma.vi.esql.syntax.Parser.Rules.SELECT;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.DynamicTest.dynamicTest;
 

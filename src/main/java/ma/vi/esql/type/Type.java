@@ -5,14 +5,14 @@
 package ma.vi.esql.type;
 
 import ma.vi.base.tuple.T2;
-import ma.vi.esql.parser.Copy;
-import ma.vi.esql.parser.Translatable;
-import ma.vi.esql.parser.expression.Expression;
+import ma.vi.esql.syntax.Copy;
+import ma.vi.esql.syntax.Translatable;
+import ma.vi.esql.syntax.expression.Expression;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
 
-import static ma.vi.esql.parser.Translatable.Target.*;
+import static ma.vi.esql.syntax.Translatable.Target.*;
 
 /**
  * Type information on various structures stored in the database

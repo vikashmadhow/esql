@@ -7,10 +7,10 @@ package ma.vi.esql.type;
 import ma.vi.base.string.Strings;
 import ma.vi.base.trie.PathTrie;
 import ma.vi.base.tuple.T2;
-import ma.vi.esql.parser.Context;
-import ma.vi.esql.parser.expression.ColumnRef;
-import ma.vi.esql.parser.query.Column;
-import ma.vi.esql.parser.query.TableExpr;
+import ma.vi.esql.syntax.Context;
+import ma.vi.esql.syntax.expression.ColumnRef;
+import ma.vi.esql.syntax.query.Column;
+import ma.vi.esql.syntax.query.TableExpr;
 
 import java.util.ArrayList;
 import java.util.List;

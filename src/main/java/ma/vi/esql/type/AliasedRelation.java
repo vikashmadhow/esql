@@ -4,14 +4,14 @@
 
 package ma.vi.esql.type;
 
-import ma.vi.esql.parser.expression.Expression;
-import ma.vi.esql.parser.query.Column;
+import ma.vi.esql.syntax.expression.Expression;
+import ma.vi.esql.syntax.query.Column;
 
 import java.util.List;
 import java.util.Map;
 
 import static java.util.stream.Collectors.toList;
-import static ma.vi.esql.parser.expression.ColumnRef.qualify;
+import static ma.vi.esql.syntax.expression.ColumnRef.qualify;
 
 /**
  * @author Vikash Madhow (vikash.madhow@gmail.com)

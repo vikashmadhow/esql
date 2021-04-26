@@ -5,12 +5,12 @@
 package ma.vi.esql.database;
 
 import ma.vi.esql.function.*;
-import ma.vi.esql.parser.Translatable;
-import ma.vi.esql.parser.TranslationException;
-import ma.vi.esql.parser.expression.Expression;
-import ma.vi.esql.parser.expression.FunctionCall;
-import ma.vi.esql.parser.macro.Bin;
-import ma.vi.esql.parser.macro.InMonth;
+import ma.vi.esql.syntax.Translatable;
+import ma.vi.esql.syntax.TranslationException;
+import ma.vi.esql.syntax.expression.Expression;
+import ma.vi.esql.syntax.expression.FunctionCall;
+import ma.vi.esql.syntax.macro.Bin;
+import ma.vi.esql.syntax.macro.InMonth;
 import ma.vi.esql.type.BaseRelation;
 import ma.vi.esql.type.Sequence;
 import ma.vi.esql.type.Type;
@@ -23,7 +23,7 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.*;
 import static java.util.stream.Collectors.joining;
 import static ma.vi.esql.function.DatePart.Part.*;
-import static ma.vi.esql.parser.Translatable.Target.*;
+import static ma.vi.esql.syntax.Translatable.Target.*;
 import static ma.vi.esql.type.Types.*;
 
 /**

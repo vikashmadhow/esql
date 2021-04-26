@@ -5,8 +5,8 @@
 package ma.vi.esql.type;
 
 import ma.vi.base.lang.NotFoundException;
-import ma.vi.esql.parser.Translatable;
-import ma.vi.esql.parser.query.Column;
+import ma.vi.esql.syntax.Translatable;
+import ma.vi.esql.syntax.query.Column;
 
 import java.sql.Date;
 import java.sql.Time;
@@ -17,7 +17,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static java.lang.Integer.MAX_VALUE;
-import static ma.vi.esql.parser.Translatable.Target.*;
+import static ma.vi.esql.syntax.Translatable.Target.*;
 
 /**
  * Type information on various structures stored in the database

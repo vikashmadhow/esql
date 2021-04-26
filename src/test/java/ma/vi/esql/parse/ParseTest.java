@@ -6,15 +6,15 @@ package ma.vi.esql.parse;
 
 import ma.vi.esql.DataTest;
 import ma.vi.esql.exec.EsqlConnection;
-import ma.vi.esql.parser.Parser;
-import ma.vi.esql.parser.query.Select;
+import ma.vi.esql.syntax.Parser;
+import ma.vi.esql.syntax.query.Select;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
 
 import java.util.UUID;
 import java.util.stream.Stream;
 
-import static ma.vi.esql.parser.Parser.Rules.SELECT;
+import static ma.vi.esql.syntax.Parser.Rules.SELECT;
 import static org.junit.jupiter.api.DynamicTest.dynamicTest;
 
 public class ParseTest extends DataTest {

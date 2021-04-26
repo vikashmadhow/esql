@@ -6,14 +6,14 @@ package ma.vi.esql;
 
 import ma.vi.esql.database.Database;
 import ma.vi.esql.database.Structure;
-import ma.vi.esql.parser.Context;
-import ma.vi.esql.parser.EsqlTransformer;
-import ma.vi.esql.parser.Parser;
-import ma.vi.esql.parser.Translatable;
-import ma.vi.esql.parser.define.Attribute;
-import ma.vi.esql.parser.define.ConstraintDefinition;
-import ma.vi.esql.parser.define.Metadata;
-import ma.vi.esql.parser.query.Column;
+import ma.vi.esql.syntax.Context;
+import ma.vi.esql.syntax.EsqlTransformer;
+import ma.vi.esql.syntax.Parser;
+import ma.vi.esql.syntax.Translatable;
+import ma.vi.esql.syntax.define.Attribute;
+import ma.vi.esql.syntax.define.ConstraintDefinition;
+import ma.vi.esql.syntax.define.Metadata;
+import ma.vi.esql.syntax.query.Column;
 import ma.vi.esql.translator.*;
 import ma.vi.esql.type.BaseRelation;
 
@@ -24,7 +24,7 @@ import java.util.*;
 
 import static ma.vi.esql.builder.Attributes.DERIVED;
 import static ma.vi.esql.builder.Attributes.TYPE;
-import static ma.vi.esql.parser.Translatable.Target.*;
+import static ma.vi.esql.syntax.Translatable.Target.*;
 
 /**
  * A test structure container containing structures used

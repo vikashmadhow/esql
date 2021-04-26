@@ -5,20 +5,20 @@
 package ma.vi.esql.builder;
 
 import ma.vi.base.lang.Builder;
-import ma.vi.esql.parser.Context;
-import ma.vi.esql.parser.Parser;
-import ma.vi.esql.parser.define.Attribute;
-import ma.vi.esql.parser.define.GroupBy;
-import ma.vi.esql.parser.define.Metadata;
-import ma.vi.esql.parser.expression.Expression;
-import ma.vi.esql.parser.query.*;
+import ma.vi.esql.syntax.Context;
+import ma.vi.esql.syntax.Parser;
+import ma.vi.esql.syntax.define.Attribute;
+import ma.vi.esql.syntax.define.GroupBy;
+import ma.vi.esql.syntax.define.Metadata;
+import ma.vi.esql.syntax.expression.Expression;
+import ma.vi.esql.syntax.query.*;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
-import static ma.vi.esql.parser.define.GroupBy.Type.*;
+import static ma.vi.esql.syntax.define.GroupBy.Type.*;
 
 /**
  * A builder for directly constructing select statements.

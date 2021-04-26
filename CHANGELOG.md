@@ -5,7 +5,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Planned]
-- Result transformers and encoders.
+- General-purpose language:
+  - Variable definitions and assignments
+  - Symbol table and scoping rules
+  - General typing  
+  - Conditional statements  
+  - Iteration and loops 
+  - Functions
 - Testing of all normal functions.
 - Testing of translation of grouping by complex expressions (subqueries) in SQL Server.
 - Testing of translation of distinct over multiple columns in SQL Server.
@@ -18,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Complete documentation of ESQL grammar.
 - Document purpose and usage.
 - Performance testing.
+- Result transformers and encoders.
 - Support for Oracle database.
 - Make into Java 9 module.
 

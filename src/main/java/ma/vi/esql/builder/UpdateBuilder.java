@@ -5,13 +5,13 @@
 package ma.vi.esql.builder;
 
 import ma.vi.base.lang.Builder;
-import ma.vi.esql.parser.Context;
-import ma.vi.esql.parser.Parser;
-import ma.vi.esql.parser.define.Attribute;
-import ma.vi.esql.parser.define.Metadata;
-import ma.vi.esql.parser.expression.Expression;
-import ma.vi.esql.parser.modify.Update;
-import ma.vi.esql.parser.query.*;
+import ma.vi.esql.syntax.Context;
+import ma.vi.esql.syntax.Parser;
+import ma.vi.esql.syntax.define.Attribute;
+import ma.vi.esql.syntax.define.Metadata;
+import ma.vi.esql.syntax.expression.Expression;
+import ma.vi.esql.syntax.modify.Update;
+import ma.vi.esql.syntax.query.*;
 
 import java.util.ArrayList;
 import java.util.List;
