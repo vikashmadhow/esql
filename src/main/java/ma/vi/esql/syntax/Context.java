@@ -5,8 +5,8 @@
 package ma.vi.esql.syntax;
 
 import ma.vi.esql.database.Structure;
-import ma.vi.esql.type.Type;
-import ma.vi.esql.type.Types;
+import ma.vi.esql.semantic.type.Type;
+import ma.vi.esql.semantic.type.Types;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;

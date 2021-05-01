@@ -15,7 +15,7 @@ import ma.vi.esql.syntax.define.ConstraintDefinition;
 import ma.vi.esql.syntax.define.Metadata;
 import ma.vi.esql.syntax.query.Column;
 import ma.vi.esql.translator.*;
-import ma.vi.esql.type.BaseRelation;
+import ma.vi.esql.semantic.type.BaseRelation;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;

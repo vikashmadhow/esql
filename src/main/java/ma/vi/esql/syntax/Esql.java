@@ -8,7 +8,7 @@ import ma.vi.base.tuple.T2;
 import ma.vi.esql.database.Database;
 import ma.vi.esql.exec.Result;
 import ma.vi.esql.translator.TranslatorFactory;
-import ma.vi.esql.type.Type;
+import ma.vi.esql.semantic.type.Type;
 
 import java.lang.reflect.Array;
 import java.sql.Connection;
@@ -19,7 +19,7 @@ import java.util.function.Predicate;
 import static java.lang.Integer.MAX_VALUE;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
-import static ma.vi.esql.type.Types.VoidType;
+import static ma.vi.esql.semantic.type.Types.VoidType;
 import static org.apache.commons.lang3.StringUtils.repeat;
 
 /**

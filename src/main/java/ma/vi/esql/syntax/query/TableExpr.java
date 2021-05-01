@@ -7,7 +7,7 @@ package ma.vi.esql.syntax.query;
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
-import ma.vi.esql.type.Relation;
+import ma.vi.esql.semantic.type.Relation;
 
 /**
  * The table expression in the from clause of a select, update or delete statement

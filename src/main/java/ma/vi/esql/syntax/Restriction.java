@@ -4,7 +4,7 @@
 
 package ma.vi.esql.syntax;
 
-import ma.vi.esql.type.Relation;
+import ma.vi.esql.semantic.type.Relation;
 
 import java.util.Objects;
 import java.util.Set;

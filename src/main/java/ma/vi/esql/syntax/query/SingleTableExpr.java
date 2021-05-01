@@ -5,8 +5,8 @@
 package ma.vi.esql.syntax.query;
 
 import ma.vi.base.lang.NotFoundException;
+import ma.vi.esql.semantic.type.*;
 import ma.vi.esql.syntax.Context;
-import ma.vi.esql.type.*;
 
 import java.util.Map;
 

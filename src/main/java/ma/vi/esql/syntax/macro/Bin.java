@@ -11,7 +11,11 @@ import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.Macro;
 import ma.vi.esql.syntax.TranslationException;
 import ma.vi.esql.syntax.expression.*;
-import ma.vi.esql.type.Types;
+import ma.vi.esql.semantic.type.Types;
+import ma.vi.esql.syntax.expression.comparison.Case;
+import ma.vi.esql.syntax.expression.comparison.LessThan;
+import ma.vi.esql.syntax.expression.comparison.Range;
+import ma.vi.esql.syntax.expression.literal.StringLiteral;
 
 import java.util.ArrayList;
 import java.util.Arrays;

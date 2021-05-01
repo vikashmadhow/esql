@@ -6,7 +6,7 @@ package ma.vi.esql.syntax.query;
 
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.syntax.Context;
-import ma.vi.esql.type.Join;
+import ma.vi.esql.semantic.type.Join;
 
 /**
  * Abstract parent of cross-products and joins table expressions. Each of these

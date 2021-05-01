@@ -16,8 +16,8 @@ import java.util.Map;
 import static java.util.stream.Collectors.joining;
 import static ma.vi.esql.syntax.Translatable.Target.MARIADB;
 import static ma.vi.esql.syntax.Translatable.Target.MYSQL;
-import static ma.vi.esql.type.Type.dbTableName;
-import static ma.vi.esql.type.Type.splitName;
+import static ma.vi.esql.semantic.type.Type.dbTableName;
+import static ma.vi.esql.semantic.type.Type.splitName;
 
 /**
  * Represents a foreign key in ESQL statement

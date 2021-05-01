@@ -11,7 +11,7 @@ import ma.vi.esql.exec.Result;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.query.Column;
-import ma.vi.esql.type.BaseRelation;
+import ma.vi.esql.semantic.type.BaseRelation;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -22,8 +22,8 @@ import java.util.Map;
 
 import static java.util.Collections.singletonList;
 import static ma.vi.esql.syntax.Translatable.Target.*;
-import static ma.vi.esql.type.Type.dbTableName;
-import static ma.vi.esql.type.Type.splitName;
+import static ma.vi.esql.semantic.type.Type.dbTableName;
+import static ma.vi.esql.semantic.type.Type.splitName;
 
 /**
  * Alter table statement.

@@ -8,7 +8,7 @@ import ma.vi.esql.syntax.modify.Insert;
 import ma.vi.esql.syntax.modify.InsertRow;
 import ma.vi.esql.syntax.modify.Update;
 import ma.vi.esql.syntax.query.*;
-import ma.vi.esql.type.Type;
+import ma.vi.esql.semantic.type.Type;
 
 import java.util.List;
 import java.util.Map;

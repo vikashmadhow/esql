@@ -5,13 +5,14 @@
 package ma.vi.esql.syntax.expression;
 
 import ma.vi.base.tuple.T2;
+import ma.vi.esql.semantic.type.*;
 import ma.vi.esql.syntax.*;
 import ma.vi.esql.syntax.define.AlterTable;
 import ma.vi.esql.syntax.define.ColumnDefinition;
 import ma.vi.esql.syntax.define.CreateTable;
 import ma.vi.esql.syntax.define.DerivedColumnDefinition;
 import ma.vi.esql.syntax.query.Column;
-import ma.vi.esql.type.*;
+import ma.vi.esql.syntax.query.QueryUpdate;
 
 import java.util.Map;
 

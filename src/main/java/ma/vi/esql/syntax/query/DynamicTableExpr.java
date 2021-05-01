@@ -10,10 +10,10 @@ import ma.vi.esql.syntax.define.NameWithMetadata;
 import ma.vi.esql.syntax.expression.ColumnRef;
 import ma.vi.esql.syntax.expression.Expression;
 import ma.vi.esql.syntax.modify.InsertRow;
-import ma.vi.esql.type.AliasedRelation;
-import ma.vi.esql.type.BaseRelation;
-import ma.vi.esql.type.Selection;
-import ma.vi.esql.type.Type;
+import ma.vi.esql.semantic.type.AliasedRelation;
+import ma.vi.esql.semantic.type.BaseRelation;
+import ma.vi.esql.semantic.type.Selection;
+import ma.vi.esql.semantic.type.Type;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,7 +21,7 @@ import java.util.Map;
 import java.util.Random;
 
 import static java.util.stream.Collectors.joining;
-import static ma.vi.esql.type.Types.NullType;
+import static ma.vi.esql.semantic.type.Types.NullType;
 
 /**
  * Represents a dynamic table created from a list of rows:

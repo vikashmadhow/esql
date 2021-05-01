@@ -9,9 +9,10 @@ import ma.vi.base.tuple.T2;
 import ma.vi.esql.database.Database;
 import ma.vi.esql.syntax.*;
 import ma.vi.esql.syntax.expression.Expression;
-import ma.vi.esql.syntax.expression.Literal;
+import ma.vi.esql.syntax.expression.literal.Literal;
 import ma.vi.esql.syntax.expression.NamedParameter;
-import ma.vi.esql.syntax.expression.NullLiteral;
+import ma.vi.esql.syntax.expression.literal.NullLiteral;
+import ma.vi.esql.syntax.query.QueryUpdate;
 
 import java.sql.Connection;
 import java.sql.SQLException;

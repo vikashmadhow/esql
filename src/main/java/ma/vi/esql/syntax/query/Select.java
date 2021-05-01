@@ -9,7 +9,6 @@ import ma.vi.esql.function.Function;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.Macro;
-import ma.vi.esql.syntax.QueryUpdate;
 import ma.vi.esql.syntax.define.Attribute;
 import ma.vi.esql.syntax.define.GroupBy;
 import ma.vi.esql.syntax.define.Metadata;
@@ -17,9 +16,9 @@ import ma.vi.esql.syntax.expression.ColumnRef;
 import ma.vi.esql.syntax.expression.Expression;
 import ma.vi.esql.syntax.expression.FunctionCall;
 import ma.vi.esql.syntax.expression.SelectExpression;
-import ma.vi.esql.type.AliasedRelation;
-import ma.vi.esql.type.BaseRelation;
-import ma.vi.esql.type.Relation;
+import ma.vi.esql.semantic.type.AliasedRelation;
+import ma.vi.esql.semantic.type.BaseRelation;
+import ma.vi.esql.semantic.type.Relation;
 
 import java.util.*;
 

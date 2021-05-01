@@ -9,13 +9,13 @@ import ma.vi.esql.syntax.define.GroupBy;
 import ma.vi.esql.syntax.expression.ColumnRef;
 import ma.vi.esql.syntax.expression.Expression;
 import ma.vi.esql.syntax.expression.FunctionCall;
-import ma.vi.esql.syntax.expression.IntegerLiteral;
+import ma.vi.esql.syntax.expression.literal.IntegerLiteral;
 import ma.vi.esql.syntax.modify.Delete;
 import ma.vi.esql.syntax.modify.Insert;
 import ma.vi.esql.syntax.modify.InsertRow;
 import ma.vi.esql.syntax.modify.Update;
 import ma.vi.esql.syntax.query.*;
-import ma.vi.esql.type.Type;
+import ma.vi.esql.semantic.type.Type;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;

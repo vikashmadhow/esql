@@ -7,7 +7,7 @@ package ma.vi.esql.syntax.modify;
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
-import ma.vi.esql.syntax.QueryUpdate;
+import ma.vi.esql.syntax.query.QueryUpdate;
 import ma.vi.esql.syntax.define.Attribute;
 import ma.vi.esql.syntax.define.Metadata;
 import ma.vi.esql.syntax.expression.Expression;

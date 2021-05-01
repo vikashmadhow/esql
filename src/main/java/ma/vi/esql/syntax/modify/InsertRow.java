@@ -6,8 +6,8 @@ package ma.vi.esql.syntax.modify;
 
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.expression.Expression;
-import ma.vi.esql.type.Type;
-import ma.vi.esql.type.Types;
+import ma.vi.esql.semantic.type.Type;
+import ma.vi.esql.semantic.type.Types;
 
 import java.util.List;
 import java.util.Map;

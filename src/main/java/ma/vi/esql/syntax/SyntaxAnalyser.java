@@ -6,23 +6,21 @@ package ma.vi.esql.syntax;
 
 import ma.vi.esql.grammar.EsqlBaseListener;
 import ma.vi.esql.syntax.define.*;
-import ma.vi.esql.syntax.expression.BooleanLiteral;
-import ma.vi.esql.syntax.expression.DateLiteral;
-import ma.vi.esql.syntax.expression.FloatingPointLiteral;
-import ma.vi.esql.syntax.expression.IntegerLiteral;
-import ma.vi.esql.syntax.expression.IntervalLiteral;
-import ma.vi.esql.syntax.expression.Not;
-import ma.vi.esql.syntax.expression.NullLiteral;
-import ma.vi.esql.syntax.expression.StringLiteral;
-import ma.vi.esql.syntax.expression.UuidLiteral;
+import ma.vi.esql.syntax.expression.arithmetic.*;
+import ma.vi.esql.syntax.expression.comparison.*;
+import ma.vi.esql.syntax.expression.literal.*;
+import ma.vi.esql.syntax.expression.literal.DateLiteral;
+import ma.vi.esql.syntax.expression.logical.And;
+import ma.vi.esql.syntax.expression.logical.Or;
+import ma.vi.esql.syntax.expression.logical.Not;
 import ma.vi.esql.syntax.expression.*;
 import ma.vi.esql.syntax.modify.Delete;
 import ma.vi.esql.syntax.modify.Insert;
 import ma.vi.esql.syntax.modify.InsertRow;
 import ma.vi.esql.syntax.modify.Update;
 import ma.vi.esql.syntax.query.*;
-import ma.vi.esql.type.Type;
-import ma.vi.esql.type.Types;
+import ma.vi.esql.semantic.type.Type;
+import ma.vi.esql.semantic.type.Types;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.RuleContext;
 import org.antlr.v4.runtime.Token;
@@ -828,12 +826,12 @@ public class SyntaxAnalyser extends EsqlBaseListener {
 
   @Override
   public void exitLogicalAndExpr(LogicalAndExprContext ctx) {
-    put(ctx, new LogicalAnd(context, get(ctx.left), get(ctx.right)));
+    put(ctx, new And(context, get(ctx.left), get(ctx.right)));
   }
 
   @Override
   public void exitLogicalOrExpr(LogicalOrExprContext ctx) {
-    put(ctx, new LogicalOr(context, get(ctx.left), get(ctx.right)));
+    put(ctx, new Or(context, get(ctx.left), get(ctx.right)));
   }
 
   @Override

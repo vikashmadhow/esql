@@ -6,6 +6,10 @@ package ma.vi.esql.syntax.define;
 
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.expression.*;
+import ma.vi.esql.syntax.expression.literal.BooleanLiteral;
+import ma.vi.esql.syntax.expression.literal.IntegerLiteral;
+import ma.vi.esql.syntax.expression.literal.StringLiteral;
+import ma.vi.esql.syntax.expression.literal.UuidLiteral;
 
 import java.util.HashMap;
 import java.util.List;

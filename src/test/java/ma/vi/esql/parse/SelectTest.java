@@ -16,7 +16,7 @@ import ma.vi.esql.syntax.Parser;
 import ma.vi.esql.syntax.Program;
 import ma.vi.esql.syntax.expression.Expression;
 import ma.vi.esql.syntax.query.Select;
-import ma.vi.esql.type.AmbiguousColumnException;
+import ma.vi.esql.semantic.type.AmbiguousColumnException;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestFactory;

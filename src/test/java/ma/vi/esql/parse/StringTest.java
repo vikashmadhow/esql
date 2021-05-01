@@ -9,7 +9,7 @@ import ma.vi.esql.database.Structure;
 import ma.vi.esql.grammar.EsqlParser;
 import ma.vi.esql.syntax.Parser;
 import ma.vi.esql.syntax.define.Metadata;
-import ma.vi.esql.syntax.expression.StringLiteral;
+import ma.vi.esql.syntax.expression.literal.StringLiteral;
 import org.junit.jupiter.api.Test;
 
 import static ma.vi.esql.syntax.Translatable.Target.*;

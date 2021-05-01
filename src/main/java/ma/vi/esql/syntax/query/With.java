@@ -8,9 +8,8 @@ import ma.vi.base.tuple.T2;
 import ma.vi.esql.database.SqlServer;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
-import ma.vi.esql.syntax.QueryUpdate;
 import ma.vi.esql.syntax.Restriction;
-import ma.vi.esql.type.Selection;
+import ma.vi.esql.semantic.type.Selection;
 
 import java.util.List;
 import java.util.Map;

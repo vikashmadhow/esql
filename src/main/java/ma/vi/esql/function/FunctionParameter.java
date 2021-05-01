@@ -4,7 +4,7 @@
 
 package ma.vi.esql.function;
 
-import ma.vi.esql.type.Type;
+import ma.vi.esql.semantic.type.Type;
 
 /**
  * The definition of a function parameter.

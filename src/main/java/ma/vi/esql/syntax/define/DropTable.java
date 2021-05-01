@@ -8,14 +8,14 @@ import ma.vi.esql.database.Database;
 import ma.vi.esql.database.Structure;
 import ma.vi.esql.exec.Result;
 import ma.vi.esql.syntax.Context;
-import ma.vi.esql.type.BaseRelation;
+import ma.vi.esql.semantic.type.BaseRelation;
 
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Map;
 
 import static ma.vi.esql.syntax.Translatable.Target.ESQL;
-import static ma.vi.esql.type.Type.dbTableName;
+import static ma.vi.esql.semantic.type.Type.dbTableName;
 
 public class DropTable extends Define<String> {
   public DropTable(Context context, String name) {

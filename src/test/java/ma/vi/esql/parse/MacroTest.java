@@ -7,7 +7,7 @@ package ma.vi.esql.parse;
 import ma.vi.esql.DataTest;
 import ma.vi.esql.exec.EsqlConnection;
 import ma.vi.esql.exec.Result;
-import ma.vi.esql.type.AmbiguousColumnException;
+import ma.vi.esql.semantic.type.AmbiguousColumnException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;

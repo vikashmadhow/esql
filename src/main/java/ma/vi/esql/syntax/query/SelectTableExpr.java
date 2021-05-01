@@ -5,10 +5,9 @@
 package ma.vi.esql.syntax.query;
 
 import ma.vi.esql.syntax.Context;
-import ma.vi.esql.syntax.QueryUpdate;
 import ma.vi.esql.syntax.expression.ColumnRef;
-import ma.vi.esql.type.AliasedRelation;
-import ma.vi.esql.type.Selection;
+import ma.vi.esql.semantic.type.AliasedRelation;
+import ma.vi.esql.semantic.type.Selection;
 
 import java.util.ArrayList;
 import java.util.List;

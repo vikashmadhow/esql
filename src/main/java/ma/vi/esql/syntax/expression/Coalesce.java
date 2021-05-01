@@ -5,7 +5,7 @@
 package ma.vi.esql.syntax.expression;
 
 import ma.vi.esql.syntax.Context;
-import ma.vi.esql.type.Types;
+import ma.vi.esql.semantic.type.Types;
 
 import java.util.List;
 import java.util.Map;

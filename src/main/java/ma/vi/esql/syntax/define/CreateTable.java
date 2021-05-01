@@ -16,8 +16,8 @@ import ma.vi.esql.syntax.expression.ColumnRef;
 import ma.vi.esql.syntax.expression.Expression;
 import ma.vi.esql.syntax.query.Column;
 import ma.vi.esql.syntax.query.Select;
-import ma.vi.esql.type.BaseRelation;
-import ma.vi.esql.type.Type;
+import ma.vi.esql.semantic.type.BaseRelation;
+import ma.vi.esql.semantic.type.Type;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -32,7 +32,7 @@ import static java.util.stream.Collectors.toSet;
 import static ma.vi.esql.builder.Attributes.DESCRIPTION;
 import static ma.vi.esql.builder.Attributes.NAME;
 import static ma.vi.esql.syntax.Translatable.Target.*;
-import static ma.vi.esql.type.Type.dbTableName;
+import static ma.vi.esql.semantic.type.Type.dbTableName;
 
 /**
  * Create table statement.

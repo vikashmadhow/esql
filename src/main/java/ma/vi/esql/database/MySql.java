@@ -8,8 +8,8 @@ import com.mysql.cj.jdbc.MysqlDataSource;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import ma.vi.esql.syntax.Translatable;
-import ma.vi.esql.type.Type;
-import ma.vi.esql.type.Types;
+import ma.vi.esql.semantic.type.Type;
+import ma.vi.esql.semantic.type.Types;
 
 import java.sql.*;
 import java.util.Map;

@@ -7,8 +7,8 @@ package ma.vi.esql.database;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import ma.vi.esql.syntax.Translatable;
-import ma.vi.esql.type.Type;
-import ma.vi.esql.type.Types;
+import ma.vi.esql.semantic.type.Type;
+import ma.vi.esql.semantic.type.Types;
 import org.hsqldb.Server;
 import org.hsqldb.jdbc.JDBCDataSource;
 

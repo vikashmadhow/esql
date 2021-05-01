@@ -7,8 +7,8 @@ package ma.vi.esql.syntax.query;
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.syntax.*;
 import ma.vi.esql.syntax.expression.ColumnRef;
-import ma.vi.esql.type.Selection;
-import ma.vi.esql.type.Type;
+import ma.vi.esql.semantic.type.Selection;
+import ma.vi.esql.semantic.type.Type;
 
 import java.util.ArrayList;
 import java.util.List;

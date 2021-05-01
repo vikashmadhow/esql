@@ -10,7 +10,12 @@ import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.Macro;
 import ma.vi.esql.syntax.TranslationException;
 import ma.vi.esql.syntax.expression.*;
-import ma.vi.esql.type.Types;
+import ma.vi.esql.semantic.type.Types;
+import ma.vi.esql.syntax.expression.comparison.Between;
+import ma.vi.esql.syntax.expression.comparison.Equality;
+import ma.vi.esql.syntax.expression.literal.DateLiteral;
+import ma.vi.esql.syntax.expression.literal.IntegerLiteral;
+import ma.vi.esql.syntax.expression.logical.And;
 import org.apache.commons.lang3.StringUtils;
 
 import java.time.LocalDate;
@@ -68,7 +73,7 @@ public class InMonth extends Function implements Macro {
       call.parent.replaceWith(name,
                               new GroupedExpression(
                                   ctx,
-                                  new LogicalAnd(
+                                  new And(
                                       ctx,
                                       new Equality(
                                           ctx,
