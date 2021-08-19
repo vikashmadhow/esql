@@ -5,6 +5,7 @@
 package ma.vi.esql.semantic.type;
 
 import ma.vi.base.tuple.T2;
+import ma.vi.esql.semantic.scope.Symbol;
 import ma.vi.esql.syntax.Copy;
 import ma.vi.esql.syntax.Translatable;
 import ma.vi.esql.syntax.expression.Expression;
@@ -20,7 +21,7 @@ import static ma.vi.esql.syntax.Translatable.Target.*;
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public interface Type extends Copy<Type>, Translatable<String> {
+public interface Type extends Symbol, Copy<Type>, Translatable<String> {
   /**
    * The name of the type.
    */
@@ -49,20 +50,13 @@ public interface Type extends Copy<Type>, Translatable<String> {
    */
   Type copy();
 
-  /*
+  /**
    * Abstract types represent concepts which cannot be directly acted upon;
    * these includes the NullType, VoidType, TopType and so on. In contrast
    * a non-abstract type represents a concrete thing such as an Integer, a
    * Date, etc.
    */
   boolean isAbstract();
-
-  /**
-   * The kind of types.
-   */
-  enum Kind {
-    BASE, ARRAY, COMPOSITE
-  }
 
   @Override
   default String translate(Target target, Map<String, Object> parameters) {
@@ -94,10 +88,14 @@ public interface Type extends Copy<Type>, Translatable<String> {
     return new ArrayType(this);
   }
 
-  Type Void = new Type() {
+  class InternalType implements Type {
+    protected InternalType(String name) {
+      this.name = name;
+    }
+
     @Override
     public String name() {
-      return "Void";
+      return name;
     }
 
     @Override
@@ -111,12 +109,10 @@ public interface Type extends Copy<Type>, Translatable<String> {
     }
 
     @Override
-    public void copying(boolean copying) {
-    }
+    public void copying(boolean copying) {}
 
     @Override
-    public void name(String name) {
-    }
+    public void name(String name) {}
 
     @Override
     public Kind kind() {
@@ -132,7 +128,11 @@ public interface Type extends Copy<Type>, Translatable<String> {
     public boolean isAbstract() {
       return true;
     }
-  };
+
+    private final String name;
+  }
+
+  Type Void = new InternalType("Void");
 
   /**
    * Returns the schema from a fully qualified name. A fully qualified name

@@ -859,14 +859,11 @@ columnReference
  *    age_min: (min(age) from People)
  */
 selectExpression
-    : '(' 'select'?
-          distinct?
-          (alias ':')? col=expr
-            'from' tableExpr
-         ( 'where' where=expr)?
-         ( 'order' 'by' orderByList)?
-         ('offset' offset=expr)?
-      ')'
+    : 'from' tableExpr
+      'select' distinct? (alias ':')? col=expr
+     ('where' where=expr)?
+     ('order' 'by' orderByList)?
+     ('offset' offset=expr)?
     ;
 
 /**

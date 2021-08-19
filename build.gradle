@@ -1,14 +1,14 @@
 /*
- * Copyright (c) 2020-2021 Vikash Madhow
+ * Copyright (c) 2018-2021 Vikash Madhow
  */
 
 /**
- *  _____  _____  ______
- * |  __  |  __  |  _  |  | |
- * | |__  | |__  | | | |  | |
- * |  __  |__  | | | | |  | |
- * | |__   __| | | |_| |_ | |___
- * |_____ _____| |_______ |_____
+ *                      .__
+ *    ____   ___________|  |
+ *  _/ __ \ /  ___/ ____/  |
+ *  \  ___/ \___ < <_|  |  |__
+ *   \___  >____  >__   |____/
+ *       \/     \/   |__|
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
@@ -121,7 +121,7 @@ test {
 group = 'com.vikmad'
 archivesBaseName = 'esql'
 sourceCompatibility = JavaVersion.VERSION_14
-version = "0.5.1"
+version = "0.5.2"
 ext.isReleaseVersion = !version.endsWith("SNAPSHOT")
 
 java {

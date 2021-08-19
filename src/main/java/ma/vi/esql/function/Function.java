@@ -4,10 +4,12 @@
 
 package ma.vi.esql.function;
 
+import ma.vi.esql.semantic.type.AbstractType;
+import ma.vi.esql.semantic.type.Kind;
+import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.syntax.Translatable;
 import ma.vi.esql.syntax.expression.Expression;
 import ma.vi.esql.syntax.expression.FunctionCall;
-import ma.vi.esql.semantic.type.Type;
 
 import java.util.List;
 import java.util.Map;
@@ -21,7 +23,7 @@ import static ma.vi.esql.syntax.Translatable.Target.HSQLDB;
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public class Function {
+public class Function extends AbstractType {
   public Function(String name,
                   Type returnType,
                   List<FunctionParameter> parameters) {
@@ -33,11 +35,19 @@ public class Function {
                   List<FunctionParameter> parameters,
                   boolean aggregate,
                   Map<Translatable.Target, String> translations) {
-    this.name = name;
+    super(name);
     this.returnType = returnType;
     this.parameters = parameters == null ? emptyList() : parameters;
     this.aggregate = aggregate;
     this.translations = translations;
+  }
+
+  @Override
+  public Function copy() {
+    /*
+     * Functions are immutable, no need for copy.
+     */
+    return this;
   }
 
   public String translate(FunctionCall call, Translatable.Target target) {
@@ -74,7 +84,16 @@ public class Function {
     return st.append(')').toString();
   }
 
-  public final String name;
+  @Override
+  public Kind kind() {
+    return Kind.FUNCTION;
+  }
+
+  @Override
+  public boolean isAbstract() {
+    return false;
+  }
+
   public final Type returnType;
   public final List<FunctionParameter> parameters;
   public final boolean aggregate;

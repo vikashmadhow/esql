@@ -21,9 +21,9 @@ public class StringTest {
     Parser parser = new Parser(Databases.HSqlDb().structure());
     StringLiteral expr = (StringLiteral)parser.parseExpression("'this is a \n\ttest\n...\tMX3\f\\c'");
     assertEquals("'this is a \n\ttest\n...\tMX3\f\\c'", expr.value);
-    assertEquals("select N'this is a \n\ttest\n...\tMX3\f\\c'", expr.translate(SQLSERVER));
-    assertEquals("select 'this is a \n\ttest\n...\tMX3\f\\c'", expr.translate(HSQLDB));
-    assertEquals("select E'this is a \\n\\ttest\\n...\\tMX3\\f\\\\c'", expr.translate(POSTGRESQL));
+    assertEquals("N'this is a \n\ttest\n...\tMX3\f\\c'", expr.translate(SQLSERVER));
+    assertEquals("'this is a \n\ttest\n...\tMX3\f\\c'", expr.translate(HSQLDB));
+    assertEquals("E'this is a \\n\\ttest\\n...\\tMX3\\f\\\\c'", expr.translate(POSTGRESQL));
   }
 
   @Test

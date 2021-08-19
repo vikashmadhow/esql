@@ -73,7 +73,7 @@ public class TestDatabase implements Database {
       BaseRelation S = new BaseRelation(
           context, UUID.randomUUID(), "S", "S", "S",
           Arrays.asList(
-              new Attribute(context, "tm1", parser.parseExpression("(max(b) from S)")),
+              new Attribute(context, "tm1", parser.parseExpression("from S select max(b)")),
               new Attribute(context, "tm2", parser.parseExpression("a > b"))
           ),
           new ArrayList<>(Arrays.asList(
@@ -138,23 +138,23 @@ public class TestDatabase implements Database {
               ),
               new Column(
                   context, "f",
-                  parser.parseExpression("(max(a) from S)"),
+                  parser.parseExpression("from S select max(a)"),
                   new Metadata(
                       context,
                       new ArrayList<>(Arrays.asList(
                           new Attribute(context, DERIVED, parser.parseExpression("true")),
-                          new Attribute(context, "m1", parser.parseExpression("(min(a) from S)"))
+                          new Attribute(context, "m1", parser.parseExpression("from S select min(a)"))
                       ))
                   )
               ),
               new Column(
                   context, "g",
-                  parser.parseExpression("(distinct c from S where d>5)"),
+                  parser.parseExpression("from S select distinct c where d>5"),
                   new Metadata(
                       context,
                       new ArrayList<>(Arrays.asList(
                           new Attribute(context, DERIVED, parser.parseExpression("true")),
-                          new Attribute(context, "m1", parser.parseExpression("(min(a) from a.b.T)"))
+                          new Attribute(context, "m1", parser.parseExpression("from a.b.T select min(a)"))
                       ))
                   )
               ),
@@ -187,7 +187,7 @@ public class TestDatabase implements Database {
       BaseRelation T = new BaseRelation(
           context, UUID.randomUUID(), "a.b.T","a.b.T","a.b.T",
           Arrays.asList(
-              new Attribute(context, "tm1", parser.parseExpression("max(b) from S")),
+              new Attribute(context, "tm1", parser.parseExpression("from S select max(b)")),
               new Attribute(context, "tm2", parser.parseExpression("a > b"))
           ),
           new ArrayList<>(Arrays.asList(

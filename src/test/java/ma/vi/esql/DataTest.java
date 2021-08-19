@@ -33,7 +33,7 @@ public class DataTest {
                                 "  {" +
                                 "    name: 'S'," +
                                 "    description: 'S test table'," +
-                                "    tm1: (max(b) from S)," +
+                                "    tm1: from S select max(b)," +
                                 "    tm2: a > b" +
                                 "  }, " +
                                 "  _id uuid not null," +
@@ -56,11 +56,11 @@ public class DataTest {
                                 "  e bool {" +
                                 "    m1: c" +
                                 "  }," +
-                                "  f=(max(a) from S) {" +
-                                "    m1: (min(a) from S)" +
+                                "  f=from S select max(a) {" +
+                                "    m1: from S select min(a)" +
                                 "  }," +
-                                "  g=(distinct c from S where d>5) {" +
-                                "    m1: (min(a) from a.b.T)" +
+                                "  g=from S select distinct c where d>5 {" +
+                                "    m1: from a.b.T select min(a)" +
                                 "  }," +
                                 "  h text[] {" +
                                 "    m1: 5" +
@@ -77,7 +77,7 @@ public class DataTest {
                     "  {" +
                     "    name: 'T'," +
                     "    description: 'T test table'," +
-                    "    tm1: (max(b) from a.b.T)," +
+                    "    tm1: from a.b.T select max(b)," +
                     "    tm2: a > b" +
                     "  }, " +
                     "  _id uuid not null," +
@@ -116,7 +116,7 @@ public class DataTest {
                     "  {" +
                     "    name: 'X'," +
                     "    description: 'X test table'," +
-                    "    tm1: (max(b) from a.b.X)," +
+                    "    tm1: from a.b.X select max(b)," +
                     "    tm2: a > b" +
                     "  }, " +
                     "  _id uuid not null," +
@@ -153,7 +153,7 @@ public class DataTest {
                     "  {" +
                     "    name: 'Y'," +
                     "    description: 'Y test table'," +
-                    "    tm1: (max(b) from b.Y)," +
+                    "    tm1: from b.Y select max(b)," +
                     "    tm2: a > b" +
                     "  }, " +
                     "  _id uuid not null," +

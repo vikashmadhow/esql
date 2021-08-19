@@ -71,14 +71,14 @@ public class Expression<V, R> extends Esql<V, R> {
     return columns;
   }
 
-  @Override
-  public R translate(Target target, Map<String, Object> parameters) {
-    if (ancestor(Statement.class) == null) {
-      return (R)("select " + trans(target, parameters));
-    } else {
-      return trans(target, parameters);
-    }
-  }
+//  @Override
+//  public R translate(Target target, Map<String, Object> parameters) {
+//    if (ancestor(Statement.class) == null) {
+//      return (R)("select " + trans(target, parameters));
+//    } else {
+//      return trans(target, parameters);
+//    }
+//  }
 
 //  public void basedOn(Field basedOn) {
 //    children.put("basedOn", new Esql<>(context, basedOn));

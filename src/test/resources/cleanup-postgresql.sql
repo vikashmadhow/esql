@@ -253,3 +253,9 @@ select (iif("S"."a" > "S"."b", 1, 0))                                           
        (iif("S"."b" < 0, 1, 0))                                                    "b/m1"
 from "DBO"."S" "S"
 order by "a"
+
+
+
+
+
+create table if not exists "_core"."constraints"("_id" uuid not null, "name" text not null, "relation_id" uuid not null, "type" char(1) not null, "check_expr" text, "source_columns" text[], "target_relation_id" uuid, "target_columns" text[], "forward_cost" integer not null default select 1, "reverse_cost" integer not null default select 2, "on_update" char(1), "on_delete" char(1), constraint "_core_constraints_pk" primary key("_id"), constraint "_core_constraints_rel_id_fk" foreign key("relation_id") references "_core"."relations"("_id") on update cascade on delete cascade)

@@ -441,7 +441,7 @@ public class Structure {
   }
 
   public synchronized void function(Function function) {
-    functions.put(function.name, function);
+    functions.put(function.name(), function);
   }
 
   public Map<String, Sequence> sequences() {

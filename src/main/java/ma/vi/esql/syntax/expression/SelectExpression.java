@@ -52,7 +52,8 @@ public class SelectExpression extends Expression<Select, String> {
   protected String trans(Target target, Map<String, Object> parameters) {
     if (target == Target.ESQL) {
       Select sel = select();
-      StringBuilder st = new StringBuilder("(");
+      StringBuilder st = new StringBuilder();
+      st.append("(from ").append(sel.tables().translate(target, parameters)).append(" select ");
       if (sel.distinct()) {
         st.append("distinct ");
         List<Expression<?, String>> distinctOn = sel.distinctOn();
@@ -69,9 +70,6 @@ public class SelectExpression extends Expression<Select, String> {
       }
       st.append(col.expr().translate(target, parameters));
 
-      if (sel.tables() != null) {
-        st.append(" from ").append(sel.tables().translate(target, parameters));
-      }
       if (sel.where() != null) {
         st.append(" where ").append(sel.where().translate(target, parameters));
       }
@@ -89,7 +87,6 @@ public class SelectExpression extends Expression<Select, String> {
       }
       st.append(')');
       return st.toString();
-
     } else {
       return '(' + select().translate(target, parameters).statement + ')';
     }
@@ -97,8 +94,10 @@ public class SelectExpression extends Expression<Select, String> {
 
   @Override
   public void _toString(StringBuilder st, int level, int indent) {
-    st.append('(');
+    st.append("(from ");
     Select sel = select();
+    sel.from()._toString(st, level, indent);
+    st.append(" select ");
     Boolean distinct = sel.distinct();
     if (distinct != null && distinct) {
       st.append("distinct ");
@@ -114,8 +113,6 @@ public class SelectExpression extends Expression<Select, String> {
       }
     }
     sel.columns().get(0)._toString(st, level, indent);
-    st.append(" from ");
-    sel.from()._toString(st, level, indent);
     if (sel.where() != null) {
       st.append(" where ");
       sel.where()._toString(st, level, indent);

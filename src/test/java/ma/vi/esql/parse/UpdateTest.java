@@ -68,25 +68,25 @@ public class UpdateTest extends DataTest {
     }
   }
 
-  @Test
-  void simpleUpdateHSqlDb() {
-    Database db = Databases.HSqlDb();
-    Parser p = new Parser(db.structure());
-    try (EsqlConnection con = db.esql(db.pooledConnection())) {
-      Update s = p.parse("update usr " +
-                              "  from usr:_platform.user.User" +
-                              "   set username='xyz', " +
-                              "       realname='yxz' " +
-                              " where email='xyz@yxz.com'", UPDATE);
-      QueryTranslation q = s.translate(db.target());
-      Assertions.assertEquals(
-          "update \"_platform.user\".\"User\" \"usr\" " +
-              "set \"username\"='xyz', \"realname\"='yxz' " +
-              "where (\"email\" = 'xyz@yxz.com')",
-          q.statement);
-      con.exec(s);
-    }
-  }
+//  @Test
+//  void simpleUpdateHSqlDb() {
+//    Database db = Databases.HSqlDb();
+//    Parser p = new Parser(db.structure());
+//    try (EsqlConnection con = db.esql(db.pooledConnection())) {
+//      Update s = p.parse("update usr " +
+//                              "  from usr:_platform.user.User" +
+//                              "   set username='xyz', " +
+//                              "       realname='yxz' " +
+//                              " where email='xyz@yxz.com'", UPDATE);
+//      QueryTranslation q = s.translate(db.target());
+//      Assertions.assertEquals(
+//          "update \"_platform.user\".\"User\" \"usr\" " +
+//              "set \"username\"='xyz', \"realname\"='yxz' " +
+//              "where (\"email\" = 'xyz@yxz.com')",
+//          q.statement);
+//      con.exec(s);
+//    }
+//  }
 
   @Test
   void multiUpdatePostgresql() {

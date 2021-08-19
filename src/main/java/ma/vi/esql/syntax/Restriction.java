@@ -44,7 +44,7 @@ public class Restriction {
       if (o == null || getClass() != o.getClass()) return false;
       By by = (By)o;
       return Objects.equals(table, by.table) &&
-          Objects.equals(column, by.column);
+             Objects.equals(column, by.column);
     }
 
     @Override

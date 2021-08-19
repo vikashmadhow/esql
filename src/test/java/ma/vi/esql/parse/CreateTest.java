@@ -26,7 +26,7 @@ public class CreateTest extends DataTest {
                                              "  {" +
                                              "    name: 'A'," +
                                              "    description: 'A test table'," +
-                                             "    tm1: (max(b) from A)," +
+                                             "    tm1: from A select max(b)," +
                                              "    tm2: a > b" +
                                              "  }, " +
                                              "  _id uuid not null," +
@@ -49,11 +49,11 @@ public class CreateTest extends DataTest {
                                              "  e int {" +
                                              "    m1: c" +
                                              "  }," +
-                                             "  f=(max(a) from A) {" +
-                                             "    m1: (min(a) from A)" +
+                                             "  f=from A select max(a) {" +
+                                             "    m1: from A select min(a)" +
                                              "  }," +
-                                             "  g=(distinct c from A where d>5) {" +
-                                             "    m1: (min(a) from a.b.B)" +
+                                             "  g=from A select distinct c where d>5) {" +
+                                             "    m1: from a.b.B select min(a)" +
                                              "  }," +
                                              "  h text {" +
                                              "    m1: 5" +

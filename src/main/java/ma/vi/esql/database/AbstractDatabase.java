@@ -414,7 +414,7 @@ public abstract class AbstractDatabase implements Database {
     if (createCoreTables() && !hasCoreTables(con)) {
       // CREATE _core tables
       ///////////////////////////////////////////
-      try (EsqlConnection c = esql(pooledConnection())) {
+      try (EsqlConnection c = esql(pooledConnection(true, -1))) {
         c.exec(p.parse("create table _core.relations drop undefined(" +
                            "_id             uuid    not null, " +
                            "_can_delete     bool, " +
@@ -1324,7 +1324,7 @@ public abstract class AbstractDatabase implements Database {
                 Param.of("relation", tableId),
                 Param.of("type", String.valueOf(ConstraintDefinition.Type.UNIQUE.marker)),
                 Param.of("checkExpr", null),
-                Param.of("sourceColumns", unique.referredColumns().toArray(new String[0])),
+                Param.of("sourceColumns", unique.columns().toArray(new String[0])),
                 Param.of("targetRelation", null),
                 Param.of("targetColumns", null),
                 Param.of("forwardCost", 1),
@@ -1339,7 +1339,7 @@ public abstract class AbstractDatabase implements Database {
                 Param.of("relation", tableId),
                 Param.of("type", String.valueOf(ConstraintDefinition.Type.PRIMARY_KEY.marker)),
                 Param.of("checkExpr", null),
-                Param.of("sourceColumns", primary.referredColumns().toArray(new String[0])),
+                Param.of("sourceColumns", primary.columns().toArray(new String[0])),
                 Param.of("targetRelation", null),
                 Param.of("targetColumns", null),
                 Param.of("forwardCost", 1),
@@ -1473,7 +1473,7 @@ public abstract class AbstractDatabase implements Database {
           + "  derived_column, type, not_null, expression, seq) "
           + "values(:id, :canDelete, :relation, :name, "
           + "       :derivedColumn, :type, :nonNull, :expression, "
-          + "       coalesce((max(seq) from _core.columns where relation_id=:relation), 0) + 1)";
+          + "       coalesce(from _core.columns select max(seq) where relation_id=:relation, 0) + 1)";
 
   private static final String INSERT_COLUMN_ATTRIBUTE =
       "insert into _core.column_attributes("

@@ -18,7 +18,7 @@ import static ma.vi.base.lang.Errors.checkArgument;
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 public abstract class AbstractType implements Type {
-  AbstractType(String name) {
+  public AbstractType(String name) {
     checkArgument(name != null && !name.trim().isEmpty(), "Name cannot be null or blank");
     this.name = name;
   }
@@ -85,16 +85,6 @@ public abstract class AbstractType implements Type {
    * Set to true while copying.
    */
   private volatile boolean copying;
-
-  /**
-   * Set to true while closing.
-   */
-  private volatile boolean closing;
-
-  /*
-   * True when the object is closed.
-   */
-  private volatile boolean closed;
 
   /**
    * The unique qualified type name.

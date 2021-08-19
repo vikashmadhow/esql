@@ -5,13 +5,10 @@
 package ma.vi.esql.syntax.expression.literal;
 
 import ma.vi.base.tuple.T2;
+import ma.vi.esql.semantic.type.*;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.TranslationException;
-import ma.vi.esql.semantic.type.ArrayType;
-import ma.vi.esql.semantic.type.Interval;
-import ma.vi.esql.semantic.type.Type;
-import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.expression.Expression;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -27,7 +24,6 @@ import java.util.List;
 import java.util.UUID;
 
 import static ma.vi.esql.syntax.expression.literal.StringLiteral.escapeEsqlString;
-import static ma.vi.esql.semantic.type.Type.Kind.BASE;
 
 /**
  * Parent of literals in ESQL.
@@ -157,7 +153,7 @@ public abstract class Literal<V> extends Expression<V, String> {
           type = Types.typeOf(componentType);
           if (type == null) {
             throw new TranslationException(componentType + " is not supported");
-          } else if (type.kind() != BASE) {
+          } else if (type.kind() != Kind.BASE) {
             throw new TranslationException("Only arrays of base types are supported. " + type + " is not a base type.");
           }
         }
@@ -181,7 +177,7 @@ public abstract class Literal<V> extends Expression<V, String> {
       Type type = Types.typeOf(componentType);
       if (type == null) {
         throw new TranslationException(componentType + " is not supported");
-      } else if (type.kind() != BASE) {
+      } else if (type.kind() != Kind.BASE) {
         throw new TranslationException("Only arrays of base types are supported. " + type + " is not a base type.");
       }
       List<BaseLiteral<?>> array = new ArrayList<>();

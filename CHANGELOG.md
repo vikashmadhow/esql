@@ -27,11 +27,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Result transformers and encoders.
 - Support for Oracle database.
 - Make into Java 9 module.
+- Support for frame definition (rows and range) in window functions.
+
+## [0.5.2] - 2021-08-19
+### Refactored
+- Package restructure: 
+  - split expression package into subpackages by type of expressions; 
+  - split function package into subpackages by type of data that the functions operate upon; 
+  - type package moved to semantic package; 
+  - QueryUpdate class moved to ma.vi.esql.syntax.query package
+  
+### Added
+- The type of types (kinds) are now a proper sub-interface of Type, for consistency.
+- Functions are now types with their own specific kind.
+- New syntax for select expressions which starts with the `from` keyword. 
+  E.g. `from X select y`. This removes any ambiguity between `select` expressions
+  and `select` statements and the need for surrounding select expressions with '()'.
 
 ## [0.5.1] - 2021-04-25
 ### Deprecated
 - Close interface no longer implemented as not required. Will be removed in a 
-  future release
+  future release.
 
 ## [0.5.0] - 2021-04-22
 ### Added
@@ -41,7 +57,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   a select to a variable.
 - `translate` method delegate to the protected `trans` method in ESQL to allow 
   for subclasses to provide richer translation behaviour, such as adding prefixes
-  and suffixed to the translation.
+  and suffixes to the translation.
 
 ### Fixed
 - Set the parent of substituted parameter values to the parent of the NamedParameter
