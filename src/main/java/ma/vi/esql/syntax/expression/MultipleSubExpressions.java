@@ -39,6 +39,6 @@ public abstract class MultipleSubExpressions<V> extends Expression<V, String> {
   }
 
   public List<Expression<?, String>> expressions() {
-    return childrenList();
+    return children();
   }
 }

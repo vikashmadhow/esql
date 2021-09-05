@@ -8,6 +8,7 @@ import ma.vi.base.string.Strings;
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
+import ma.vi.esql.syntax.EsqlPath;
 
 import java.util.HashSet;
 import java.util.List;
@@ -51,21 +52,11 @@ public class ForeignKeyConstraint extends ConstraintDefinition {
 
   @Override
   public ForeignKeyConstraint copy() {
-    if (!copying()) {
-      try {
-        copying(true);
-        return new ForeignKeyConstraint(this);
-      } finally {
-        copying(false);
-      }
-    } else {
-      return this;
-    }
+    return new ForeignKeyConstraint(this);
   }
 
   public boolean sameAs(ConstraintDefinition def) {
-    if (def instanceof ForeignKeyConstraint) {
-      ForeignKeyConstraint c = (ForeignKeyConstraint)def;
+    if (def instanceof ForeignKeyConstraint c) {
       return new HashSet<>(sourceColumns()).equals(new HashSet<>(c.sourceColumns()))
           && c.targetTable().equals(targetTable())
           && new HashSet<>(targetColumns()).equals(new HashSet<>(c.targetColumns()))
@@ -85,7 +76,7 @@ public class ForeignKeyConstraint extends ConstraintDefinition {
   }
 
   @Override
-  protected String trans(Target target, Map<String, Object> parameters) {
+  protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
     return "constraint "
         + '"' + (name() != null ? name() : defaultConstraintName(target, namePrefix())) + '"'
         + " foreign key(" + quotedColumnsList(sourceColumns()) + ") "

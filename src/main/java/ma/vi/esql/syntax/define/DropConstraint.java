@@ -7,9 +7,15 @@ package ma.vi.esql.syntax.define;
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
+import ma.vi.esql.syntax.EsqlPath;
 
 import java.util.Map;
 
+/**
+ * Drop a constraint from a table.
+ *
+ * @author Vikash Madhow (vikash.madhow@gmail.com)
+ */
 public class DropConstraint extends Alteration {
   public DropConstraint(Context context, String constraintName) {
     super(context, T2.of("constraintName", new Esql<>(context, constraintName)));
@@ -21,20 +27,11 @@ public class DropConstraint extends Alteration {
 
   @Override
   public DropConstraint copy() {
-    if (!copying()) {
-      try {
-        copying(true);
-        return new DropConstraint(this);
-      } finally {
-        copying(false);
-      }
-    } else {
-      return this;
-    }
+    return new DropConstraint(this);
   }
 
   @Override
-  protected String trans(Target target, Map<String, Object> parameters) {
+  protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
     return "drop constraint " + constraintName();
   }
 

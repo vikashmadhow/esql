@@ -25,15 +25,6 @@ public class GreaterThan extends ComparisonOperator {
 
   @Override
   public GreaterThan copy() {
-    if (!copying()) {
-      try {
-        copying(true);
-        return new GreaterThan(this);
-      } finally {
-        copying(false);
-      }
-    } else {
-      return this;
-    }
+    return new GreaterThan(this);
   }
 }

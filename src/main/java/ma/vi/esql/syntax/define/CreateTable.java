@@ -8,10 +8,7 @@ import ma.vi.base.collections.Sets;
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.database.Database;
 import ma.vi.esql.exec.Result;
-import ma.vi.esql.syntax.CircularReferenceException;
-import ma.vi.esql.syntax.Context;
-import ma.vi.esql.syntax.Esql;
-import ma.vi.esql.syntax.TranslationException;
+import ma.vi.esql.syntax.*;
 import ma.vi.esql.syntax.expression.ColumnRef;
 import ma.vi.esql.syntax.expression.Expression;
 import ma.vi.esql.syntax.query.Column;
@@ -84,7 +81,7 @@ public class CreateTable extends Define<String> {
           String colName = ref.name();
           if (!persistentCols.contains(colName) && !derivedCols.containsKey(colName)) {
             throw new TranslationException("Unknown column " + colName
-                                         + " in derived expresion " + expression);
+                                         + " in derived expression " + expression);
           } else if (circularPath.contains(colName)) {
             circularPath.add(colName);
             throw new CircularReferenceException("A circular reference was detected in the expression "
@@ -107,20 +104,11 @@ public class CreateTable extends Define<String> {
 
   @Override
   public CreateTable copy() {
-    if (!copying()) {
-      try {
-        copying(true);
-        return new CreateTable(this);
-      } finally {
-        copying(false);
-      }
-    } else {
-      return this;
-    }
+    return new CreateTable(this);
   }
 
   @Override
-  protected String trans(Target target, Map<String, Object> parameters) {
+  protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
     StringBuilder st = new StringBuilder("create table ");
     if (target != SQLSERVER) {
       st.append("if not exists ");
@@ -399,7 +387,7 @@ public class CreateTable extends Define<String> {
   }
 
   public List<ColumnDefinition> columns() {
-    return child("columns").childrenList();
+    return child("columns").children();
   }
 
   public void constraints(List<ConstraintDefinition> constraints) {
@@ -407,7 +395,7 @@ public class CreateTable extends Define<String> {
   }
 
   public List<ConstraintDefinition> constraints() {
-    return child("constraints").childrenList();
+    return child("constraints").children();
   }
 
   public Metadata metadata() {

@@ -8,6 +8,7 @@ import ma.vi.base.tuple.T2;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.semantic.type.Type;
+import ma.vi.esql.syntax.EsqlPath;
 
 import java.util.Map;
 
@@ -29,20 +30,11 @@ public class RenameTable extends Alteration {
 
   @Override
   public RenameTable copy() {
-    if (!copying()) {
-      try {
-        copying(true);
-        return new RenameTable(this);
-      } finally {
-        copying(false);
-      }
-    } else {
-      return this;
-    }
+    return new RenameTable(this);
   }
 
   @Override
-  protected String trans(Target target, Map<String, Object> parameters) {
+  protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
     return "rename to " + Type.dbTableName(toName(), target);
   }
 

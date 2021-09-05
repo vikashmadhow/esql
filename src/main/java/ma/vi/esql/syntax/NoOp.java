@@ -17,10 +17,6 @@ public class NoOp extends Esql<Void, Void> {
     super(context, null);
   }
 
-  public NoOp(Context context, Esql<?, ?>[] children) {
-    super(context, null, children);
-  }
-
   public NoOp(Context context, List<? extends Esql<?, ?>> children) {
     super(context, null, children);
   }
@@ -31,20 +27,11 @@ public class NoOp extends Esql<Void, Void> {
 
   @Override
   public NoOp copy() {
-    if (!copying()) {
-      try {
-        copying(true);
-        return new NoOp(this);
-      } finally {
-        copying(false);
-      }
-    } else {
-      return this;
-    }
+    return new NoOp(this);
   }
 
   @Override
-  public Void trans(Target target, Map<String, Object> parameters) {
+  public Void trans(Target target, EsqlPath path, Map<String, Object> parameters) {
     return null;
   }
 }

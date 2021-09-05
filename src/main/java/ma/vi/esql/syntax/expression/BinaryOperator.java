@@ -5,6 +5,7 @@
 package ma.vi.esql.syntax.expression;
 
 import ma.vi.esql.syntax.Context;
+import ma.vi.esql.syntax.EsqlPath;
 
 import java.util.Map;
 
@@ -32,8 +33,12 @@ public abstract class BinaryOperator extends DoubleSubExpressions<String> {
   public abstract BinaryOperator copy();
 
   @Override
-  protected String trans(Target target, Map<String, Object> parameters) {
-    String e = expr1().translate(target, parameters) + ' ' + op() + ' ' + expr2().translate(target, parameters);
+  protected String trans(Target target,
+                         EsqlPath path,
+                         Map<String, Object> parameters) {
+    String e = expr1().translate(target, path.add(expr1()), parameters)
+             + ' ' + op() + ' '
+             + expr2().translate(target, path.add(expr2()), parameters);
     return target == JSON ? '"' + escapeJsonString(e) + '"' : e;
   }
 

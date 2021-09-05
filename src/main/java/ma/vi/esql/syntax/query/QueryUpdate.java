@@ -11,6 +11,10 @@ import ma.vi.esql.builder.Attr;
 import ma.vi.esql.database.Database;
 import ma.vi.esql.exec.ColumnMapping;
 import ma.vi.esql.exec.Result;
+import ma.vi.esql.semantic.type.BaseRelation;
+import ma.vi.esql.semantic.type.Relation;
+import ma.vi.esql.semantic.type.Selection;
+import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.syntax.*;
 import ma.vi.esql.syntax.define.Attribute;
 import ma.vi.esql.syntax.define.ForeignKeyConstraint;
@@ -21,10 +25,6 @@ import ma.vi.esql.syntax.expression.comparison.In;
 import ma.vi.esql.syntax.expression.literal.IntegerLiteral;
 import ma.vi.esql.syntax.expression.literal.Literal;
 import ma.vi.esql.syntax.expression.logical.And;
-import ma.vi.esql.semantic.type.BaseRelation;
-import ma.vi.esql.semantic.type.Relation;
-import ma.vi.esql.semantic.type.Selection;
-import ma.vi.esql.semantic.type.Type;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -359,25 +359,25 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
    * if any.
    */
   public List<Column> columns() {
-    return childValue("columns");
+    return child("columns").children();
   }
+//
+//  /**
+//   * Returns the columns embedded in its Esql envelop.
+//   */
+//  public Esql<List<Column>, ?> columnsAsEsql() {
+//    return child("columns");
+//  }
 
-  /**
-   * Returns the columns embedded in its Esql envelop.
-   */
-  public Esql<List<Column>, ?> columnsAsEsql() {
-    return child("columns");
-  }
+//  public void columns(List<Column> columns) {
+//    child("columns", new Esql<>(context, columns));
+//    type = null;
+//  }
 
-  public void columns(List<Column> columns) {
-    child("columns", new Esql<>(context, columns));
-    type = null;
-  }
-
-  public void columnsAsEsql(Esql<List<Column>, ?> columns) {
-    child("columns", columns);
-    type = null;
-  }
+//  public void columnsAsEsql(Esql<List<Column>, ?> columns) {
+//    child("columns", columns);
+//    type = null;
+//  }
 
   public void columns(T3<String, String, List<Attr>>... columns) {
     List<Column> cols = new ArrayList<>();
@@ -609,8 +609,7 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
       restrict:
       for (Iterator<Restriction.By> i = restriction.by.iterator(); i.hasNext(); ) {
         by = i.next();
-        if (selectFrom instanceof SingleTableExpr) {
-          SingleTableExpr singleTableExpr = (SingleTableExpr)selectFrom;
+        if (selectFrom instanceof SingleTableExpr singleTableExpr) {
           if (singleTableExpr.tableName().equals(by.table.name())) {
             /*
              * The from clause is the restricted table, no need to search
@@ -633,13 +632,12 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
               }
             }
           }
-        } else if (selectFrom instanceof AbstractJoinTableExpr) {
+        } else if (selectFrom instanceof AbstractJoinTableExpr join) {
           /*
            * Perform a BFS over the branches of a join tree to find
            * the shortest path from one of the table in the join to
            * the restricted table.
            */
-          AbstractJoinTableExpr join = (AbstractJoinTableExpr)selectFrom;
           Queue<AbstractJoinTableExpr> toExplore = new ArrayDeque<>();
           toExplore.add(join);
 
@@ -647,8 +645,7 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
             join = toExplore.remove();
             TableExpr[] branches = new TableExpr[]{join.left(), join.right()};
             for (TableExpr tableExpr: branches) {
-              if (tableExpr instanceof SingleTableExpr) {
-                SingleTableExpr singleTableExpr = (SingleTableExpr)tableExpr;
+              if (tableExpr instanceof SingleTableExpr singleTableExpr) {
                 String tableName = singleTableExpr.tableName();
                 if (tableName.equals(by.table.name())) {
                   /*

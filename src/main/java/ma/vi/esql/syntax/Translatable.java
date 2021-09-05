@@ -6,8 +6,6 @@ package ma.vi.esql.syntax;
 
 import java.util.Map;
 
-import static java.util.Collections.emptyMap;
-
 /**
  * A translatable can produce a representation of itself for a specific
  * target. It is implemented by all ESQL elements and types.
@@ -42,11 +40,18 @@ public interface Translatable<T> {
    * @param target The target system to compile to.
    * @return A statement adapted for the specified target system.
    */
-  default T translate(Target target) {
-    return translate(target, emptyMap());
-  }
+  T translate(Target target);
 
-  T translate(Target target, Map<String, Object> parameters);
+  /**
+   * Translate the statement for running on the specified target.
+   *
+   * @param target The target system to compile to.
+   * @param path The path of the object being translated from the
+   *             root of program tree.
+   * @param parameters A set of arbitrary parameters to pass to the translator.
+   * @return A statement adapted for the specified target system.
+   */
+  T translate(Target target, EsqlPath path, Map<String, Object> parameters);
 
   /**
    * The value of a translatable is generally its translation. In some

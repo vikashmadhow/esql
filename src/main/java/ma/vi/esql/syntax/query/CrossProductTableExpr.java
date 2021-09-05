@@ -5,6 +5,7 @@
 package ma.vi.esql.syntax.query;
 
 import ma.vi.esql.syntax.Context;
+import ma.vi.esql.syntax.EsqlPath;
 
 import java.util.Map;
 
@@ -26,23 +27,14 @@ public class CrossProductTableExpr extends AbstractJoinTableExpr {
 
   @Override
   public CrossProductTableExpr copy() {
-    if (!copying()) {
-      try {
-        copying(true);
-        return new CrossProductTableExpr(this);
-      } finally {
-        copying(false);
-      }
-    } else {
-      return this;
-    }
+    return new CrossProductTableExpr(this);
   }
 
   @Override
-  protected String trans(Target target, Map<String, Object> parameters) {
-    return left().translate(target, parameters)
+  protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
+    return left().translate(target, path.add(left()), parameters)
         + (target == ESQL ? " times " : " cross join ")
-        + right().translate(target, parameters);
+        + right().translate(target, path.add(right()), parameters);
   }
 
   @Override

@@ -24,6 +24,12 @@ public abstract class TableDefinition extends Define<String> {
     super(context, name, children);
   }
 
+  public TableDefinition(Context context,
+                         String name,
+                         List<? extends Esql<?, ?>> children) {
+    super(context, name, children);
+  }
+
   public TableDefinition(TableDefinition other) {
     super(other);
   }

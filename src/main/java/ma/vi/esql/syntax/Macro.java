@@ -12,15 +12,15 @@ package ma.vi.esql.syntax;
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public interface Macro extends Comparable<Macro> {
+public interface Macro /*  extends Comparable<Macro> */ {
 
   /**
    * Determines the order of expansion of macros with
    * lower order values expanded first.
    */
-  default int expansionOrder() {
-    return Math.abs(System.identityHashCode(this));
-  }
+//  default int expansionOrder() {
+//    return Math.abs(System.identityHashCode(this));
+//  }
 
   /**
    * Expands or make any changes to an ESQL statement that this macro is
@@ -40,26 +40,27 @@ public interface Macro extends Comparable<Macro> {
    * this branch of the statement tree can be safely ignored during further
    * macro expansion,
    */
-  boolean expand(String name, Esql<?, ?> esql);
+//  boolean expand(String name, Esql<?, ?> esql);
+  Esql<?, ?> expand(Esql<?, ?> esql, EsqlPath path);
 
-  /**
-   * Macros are naturally ordered by their expansion order
-   * from smallest value (highest priority) to largest value
-   * (lowest priority).
-   */
-  @Override
-  default int compareTo(Macro other) {
-    return expansionOrder() - other.expansionOrder();
-  }
-
-  // Some macro expansion orders:
-  ////////////////////////////////////
-
-  int HIGHEST = 1000;
-  int VERY_HIGH = 2000;
-  int HIGH = 3000;
-  int MEDIUM = 4000;
-  int LOW = 5000;
-  int VERY_LOW = 6000;
-  int LOWEST = 7000;
+//  /**
+//   * Macros are naturally ordered by their expansion order
+//   * from smallest value (highest priority) to largest value
+//   * (lowest priority).
+//   */
+//  @Override
+//  default int compareTo(Macro other) {
+//    return expansionOrder() - other.expansionOrder();
+//  }
+//
+//  // Some macro expansion orders:
+//  ////////////////////////////////////
+//
+//  int HIGHEST = 1000;
+//  int VERY_HIGH = 2000;
+//  int HIGH = 3000;
+//  int MEDIUM = 4000;
+//  int LOW = 5000;
+//  int VERY_LOW = 6000;
+//  int LOWEST = 7000;
 }

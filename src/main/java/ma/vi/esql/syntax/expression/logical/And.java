@@ -5,8 +5,9 @@
 package ma.vi.esql.syntax.expression.logical;
 
 import ma.vi.esql.syntax.Context;
-import ma.vi.esql.syntax.expression.comparison.ComparisonOperator;
+import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.expression.Expression;
+import ma.vi.esql.syntax.expression.comparison.ComparisonOperator;
 
 import java.util.Map;
 
@@ -31,40 +32,31 @@ public class And extends ComparisonOperator {
 
   @Override
   public And copy() {
-    if (!copying()) {
-      try {
-        copying(true);
-        return new And(this);
-      } finally {
-        copying(false);
-      }
-    } else {
-      return this;
-    }
+    return new And(this);
   }
 
   @Override
-  protected String trans(Target target, Map<String, Object> parameters) {
+  protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
     switch (target) {
       case JSON, JAVASCRIPT -> {
-        String e = expr1().translate(target, parameters) + " && " + expr2().translate(target, parameters);
+        String e = expr1().translate(target, path.add(expr1()), parameters) + " && " + expr2().translate(target, path.add(expr2()), parameters);
         return target == JSON ? '"' + escapeJsonString(e) + '"' : e;
       }
       case SQLSERVER -> {
-        if (ancestor("on") == null
-         && ancestor("where") == null
-         && ancestor("having") == null) {
+        if (path.ancestor("on") == null
+         && path.ancestor("where") == null
+         && path.ancestor("having") == null) {
           /*
            * For SQL Server, boolean expressions outside of where and having
            * clauses are not allowed and we simulate it with bitwise operations.
            */
-          return "cast(" + expr1().translate(target, parameters) + " & " + expr2().translate(target, parameters) + " as bit)";
+          return "cast(" + expr1().translate(target, path.add(expr1()), parameters) + " & " + expr2().translate(target, path.add(expr2()), parameters) + " as bit)";
         } else {
-          return super.trans(target, parameters);
+          return super.trans(target, path, parameters);
         }
       }
       default -> {
-        return super.trans(target, parameters);
+        return super.trans(target, path, parameters);
       }
     }
   }

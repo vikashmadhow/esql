@@ -7,6 +7,7 @@ package ma.vi.esql.syntax.define;
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
+import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.expression.Expression;
 
 import java.util.List;
@@ -31,8 +32,8 @@ public class GroupBy extends Esql<String, String> {
                  List<Expression<?, String>> groupBy,
                  Type groupType) {
     super(context, "groupBy",
-        T2.of("groupBy", new Esql<>(context, "groupBy", groupBy)),
-        T2.of("type", new Esql<>(context, groupType)));
+          T2.of("groupBy", new Esql<>(context, "groupBy", groupBy)),
+          T2.of("type", new Esql<>(context, groupType)));
   }
 
   public GroupBy(GroupBy other) {
@@ -41,34 +42,25 @@ public class GroupBy extends Esql<String, String> {
 
   @Override
   public GroupBy copy() {
-    if (!copying()) {
-      try {
-        copying(true);
-        return new GroupBy(this);
-      } finally {
-        copying(false);
-      }
-    } else {
-      return this;
-    }
+    return new GroupBy(this);
   }
 
   @Override
-  protected String trans(Target target, Map<String, Object> parameters) {
+  protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
     Type type = groupType();
     return " group by "
-        + (type == Type.Rollup ? "rollup(" :
-           type == Type.Cube   ? "cube("   : "")
+         + (type == Type.Rollup ? "rollup(" :
+            type == Type.Cube   ? "cube("   : "")
 
-        + groupBy().stream()
-                   .map(a -> a.translate(target, parameters))
-                   .collect(joining(", "))
+         + groupBy().stream()
+                    .map(a -> a.translate(target, path.add(a), parameters))
+                    .collect(joining(", "))
 
-        + (type != Type.Simple ? ")" : "");
+         + (type != Type.Simple ? ")" : "");
   }
 
   public List<Expression<?, String>> groupBy() {
-    return child("groupBy").childrenList();
+    return child("groupBy").children();
   }
 
   public Type groupType() {

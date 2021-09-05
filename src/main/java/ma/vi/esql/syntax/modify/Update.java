@@ -33,13 +33,14 @@ public class Update extends QueryUpdate {
                 Expression<?, String> where,
                 Metadata      returnMetadata,
                 List<Column>  returnColumns) {
-    super(context, "Update",
+    super(context,
+          "Update",
           of("updateTableAlias", new Esql<>(context, updateTableAlias)),
           of("set", set),
           of("tables", from),
           of("where", where),
           of("metadata", returnMetadata),
-          of("columns", new Esql<>(context, returnColumns)));
+          of("columns", new Esql<>(context, "returning", returnColumns)));
   }
 
   public Update(Update other) {
@@ -48,16 +49,7 @@ public class Update extends QueryUpdate {
 
   @Override
   public Update copy() {
-    if (!copying()) {
-      try {
-        copying(true);
-        return new Update(this);
-      } finally {
-        copying(false);
-      }
-    } else {
-      return this;
-    }
+    return new Update(this);
   }
 
   @Override

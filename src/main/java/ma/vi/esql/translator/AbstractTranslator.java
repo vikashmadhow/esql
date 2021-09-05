@@ -1,6 +1,7 @@
 package ma.vi.esql.translator;
 
 import ma.vi.esql.syntax.Esql;
+import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.TranslationException;
 import ma.vi.esql.syntax.modify.Delete;
 import ma.vi.esql.syntax.modify.Insert;
@@ -15,26 +16,26 @@ import java.util.Map;
  */
 public abstract class AbstractTranslator implements Translator {
   @Override
-  public <R> R translate(Esql<?, R> esql, Map<String, Object> parameters) {
+  public <R> R translate(Esql<?, R> esql, EsqlPath path, Map<String, Object> parameters) {
     if (esql instanceof Select) {
-      return (R)translate((Select)esql, parameters);
+      return (R)translate((Select)esql, path, parameters);
 
     } else if (esql instanceof Update) {
-      return (R)translate((Update)esql, parameters);
+      return (R)translate((Update)esql, path, parameters);
 
     } else if (esql instanceof Delete) {
-      return (R)translate((Delete)esql, parameters);
+      return (R)translate((Delete)esql, path, parameters);
 
     } else if (esql instanceof Insert) {
-      return (R)translate((Insert)esql, parameters);
+      return (R)translate((Insert)esql, path, parameters);
 
     } else {
       throw new TranslationException("Translation of " + esql + " to " + target() + " is not supported");
     }
   }
 
-  protected abstract QueryTranslation translate(Select select, Map<String, Object> parameters);
-  protected abstract QueryTranslation translate(Update update, Map<String, Object> parameters);
-  protected abstract QueryTranslation translate(Delete delete, Map<String, Object> parameters);
-  protected abstract QueryTranslation translate(Insert insert, Map<String, Object> parameters);
+  protected abstract QueryTranslation translate(Select select, EsqlPath path, Map<String, Object> parameters);
+  protected abstract QueryTranslation translate(Update update, EsqlPath path, Map<String, Object> parameters);
+  protected abstract QueryTranslation translate(Delete delete, EsqlPath path, Map<String, Object> parameters);
+  protected abstract QueryTranslation translate(Insert insert, EsqlPath path, Map<String, Object> parameters);
 }

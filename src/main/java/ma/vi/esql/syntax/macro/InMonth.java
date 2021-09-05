@@ -5,12 +5,11 @@
 package ma.vi.esql.syntax.macro;
 
 import ma.vi.esql.function.Function;
-import ma.vi.esql.syntax.Context;
-import ma.vi.esql.syntax.Esql;
-import ma.vi.esql.syntax.Macro;
-import ma.vi.esql.syntax.TranslationException;
-import ma.vi.esql.syntax.expression.*;
 import ma.vi.esql.semantic.type.Types;
+import ma.vi.esql.syntax.*;
+import ma.vi.esql.syntax.expression.Expression;
+import ma.vi.esql.syntax.expression.FunctionCall;
+import ma.vi.esql.syntax.expression.GroupedExpression;
 import ma.vi.esql.syntax.expression.comparison.Between;
 import ma.vi.esql.syntax.expression.comparison.Equality;
 import ma.vi.esql.syntax.expression.literal.DateLiteral;
@@ -38,7 +37,7 @@ public class InMonth extends Function implements Macro {
   }
 
   @Override
-  public boolean expand(String name, Esql<?, ?> esql) {
+  public Esql<?, ?> expand(Esql<?, ?> esql, EsqlPath path) {
     FunctionCall call = (FunctionCall)esql;
     Context ctx = call.context;
     List<Expression<?, ?>> arguments = call.arguments();
@@ -62,38 +61,35 @@ public class InMonth extends Function implements Macro {
       LocalDate end = LocalDate.of(((IntegerLiteral)year).value.intValue(),
                                    ((IntegerLiteral)month).value.intValue(), 1);
       String endDate = prefix + end.lengthOfMonth();
-      call.parent.replaceWith(name,
-                              new Between(ctx,
-                                          false,
-                                          date,
-                                          new DateLiteral(ctx, startDate),
-                                          new DateLiteral(ctx, endDate)));
+      return new Between(ctx,
+                        false,
+                        date,
+                        new DateLiteral(ctx, startDate),
+                        new DateLiteral(ctx, endDate));
     } else {
       List<Expression<?, ?>> funcArgs = singletonList(date);
-      call.parent.replaceWith(name,
-                              new GroupedExpression(
-                                  ctx,
-                                  new And(
-                                      ctx,
-                                      new Equality(
-                                          ctx,
-                                          new FunctionCall(ctx, "month",
-                                                           false, null,
-                                                           funcArgs, false,
-                                                           null, null),
-                                          month
-                                      ),
-                                      new Equality(
-                                          ctx,
-                                          new FunctionCall(ctx, "year",
-                                                           false, null,
-                                                           funcArgs, false,
-                                                           null, null),
-                                          year
-                                      )
-                                  )
-                              ));
+      return new GroupedExpression(
+        ctx,
+        new And(
+            ctx,
+            new Equality(
+                ctx,
+                new FunctionCall(ctx, "month",
+                                 false, null,
+                                 funcArgs, false,
+                                 null, null),
+                month
+            ),
+            new Equality(
+                ctx,
+                new FunctionCall(ctx, "year",
+                                 false, null,
+                                 funcArgs, false,
+                                 null, null),
+                year
+            )
+        )
+      );
     }
-    return true;
   }
 }

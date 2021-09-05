@@ -5,6 +5,7 @@
 package ma.vi.esql.syntax.define;
 
 import ma.vi.esql.syntax.Context;
+import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.expression.Expression;
 
 import java.util.Map;
@@ -28,22 +29,13 @@ public class DerivedColumnDefinition extends ColumnDefinition {
 
   @Override
   public DerivedColumnDefinition copy() {
-    if (!copying()) {
-      try {
-        copying(true);
-        return new DerivedColumnDefinition(this);
-      } finally {
-        copying(false);
-      }
-    } else {
-      return this;
-    }
+    return new DerivedColumnDefinition(this);
   }
 
   @Override
-  protected String trans(Target target, Map<String, Object> parameters) {
+  protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
     if (target == Target.ESQL) {
-      StringBuilder st = new StringBuilder("derived \"" + name() + "\" " + expression().translate(target, parameters));
+      StringBuilder st = new StringBuilder("derived \"" + name() + "\" " + expression().translate(target, path.add(expression()), parameters));
       addMetadata(st, target);
       return st.toString();
     }

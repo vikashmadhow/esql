@@ -4,8 +4,10 @@
 
 package ma.vi.esql.syntax.query;
 
+import ma.vi.base.tuple.T2;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
+import ma.vi.esql.syntax.EsqlPath;
 
 import java.util.Map;
 
@@ -19,8 +21,8 @@ import static ma.vi.esql.syntax.Translatable.Target.JSON;
  */
 public class StarColumn extends Column { // implements Macro {
   public StarColumn(Context context, String qualifier) {
-    super(context, "_", null, null);
-    child("qualifier", new Esql<>(context, qualifier));
+    super(context, "_", null, null,
+          T2.of("qualifier", new Esql<>(context, qualifier)));
   }
 
   public StarColumn(StarColumn other) {
@@ -29,16 +31,7 @@ public class StarColumn extends Column { // implements Macro {
 
   @Override
   public StarColumn copy() {
-    if (!copying()) {
-      try {
-        copying(true);
-        return new StarColumn(this);
-      } finally {
-        copying(false);
-      }
-    } else {
-      return this;
-    }
+    return new StarColumn(this);
   }
 
 //  @Override
@@ -47,7 +40,7 @@ public class StarColumn extends Column { // implements Macro {
 //  }
 
   @Override
-  protected String trans(Target target, Map<String, Object> parameters) {
+  protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
     switch (target) {
       case JSON:
       case JAVASCRIPT:

@@ -5,16 +5,11 @@
 package ma.vi.esql.syntax.define;
 
 import ma.vi.esql.syntax.Context;
-import ma.vi.esql.syntax.expression.*;
-import ma.vi.esql.syntax.expression.literal.BooleanLiteral;
-import ma.vi.esql.syntax.expression.literal.IntegerLiteral;
-import ma.vi.esql.syntax.expression.literal.StringLiteral;
-import ma.vi.esql.syntax.expression.literal.UuidLiteral;
+import ma.vi.esql.syntax.EsqlPath;
+import ma.vi.esql.syntax.expression.Expression;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 import static java.util.stream.Collectors.joining;
 
@@ -27,15 +22,15 @@ import static java.util.stream.Collectors.joining;
  */
 public class Metadata extends TableDefinition {
   public Metadata(Context context, List<Attribute> attributes) {
-    super(context, "Metadata");
-    Map<String, Attribute> attributeMap = new HashMap<>();
-    for (Attribute attr: attributes) {
-      if (attr != null) {
-        attr.parent = this;
-        attributeMap.put(attr.name(), attr);
-      }
-    }
-    childValue("attributes", attributeMap);
+    super(context, "Metadata", attributes);
+//    Map<String, Attribute> attributeMap = new HashMap<>();
+//    for (Attribute attr: attributes) {
+//      if (attr != null) {
+//        attr.parent = this;
+//        attributeMap.put(attr.name(), attr);
+//      }
+//    }
+//    childValue("attributes", attributeMap);
   }
 
   public Metadata(Metadata other) {
@@ -44,23 +39,14 @@ public class Metadata extends TableDefinition {
 
   @Override
   public Metadata copy() {
-    if (!copying()) {
-      try {
-        copying(true);
-        return new Metadata(this);
-      } finally {
-        copying(false);
-      }
-    } else {
-      return this;
-    }
+    return new Metadata(this);
   }
 
   @Override
-  protected String trans(Target target, Map<String, Object> parameters) {
+  protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
     return attributes().values()
                        .stream()
-                       .map(a -> a.translate(target, parameters))
+                       .map(a -> a.translate(target, path.add(a), parameters))
                        .collect(joining(", ", "{", "}"));
   }
 
@@ -77,7 +63,7 @@ public class Metadata extends TableDefinition {
   }
 
   public Map<String, Attribute> attributes() {
-    return childValue("attributes");
+    return childrenMap();
   }
 
   public Attribute attribute(String name) {
@@ -92,27 +78,5 @@ public class Metadata extends TableDefinition {
       Expression<?, String> expr = a.attributeValue();
       return (T)expr.value(Target.ESQL);
     }
-  }
-
-  public Attribute attribute(String name, String value) {
-    return attribute(name, new StringLiteral(context, value));
-  }
-
-  public Attribute attribute(String name, boolean value) {
-    return attribute(name, new BooleanLiteral(context, value));
-  }
-
-  public Attribute attribute(String name, UUID value) {
-    return attribute(name, new UuidLiteral(context, value));
-  }
-
-  public Attribute attribute(String name, int value) {
-    return attribute(name, new IntegerLiteral(context, (long)value));
-  }
-
-  public Attribute attribute(String name, Expression<?, String> value) {
-    Attribute a = new Attribute(context, name, value);
-    attributes().put(name, a);
-    return a;
   }
 }

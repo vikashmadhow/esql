@@ -158,6 +158,21 @@ public class EsqlConnectionImpl implements EsqlConnection {
     return esql.execute(db, con);
   }
 
+  private static Esql<?, ?> expandMacros(Esql<?, ?> esql) {
+    Esql<?, ?> expanded;
+    int iteration = 0;
+    while ((expanded = esql.map((e, p) -> e instanceof Macro m ? m.expand(e, p) : e)) != esql) {
+      esql = expanded;
+      iteration++;
+      if (iteration > 50) {
+        throw new TranslationException(
+            "Macro expansion continued for more than 50 iterations and was stopped."
+          + "A macro could be expanding recursively into other macros. Esql: " + esql);
+      }
+    }
+    return expanded;
+  }
+
   private static void expand(Esql<?, ?> esql) {
     /*
      * The result of the expansion of the macros in a previous iteration of this

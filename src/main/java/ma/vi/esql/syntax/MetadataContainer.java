@@ -9,7 +9,6 @@ import ma.vi.esql.syntax.define.Attribute;
 import ma.vi.esql.syntax.define.Metadata;
 import ma.vi.esql.syntax.expression.Expression;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -19,7 +18,9 @@ import java.util.List;
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 public abstract class MetadataContainer<V, R> extends Expression<V, R> {
-  public MetadataContainer(Context context, V value, T2<String, ? extends Esql<?, ?>>... children) {
+  public MetadataContainer(Context context,
+                           V value,
+                           T2<String, ? extends Esql<?, ?>>... children) {
     super(context, value, children);
   }
 
@@ -41,21 +42,21 @@ public abstract class MetadataContainer<V, R> extends Expression<V, R> {
     return child("metadata");
   }
 
-  /**
-   * Set metadata.
-   */
-  public void metadata(Metadata metadata) {
-    child("metadata", metadata);
-  }
+//  /**
+//   * Set metadata.
+//   */
+//  public void metadata(Metadata metadata) {
+//    child("metadata", metadata);
+//  }
 
   public Attribute attribute(String name) {
     return metadata() == null ? null : metadata().attribute(name);
   }
-
-  public void attribute(String name, Expression<?, String> value) {
-    if (metadata() == null) {
-      metadata(new Metadata(context, new ArrayList<>()));
-    }
-    metadata().attribute(name, value);
-  }
+//
+//  public void attribute(String name, Expression<?, String> value) {
+//    if (metadata() == null) {
+//      metadata(new Metadata(context, new ArrayList<>()));
+//    }
+//    metadata().attribute(name, value);
+//  }
 }

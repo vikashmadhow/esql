@@ -7,6 +7,7 @@ package ma.vi.esql.syntax.query;
 import ma.vi.base.lang.NotFoundException;
 import ma.vi.esql.semantic.type.*;
 import ma.vi.esql.syntax.Context;
+import ma.vi.esql.syntax.EsqlPath;
 
 import java.util.Map;
 
@@ -32,16 +33,7 @@ public class SingleTableExpr extends AbstractAliasTableExpr {
 
   @Override
   public SingleTableExpr copy() {
-    if (!copying()) {
-      try {
-        copying(true);
-        return new SingleTableExpr(this);
-      } finally {
-        copying(false);
-      }
-    } else {
-      return this;
-    }
+    return new SingleTableExpr(this);
   }
 
   @Override
@@ -91,7 +83,7 @@ public class SingleTableExpr extends AbstractAliasTableExpr {
   }
 
   @Override
-  protected String trans(Target target, Map<String, Object> parameters) {
+  protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
     String table = tableName();
     String alias = alias();
     if (target == Target.ESQL) {

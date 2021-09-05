@@ -597,6 +597,8 @@ expr
     | define                                                    #DefineStatement
     | noop                                                      #NoopStatement
 
+//    | Identifier                                                #Reference
+//    | expr '.' Identifier                                       #Selector
 //    | 'let' Identifier (':' type)? (':=' expr)?                 #Declaration
 //    | Identifier ':=' expr                                      #Assignment
 //    | 'for' (key=Identifier ',')? value=Identifier 'in' expr 'do'

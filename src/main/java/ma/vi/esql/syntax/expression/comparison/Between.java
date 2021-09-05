@@ -5,10 +5,11 @@
 package ma.vi.esql.syntax.expression.comparison;
 
 import ma.vi.base.tuple.T2;
-import ma.vi.esql.syntax.Context;
-import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.semantic.type.Types;
+import ma.vi.esql.syntax.Context;
+import ma.vi.esql.syntax.Esql;
+import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.expression.Expression;
 
 import java.util.Map;
@@ -39,16 +40,7 @@ public class Between extends Expression<Expression<?, ?>, String> {
 
   @Override
   public Between copy() {
-    if (!copying()) {
-      try {
-        copying(true);
-        return new Between(this);
-      } finally {
-        copying(false);
-      }
-    } else {
-      return this;
-    }
+    return new Between(this);
   }
 
   @Override
@@ -57,19 +49,20 @@ public class Between extends Expression<Expression<?, ?>, String> {
   }
 
   @Override
-  protected String trans(Target target, Map<String, Object> parameters) {
+  protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
     switch (target) {
       case JSON, JAVASCRIPT:
+        Object compareEx = compare().translate(target, path.add(compare()), parameters);
         String e = (not() ? "!" : "") + '('
-                 + compare().translate(target, parameters) + " >= " + from().translate(target, parameters) + " && "
-                 + compare().translate(target, parameters) + " <= " + to().translate(target, parameters) + ')';
+                 + compareEx + " >= " + from().translate(target, path.add(from()), parameters) + " && "
+                 + compareEx + " <= " + to().translate(target, path.add(to()), parameters) + ')';
         return target == JSON ? '"' + escapeJsonString(e) + '"' : e;
 
       default:
-        return compare().translate(target, parameters)
+        return compare().translate(target, path.add(compare()), parameters)
              + (not() ? " not" : "") + " between "
-             + from().translate(target, parameters) + " and "
-             + to().translate(target, parameters);
+             + from().translate(target, path.add(from()), parameters) + " and "
+             + to().translate(target, path.add(to()), parameters);
     }
   }
 

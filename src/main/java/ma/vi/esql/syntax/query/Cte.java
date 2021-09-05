@@ -15,7 +15,6 @@ import java.util.List;
 import java.util.Map;
 
 import static java.util.stream.Collectors.joining;
-import static ma.vi.base.tuple.T2.of;
 
 /**
  * A common table expression is a part of a With query.
@@ -28,11 +27,11 @@ public class Cte extends QueryUpdate {
              List<String> fields,
              QueryUpdate query) {
     super(context, name,
-          of("fields", fields == null ? null : new Esql<>(context, fields)),
-          of("query", query));
+          T2.of("fields", fields == null ? null : new Esql<>(context, fields)),
+          T2.of("query", query));
 
-    child("tables", query.tables(), false);
-    child("metadata", query.metadata(), false);
+    T2.of("tables", query.tables(), false);
+    T2.of("metadata", query.metadata(), false);
 
     if (fields != null && !fields.isEmpty()) {
       /*
@@ -64,16 +63,7 @@ public class Cte extends QueryUpdate {
 
   @Override
   public Cte copy() {
-    if (!copying()) {
-      try {
-        copying(true);
-        return new Cte(this);
-      } finally {
-        copying(false);
-      }
-    } else {
-      return this;
-    }
+    return new Cte(this);
   }
 
   /**
@@ -121,7 +111,7 @@ public class Cte extends QueryUpdate {
   }
 
   @Override
-  public QueryTranslation trans(Target target, Map<String, Object> parameters) {
+  public QueryTranslation trans(Target target, EsqlPath path, Map<String, Object> parameters) {
     /*
      * translate query and surround by CTE fields definition
      */

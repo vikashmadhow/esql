@@ -7,6 +7,10 @@ package ma.vi.esql.syntax.query;
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.semantic.type.Join;
+import ma.vi.esql.syntax.Esql;
+
+import java.util.Arrays;
+import java.util.stream.Stream;
 
 /**
  * Abstract parent of cross-products and joins table expressions. Each of these
@@ -16,8 +20,20 @@ import ma.vi.esql.semantic.type.Join;
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 public abstract class AbstractJoinTableExpr extends TableExpr {
-  public AbstractJoinTableExpr(Context context, String joinType, TableExpr left, TableExpr right) {
-    super(context, joinType, T2.of("left", left), T2.of("right", right));
+  public AbstractJoinTableExpr(Context context,
+                               String joinType,
+                               TableExpr left,
+                               TableExpr right,
+                               T2<String, ? extends Esql<?, ?>>... children) {
+    super(context,
+          joinType,
+          Stream.concat(
+            Arrays.stream(
+              new T2[]{
+                T2.of("left", left),
+                T2.of("right", right)
+              }),
+            Arrays.stream(children)).toArray(T2[]::new));
   }
 
   public AbstractJoinTableExpr(AbstractJoinTableExpr other) {

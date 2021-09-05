@@ -25,15 +25,6 @@ public class Multiplication extends ArithmeticOperator {
 
   @Override
   public Multiplication copy() {
-    if (!copying()) {
-      try {
-        copying(true);
-        return new Multiplication(this);
-      } finally {
-        copying(false);
-      }
-    } else {
-      return this;
-    }
+    return new Multiplication(this);
   }
 }

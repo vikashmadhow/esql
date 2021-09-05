@@ -5,6 +5,7 @@
 package ma.vi.esql.syntax.expression.arithmetic;
 
 import ma.vi.esql.syntax.Context;
+import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.Translatable;
 import ma.vi.esql.syntax.expression.Expression;
 
@@ -29,24 +30,15 @@ public class Exponentiation extends ArithmeticOperator {
 
   @Override
   public Exponentiation copy() {
-    if (!copying()) {
-      try {
-        copying(true);
-        return new Exponentiation(this);
-      } finally {
-        copying(false);
-      }
-    } else {
-      return this;
-    }
+    return new Exponentiation(this);
   }
 
   @Override
-  protected String trans(Translatable.Target target, Map<String, Object> parameters) {
+  protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
     if (target == Translatable.Target.SQLSERVER) {
-      return "POWER(" + expr1().translate(target, parameters) + ", " + expr2().translate(target, parameters) + ")";
+      return "POWER(" + expr1().translate(target, path.add(expr1()), parameters) + ", " + expr2().translate(target, path.add(expr2()), parameters) + ")";
     } else {
-      String e = expr1().translate(target, parameters) + " ^ " + expr2().translate(target, parameters);
+      String e = expr1().translate(target, path.add(expr1()), parameters) + " ^ " + expr2().translate(target, path.add(expr2()), parameters);
       return target == JSON ? '"' + escapeJsonString(e) + '"' : e;
     }
   }

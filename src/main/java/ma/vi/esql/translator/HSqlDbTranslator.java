@@ -1,5 +1,6 @@
 package ma.vi.esql.translator;
 
+import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.Translatable;
 import ma.vi.esql.syntax.TranslationException;
 import ma.vi.esql.syntax.expression.Expression;
@@ -30,14 +31,14 @@ public class HSqlDbTranslator extends AbstractTranslator {
   }
 
   @Override
-  protected QueryTranslation translate(Select select, Map<String, Object> parameters) {
+  protected QueryTranslation translate(Select select, EsqlPath path, Map<String, Object> parameters) {
     StringBuilder st = new StringBuilder("select ");
     if (select.distinct()) {
       st.append("distinct ");
       List<Expression<?, String>> distinctOn = select.distinctOn();
       if (distinctOn != null && !distinctOn.isEmpty()) {
         st.append('(')
-          .append(distinctOn.stream().map(e -> e.translate(target(), parameters)).collect(joining(", ")))
+          .append(distinctOn.stream().map(e -> e.translate(target(), path.add(e), parameters)).collect(joining(", ")))
           .append(") ");
       }
     }
@@ -45,28 +46,28 @@ public class HSqlDbTranslator extends AbstractTranslator {
     // add output clause
     QueryTranslation q = select.constructResult(st, target(), null, parameters);
     if (select.tables() != null) {
-      st.append(" from ").append(select.tables().translate(target(), parameters));
+      st.append(" from ").append(select.tables().translate(target(), path.add(select.tables()), parameters));
     }
     if (select.where() != null) {
-      st.append(" where ").append(select.where().translate(target(), parameters));
+      st.append(" where ").append(select.where().translate(target(), path.add(select.where()), parameters));
     }
     if (select.groupBy() != null) {
-      st.append(select.groupBy().translate(target(), parameters));
+      st.append(select.groupBy().translate(target(), path.add(select.groupBy()), parameters));
     }
     if (select.having() != null) {
-      st.append(" having ").append(select.having().translate(target(), parameters));
+      st.append(" having ").append(select.having().translate(target(), path.add(select.having()), parameters));
     }
     if (select.orderBy() != null && !select.orderBy().isEmpty()) {
       st.append(" order by ")
         .append(select.orderBy().stream()
-                      .map(e -> e.translate(target(), parameters))
+                      .map(e -> e.translate(target(), path.add(e), parameters))
                       .collect(joining(", ")));
     }
     if (select.offset() != null) {
-      st.append(" offset ").append(select.offset().translate(target(), parameters));
+      st.append(" offset ").append(select.offset().translate(target(), path.add(select.offset()), parameters));
     }
     if (select.limit() != null) {
-      st.append(" limit ").append(select.limit().translate(target(), parameters));
+      st.append(" limit ").append(select.limit().translate(target(), path.add(select.limit()), parameters));
     }
     return new QueryTranslation(st.toString(),
                                 q.columns,
@@ -76,18 +77,18 @@ public class HSqlDbTranslator extends AbstractTranslator {
   }
 
   @Override
-  protected QueryTranslation translate(Update update, Map<String, Object> parameters) {
+  protected QueryTranslation translate(Update update, EsqlPath path, Map<String, Object> parameters) {
     StringBuilder st = new StringBuilder("update ");
 
     TableExpr from = update.tables();
     if (!(from instanceof SingleTableExpr)) {
       throw new TranslationException(target() + " does not support multiple tables or joins in updates");
     }
-    st.append(from.translate(target(), parameters));
+    st.append(from.translate(target(), path.add(from), parameters));
     Update.addSet(st, update.set(), target(), false);
 
     if (update.where() != null) {
-      st.append(" where ").append(update.where().translate(target(), parameters));
+      st.append(" where ").append(update.where().translate(target(), path.add(update.where()), parameters));
     }
     if (update.columns() != null) {
       throw new TranslationException(target() + " does not support return values in updates");
@@ -215,15 +216,15 @@ public class HSqlDbTranslator extends AbstractTranslator {
 //  }
 
   @Override
-  protected QueryTranslation translate(Delete delete, Map<String, Object> parameters) {
+  protected QueryTranslation translate(Delete delete, EsqlPath path, Map<String, Object> parameters) {
     StringBuilder st = new StringBuilder("delete ");
     TableExpr from = delete.tables();
     if (!(from instanceof SingleTableExpr)) {
       throw new TranslationException(target() + " does not support multiple tables or joins in updates");
     }
-    st.append(" from ").append(from.translate(target(), parameters));
+    st.append(" from ").append(from.translate(target(), path.add(from), parameters));
     if (delete.where() != null) {
-      st.append(" where ").append(delete.where().translate(target(), parameters));
+      st.append(" where ").append(delete.where().translate(target(), path.add(delete.where()), parameters));
     }
     if (delete.columns() != null) {
       throw new TranslationException(target() + " does not support returning rows in deletes");
@@ -233,7 +234,7 @@ public class HSqlDbTranslator extends AbstractTranslator {
   }
 
   @Override
-  protected QueryTranslation translate(Insert insert, Map<String, Object> parameters) {
+  protected QueryTranslation translate(Insert insert, EsqlPath path, Map<String, Object> parameters) {
     StringBuilder st = new StringBuilder("insert into ");
     TableExpr table = insert.tables();
     if (!(table instanceof SingleTableExpr)) {
@@ -252,14 +253,14 @@ public class HSqlDbTranslator extends AbstractTranslator {
     List<InsertRow> rows = insert.rows();
     if (rows != null && !rows.isEmpty()) {
       st.append(rows.stream()
-                    .map(row -> row.translate(target(), parameters))
+                    .map(row -> row.translate(target(), path.add(row), parameters))
                     .collect(joining(", ", " values", "")));
 
     } else if (insert.defaultValues()) {
       st.append(" default values");
 
     } else {
-      st.append(' ').append(insert.select().translate(target(), Map.of("addAttributes", false)).statement);
+      st.append(' ').append(insert.select().translate(target(), path.add(insert.select()), Map.of("addAttributes", false)).statement);
     }
 
     if (insert.columns() != null && !insert.columns().isEmpty()) {

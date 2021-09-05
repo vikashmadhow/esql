@@ -10,6 +10,7 @@ import ma.vi.esql.database.Structure;
 import ma.vi.esql.exec.Result;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
+import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.query.Column;
 import ma.vi.esql.semantic.type.BaseRelation;
 
@@ -42,20 +43,11 @@ public class AlterTable extends Define<String> {
 
   @Override
   public AlterTable copy() {
-    if (!copying()) {
-      try {
-        copying(true);
-        return new AlterTable(this);
-      } finally {
-        copying(false);
-      }
-    } else {
-      return this;
-    }
+    return new AlterTable(this);
   }
 
   @Override
-  protected String trans(Target target, Map<String, Object> parameters) {
+  protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
     StringBuilder st = new StringBuilder("alter table ");
     st.append(dbTableName(name(), target)).append(' ');
 
@@ -66,7 +58,7 @@ public class AlterTable extends Define<String> {
       } else {
         st.append(", ");
       }
-      st.append(alteration.translate(target, parameters));
+      st.append(alteration.translate(target, path.add(alteration), parameters));
     }
     return st.toString();
   }

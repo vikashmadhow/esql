@@ -7,10 +7,10 @@ package ma.vi.esql.syntax.modify;
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
-import ma.vi.esql.syntax.query.QueryUpdate;
 import ma.vi.esql.syntax.Restriction;
 import ma.vi.esql.syntax.define.Metadata;
 import ma.vi.esql.syntax.query.Column;
+import ma.vi.esql.syntax.query.QueryUpdate;
 import ma.vi.esql.syntax.query.Select;
 import ma.vi.esql.syntax.query.SingleTableExpr;
 
@@ -24,22 +24,23 @@ import static ma.vi.base.tuple.T2.of;
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 public class Insert extends QueryUpdate {
-  public Insert(Context context,
+  public Insert(Context         context,
                 SingleTableExpr table,
-                List<String> fields,
+                List<String>    fields,
                 List<InsertRow> rows,
-                boolean defaultValues,
-                Select select,
-                Metadata metadata,
-                List<Column> returning) {
-    super(context, "Insert",
-        of("tables", table),
-        of("fields", new Esql<>(context, fields)),
-        of("rows", new Esql<>(context, rows)),
-        of("defaultValues", new Esql<>(context, defaultValues)),
-        of("select", select),
-        of("metadata", metadata),
-        of("columns", new Esql<>(context, returning)));
+                boolean         defaultValues,
+                Select          select,
+                Metadata        metadata,
+                List<Column>    returning) {
+    super(context,
+          "Insert",
+          of("tables",        table),
+          of("fields",        new Esql<>(context, "fields", fields.stream().map(f -> new Esql<>(context, f)).toList())),
+          of("rows",          new Esql<>(context, "rows", rows)),
+          of("defaultValues", new Esql<>(context, defaultValues)),
+          of("select",        select),
+          of("metadata",      metadata),
+          of("columns",       new Esql<>(context, "returning", returning)));
   }
 
   public Insert(Insert other) {
@@ -48,16 +49,7 @@ public class Insert extends QueryUpdate {
 
   @Override
   public Insert copy() {
-    if (!copying()) {
-      try {
-        copying(true);
-        return new Insert(this);
-      } finally {
-        copying(false);
-      }
-    } else {
-      return this;
-    }
+    return new Insert(this);
   }
 
   @Override

@@ -35,16 +35,7 @@ public class ColumnRef extends Expression<String, String> implements Macro {
 
   @Override
   public ColumnRef copy() {
-    if (!copying()) {
-      try {
-        copying(true);
-        return new ColumnRef(this);
-      } finally {
-        copying(false);
-      }
-    } else {
-      return this;
-    }
+    return new ColumnRef(this);
   }
 
   @Override
@@ -148,18 +139,18 @@ public class ColumnRef extends Expression<String, String> implements Macro {
     }
     return column;
   }
-
-  @Override
-  public int expansionOrder() {
-    return HIGH;
-  }
+//
+//  @Override
+//  public int expansionOrder() {
+//    return HIGH;
+//  }
 
   /**
    * Expand derived columns to their base expressions.
    */
   @Override
-  public boolean expand(String name, Esql<?, ?> esql) {
-    QueryUpdate stmt = ancestor(QueryUpdate.class);
+  public Esql<?, ?> expand(Esql<?, ?> esql, EsqlPath path)  {
+    QueryUpdate stmt = path.ancestor(QueryUpdate.class);
     if (stmt != null) {
       Relation rel = stmt.tables().type();
       if (qualifier() != null) {
@@ -173,20 +164,21 @@ public class ColumnRef extends Expression<String, String> implements Macro {
           if (qualifier() != null) {
             qualify(expr, qualifier(), null, true);
           }
-          parent.replaceWith(name, new GroupedExpression(context, expr));
-          return true;
+          return new GroupedExpression(context, expr);
         }
       }
     }
-    return false;
+    return esql;
   }
 
   @Override
-  protected String trans(Target target, Map<String, Object> parameters) {
+  protected String trans(Target target,
+                         EsqlPath path,
+                         Map<String, Object> parameters) {
     boolean sqlServerBool = target == Target.SQLSERVER
                          && type() == Types.BoolType
-                         && !requireIif(this, parameters)
-                         && (parent == null || parent.ancestor(Coalesce.class) == null);
+                         && !requireIif(path, parameters)
+                         && (path.ancestor(Coalesce.class) == null);
     return switch (target) {
       case ESQL, JAVASCRIPT -> qualifiedName();
       case JSON             -> '"' + qualifiedName() + '"';

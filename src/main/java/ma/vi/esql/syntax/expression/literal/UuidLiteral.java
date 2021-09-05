@@ -7,7 +7,7 @@ package ma.vi.esql.syntax.expression.literal;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.semantic.type.Types;
-import ma.vi.esql.syntax.Translatable;
+import ma.vi.esql.syntax.EsqlPath;
 
 import java.util.Map;
 import java.util.UUID;
@@ -28,16 +28,7 @@ public class UuidLiteral extends BaseLiteral<UUID> {
 
   @Override
   public UuidLiteral copy() {
-    if (!copying()) {
-      try {
-        copying(true);
-        return new UuidLiteral(this);
-      } finally {
-        copying(false);
-      }
-    } else {
-      return this;
-    }
+    return new UuidLiteral(this);
   }
 
   @Override
@@ -46,7 +37,7 @@ public class UuidLiteral extends BaseLiteral<UUID> {
   }
 
   @Override
-  protected String trans(Translatable.Target target, Map<String, Object> parameters) {
+  protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
     return switch(target) {
       case ESQL       -> "u'" + value + "'";
       case POSTGRESQL -> "'" + value + "'::uuid";

@@ -4,8 +4,9 @@
 
 package ma.vi.esql.syntax.expression;
 
-import ma.vi.esql.syntax.Context;
 import ma.vi.esql.semantic.type.Types;
+import ma.vi.esql.syntax.Context;
+import ma.vi.esql.syntax.EsqlPath;
 
 import java.util.List;
 import java.util.Map;
@@ -29,20 +30,11 @@ public class Coalesce extends MultipleSubExpressions<String> {
 
   @Override
   public Coalesce copy() {
-    if (!copying()) {
-      try {
-        copying(true);
-        return new Coalesce(this);
-      } finally {
-        copying(false);
-      }
-    } else {
-      return this;
-    }
+    return new Coalesce(this);
   }
 
   @Override
-  protected String trans(Target target, Map<String, Object> parameters) {
+  protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
     switch (target) {
       case JSON, JAVASCRIPT -> {
         StringBuilder st = new StringBuilder();
@@ -50,7 +42,7 @@ public class Coalesce extends MultipleSubExpressions<String> {
           if (st.length() > 0) {
             st.append(" || ");
           }
-          String t = e.translate(target, parameters);
+          String t = e.translate(target, path.add(e), parameters);
           st.append("((" + t + ") || (" + t + ") === 0 || (" + t + ") === '' ? " + t + " : null)");
         }
         String translation = "(" + st.toString() + ")";
@@ -63,7 +55,7 @@ public class Coalesce extends MultipleSubExpressions<String> {
       case ESQL -> {
         StringBuilder st = new StringBuilder();
         for (Expression<?, String> e: expressions()) {
-          st.append(st.length() == 0 ? "" : "?").append(e.translate(target, parameters));
+          st.append(st.length() == 0 ? "" : "?").append(e.translate(target, path.add(e), parameters));
         }
         return st.toString();
       }
@@ -71,8 +63,8 @@ public class Coalesce extends MultipleSubExpressions<String> {
       default -> {
         boolean sqlServerBool = target == Target.SQLSERVER
                              && type() == Types.BoolType
-                             && (ancestor("on") != null || ancestor("where") != null || ancestor("having") != null)
-                             && (parent == null || parent.ancestor(Coalesce.class) == null);
+                             && (path.ancestor("on") != null || path.ancestor("where") != null || path.ancestor("having") != null)
+                             && (path.ancestor(Coalesce.class) == null);
         StringBuilder st = new StringBuilder();
         if (sqlServerBool) {
           st.append('(');
@@ -82,7 +74,7 @@ public class Coalesce extends MultipleSubExpressions<String> {
         for (Expression<?, String> e: expressions()) {
           if (first) { first = false;   }
           else       { st.append(", "); }
-          st.append(e.translate(target, parameters));
+          st.append(e.translate(target, path.add(e), parameters));
         }
         st.append(')');
         if (sqlServerBool) {

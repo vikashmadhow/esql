@@ -8,6 +8,7 @@ import ma.vi.esql.database.Structure;
 import ma.vi.esql.function.Function;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
+import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.Macro;
 import ma.vi.esql.syntax.query.Order;
 import ma.vi.esql.semantic.type.Type;
@@ -48,16 +49,7 @@ public class FunctionCall extends Expression<String, String> implements Macro {
 
   @Override
   public FunctionCall copy() {
-    if (!copying()) {
-      try {
-        copying(true);
-        return new FunctionCall(this);
-      } finally {
-        copying(false);
-      }
-    } else {
-      return this;
-    }
+    return new FunctionCall(this);
   }
 
   @Override
@@ -75,19 +67,18 @@ public class FunctionCall extends Expression<String, String> implements Macro {
   }
 
   @Override
-  public boolean expand(String name, Esql<?, ?> esql) {
+  public Esql<?, ?> expand(Esql<?, ?> esql, EsqlPath path) {
     String functionName = functionName();
     Structure s = context.structure;
     Function function = s.function(functionName);
-    if (function instanceof Macro) {
-      Macro macro = (Macro)function;
-      return macro.expand(name, this);
+    if (function instanceof Macro macro) {
+      return macro.expand(esql, path);
     }
-    return false;
+    return esql;
   }
 
   @Override
-  protected String trans(Target target, Map<String, Object> parameters) {
+  protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
     String functionName = functionName();
     Structure s = context.structure;
     Function function = s.function(functionName);
@@ -107,7 +98,7 @@ public class FunctionCall extends Expression<String, String> implements Macro {
       if (partitions != null && !partitions.isEmpty()) {
         translation += " over (partition by " +
             partitions.stream()
-                      .map(p -> p.translate(target, parameters))
+                      .map(p -> p.translate(target, path.add(p), parameters))
                       .collect(joining(", "));
         overAdded = true;
       }
@@ -119,7 +110,7 @@ public class FunctionCall extends Expression<String, String> implements Macro {
         }
         translation += "order by " +
             orderBy.stream()
-                   .map(o -> o.translate(target, parameters))
+                   .map(o -> o.translate(target, path.add(o), parameters))
                    .collect(joining(", "));
       }
       translation += ')';
@@ -201,7 +192,7 @@ public class FunctionCall extends Expression<String, String> implements Macro {
   }
 
   public List<Expression<?, String>> distinctOn() {
-    return child("distinctOn").childrenList();
+    return child("distinctOn").children();
   }
 
   public FunctionCall distinctOn(List<Expression<?, String>> on) {
@@ -210,7 +201,7 @@ public class FunctionCall extends Expression<String, String> implements Macro {
   }
 
   public List<Expression<?, ?>> arguments() {
-    return child("arguments").childrenList();
+    return child("arguments").children();
   }
 
   public boolean star() {
@@ -218,10 +209,10 @@ public class FunctionCall extends Expression<String, String> implements Macro {
   }
 
   public List<Expression<?, String>> partitions() {
-    return child("partitions").childrenList();
+    return child("partitions").children();
   }
 
   public List<Order> orderBy() {
-    return child("orderBy").childrenList();
+    return child("orderBy").children();
   }
 }

@@ -7,6 +7,7 @@ package ma.vi.esql.syntax.define;
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
+import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.expression.Expression;
 import ma.vi.esql.semantic.type.Type;
 
@@ -28,10 +29,10 @@ public class ColumnDefinition extends TableDefinition {
                           Expression<?, String> expression,
                           Metadata metadata) {
     super(context, name,
-        T2.of("type",       new Esql<>(context, type)),
-        T2.of("notNull",    new Esql<>(context, notNull)),
-        T2.of("expression", expression),
-        T2.of("metadata",   metadata));
+          T2.of("type", new Esql<>(context, type)),
+          T2.of("notNull", new Esql<>(context, notNull)),
+          T2.of("expression", expression),
+          T2.of("metadata",   metadata));
   }
 
   public ColumnDefinition(ColumnDefinition other) {
@@ -40,39 +41,30 @@ public class ColumnDefinition extends TableDefinition {
 
   @Override
   public ColumnDefinition copy() {
-    if (!copying()) {
-      try {
-        copying(true);
-        return new ColumnDefinition(this);
-      } finally {
-        copying(false);
-      }
-    } else {
-      return this;
-    }
+    return new ColumnDefinition(this);
   }
 
   @Override
-  protected String trans(Target target, Map<String, Object> parameters) {
+  protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
     if (target == ESQL) {
       StringBuilder st = new StringBuilder('"' + name() + "\" "
-                                               + type().translate(target, parameters)
+                                               + type().translate(target, path, parameters)
                                                + (notNull() ? " not null" : "")
-                                               + (expression() != null ? " default " + expression().translate(target, parameters) : ""));
+                                               + (expression() != null ? " default " + expression().translate(target, path.add(expression()), parameters) : ""));
       addMetadata(st, target);
       return st.toString();
 
     } else if (target== HSQLDB) {
       return '"' + name() + "\" "
-          + type().translate(target, parameters)
-          + (expression() != null ? " default " + expression().translate(target, parameters) : "")
+          + type().translate(target, path, parameters)
+          + (expression() != null ? " default " + expression().translate(target, path.add(expression()), parameters) : "")
           + (notNull() ? " not null" : "");
 
     } else {
       return '"' + name() + "\" "
-           + type().translate(target, parameters)
+           + type().translate(target, path, parameters)
            + (notNull() ? " not null" : "")
-           + (expression() != null ? " default " + expression().translate(target, parameters) : "");
+           + (expression() != null ? " default " + expression().translate(target, path.add(expression()), parameters) : "");
     }
   }
 

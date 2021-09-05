@@ -9,6 +9,7 @@ import ma.vi.esql.database.Structure;
 import ma.vi.esql.exec.Result;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.semantic.type.BaseRelation;
+import ma.vi.esql.syntax.EsqlPath;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -17,6 +18,11 @@ import java.util.Map;
 import static ma.vi.esql.syntax.Translatable.Target.ESQL;
 import static ma.vi.esql.semantic.type.Type.dbTableName;
 
+/**
+ * Drop table statement.
+ *
+ * @author Vikash Madhow (vikash.madhow@gmail.com)
+ */
 public class DropTable extends Define<String> {
   public DropTable(Context context, String name) {
     super(context, name);
@@ -28,20 +34,11 @@ public class DropTable extends Define<String> {
 
   @Override
   public DropTable copy() {
-    if (!copying()) {
-      try {
-        copying(true);
-        return new DropTable(this);
-      } finally {
-        copying(false);
-      }
-    } else {
-      return this;
-    }
+    return new DropTable(this);
   }
 
   @Override
-  protected String trans(Target target, Map<String, Object> parameters) {
+  protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
     return "drop table " + (target == ESQL ? name() : dbTableName(name(), target));
   }
 

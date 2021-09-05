@@ -5,10 +5,11 @@
 package ma.vi.esql.syntax.expression.comparison;
 
 import ma.vi.base.tuple.T2;
-import ma.vi.esql.syntax.Context;
-import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.semantic.type.Types;
+import ma.vi.esql.syntax.Context;
+import ma.vi.esql.syntax.Esql;
+import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.expression.Expression;
 
 import java.util.List;
@@ -27,8 +28,8 @@ public class In extends Expression<Expression<?, ?>, String> {
             boolean not,
             List<Expression<?, ?>> expressionList) {
     super(context, expr,
-        T2.of("not", new Esql<>(context, not)),
-        T2.of("list", new Esql<>(context, null, expressionList)));
+          T2.of("not", new Esql<>(context, not)),
+          T2.of("list", new Esql<>(context, null, expressionList)));
   }
 
   public In(In other) {
@@ -37,16 +38,7 @@ public class In extends Expression<Expression<?, ?>, String> {
 
   @Override
   public In copy() {
-    if (!copying()) {
-      try {
-        copying(true);
-        return new In(this);
-      } finally {
-        copying(false);
-      }
-    } else {
-      return this;
-    }
+    return new In(this);
   }
 
   @Override
@@ -55,10 +47,10 @@ public class In extends Expression<Expression<?, ?>, String> {
   }
 
   @Override
-  protected String trans(Target target, Map<String, Object> parameters) {
-    return expr().translate(target, parameters) + (not() ? " not in (" : " in (")
+  protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
+    return expr().translate(target, path.add(expr()), parameters) + (not() ? " not in (" : " in (")
         + list().stream()
-                .map(e -> e.translate(target, parameters))
+                .map(e -> e.translate(target, path.add(e), parameters))
                 .collect(joining(", "))
         + ')';
   }
@@ -86,6 +78,6 @@ public class In extends Expression<Expression<?, ?>, String> {
   }
 
   public List<Expression<?, String>> list() {
-    return child("list").childrenList();
+    return child("list").children();
   }
 }

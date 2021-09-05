@@ -35,15 +35,15 @@ public abstract class Literal<V> extends Expression<V, String> {
     super(context, value);
   }
 
-  public Literal(Context context, V value, T2<String, ? extends Esql<?, ?>>... children) {
+  public Literal(Context context,
+                 V value,
+                 T2<String, ? extends Esql<?, ?>>... children) {
     super(context, value, children);
   }
 
-  public Literal(Context context, V value, Esql<?, ?>[] children) {
-    super(context, value, children);
-  }
-
-  public Literal(Context context, V value, List<? extends Esql<?, ?>> children) {
+  public Literal(Context context,
+                 V value,
+                 List<? extends Esql<?, ?>> children) {
     super(context, value, children);
   }
 

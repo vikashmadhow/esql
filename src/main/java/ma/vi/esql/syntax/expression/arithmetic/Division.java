@@ -25,15 +25,6 @@ public class Division extends ArithmeticOperator {
 
   @Override
   public Division copy() {
-    if (!copying()) {
-      try {
-        copying(true);
-        return new Division(this);
-      } finally {
-        copying(false);
-      }
-    } else {
-      return this;
-    }
+    return new Division(this);
   }
 }

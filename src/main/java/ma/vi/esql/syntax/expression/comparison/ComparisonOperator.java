@@ -7,6 +7,7 @@ package ma.vi.esql.syntax.expression.comparison;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.semantic.type.Types;
+import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.expression.BinaryOperator;
 import ma.vi.esql.syntax.expression.Expression;
 
@@ -34,16 +35,7 @@ public class ComparisonOperator extends BinaryOperator {
 
   @Override
   public ComparisonOperator copy() {
-    if (!copying()) {
-      try {
-        copying(true);
-        return new ComparisonOperator(this);
-      } finally {
-        copying(false);
-      }
-    } else {
-      return this;
-    }
+    return new ComparisonOperator(this);
   }
 
   @Override
@@ -52,10 +44,12 @@ public class ComparisonOperator extends BinaryOperator {
   }
 
   @Override
-  protected String trans(Target target, Map<String, Object> parameters) {
-    boolean sqlServerBool = target == Target.SQLSERVER && requireIif(this, parameters);
+  protected String trans(Target target,
+                         EsqlPath path,
+                         Map<String, Object> parameters) {
+    boolean sqlServerBool = target == Target.SQLSERVER && requireIif(path, parameters);
     return (sqlServerBool ? "iif" : "") + '('
-         + super.trans(target, parameters)
+         + super.trans(target, path, parameters)
          + (sqlServerBool ? ", 1, 0" : "") + ')';
   }
 }

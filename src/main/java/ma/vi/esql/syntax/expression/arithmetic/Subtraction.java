@@ -25,15 +25,6 @@ public class Subtraction extends ArithmeticOperator {
 
   @Override
   public Subtraction copy() {
-    if (!copying()) {
-      try {
-        copying(true);
-        return new Subtraction(this);
-      } finally {
-        copying(false);
-      }
-    } else {
-      return this;
-    }
+    return new Subtraction(this);
   }
 }

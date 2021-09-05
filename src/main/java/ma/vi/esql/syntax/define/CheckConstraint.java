@@ -6,6 +6,7 @@ package ma.vi.esql.syntax.define;
 
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.syntax.Context;
+import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.expression.ColumnRef;
 import ma.vi.esql.syntax.expression.Expression;
 
@@ -37,32 +38,22 @@ public class CheckConstraint extends ConstraintDefinition {
 
   @Override
   public CheckConstraint copy() {
-    if (!copying()) {
-      try {
-        copying(true);
-        return new CheckConstraint(this);
-      } finally {
-        copying(false);
-      }
-    } else {
-      return this;
-    }
+    return new CheckConstraint(this);
   }
 
   @Override
   public boolean sameAs(ConstraintDefinition def) {
-    if (def instanceof CheckConstraint) {
-      CheckConstraint c = (CheckConstraint)def;
+    if (def instanceof CheckConstraint c) {
       return c.expr().equals(expr());
     }
     return false;
   }
 
   @Override
-  protected String trans(Target target, Map<String, Object> parameters) {
+  protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
     return "constraint "
         + '"' + (name() != null ? name() : defaultConstraintName(target, namePrefix())) + '"'
-        + " check(" + expr().translate(target, parameters) + ')';
+        + " check(" + expr().translate(target, path.add(expr()), parameters) + ')';
   }
 
   @Override

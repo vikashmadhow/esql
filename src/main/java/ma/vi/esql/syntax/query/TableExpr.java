@@ -15,7 +15,9 @@ import ma.vi.esql.semantic.type.Relation;
  * @author vikash.madhow@gmail.com
  */
 public abstract class TableExpr extends Esql<String, String> {
-  public TableExpr(Context context, String value, T2<String, Esql<?, ?>>... children) {
+  public TableExpr(Context context,
+                   String value,
+                   T2<String, ? extends Esql<?, ?>>... children) {
     super(context, value, children);
   }
 

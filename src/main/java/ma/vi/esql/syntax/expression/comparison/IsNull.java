@@ -8,6 +8,7 @@ import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.semantic.type.Types;
+import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.expression.Expression;
 import ma.vi.esql.syntax.expression.SingleSubExpression;
 
@@ -35,16 +36,7 @@ public class IsNull extends SingleSubExpression {
 
   @Override
   public IsNull copy() {
-    if (!copying()) {
-      try {
-        copying(true);
-        return new IsNull(this);
-      } finally {
-        copying(false);
-      }
-    } else {
-      return this;
-    }
+    return new IsNull(this);
   }
 
   @Override
@@ -53,14 +45,14 @@ public class IsNull extends SingleSubExpression {
   }
 
   @Override
-  protected String trans(Target target, Map<String, Object> parameters) {
+  protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
     switch (target) {
       case JSON:
       case JAVASCRIPT:
-        String e = expr().translate(target, parameters) + (not() ? " !== null" : " === null");
+        String e = expr().translate(target, path.add(expr()), parameters) + (not() ? " !== null" : " === null");
         return target == JSON ? '"' + escapeJsonString(e) + '"' : e;
       default:
-        return expr().translate(target, parameters) + " is" + (not() ? " not" : "") + " null";
+        return expr().translate(target, path.add(expr()), parameters) + " is" + (not() ? " not" : "") + " null";
     }
   }
 

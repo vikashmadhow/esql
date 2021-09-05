@@ -8,6 +8,7 @@ import ma.vi.base.string.Strings;
 import ma.vi.esql.function.Function;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
+import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.Macro;
 import ma.vi.esql.syntax.define.Attribute;
 import ma.vi.esql.syntax.define.GroupBy;
@@ -30,32 +31,34 @@ import static ma.vi.base.tuple.T2.of;
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 public class Select extends QueryUpdate implements Macro {
-  public Select(Context             context,
-                Metadata            metadata,
-                boolean             distinct,
+  public Select(Context                     context,
+                String                      value,
+                Metadata                    metadata,
+                boolean                     distinct,
                 List<Expression<?, String>> distinctOn,
-                boolean             explicit,
-                List<Column>        columns,
-                TableExpr           from,
+                boolean                     explicit,
+                List<Column>                columns,
+                TableExpr                   from,
                 Expression<?, String>       where,
-                GroupBy             groupBy,
+                GroupBy                     groupBy,
                 Expression<?, String>       having,
-                List<Order>         orderBy,
+                List<Order>                 orderBy,
                 Expression<?, String>       offset,
                 Expression<?, String>       limit) {
-    super(context, "Select",
-        of("distinct",    new Esql<>(context, distinct)),
-        of("distinctOn",  new Esql<>(context, "distinctOn", distinctOn)),
-        of("explicit",    new Esql<>(context, explicit)),
-        of("metadata",    metadata),
-        of("columns",     new Esql<>(context, columns)),
-        of("tables",      from),
-        of("where",       where),
-        of("groupBy",     groupBy),
-        of("having",      having),
-        of("orderBy",     new Esql<>(context, "orderBy", orderBy)),
-        of("offset",      offset),
-        of("limit",       limit));
+    super(context,
+          value,
+          of("distinct",    new Esql<>(context, distinct)),
+          of("distinctOn",  new Esql<>(context, "distinctOn", distinctOn)),
+          of("explicit",    new Esql<>(context, explicit)),
+          of("metadata",    metadata),
+          of("columns",     new Esql<>(context, "columns", columns)),
+          of("tables",      from),
+          of("where",       where),
+          of("groupBy",     groupBy),
+          of("having",      having),
+          of("orderBy",     orderBy == null ? null : new Esql<>(context, "orderBy", orderBy)),
+          of("offset",      offset),
+          of("limit",       limit));
 
     /*
      * Rename column names to be unique without random characters.
@@ -82,16 +85,7 @@ public class Select extends QueryUpdate implements Macro {
 
   @Override
   public Select copy() {
-    if (!copying()) {
-      try {
-        copying(true);
-        return new Select(this);
-      } finally {
-        copying(false);
-      }
-    } else {
-      return this;
-    }
+    return new Select(this);
   }
 
   @Override
@@ -109,13 +103,13 @@ public class Select extends QueryUpdate implements Macro {
     return name;
   }
 
-  @Override
-  public int expansionOrder() {
-    return HIGHEST;
-  }
+//  @Override
+//  public int expansionOrder() {
+//    return HIGHEST;
+//  }
 
   @Override
-  public boolean expand(String name, Esql<?, ?> esql) {
+  public Esql<?, ?> expand(Esql<?, ?> esql, EsqlPath path) {
     /*
      * Expand star columns (*) to the individual columns they refer to
      */
@@ -126,9 +120,8 @@ public class Select extends QueryUpdate implements Macro {
     Map<String, String> aliased = new HashMap<>();
     Map<String, Column> resolvedColumns = new LinkedHashMap<>();
     for (Column column: columns()) {
-      if (column instanceof StarColumn) {
+      if (column instanceof StarColumn all) {
         expanded = true;
-        StarColumn all = (StarColumn)column;
         String qualifier = all.qualifier();
         Relation rel = qualifier == null ? fromType : fromType.forAlias(qualifier);
         for (Column relCol: rel.columns()) {
@@ -220,8 +213,7 @@ public class Select extends QueryUpdate implements Macro {
        */
       Column col = columns().get(0);
       Expression<?, String> expr = col.expr();
-      if (expr instanceof FunctionCall) {
-        FunctionCall fc = (FunctionCall)expr;
+      if (expr instanceof FunctionCall fc) {
         Function function = context.structure.function(fc.functionName());
         return function != null && function.aggregate;
       }
@@ -239,21 +231,18 @@ public class Select extends QueryUpdate implements Macro {
    * </ol>
    */
   public Expression<?, String> remapExpression(Expression<?, String> expression,
-                                       Map<String, String> addedInnerCols,
-                                       List<Column> innerCols,
-                                       String innerSelectAlias) {
+                                               Map<String, String> addedInnerCols,
+                                               List<Column> innerCols,
+                                               String innerSelectAlias) {
     /*
      * Find column references in the expression and add to the columns
      * of the inner query.
      */
     expression.forEach(e -> {
-      if (e instanceof ColumnRef) {
-        ColumnRef ref = (ColumnRef)e;
+      if (e instanceof ColumnRef ref) {
         if (!addedInnerCols.containsKey(ref.qualifiedName())) {
           String alias = Strings.makeUnique(new HashSet<>(addedInnerCols.values()), ref.name());
-          innerCols.add(new Column(
-              context, alias, ref.copy(), null
-          ));
+          innerCols.add(new Column(context, alias, ref.copy(), null));
           addedInnerCols.put(ref.qualifiedName(), alias);
         }
       }
@@ -322,7 +311,7 @@ public class Select extends QueryUpdate implements Macro {
   }
 
   public List<Order> orderBy() {
-    return child("orderBy").childrenList();
+    return child("orderBy").children();
   }
 
   public Select orderBy(List<Order> orderBy) {

@@ -7,6 +7,7 @@ package ma.vi.esql.syntax.expression.literal;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.semantic.type.Types;
+import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.Translatable;
 
 import java.util.Map;
@@ -29,16 +30,7 @@ public class StringLiteral extends BaseLiteral<String> {
 
   @Override
   public StringLiteral copy() {
-    if (!copying()) {
-      try {
-        copying(true);
-        return new StringLiteral(this);
-      } finally {
-        copying(false);
-      }
-    } else {
-      return this;
-    }
+    return new StringLiteral(this);
   }
 
   @Override
@@ -47,7 +39,7 @@ public class StringLiteral extends BaseLiteral<String> {
   }
 
   @Override
-  protected String trans(Translatable.Target target, Map<String, Object> parameters) {
+  protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
     /*
      * In sql server special characters can be sent as-is
      * to the database. Sql server has no support for escape
@@ -55,7 +47,6 @@ public class StringLiteral extends BaseLiteral<String> {
      */
     return switch (target) {
       case SQLSERVER  -> 'N' + value;
-      case HSQLDB     -> value;
       case POSTGRESQL -> esqlToPostgresqlString(value);
       case JSON       -> '`' + escapeJsonString(value.substring(1, value.length() - 1)) + '`';
       default         -> value; // Javascript and ESQL

@@ -7,6 +7,7 @@ package ma.vi.esql.syntax.expression;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.semantic.type.Types;
+import ma.vi.esql.syntax.EsqlPath;
 
 import java.util.Map;
 
@@ -26,16 +27,7 @@ public class DefaultValue extends Expression<String, String> {
 
   @Override
   public DefaultValue copy() {
-    if (!copying()) {
-      try {
-        copying(true);
-        return new DefaultValue(this);
-      } finally {
-        copying(false);
-      }
-    } else {
-      return this;
-    }
+    return new DefaultValue(this);
   }
 
   @Override
@@ -49,7 +41,7 @@ public class DefaultValue extends Expression<String, String> {
   }
 
   @Override
-  protected String trans(Target target, Map<String, Object> parameters) {
+  protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
     return "default";
   }
 

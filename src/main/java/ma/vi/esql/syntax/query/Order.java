@@ -7,6 +7,7 @@ package ma.vi.esql.syntax.query;
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
+import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.expression.Expression;
 import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.semantic.type.Types;
@@ -29,16 +30,7 @@ public class Order extends Esql<Expression<?, String>, String> {
 
   @Override
   public Order copy() {
-    if (!copying()) {
-      try {
-        copying(true);
-        return new Order(this);
-      } finally {
-        copying(false);
-      }
-    } else {
-      return this;
-    }
+    return new Order(this);
   }
 
   @Override
@@ -47,9 +39,9 @@ public class Order extends Esql<Expression<?, String>, String> {
   }
 
   @Override
-  protected String trans(Target target, Map<String, Object> parameters) {
+  protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
     String dir = dir();
-    return order().translate(target, parameters) + (dir == null ? "" : ' ' + dir);
+    return order().translate(target, path.add(order()), parameters) + (dir == null ? "" : ' ' + dir);
   }
 
   @Override

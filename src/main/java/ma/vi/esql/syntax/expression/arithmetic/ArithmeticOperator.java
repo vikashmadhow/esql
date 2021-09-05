@@ -36,9 +36,8 @@ abstract class ArithmeticOperator extends BinaryOperator {
     Type leftType = expr1().type();
     Type rightType = expr2().type();
 
-    if (leftType instanceof BaseType && rightType instanceof BaseType) {
-      BaseType left = (BaseType)leftType;
-      BaseType right = (BaseType)rightType;
+    if (leftType instanceof BaseType left
+     && rightType instanceof BaseType right) {
 
       // Non-integral trumps integral
       if (left.integral && !right.integral) {

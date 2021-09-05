@@ -8,13 +8,13 @@ import ma.vi.base.tuple.T2;
 import ma.vi.esql.database.SqlServer;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
+import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.Restriction;
 import ma.vi.esql.semantic.type.Selection;
 
 import java.util.List;
 import java.util.Map;
 
-import static ma.vi.base.tuple.T2.of;
 import static ma.vi.esql.syntax.Translatable.Target.HSQLDB;
 import static ma.vi.esql.syntax.Translatable.Target.POSTGRESQL;
 
@@ -27,13 +27,12 @@ import static ma.vi.esql.syntax.Translatable.Target.POSTGRESQL;
 public class With extends QueryUpdate {
   public With(Context context, boolean recursive, List<Cte> ctes, QueryUpdate query) {
     super(context, "With",
-        of("recursive", new Esql<>(context, recursive)),
-        of("ctes", new Esql<>(context, ctes)),
-        of("query", query));
-
-    child("columns", query.columnsAsEsql(), false);
-    child("tables", query.tables(), false);
-    child("metadata", query.metadata(), false);
+          T2.of("recursive", new Esql<>(context, recursive)),
+          T2.of("ctes",      new Esql<>(context, ctes)),
+          T2.of("query",     query),
+          T2.of("columns",   new Esql<>(context,"columns", query.columns())),
+          T2.of("tables",    query.tables()),
+          T2.of("metadata",  query.metadata()));
   }
 
   public With(With other) {
@@ -42,16 +41,7 @@ public class With extends QueryUpdate {
 
   @Override
   public With copy() {
-    if (!copying()) {
-      try {
-        copying(true);
-        return new With(this);
-      } finally {
-        copying(false);
-      }
-    } else {
-      return this;
-    }
+    return new With(this);
   }
 
   @Override
@@ -60,7 +50,7 @@ public class With extends QueryUpdate {
   }
 
   @Override
-  public QueryTranslation trans(Target target, Map<String, Object> parameters) {
+  public QueryTranslation trans(Target target, EsqlPath path, Map<String, Object> parameters) {
     /*
      * Ensure all CTE types are added to context-specific (local) type registry.
      */
@@ -77,10 +67,10 @@ public class With extends QueryUpdate {
     for (Cte cte: ctes()) {
       if (first) { first = false; }
       else       { st.append(", "); }
-      st.append(cte.translate(target, parameters).statement);
+      st.append(cte.translate(target, path.add(cte), parameters).statement);
     }
 
-    QueryTranslation q = query().translate(target, parameters);
+    QueryTranslation q = query().translate(target, path.add(query()), parameters);
     st.append(' ').append(q.statement);
     return new QueryTranslation(st.toString(), q.columns, q.columnToIndex,
                                 q.resultAttributeIndices, q.resultAttributes);

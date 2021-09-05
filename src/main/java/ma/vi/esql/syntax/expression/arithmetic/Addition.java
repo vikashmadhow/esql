@@ -25,15 +25,6 @@ public class Addition extends ArithmeticOperator {
 
   @Override
   public Addition copy() {
-    if (!copying()) {
-      try {
-        copying(true);
-        return new Addition(this);
-      } finally {
-        copying(false);
-      }
-    } else {
-      return this;
-    }
+    return new Addition(this);
   }
 }

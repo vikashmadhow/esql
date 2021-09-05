@@ -5,22 +5,29 @@
 package ma.vi.esql.syntax;
 
 import ma.vi.esql.grammar.EsqlBaseListener;
+import ma.vi.esql.semantic.type.Type;
+import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.define.*;
+import ma.vi.esql.syntax.expression.*;
 import ma.vi.esql.syntax.expression.arithmetic.*;
 import ma.vi.esql.syntax.expression.comparison.*;
-import ma.vi.esql.syntax.expression.literal.*;
+import ma.vi.esql.syntax.expression.literal.BooleanLiteral;
 import ma.vi.esql.syntax.expression.literal.DateLiteral;
+import ma.vi.esql.syntax.expression.literal.FloatingPointLiteral;
+import ma.vi.esql.syntax.expression.literal.IntegerLiteral;
+import ma.vi.esql.syntax.expression.literal.IntervalLiteral;
+import ma.vi.esql.syntax.expression.literal.NullLiteral;
+import ma.vi.esql.syntax.expression.literal.StringLiteral;
+import ma.vi.esql.syntax.expression.literal.UuidLiteral;
+import ma.vi.esql.syntax.expression.literal.*;
 import ma.vi.esql.syntax.expression.logical.And;
-import ma.vi.esql.syntax.expression.logical.Or;
 import ma.vi.esql.syntax.expression.logical.Not;
-import ma.vi.esql.syntax.expression.*;
+import ma.vi.esql.syntax.expression.logical.Or;
 import ma.vi.esql.syntax.modify.Delete;
 import ma.vi.esql.syntax.modify.Insert;
 import ma.vi.esql.syntax.modify.InsertRow;
 import ma.vi.esql.syntax.modify.Update;
 import ma.vi.esql.syntax.query.*;
-import ma.vi.esql.semantic.type.Type;
-import ma.vi.esql.semantic.type.Types;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.RuleContext;
 import org.antlr.v4.runtime.Token;
@@ -160,6 +167,7 @@ public class SyntaxAnalyser extends EsqlBaseListener {
       error(ctx,"No columns specified in Select");
     }
     put(ctx, new Select(context,
+                        "Select",
                         ctx.metadata() == null ? null : get(ctx.metadata()),
                         distinct != null && distinct.getText().startsWith("distinct"),
                         distinct != null && distinct.expressionList() != null ? value(distinct.expressionList()) : null,
@@ -716,6 +724,7 @@ public class SyntaxAnalyser extends EsqlBaseListener {
   public void exitSelectExpression(SelectExpressionContext ctx) {
     DistinctContext distinct = ctx.distinct();
     Select s = new Select(context,
+                          "SelectExpression",
                           null,
                           distinct != null && distinct.getText().startsWith("distinct"),
                           distinct != null && distinct.expressionList() != null ? value(distinct.expressionList()) : null,

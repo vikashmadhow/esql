@@ -8,21 +8,22 @@ import ma.vi.base.tuple.T2;
 import ma.vi.esql.exec.EsqlConnection;
 import ma.vi.esql.exec.Param;
 import ma.vi.esql.exec.Result;
+import ma.vi.esql.semantic.type.BaseRelation;
+import ma.vi.esql.semantic.type.Relation;
+import ma.vi.esql.semantic.type.Type;
+import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.EsqlTransformer;
 import ma.vi.esql.syntax.Parser;
 import ma.vi.esql.syntax.define.*;
-import ma.vi.esql.syntax.expression.*;
+import ma.vi.esql.syntax.expression.ColumnRef;
+import ma.vi.esql.syntax.expression.Expression;
 import ma.vi.esql.syntax.expression.literal.BooleanLiteral;
 import ma.vi.esql.syntax.expression.literal.StringLiteral;
 import ma.vi.esql.syntax.expression.literal.UuidLiteral;
 import ma.vi.esql.syntax.modify.Insert;
 import ma.vi.esql.syntax.query.Column;
 import ma.vi.esql.translator.*;
-import ma.vi.esql.semantic.type.BaseRelation;
-import ma.vi.esql.semantic.type.Relation;
-import ma.vi.esql.semantic.type.Type;
-import ma.vi.esql.semantic.type.Types;
 
 import java.sql.*;
 import java.util.*;
@@ -910,36 +911,41 @@ public abstract class AbstractDatabase implements Database {
         boolean derivedColumn = rs.getBoolean("derived_column");
 
         // load custom column attributes
-        Metadata metadata = new Metadata(context, new ArrayList<>());
-        metadata.attribute(TYPE, columnType);
-        metadata.attribute(ID, columnId);
-        metadata.attribute(REQUIRED, notNull);
-        metadata.attribute(SEQUENCE, columnNumber);
+        Map<String, Attribute> attributes = new HashMap<>();
+        attributes.put(TYPE, Attribute.from(context, TYPE, columnType));
+        attributes.put(ID, Attribute.from(context, ID, columnId));
+        attributes.put(REQUIRED, Attribute.from(context, REQUIRED, notNull));
+        attributes.put(SEQUENCE, Attribute.from(context, SEQUENCE, columnNumber));
+
         attrStmt.setObject(1, columnId);
         try (ResultSet ars = attrStmt.executeQuery()) {
           while (ars.next()) {
-            metadata.attribute(
-                ars.getString("attribute"),
-                parser.parseExpression(ars.getString("value")));
+            String name = ars.getString("attribute");
+            attributes.put(name,
+                           new Attribute(context, name,
+                                         parser.parseExpression(ars.getString("value"))));
           }
         }
+        Metadata metadata = new Metadata(context, new ArrayList<>());
 
+        Column col;
         Expression<?, String> expr = expression != null ? parser.parseExpression(expression) : null;
         if (derivedColumn) {
-          metadata.attribute(DERIVED, true);
-          Column col = new Column(context, columnName, expr, metadata);
-          columns.add(col);
+          attributes.put(DERIVED, Attribute.from(context, DERIVED, true));
+          col = new Column(context,
+                           columnName,
+                           expr,
+                           metadata);
         } else {
-          Column col = new Column(
-              context,
-              columnName,
-              new ColumnRef(context, null, columnName),
-              metadata);
           if (expr != null) {
-            col.attribute(EXPRESSION, expr);
+            attributes.put(EXPRESSION, new Attribute(context, EXPRESSION, expr));
           }
-          columns.add(col);
+          col = new Column(context,
+                           columnName,
+                           new ColumnRef(context, null, columnName),
+                           new Metadata(context, new ArrayList<>(attributes.values())));
         }
+        columns.add(col);
       }
       return columns;
     } catch (SQLException sqle) {
@@ -1173,11 +1179,11 @@ public abstract class AbstractDatabase implements Database {
     }
   }
 
-  private void addColumn(EsqlConnection econ,
-                         UUID tableId,
-                         Column column,
-                         Insert insertCol,
-                         Insert insertColAttr) {
+  private Column addColumn(EsqlConnection econ,
+                           UUID tableId,
+                           Column column,
+                           Insert insertCol,
+                           Insert insertColAttr) {
     String columnName = column.alias();
     if (columnName.indexOf('/') == -1) {
       /*
@@ -1187,8 +1193,16 @@ public abstract class AbstractDatabase implements Database {
       Boolean canDelete = column.metadata() == null ? null : column.metadata().evaluateAttribute(CAN_DELETE);
       UUID columnId = column.id();
       if (columnId == null) {
+        Map<String, Attribute> attributes = new LinkedHashMap<>();
+        if (column.metadata() != null && column.metadata().attributes() != null) {
+          attributes.putAll(column.metadata().attributes());
+        }
         columnId = UUID.randomUUID();
-        column.id(columnId);
+        attributes.put(ID, Attribute.from(column.context, ID, columnId));
+        column = new Column(column.context,
+                            column.alias(),
+                            column.expr(),
+                            new Metadata(column.context, new ArrayList<>(attributes.values())));
       }
       econ.exec(insertCol,
                 Param.of("id",            columnId),
@@ -1201,9 +1215,9 @@ public abstract class AbstractDatabase implements Database {
                 Param.of("expression",
                          column.derived()                   ? column.expr().translate(ESQL) :
                          column.defaultExpression() != null ? column.defaultExpression().translate(ESQL) : null));
-
       addColumnMetadata(econ, column, insertColAttr);
     }
+    return column;
   }
 
   private void addColumnMetadata(EsqlConnection econ,

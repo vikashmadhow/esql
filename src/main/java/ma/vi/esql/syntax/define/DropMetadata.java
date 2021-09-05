@@ -5,9 +5,15 @@
 package ma.vi.esql.syntax.define;
 
 import ma.vi.esql.syntax.Context;
+import ma.vi.esql.syntax.EsqlPath;
 
 import java.util.Map;
 
+/**
+ * Drop table metadata.
+ *
+ * @author Vikash Madhow (vikash.madhow@gmail.com)
+ */
 public class DropMetadata extends Alteration {
   public DropMetadata(Context context) {
     super(context);
@@ -19,20 +25,11 @@ public class DropMetadata extends Alteration {
 
   @Override
   public DropMetadata copy() {
-    if (!copying()) {
-      try {
-        copying(true);
-        return new DropMetadata(this);
-      } finally {
-        copying(false);
-      }
-    } else {
-      return this;
-    }
+    return new DropMetadata(this);
   }
 
   @Override
-  protected String trans(Target target, Map<String, Object> parameters) {
+  protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
     return "drop metadata";
   }
 }

@@ -83,7 +83,7 @@ public class BaseRelation extends Relation {
      *      is expanded to {a:a, b:a+5, c:a+a+5, d:a+a+5+a+5}
      */
     for (Column column: this.columns) {
-      column.parent = new Esql<>(context, this);
+      // column.parent = new Esql<>(context, this);
       if (!(column.expr() instanceof Literal)
          && (!(column.expr() instanceof ColumnRef)
           || !column.expr().value.equals(column.alias()))) {
@@ -191,37 +191,37 @@ public class BaseRelation extends Relation {
   }
 
   public static Expression<?, String> expandDerived(Expression<?, String> derivedExpression,
-                                            PathTrie<Column> columns,
-                                            String columnName,
-                                            Set<String> seen) {
+                                                    PathTrie<Column> columns,
+                                                    String columnName,
+                                                    Set<String> seen) {
     try {
       seen.add(columnName);
       return (Expression<?, String>)derivedExpression.map(e -> {
-          if (e instanceof ColumnRef) {
-            ColumnRef ref = (ColumnRef)e;
-            String colName = ref.name();
-            Column column = columns.get(colName);
-            if (column == null) {
-              throw new TranslationException("Unknown column " + colName
-                                           + " in derived expresion " + derivedExpression);
-            } else if (seen.contains(colName)) {
-              Set<String> otherColumns = seen.stream()
-                                             .filter(c -> !c.equals(colName) && !c.contains("/"))
-                                             .collect(toSet());
-              throw new CircularReferenceException(
-                "A circular definition was detected in the expression "
-                + derivedExpression + " consisting of the column "
-                + colName + (otherColumns.isEmpty() ? "" : " and " + otherColumns));
-            } else if (column.derived()) {
-              GroupedExpression expanded =
-                  new GroupedExpression(e.context, expandDerived(column.expr(), columns, colName, seen));
-              expanded.parent = e.parent;
-              return expanded;
-            }
+        if (e instanceof ColumnRef) {
+          ColumnRef ref = (ColumnRef)e;
+          String colName = ref.name();
+          Column column = columns.get(colName);
+          if (column == null) {
+            throw new TranslationException("Unknown column " + colName
+                                         + " in derived expresion " + derivedExpression);
+          } else if (seen.contains(colName)) {
+            Set<String> otherColumns = seen.stream()
+                                           .filter(c -> !c.equals(colName) && !c.contains("/"))
+                                           .collect(toSet());
+            throw new CircularReferenceException(
+              "A circular definition was detected in the expression "
+              + derivedExpression + " consisting of the column "
+              + colName + (otherColumns.isEmpty() ? "" : " and " + otherColumns));
+          } else if (column.derived()) {
+            GroupedExpression expanded =
+                new GroupedExpression(e.context, expandDerived(column.expr(), columns, colName, seen));
+            // expanded.parent = e.parent;
+            return expanded;
           }
-          return e;
-        },
-        e -> !(e instanceof Select));
+        }
+        return e;
+      },
+      e -> !(e instanceof Select));
     } finally {
       seen.remove(columnName);
     }

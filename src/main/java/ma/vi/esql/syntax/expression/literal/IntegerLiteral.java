@@ -7,7 +7,7 @@ package ma.vi.esql.syntax.expression.literal;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.semantic.type.Types;
-import ma.vi.esql.syntax.Translatable;
+import ma.vi.esql.syntax.EsqlPath;
 
 import java.util.Map;
 
@@ -27,16 +27,7 @@ public class IntegerLiteral extends BaseLiteral<Long> {
 
   @Override
   public IntegerLiteral copy() {
-    if (!copying()) {
-      try {
-        copying(true);
-        return new IntegerLiteral(this);
-      } finally {
-        copying(false);
-      }
-    } else {
-      return this;
-    }
+    return new IntegerLiteral(this);
   }
 
   @Override
@@ -45,7 +36,7 @@ public class IntegerLiteral extends BaseLiteral<Long> {
   }
 
   @Override
-  protected String trans(Translatable.Target target, Map<String, Object> parameters) {
+  protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
     return String.valueOf(value);
   }
 }

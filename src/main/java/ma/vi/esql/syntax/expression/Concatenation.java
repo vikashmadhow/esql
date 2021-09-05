@@ -5,6 +5,7 @@
 package ma.vi.esql.syntax.expression;
 
 import ma.vi.esql.syntax.Context;
+import ma.vi.esql.syntax.EsqlPath;
 
 import java.util.List;
 import java.util.Map;
@@ -28,27 +29,18 @@ public class Concatenation extends MultipleSubExpressions<String> {
 
   @Override
   public Concatenation copy() {
-    if (!copying()) {
-      try {
-        copying(true);
-        return new Concatenation(this);
-      } finally {
-        copying(false);
-      }
-    } else {
-      return this;
-    }
+    return new Concatenation(this);
   }
 
   @Override
-  protected String trans(Target target, Map<String, Object> parameters) {
+  protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
     switch (target) {
       case JSON, JAVASCRIPT -> {
         StringBuilder st = new StringBuilder();
         for (Expression<?, String> e: expressions()) {
           st.append(st.length() == 0 ? "" : " + ")
             .append('(')
-            .append(e.translate(target, parameters))
+            .append(e.translate(target, path.add(e), parameters))
             .append(" || '')");
         }
         String translation = "(" + st.toString() + ")";
@@ -62,7 +54,7 @@ public class Concatenation extends MultipleSubExpressions<String> {
         for (Expression<?, String> e: expressions()) {
           st.append(st.length() == 0 ? "" : " + ")
 //            .append("cast(")
-            .append(e.translate(target, parameters));
+            .append(e.translate(target, path.add(e), parameters));
 //            .append(" as nvarchar)");
         }
         return st.toString();
@@ -72,7 +64,7 @@ public class Concatenation extends MultipleSubExpressions<String> {
         StringBuilder st = new StringBuilder();
         for (Expression<?, String> e: expressions()) {
           st.append(st.length() == 0 ? "" : " || ")
-            .append(e.translate(target, parameters));
+            .append(e.translate(target, path.add(e), parameters));
         }
         return st.toString();
       }
@@ -80,7 +72,7 @@ public class Concatenation extends MultipleSubExpressions<String> {
   }
 
 //  @Override
-//  protected String trans(Target target, Map<String, Object> parameters) {
+//  protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
 //    switch (target) {
 //      case POSTGRESQL:
 //      case ESQL:

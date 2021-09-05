@@ -23,20 +23,20 @@ import java.util.Map;
 public class CompositeSelects extends Select {
   public CompositeSelects(Context context, String operator, List<Select> selects) {
     super(context,
-        null,
-        selects.get(0).distinct(),
-        selects.get(0).distinctOn(),
-        selects.get(0).explicit(),
-        selects.get(0).columns(),
-        selects.get(0).tables() == null ? null : selects.get(0).tables().copy(),
-        selects.get(0).where(),
-        selects.get(0).groupBy(),
-        selects.get(0).having(),
-        selects.get(0).orderBy(),
-        selects.get(0).offset(),
-        selects.get(0).limit());
+          operator,
+          null,
+          selects.get(0).distinct(),
+          selects.get(0).distinctOn(),
+          selects.get(0).explicit(),
+          selects.get(0).columns(),
+          selects.get(0).tables() == null ? null : selects.get(0).tables().copy(),
+          selects.get(0).where(),
+          selects.get(0).groupBy(),
+          selects.get(0).having(),
+          selects.get(0).orderBy(),
+          selects.get(0).offset(),
+          selects.get(0).limit());
 
-    value = operator;
     child("selects", new Esql<>(context, selects));
 
     // count columns of all selects: they should have the same number
@@ -73,19 +73,11 @@ public class CompositeSelects extends Select {
 
   @Override
   public CompositeSelects copy() {
-    if (!copying()) {
-      try {
-        copying(true);
-        return new CompositeSelects(this);
-      } finally {
-        copying(false);
-      }
-    } else {
-      return this;
-    }
+    return new CompositeSelects(this);
   }
 
-  public QueryTranslation trans(Target target, Map<String, Object> parameters) {
+  @Override
+  public QueryTranslation trans(Target target, EsqlPath path, Map<String, Object> parameters) {
     boolean first = true;
     StringBuilder st = new StringBuilder();
     QueryTranslation q = null;
@@ -98,7 +90,7 @@ public class CompositeSelects extends Select {
       Map<String, Object> params = Map.of(
           "addAttributes", parameters.getOrDefault("addAttributes", true),
           "optimiseAttributesLoading", false);
-      QueryTranslation trans = select.translate(target, params);
+      QueryTranslation trans = select.translate(target, path.add(select), params);
       st.append(trans.statement);
       if (q == null) {
         q = trans;

@@ -7,6 +7,7 @@ package ma.vi.esql.semantic.type;
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.semantic.scope.Symbol;
 import ma.vi.esql.syntax.Copy;
+import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.Translatable;
 import ma.vi.esql.syntax.expression.Expression;
 
@@ -59,7 +60,12 @@ public interface Type extends Symbol, Copy<Type>, Translatable<String> {
   boolean isAbstract();
 
   @Override
-  default String translate(Target target, Map<String, Object> parameters) {
+  default String translate(Target target) {
+    return name();
+  }
+
+  @Override
+  default String translate(Target target, EsqlPath path, Map<String, Object> parameters) {
     return name();
   }
 
@@ -102,14 +108,6 @@ public interface Type extends Symbol, Copy<Type>, Translatable<String> {
     public Type copy() {
       return this;
     }
-
-    @Override
-    public boolean copying() {
-      return false;
-    }
-
-    @Override
-    public void copying(boolean copying) {}
 
     @Override
     public void name(String name) {}

@@ -7,6 +7,7 @@ package ma.vi.esql.syntax.expression;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.semantic.type.Types;
+import ma.vi.esql.syntax.EsqlPath;
 
 import java.util.Map;
 
@@ -27,16 +28,7 @@ public class UncomputedExpression extends SingleSubExpression {
 
   @Override
   public UncomputedExpression copy() {
-    if (!copying()) {
-      try {
-        copying(true);
-        return new UncomputedExpression(this);
-      } finally {
-        copying(false);
-      }
-    } else {
-      return this;
-    }
+    return new UncomputedExpression(this);
   }
 
   @Override
@@ -50,11 +42,11 @@ public class UncomputedExpression extends SingleSubExpression {
   }
 
   @Override
-  protected String trans(Target target, Map<String, Object> parameters) {
+  protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
     return switch (target) {
-      case JAVASCRIPT -> '`' + expr().translate(target, parameters) + '`';
-      case ESQL       -> "$(" + expr().translate(target, parameters) + ')';
-      default         -> '\'' + expr().translate(Target.ESQL, parameters).replace("'", "''") + '\'';
+      case JAVASCRIPT -> '`' + expr().translate(target, path.add(expr()), parameters) + '`';
+      case ESQL       -> "$(" + expr().translate(target, path.add(expr()), parameters) + ')';
+      default         -> '\'' + expr().translate(Target.ESQL, path.add(expr()), parameters).replace("'", "''") + '\'';
     };
   }
 

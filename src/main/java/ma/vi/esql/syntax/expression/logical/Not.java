@@ -5,6 +5,7 @@
 package ma.vi.esql.syntax.expression.logical;
 
 import ma.vi.esql.syntax.Context;
+import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.expression.Expression;
 import ma.vi.esql.syntax.expression.SingleSubExpression;
 
@@ -29,40 +30,31 @@ public class Not extends SingleSubExpression {
 
   @Override
   public Not copy() {
-    if (!copying()) {
-      try {
-        copying(true);
-        return new Not(this);
-      } finally {
-        copying(false);
-      }
-    } else {
-      return this;
-    }
+    return new Not(this);
   }
 
   @Override
-  protected String trans(Target target, Map<String, Object> parameters) {
+  protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
     switch (target) {
       case JSON, JAVASCRIPT -> {
-        String e = "!" + expr().translate(target, parameters);
+        String e = "!" + expr().translate(target, path.add(expr()), parameters);
         return target == JSON ? '"' + escapeJsonString(e) + '"' : e;
       }
       case SQLSERVER -> {
-        if (ancestor("on") == null
-         && ancestor("where") == null
-         && ancestor("having") == null) {
+        if (path.ancestor("on") == null
+         && path.ancestor("where") == null
+         && path.ancestor("having") == null) {
           /*
            * For SQL Server, boolean expressions outside of where and having
            * clauses are not allowed and we simulate it with bitwise operations.
            */
           return "cast(~(" + expr() + ") as bit)";
         } else {
-          return "not " + expr().translate(target, parameters);
+          return "not " + expr().translate(target, path.add(expr()), parameters);
         }
       }
       default -> {
-        return "not " + expr().translate(target, parameters);
+        return "not " + expr().translate(target, path.add(expr()), parameters);
       }
     }
   }

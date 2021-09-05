@@ -1,213 +1,327 @@
 /*
- * Copyright (c) 2020 Vikash Madhow
+ * Copyright (c) 2020-2021 Vikash Madhow
  */
 
 package ma.vi.esql.syntax;
 
+import ma.vi.base.lang.NotFoundException;
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.database.Database;
 import ma.vi.esql.exec.Result;
-import ma.vi.esql.translator.TranslatorFactory;
 import ma.vi.esql.semantic.type.Type;
+import ma.vi.esql.translator.TranslatorFactory;
 
-import java.lang.reflect.Array;
 import java.sql.Connection;
 import java.util.*;
+import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
-import static java.lang.Integer.MAX_VALUE;
-import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toMap;
+import static java.util.Collections.emptyMap;
 import static ma.vi.esql.semantic.type.Types.VoidType;
 import static org.apache.commons.lang3.StringUtils.repeat;
 
 /**
  * The node type in the parsed representation of ESQL statements. The
  * latter consists of a tree of Esql objects which can be further processed
- * by macros and other methods before being translated for executing on a
+ * by macros and other methods before being translated for execution on a
  * target database.
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public class  Esql<V, R> implements Copy<Esql<V, R>>, Translatable<R> {
-  public Esql(Context context,
-              V value,
-              T2<String, ? extends Esql<?, ?>>... children) {
+public class Esql<V, R> implements Copy<Esql<V, R>>, Translatable<R> {
+  public Esql(Context context, V value) {
     this.value = value;
     this.context = context;
-    if (value instanceof Esql) {
-      ((Esql<?, ?>)value).parent = this;
+  }
 
-    } else if (value instanceof List<?>) {
-      for (Object e: (List<?>)value) {
-        if (e instanceof Esql) {
-          ((Esql<?, ?>)e).parent = this;
-        }
-      }
-    }
-    for (T2<String, ? extends Esql<?, ?>> child: children) {
-      child(child.a, child.b);
+  public Esql(Context context, V value, T2<String, ? extends Esql<?, ?>>... children) {
+    this.value = value;
+    this.context = context;
+    int index = 0;
+    childrenNames = new LinkedHashMap<>();
+    for (T2<String, ? extends Esql<?, ?>> c: children) {
+      childrenNames.put(c.a, index);
+      this.children.add(c.b);
+      index++;
     }
   }
 
-  public Esql(Context context, V value, Esql<?, ?>[] children) {
-    this(context, value, fromArray(children));
+  public Esql(Context context, V value, Map<String, ? extends Esql<?, ?>> children) {
+    this.value = value;
+    this.context = context;
+    int index = 0;
+    childrenNames = new LinkedHashMap<>();
+    for (Map.Entry<String, ? extends Esql<?, ?>> e: children.entrySet()) {
+      childrenNames.put(e.getKey(), index);
+      this.children.add(index, e.getValue());
+      index++;
+    }
   }
 
   public Esql(Context context, V value, List<? extends Esql<?, ?>> children) {
-    this(context, value, children == null ? new Esql<?, ?>[0] : children.toArray(new Esql[0]));
+    this.value = value;
+    this.context = context;
+    if (children != null) {
+      int index = 0;
+      boolean hasDuplicateNames = false;
+      childrenNames = new LinkedHashMap<>();
+      for (Esql<?, ?> c: children) {
+        if (c.value == null || childrenNames.containsKey(c.value.toString())) {
+          hasDuplicateNames = true;
+          break;
+        }
+        childrenNames.put(c.value.toString(), index);
+        index++;
+      }
+      if (hasDuplicateNames) {
+        index = 0;
+        childrenNames.clear();
+        for (Esql<?, ?> c: children) {
+          childrenNames.put(c.value.toString(), index);
+          this.children.add(c);
+          index++;
+        }
+      } else {
+        for (Esql<?, ?> c: children) {
+          childrenNames.put(c.value.toString(), index);
+          this.children.add(c);
+        }
+      }
+    }
   }
 
   public Esql(Esql<V, R> other) {
-    context = other.context;
-
-    // copy value
-    if (other.value instanceof Esql<?, ?>) {
-      value = (V)((Esql<?, ?>)other.value).copy();
-      ((Esql<?, ?>)value).parent = this;
-
-    } else if (other.value instanceof List<?>) {
-      ArrayList<Object> list = new ArrayList<>();
-      for (Object e: (List<?>)other.value) {
-        if (e instanceof Esql) {
-          Esql<?, ?> v = ((Esql<?, ?>)e).copy();
-          v.parent = this;
-          list.add(v);
-        } else {
-          list.add(e);
-        }
-      }
-      value = (V)list;
-
-    } else {
-      this.value = other.value;
-    }
-
-    // copy children
-    for (Map.Entry<String, ? extends Esql<?, ?>> child: other.children.entrySet()) {
-      child(child.getKey(), child.getValue().copy());
-    }
-
-    // link to previous parent as copying the parent
-    // will result in a copy of the whole statement tree.
-    parent = other.parent;
+    this.context = other.context;
+    this.value = other.value;
+    this.childrenNames = other.childrenNames;
+    this.children.addAll(other.children);
   }
 
   /**
-   * Returns a copy of this Esql object with its value and children, but not
-   * its parent, copied as well.
+   * Returns a shallow copy of this object. The copy will have a separate children
+   * list pointing to the same children as this object.
    */
-  @Override
   public Esql<V, R> copy() {
-    if (!copying()) {
-      try {
-        copying(true);
-        return new Esql<>(this);
-      } finally {
-        copying(false);
-      }
+    return new Esql<>(this);
+  }
+
+  public <T extends Esql<?, ?>> List<T> children() {
+    return (List<T>)Collections.unmodifiableList(children);
+  }
+
+  public <T extends Esql<?, ?>> Map<String, T> childrenMap() {
+    Map<String, Integer> names = childrenNames();
+    Map<String, T> children = new LinkedHashMap<>(names.size());
+    for (Map.Entry<String, Integer> e: childrenNames.entrySet()) {
+      children.put(e.getKey(), (T)this.children.get(e.getValue()));
+    }
+    return children;
+  }
+
+  public final Map<String, Integer> childrenNames() {
+    if (childrenNames == null) {
+      childrenNames = Collections.unmodifiableMap(nodeChildrenNames());
+    }
+    return childrenNames;
+  }
+
+  protected Map<String, Integer> nodeChildrenNames() {
+    Map<String, Integer> names = new LinkedHashMap<>();
+    for (int i = 0; i < childrenCount(); i++) {
+      names.put(String.valueOf(i), i);
+    }
+    return names;
+  }
+
+  public int childrenCount() {
+    return children.size();
+  }
+
+  public int indexOf(String childName) {
+    int index = _indexOf(childName);
+    if (index == -1) {
+      throw new NotFoundException("Unknown child: " + childName);
+    }
+    return index;
+  }
+
+  private int _indexOf(String childName) {
+    if (childrenNames().containsKey(childName)) {
+      return childrenNames().get(childName);
     } else {
-      return this;
+      try {
+        int index = Integer.parseInt(childName);
+        if (children.size() <= index) {
+          return -1;
+        }
+        return index;
+      } catch (NumberFormatException nfe) {
+        return -1;
+      }
     }
   }
 
-  private static T2<String, Esql<?, ?>>[] fromArray(Esql<?, ?>[] esqls) {
-    T2<String, Esql<?, ?>>[] array = new T2[esqls.length];
-    for (int i = 0; i < esqls.length; i++) {
-      array[i] = T2.of(String.valueOf(i), esqls[i]);
-    }
-    return array;
-  }
-
-  public <T extends Esql<?, ?>> T[] childrenArray(Class<T> childrenType) {
-    int i = 0;
-    T[] array = (T[])Array.newInstance(childrenType, children.size());
-    for (Esql<?, ?> e: children.values()) {
-      array[i++] = (T)e;
-    }
-    return array;
-  }
-
-  public <T extends Esql<?, ?>> List<T> childrenList() {
-    List<T> list = new ArrayList<>();
-    for (Esql<?, ?> e: children.values()) {
-      list.add((T)e);
-    }
-    return list;
-  }
-
-  public <T extends Esql<?, ?>> Esql<?, ?> childrenList(String childName, List<T> childrenList) {
-    child(childName, new Esql<>(context, childName, childrenList));
-    return this;
+  public boolean has(String childName) {
+    return _indexOf(childName) != -1;
   }
 
   public <T extends Esql<?, ?>> T child(String child) {
-    return (T)children.get(child);
+    return get(indexOf(child));
   }
 
   public <T> T childValue(String child) {
-    Esql<?, ?> v = children.get(child);
-    return v == null ? null : (T)v.value;
+    return (T)get(indexOf(child)).value;
   }
 
-  public <T> Esql<T, ?> childValue(String child, T value) {
-    Esql<T, ?> v = (Esql<T, ?>)children.get(child);
-    if (v == null) {
-      v = new Esql<>(context, value);
-      child(child, v);
-    } else {
-      v.value = value;
-    }
-    return v;
+  public <T extends Esql<?, ?>> T get(int child) {
+    return (T)children.get(child);
   }
 
-  public <T extends Esql<?, ?>> T child(String name, T child) {
-    return child(name, child, true);
+  public Esql<?, ?> get(String path) {
+    return get(path.split("/"));
   }
 
-  /**
-   * Adds a child to this Esql.
-   *
-   * @param name       The name that the child will be associated to.
-   * @param child      The child object to be associated to the name.
-   *                   This must be a subclass of {@link Esql}.
-   * @param hookParent Hooks the parent link of the child to this Esql instance.
-   * @param <T>        The type of the type which must be a subclass of Esql.
-   * @return The previously associated child to this child name
-   * or null if none.
-   */
-  public <T extends Esql<?, ?>> T child(String name, T child, boolean hookParent) {
-    if (child != null) {
-      if (hookParent) {
-        child.parent = this;
+  public Esql<?, ?> get(String... path) {
+    Esql<?, ?> node = this;
+    for (String p: path) {
+      if (p != null && p.length() > 0) {
+        node = node.get(node.indexOf(p));
       }
-      return (T)children.put(name, child);
+    }
+    return node;
+  }
+
+  public Esql<V, R> set(int index, Esql<?, ?> child) {
+    Esql<V, R> copy = copy();
+    while (copy.children.size() <= index) {
+      copy.children.add(null);
+    }
+    copy.children.set(index, child);
+    return copy;
+  }
+
+  public Esql<V, R> set(String path, Esql<?, ?> child) {
+    return _set(path.split("/"), 0, child);
+  }
+
+  private Esql<V, R> _set(String[] path, int indexInPath, Esql<?, ?> child) {
+    while (indexInPath < path.length
+       && (path[indexInPath] == null || path[indexInPath].length() == 0)) {
+      indexInPath++;
+    }
+    if (indexInPath < path.length) {
+      Esql<V, R> copy = this.copy();
+      int childIndex = indexOf(path[indexInPath]);
+      Esql<?, ?> childCopy = copy.get(childIndex);
+      if (childCopy != null) {
+        Esql<?, ?> rep = childCopy._set(path, indexInPath++, child);
+        copy.children.set(childIndex, rep);
+      }
+      return copy;
     } else {
-      children.remove(name);
-      return null;
+      return (Esql<V, R>)child;
     }
   }
 
   /**
-   * Adds a copy of the child as a child of this Esql.
-   *
-   * @param name  The name that the child will be associated to.
-   * @param child The child for which a copy will be associated to the name.
-   * @param <T>   The type of the type which must be a subclass of Esql.
-   * @return The previously associated child to this child name
-   * or null if none.
+   * Return the first child (or itself) of the specified type in the Esql tree.
+   * Return null if no such child exist.
    */
-  public <T extends Esql<?, ?>> T childCopy(String name, T child) {
-    return child(name, child == null ? null : (T)child.copy());
+  public <T> T descendent(Class<T> cls) {
+    if (cls.isAssignableFrom(getClass())) {
+      return (T)this;
+    }
+    for (Esql<?, ?> child: children) {
+      if (child != null) {
+        T firstChild = child.descendent(cls);
+        if (firstChild != null) {
+          return firstChild;
+        }
+      }
+    }
+    return null;
   }
 
-  public Esql<?, ?> parent() {
-    return parent;
+  public boolean forEach(Function<Esql<?, ?>, Boolean> visitor) {
+    return forEach(visitor, null);
   }
 
-  public Esql<?, ?> remove(String name) {
-    return children.remove(name);
+  /**
+   * Executes the visitor function for each Esql children of this Esql object
+   * and itself in depth-first post-order. If the visitor returns false on any
+   * Esql part, the visit is terminated.
+   */
+  public boolean forEach(Function<Esql<?, ?>, Boolean> visitor,
+                         Predicate<Esql<?, ?>> explore) {
+    if (explore == null || explore.test(this)) {
+      for (Esql<?, ?> child: children) {
+        if (child != null) {
+          if (!child.forEach(visitor, explore)) {
+            return false;
+          }
+        }
+      }
+      return visitor.apply(this);
+    } else {
+      return true;
+    }
+  }
+
+  public Esql<V, R> map(BiFunction<Esql<?, ?>, EsqlPath, Esql<?, ?>> mapper) {
+    return map(mapper, null);
+  }
+
+  /**
+   * Maps the ESQL tree to another tree where modified nodes (and all their
+   * ancestors) are copied and non-modified nodes are shared between this tree
+   * and the mapped tree. This method allows for the ESQL tree to be immutable
+   * with all mutating operations creating a new persistent tree.
+   *
+   * @param mapper
+   * @param explore
+   * @return
+   */
+  public Esql<V, R> map(BiFunction<Esql<?, ?>, EsqlPath, Esql<?, ?>> mapper,
+                        Predicate<Esql<?, ?>> explore) {
+    return _map(mapper, explore, new EsqlPath(this));
+  }
+
+  /**
+   * Maps the ESQL tree to another tree where modified nodes (and all their
+   * ancestors) are copied and non-modified nodes are shared between this tree
+   * and the mapped tree. This method allows for the ESQL tree to be immutable
+   * with all mutating operations creating a new persistent tree.
+   *
+   * @param mapper
+   * @param explore
+   * @return
+   */
+  private Esql<V, R> _map(BiFunction<Esql<?, ?>, EsqlPath, Esql<?, ?>> mapper,
+                          Predicate<Esql<?, ?>> explore,
+                          EsqlPath path) {
+    if (explore == null || explore.test(this)) {
+      Esql<V, R> mapped = (Esql<V, R>)mapper.apply(this, path);
+      if (mapped == null) {
+        return null;
+      }
+      Esql<V, R> copy = null;
+      for (int i = 0; i < mapped.children.size(); i++) {
+        Esql<?, ?> child = mapped.children.get(i);
+        if (child != null) {
+          Esql<?, ?> mappedChild = child._map(mapper, explore, path.add(child));
+          if (mappedChild != child) {
+            if (copy == null) {
+              copy = mapped == this ? mapped.copy() : mapped;
+            }
+            copy.children.set(i, mappedChild);
+          }
+        }
+      }
+      return copy != null ? copy : mapped;
+    }
+    return this;
   }
 
   /**
@@ -220,290 +334,21 @@ public class  Esql<V, R> implements Copy<Esql<V, R>>, Translatable<R> {
   }
 
   @Override
-  public R translate(Target target, Map<String, Object> parameters) {
-    return trans(target, parameters);
+  public R translate(Target target) {
+    return translate(target, new EsqlPath(this), emptyMap());
   }
 
-  protected R trans(Target target, Map<String, Object> parameters) {
-    return TranslatorFactory.get(target).translate(this, parameters);
+  @Override
+  public R translate(Target target, EsqlPath path, Map<String, Object> parameters) {
+    return trans(target, path, parameters);
+  }
+
+  protected R trans(Target target, EsqlPath path, Map<String, Object> parameters) {
+    return TranslatorFactory.get(target).translate(this, path, parameters);
   }
 
   public Result execute(Database db, Connection con) {
     return Result.Nothing;
-  }
-
-  /**
-   * Executes the visitor function for each Esql children of this Esql object
-   * including itself, its value, Esql values in its value list and the same
-   * for its children, in depth-first post-order. If the visitor returns false
-   * on any Esql part, the visit is terminated.
-   */
-  public boolean forEach(Function<Esql<?, ?>, Boolean> visitor,
-                         Predicate<Esql<?, ?>> explore) {
-    return _forEach(this, visitor, explore, new HashSet<>());
-  }
-
-  public boolean forEach(Function<Esql<?, ?>, Boolean> visitor) {
-    return forEach(visitor, null);
-  }
-
-  private static boolean _forEach(Esql<?, ?> esql,
-                                  Function<Esql<?, ?>, Boolean> visitor,
-                                  Predicate<Esql<?, ?>> explore,
-                                  Set<Esql<?, ?>> explored) {
-    if (explore == null || explore.test(esql)) {
-      explored.add(esql);
-      if (esql.value instanceof Esql && !explored.contains(esql.value)) {
-        if (!_forEach((Esql<?, ?>)esql.value, visitor, explore, explored)) {
-          return false;
-        }
-
-      } else if (esql.value instanceof List) {
-        for (Object e: (List<?>)esql.value) {
-          if (e instanceof Esql && !explored.contains(e)) {
-            if (!_forEach((Esql<?, ?>)e, visitor, explore, explored)) {
-              return false;
-            }
-          }
-        }
-      }
-      for (Esql<?, ?> child: esql.children.values()) {
-        if (!explored.contains(child) && !explored.contains(child)) {
-          if (!_forEach(child, visitor, explore, explored)) {
-            return false;
-          }
-        }
-      }
-      return visitor.apply(esql);
-    } else {
-      return true;
-    }
-  }
-
-  /**
-   * Creates a copy of this Esql and execute the mapper function on all its
-   * Esql-typed containing values and replacing them with the returned value
-   * of the function. The mapping is performed in depth-first post-order.
-   *
-   * @param mapper  A function mapping each ESQL component of this ESQL to a resulting ESQL
-   * @param explore A boolean function applied to the ESQL component to map with the mapping
-   *                done only if this function returns true. If null is provided for this
-   *                function, all ESQL components are mapped.
-   */
-  public Esql<?, ?> map(Function<Esql<?, ?>, Esql<?, ?>> mapper,
-                        Predicate<Esql<?, ?>> explore) {
-    return _map(copy(), mapper, explore, new HashSet<>());
-  }
-
-  public Esql<?, ?> map(Function<Esql<?, ?>, Esql<?, ?>> mapper) {
-    return map(mapper, null);
-  }
-
-  private static Esql<?, ?> _map(Esql esql,
-                                 Function<Esql<?, ?>, Esql<?, ?>> mapper,
-                                 Predicate<Esql<?, ?>> explore,
-                                 Set<Esql<?, ?>> explored) {
-    if (explore == null || explore.test(esql)) {
-      explored.add(esql);
-      if (esql.value instanceof Esql && !explored.contains(esql.value)) {
-        esql.value = _map((Esql)esql.value, mapper, explore, explored);
-
-      } else if (esql.value instanceof List) {
-        esql.value = ((List)esql.value).stream()
-                                       .map(e -> e instanceof Esql && !explored.contains(e)
-                                                 ? _map((Esql<?, ?>)e, mapper, explore, explored)
-                                                 : e).collect(toList());
-      }
-      esql.children = ((Map<String, Esql<?, ?>>)esql.children)
-          .entrySet().stream()
-          .collect(toMap(Map.Entry::getKey,
-              e -> !explored.contains(e)
-                   ? _map(e.getValue(), mapper, explore, explored)
-                   : e.getValue()));
-      return mapper.apply(esql);
-    } else {
-      return esql;
-    }
-  }
-
-  public Esql<?, ?> mapChildren(Function<Esql<?, ?>, Esql<?, ?>> mapper) {
-    return mapChildren(mapper, null);
-  }
-
-  public Esql<?, ?> mapChildren(Function<Esql<?, ?>, Esql<?, ?>> mapper,
-                                Predicate<Esql<?, ?>> explore) {
-    return _mapChildren(copy(), mapper, explore, new HashSet<>());
-  }
-
-  private static Esql<?, ?> _mapChildren(Esql esql,
-                                         Function<Esql<?, ?>, Esql<?, ?>> mapper,
-                                         Predicate<Esql<?, ?>> explore,
-                                         Set<Esql<?, ?>> explored) {
-    if (explore == null || explore.test(esql)) {
-      explored.add(esql);
-      if (esql.value instanceof Esql && !explored.contains(esql.value)) {
-        esql.value = _map((Esql)esql.value, mapper, explore, explored);
-
-      } else if (esql.value instanceof List) {
-        esql.value = ((List)esql.value).stream()
-                                       .map(e -> e instanceof Esql && !explored.contains(e)
-                                                 ? _map((Esql<?, ?>)e, mapper, explore, explored)
-                                                 : e).collect(toList());
-      }
-      esql.children = ((Map<String, Esql<?, ?>>)esql.children)
-          .entrySet().stream()
-          .collect(toMap(Map.Entry::getKey,
-              e -> !explored.contains(e)
-                   ? _map(e.getValue(), mapper, explore, explored)
-                   : e.getValue()));
-      return esql;
-    } else {
-      return esql;
-    }
-  }
-
-  /**
-   * Returns this instance or its first ancestor, going up from the current parent,
-   * which is an instance of the specified class. Returns null if no such instance
-   * can be found.
-   */
-  public <T> T ancestor(Class<T> cls) {
-    if (cls.isAssignableFrom(getClass())) {
-      return (T)this;
-    } else if (parent != null) {
-      return parent.ancestor(cls);
-    } else {
-      return null;
-    }
-  }
-
-  public int ancestorDistance(Class<?> cls) {
-    if (cls.isAssignableFrom(getClass())) {
-      return 0;
-    } else if (parent != null) {
-      int parentLevel = parent.ancestorDistance(cls);
-      if (parentLevel == MAX_VALUE) {
-        return MAX_VALUE;
-      } else {
-        return parentLevel + 1;
-      }
-    } else {
-      return MAX_VALUE;
-    }
-  }
-
-  /**
-   * Returns the ancestor by the specified name if this esql is a
-   * descendant of that ancestor.
-   */
-  public <T> T ancestor(String name) {
-    if (parent == null) {
-      return null;
-    } else if (parent.children.containsKey(name)
-            && parent.children.get(name).equals(this)) {
-      return (T)this;
-    } else {
-      return parent.ancestor(name);
-    }
-  }
-
-  public int ancestorDistance(String name) {
-    if (parent == null) {
-      return MAX_VALUE;
-
-    } else if (parent.children.containsKey(name)
-            && parent.children.get(name).equals(this)) {
-      return 0;
-
-    } else {
-      int parentLevel = parent.ancestorDistance(name);
-      return parentLevel == MAX_VALUE
-                ? MAX_VALUE
-                : parentLevel + 1;
-
-    }
-  }
-
-  /**
-   * Return the first child (or itself) of the specified type in the Esql.
-   * Return null if no such child exist.
-   */
-  public <T> T firstChild(Class<T> cls) {
-    if (cls.isAssignableFrom(getClass())) {
-      return (T)this;
-    }
-
-    if (value instanceof Esql<?, ?>) {
-      T firstChild = ((Esql<?, ?>)value).firstChild(cls);
-      if (firstChild != null) {
-        return firstChild;
-      }
-    }
-
-    if (value instanceof List) {
-      for (Object v: (List<?>)value) {
-        if (v instanceof Esql<?, ?>) {
-          T firstChild = ((Esql<?, ?>)v).firstChild(cls);
-          if (firstChild != null) {
-            return firstChild;
-          }
-        }
-      }
-    }
-
-    for (Esql<?, ?> child: children.values()) {
-      if (child != null) {
-        T firstChild = child.firstChild(cls);
-        if (firstChild != null) {
-          return firstChild;
-        }
-      }
-    }
-
-    return null;
-  }
-
-  /**
-   * Replaces the current Esql value within the parent with the target value.
-   * If the replacement was successful, returns the name of the children that
-   * this Esql was known as by its parent. This name will now be associated to
-   * the replacement Esql object in the parent's children map.
-   */
-  public String replaceWith(Esql<?, ?> replacement) {
-    String thisChildName = null;
-    if (parent != null) {
-      if (parent.value == this) {
-        parent.replaceWith(null, replacement);
-      } else {
-        for (Map.Entry<String, Esql<?, ?>> child: parent.children.entrySet()) {
-          if (child.getValue() == this) {
-            thisChildName = child.getKey();
-            break;
-          }
-        }
-        if (thisChildName != null) {
-          parent.replaceWith(thisChildName, replacement);
-        }
-      }
-    }
-    return thisChildName;
-  }
-
-  /**
-   * Replaces the child with the specified name by the provided replacement,
-   * returning the previous child with that name, or null of no such child
-   * existed. If the childName is null, the value of this Esql is replaced
-   * instead, returning the previous value held.
-   */
-  public Object replaceWith(String childName, Esql<?, ?> replacement) {
-    replacement.parent = this;
-    if (childName == null) {
-      V oldValue = value;
-      value = (V)replacement;
-      return oldValue;
-    } else {
-      return children.put(childName, replacement);
-    }
   }
 
   @Override
@@ -533,54 +378,46 @@ public class  Esql<V, R> implements Copy<Esql<V, R>>, Translatable<R> {
     }
     if (!children.isEmpty()) {
       st.append(" {\n");
-      for (Map.Entry<String, Esql<?, ?>> c: children.entrySet()) {
-        Esql<?, ?> v = c.getValue();
-        if (v != null) {
+      Map<String, Integer> childrenNames = childrenNames();
+      for (Map.Entry<String, Integer> e: childrenNames.entrySet()) {
+        Esql<?, ?> child = children.get(e.getValue());
+        if (child != null) {
           st.append(repeat(" ", level * indent))
-            .append(c.getKey())
+            .append(e.getKey())
             .append(": ");
-          c.getValue()._toString(st, level + 1, indent);
+          child._toString(st, level + 1, indent);
           st.append("\n");
         }
       }
+//      } else {
+//        int i = 0;
+//        for (Esql<?, ?> c: children) {
+//          if (c != null) {
+//            st.append(repeat(" ", level * indent))
+//              .append(i)
+//              .append(": ");
+//            c._toString(st, level + 1, indent);
+//            st.append("\n");
+//          }
+//          i++;
+//        }
+//      }
       st.append(repeat(" ", (level > 0 ? level-1 : 0) * indent))
         .append("}");
     }
   }
 
-  @Override
-  public boolean copying() {
-    return copying;
-  }
-
-  @Override
-  public void copying(boolean copying) {
-    this.copying = copying;
-  }
+  /**
+   * The value associated with this Esql node.
+   */
+  public final V value;
 
   /**
-   * Set to true while copying.
+   * A list of children of this Esql node.
    */
-  private volatile boolean copying;
+  private final List<Esql<?, ?>> children = new ArrayList<>(0);
 
-  /**
-   * The syntactic parent of the current statement or null if this is the
-   * top statement. The syntactic parent is the containing statement and is
-   * needed, for instance, in subqueries which can refer to the tables in the
-   * parent query.
-   */
-  public Esql<?, ?> parent;
-
-  /**
-   * An arbitrary value associated with the Esql.
-   */
-  public volatile V value;
-
-  /**
-   * A map of children of this Esql node mapped to names. Leaf nodes will
-   * have an empty map.
-   */
-  public Map<String, Esql<?, ?>> children = new LinkedHashMap<>();
+  private Map<String, Integer> childrenNames;
 
   /**
    * Translation context.

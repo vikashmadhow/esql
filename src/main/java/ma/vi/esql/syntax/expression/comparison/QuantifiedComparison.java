@@ -5,12 +5,13 @@
 package ma.vi.esql.syntax.expression.comparison;
 
 import ma.vi.base.tuple.T2;
-import ma.vi.esql.syntax.Context;
-import ma.vi.esql.syntax.Esql;
-import ma.vi.esql.syntax.expression.Expression;
-import ma.vi.esql.syntax.query.Select;
 import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.semantic.type.Types;
+import ma.vi.esql.syntax.Context;
+import ma.vi.esql.syntax.Esql;
+import ma.vi.esql.syntax.EsqlPath;
+import ma.vi.esql.syntax.expression.Expression;
+import ma.vi.esql.syntax.query.Select;
 
 import java.util.Map;
 
@@ -37,16 +38,7 @@ public class QuantifiedComparison extends Expression<Expression<?, String>, Stri
 
   @Override
   public QuantifiedComparison copy() {
-    if (!copying()) {
-      try {
-        copying(true);
-        return new QuantifiedComparison(this);
-      } finally {
-        copying(false);
-      }
-    } else {
-      return this;
-    }
+    return new QuantifiedComparison(this);
   }
 
   @Override
@@ -55,9 +47,9 @@ public class QuantifiedComparison extends Expression<Expression<?, String>, Stri
   }
 
   @Override
-  protected String trans(Target target, Map<String, Object> parameters) {
-    return expr().translate(target, parameters) + ' ' + compareOp() + ' ' + quantifier() +
-        select().translate(target, parameters);
+  protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
+    return expr().translate(target, path.add(expr()), parameters) + ' ' + compareOp() + ' ' + quantifier()
+         + select().translate(target, path.add(select()), parameters);
   }
 
   @Override

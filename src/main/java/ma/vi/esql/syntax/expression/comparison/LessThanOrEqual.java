@@ -25,15 +25,6 @@ public class LessThanOrEqual extends ComparisonOperator {
 
   @Override
   public LessThanOrEqual copy() {
-    if (!copying()) {
-      try {
-        copying(true);
-        return new LessThanOrEqual(this);
-      } finally {
-        copying(false);
-      }
-    } else {
-      return this;
-    }
+    return new LessThanOrEqual(this);
   }
 }

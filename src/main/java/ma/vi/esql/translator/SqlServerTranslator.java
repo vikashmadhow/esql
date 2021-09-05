@@ -2,7 +2,8 @@ package ma.vi.esql.translator;
 
 import ma.vi.base.string.Strings;
 import ma.vi.esql.function.Function;
-import ma.vi.esql.syntax.Esql;
+import ma.vi.esql.semantic.type.Type;
+import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.Translatable;
 import ma.vi.esql.syntax.TranslationException;
 import ma.vi.esql.syntax.define.GroupBy;
@@ -15,7 +16,6 @@ import ma.vi.esql.syntax.modify.Insert;
 import ma.vi.esql.syntax.modify.InsertRow;
 import ma.vi.esql.syntax.modify.Update;
 import ma.vi.esql.syntax.query.*;
-import ma.vi.esql.semantic.type.Type;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -35,7 +35,7 @@ public class SqlServerTranslator extends AbstractTranslator {
   }
 
   @Override
-  protected QueryTranslation translate(Select select, Map<String, Object> parameters) {
+  protected QueryTranslation translate(Select select, EsqlPath path, Map<String, Object> parameters) {
     /*
      * If group by expression list contains numbers, those refer to the column expressions
      * in the expressions list. This is not supported in SQL server, so replace the
@@ -47,7 +47,7 @@ public class SqlServerTranslator extends AbstractTranslator {
       List<Expression<?, String>> newGroupExpressions = new ArrayList<>();
       boolean groupExpressionsChanged = false;
       for (Expression<?, String> expr: groupBy.groupBy()) {
-        if (expr.firstChild(Select.class) != null) {
+        if (expr.descendent(Select.class) != null) {
           hasComplexGroups = true;
         }
         if (expr instanceof IntegerLiteral){
@@ -68,7 +68,7 @@ public class SqlServerTranslator extends AbstractTranslator {
     }
 
     List<Expression<?, String>> distinctOn = select.distinctOn();
-    boolean subSelect = select.ancestor("tables") != null || select.ancestor(Cte.class) != null;
+    boolean subSelect = path.ancestor("tables") != null || path.ancestor(Cte.class) != null;
     if (select.distinct() && distinctOn != null && !distinctOn.isEmpty()) {
       String subquery = "q_" + Strings.random();
       String rank = "r_" + Strings.random();
@@ -81,13 +81,13 @@ public class SqlServerTranslator extends AbstractTranslator {
       st.append(columns);
       st.append(", ").append("row_number() over (partition by ");
       String partition = distinctOn.stream()
-                                   .map(e -> e.translate(target(), parameters))
+                                   .map(e -> e.translate(target(), path.add(e), parameters))
                                    .collect(joining(", "));
       st.append(partition);
       st.append(" order by ");
       if (select.orderBy() != null && !select.orderBy().isEmpty()) {
         st.append(select.orderBy().stream()
-                        .map(e -> e.translate(target(), parameters))
+                        .map(e -> e.translate(target(), path.add(e), parameters))
                         .collect(joining(", ")));
       } else {
         st.append(partition);
@@ -95,16 +95,16 @@ public class SqlServerTranslator extends AbstractTranslator {
       st.append(") ").append(rank);
 
       if (select.tables() != null) {
-        st.append(" from ").append(select.tables().translate(target(), parameters));
+        st.append(" from ").append(select.tables().translate(target(), path.add(select.tables()), parameters));
       }
       if (select.where() != null) {
-        st.append(" where ").append(select.where().translate(target(), parameters));
+        st.append(" where ").append(select.where().translate(target(), path.add(select.where()), parameters));
       }
       if (select.groupBy() != null) {
-        st.append(select.groupBy().translate(target(), parameters));
+        st.append(select.groupBy().translate(target(), path.add(select.groupBy()), parameters));
       }
       if (select.having() != null) {
-        st.append(" having ").append(select.having().translate(target(), parameters));
+        st.append(" having ").append(select.having().translate(target(), path.add(select.having()), parameters));
       }
       if (select.orderBy() != null && !select.orderBy().isEmpty()) {
         st.append(" order by ")
@@ -120,7 +120,7 @@ public class SqlServerTranslator extends AbstractTranslator {
       }
       if (select.offset() != null) {
         st.append(" offset ")
-          .append(select.offset().translate(target(), parameters))
+          .append(select.offset().translate(target(), path.add(select.offset()), parameters))
           .append(" rows");
       }
       if (select.limit() != null) {
@@ -129,7 +129,7 @@ public class SqlServerTranslator extends AbstractTranslator {
           st.append(" offset 0 rows");
         }
         st.append(" fetch next ")
-          .append(select.limit().translate(target(), parameters))
+          .append(select.limit().translate(target(), path.add(select.limit()), parameters))
           .append(" rows only");
       }
       String query = "select " + subquery + ".*"
@@ -242,6 +242,7 @@ public class SqlServerTranslator extends AbstractTranslator {
 
         Select innerSelect = new Select(
             select.context,
+            select.value,
             select.metadata(),
             select.distinct(),
             select.distinctOn(),
@@ -257,6 +258,7 @@ public class SqlServerTranslator extends AbstractTranslator {
         );
         Select outerSelect = new Select(
             select.context,
+            select.value,
             select.metadata(),
             select.distinct(),
             select.distinctOn(),
@@ -270,7 +272,7 @@ public class SqlServerTranslator extends AbstractTranslator {
             null,
             null
         );
-        return outerSelect.translate(target(), parameters);
+        return outerSelect.translate(target(), path.add(outerSelect), parameters);
 
       } else {
         StringBuilder st = new StringBuilder("select ");
@@ -280,21 +282,21 @@ public class SqlServerTranslator extends AbstractTranslator {
         // add output clause
         QueryTranslation q = select.constructResult(st, target(), null, parameters);
         if (select.tables() != null) {
-          st.append(" from ").append(select.tables().translate(target(), parameters));
+          st.append(" from ").append(select.tables().translate(target(), path.add(select.tables()), parameters));
         }
         if (select.where() != null) {
-          st.append(" where ").append(select.where().translate(target(), parameters));
+          st.append(" where ").append(select.where().translate(target(), path.add(select.where()), parameters));
         }
         if (select.groupBy() != null) {
-          st.append(select.groupBy().translate(target(), parameters));
+          st.append(select.groupBy().translate(target(), path.add(select.groupBy()), parameters));
         }
         if (select.having() != null) {
-          st.append(" having ").append(select.having().translate(target(), parameters));
+          st.append(" having ").append(select.having().translate(target(), path.add(select.having()), parameters));
         }
         if (select.orderBy() != null && !select.orderBy().isEmpty()) {
           st.append(" order by ")
             .append(select.orderBy().stream()
-                          .map(e -> e.translate(target(), parameters))
+                          .map(e -> e.translate(target(), path.add(e), parameters))
                           .collect(joining(", ")));
           if (subSelect && select.offset() == null && select.limit() == null) {
             /*
@@ -304,14 +306,14 @@ public class SqlServerTranslator extends AbstractTranslator {
           }
         }
         if (select.offset() != null) {
-          st.append(" offset ").append(select.offset().translate(target(), parameters)).append(" rows");
+          st.append(" offset ").append(select.offset().translate(target(), path.add(select.offset()), parameters)).append(" rows");
         }
         if (select.limit() != null) {
           if (select.offset() == null) {
             // offset clause is mandatory with SQL Server when limit is specified
             st.append(" offset 0 rows");
           }
-          st.append(" fetch next ").append(select.limit().translate(target(), parameters)).append(" rows only");
+          st.append(" fetch next ").append(select.limit().translate(target(), path.add(select.limit()), parameters)).append(" rows only");
         }
         return new QueryTranslation(st.toString(),
                                     q.columns,
@@ -323,7 +325,9 @@ public class SqlServerTranslator extends AbstractTranslator {
   }
 
   @Override
-  protected QueryTranslation translate(Update update, Map<String, Object> parameters) {
+  protected QueryTranslation translate(Update update,
+                                       EsqlPath path,
+                                       Map<String, Object> parameters) {
     StringBuilder st = new StringBuilder("update ");
 
     TableExpr from = update.tables();
@@ -336,10 +340,10 @@ public class SqlServerTranslator extends AbstractTranslator {
       st.append(" output ");
       q = update.constructResult(st, target(), "inserted", parameters);
     }
-    st.append(" from ").append(from.translate(target(), parameters));
+    st.append(" from ").append(from.translate(target(), path.add(from), parameters));
 
     if (update.where() != null) {
-      st.append(" where ").append(update.where().translate(target(), parameters));
+      st.append(" where ").append(update.where().translate(target(), path.add(update.where()), parameters));
     }
     if (q == null) {
       return new QueryTranslation(st.toString(), emptyList(), emptyMap(),
@@ -351,7 +355,7 @@ public class SqlServerTranslator extends AbstractTranslator {
   }
 
   @Override
-  protected QueryTranslation translate(Delete delete, Map<String, Object> parameters) {
+  protected QueryTranslation translate(Delete delete, EsqlPath path, Map<String, Object> parameters) {
     StringBuilder st = new StringBuilder("delete ").append((delete.deleteTableAlias()));
     QueryTranslation q = null;
 
@@ -360,10 +364,10 @@ public class SqlServerTranslator extends AbstractTranslator {
       st.append(" output ");
       q = delete.constructResult(st, target(), "deleted", parameters);
     }
-    st.append(" from ").append(from.translate(target(), parameters));
+    st.append(" from ").append(from.translate(target(), path.add(from), parameters));
 
     if (delete.where() != null) {
-      st.append(" where ").append(delete.where().translate(target(), parameters));
+      st.append(" where ").append(delete.where().translate(target(), path.add(delete.where()), parameters));
     }
     if (q == null) {
       return new QueryTranslation(st.toString(), emptyList(), emptyMap(),
@@ -375,7 +379,7 @@ public class SqlServerTranslator extends AbstractTranslator {
   }
 
   @Override
-  protected QueryTranslation translate(Insert insert, Map<String, Object> parameters) {
+  protected QueryTranslation translate(Insert insert, EsqlPath path, Map<String, Object> parameters) {
     StringBuilder st = new StringBuilder("insert into ");
     TableExpr table = insert.tables();
     if (!(table instanceof SingleTableExpr)) {
@@ -401,14 +405,16 @@ public class SqlServerTranslator extends AbstractTranslator {
     List<InsertRow> rows = insert.rows();
     if (rows != null && !rows.isEmpty()) {
       st.append(rows.stream()
-                    .map(row -> row.translate(target(), parameters))
+                    .map(row -> row.translate(target(), path.add(row), parameters))
                     .collect(joining(", ", " values", "")));
 
     } else if (insert.defaultValues()) {
       st.append(" default values");
 
     } else {
-      st.append(' ').append(insert.select().translate(target(), Map.of("addAttributes", false)).statement);
+      st.append(' ').append(insert.select().translate(target(),
+                                                      path.add(insert.select()),
+                                                      Map.of("addAttributes", false)).statement);
     }
 
     if (q == null) {
@@ -427,16 +433,16 @@ public class SqlServerTranslator extends AbstractTranslator {
    * or order-by list. Because ESQL statements can be nested we need to look at
    * the distance of ancestor to determine whether IIF is needed or not.
    */
-  public static boolean requireIif(Esql<?, ?> esql, Map<String, Object> parameters) {
+  public static boolean requireIif(EsqlPath path, Map<String, Object> parameters) {
     if (parameters.containsKey("addIif")) {
        return (Boolean)parameters.get("addIif");
     } else {
-      int columnsDist = esql.ancestorDistance("columns");
-      int orderByDist = esql.ancestorDistance("orderBy");
-      int groupByDist = esql.ancestorDistance("groupBy");
-      int whereDist = esql.ancestorDistance("where");
-      int havingDist = esql.ancestorDistance("having");
-      int onDist = esql.ancestorDistance("on");
+      int columnsDist = path.ancestorDistance("columns");
+      int orderByDist = path.ancestorDistance("orderBy");
+      int groupByDist = path.ancestorDistance("groupBy");
+      int whereDist = path.ancestorDistance("where");
+      int havingDist = path.ancestorDistance("having");
+      int onDist = path.ancestorDistance("on");
 
       int reqIf = min(columnsDist, min(orderByDist, groupByDist));
       int noIf = min(whereDist, min(havingDist, onDist));

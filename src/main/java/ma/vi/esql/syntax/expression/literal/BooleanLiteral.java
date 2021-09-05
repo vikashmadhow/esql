@@ -6,6 +6,7 @@ package ma.vi.esql.syntax.expression.literal;
 
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.semantic.type.Type;
+import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.Translatable;
 
 import java.util.Map;
@@ -28,16 +29,7 @@ public class BooleanLiteral extends BaseLiteral<Boolean> {
 
   @Override
   public BooleanLiteral copy() {
-    if (!copying()) {
-      try {
-        copying(true);
-        return new BooleanLiteral(this);
-      } finally {
-        copying(false);
-      }
-    } else {
-      return this;
-    }
+    return new BooleanLiteral(this);
   }
 
   @Override
@@ -46,7 +38,7 @@ public class BooleanLiteral extends BaseLiteral<Boolean> {
   }
 
   @Override
-  protected String trans(Translatable.Target target, Map<String, Object> parameters) {
+  protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
     if (target == Translatable.Target.SQLSERVER) {
       return value ? "1" : "0";
     }

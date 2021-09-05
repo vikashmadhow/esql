@@ -25,15 +25,6 @@ public class Modulus extends ArithmeticOperator {
 
   @Override
   public Modulus copy() {
-    if (!copying()) {
-      try {
-        copying(true);
-        return new Modulus(this);
-      } finally {
-        copying(false);
-      }
-    } else {
-      return this;
-    }
+    return new Modulus(this);
   }
 }

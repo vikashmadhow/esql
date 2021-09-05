@@ -6,9 +6,15 @@ package ma.vi.esql.syntax.define;
 
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.syntax.Context;
+import ma.vi.esql.syntax.EsqlPath;
 
 import java.util.Map;
 
+/**
+ * Adds a column, constraint or other definition to a table.
+ *
+ * @author Vikash Madhow (vikash.madhow@gmail.com)
+ */
 public class AddTableDefinition extends Alteration {
   public AddTableDefinition(Context context, TableDefinition def) {
     super(context, T2.of("definition", def));
@@ -20,21 +26,12 @@ public class AddTableDefinition extends Alteration {
 
   @Override
   public AddTableDefinition copy() {
-    if (!copying()) {
-      try {
-        copying(true);
-        return new AddTableDefinition(this);
-      } finally {
-        copying(false);
-      }
-    } else {
-      return this;
-    }
+    return new AddTableDefinition(this);
   }
 
   @Override
-  protected String trans(Target target, Map<String, Object> parameters) {
-    return "add " + definition().translate(target, parameters);
+  protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
+    return "add " + definition().translate(target, path.add(definition()), parameters);
   }
 
   public TableDefinition definition() {

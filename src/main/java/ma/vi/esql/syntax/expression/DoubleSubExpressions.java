@@ -5,8 +5,8 @@
 package ma.vi.esql.syntax.expression;
 
 import ma.vi.base.tuple.T2;
-import ma.vi.esql.syntax.Context;
 import ma.vi.esql.semantic.type.Type;
+import ma.vi.esql.syntax.Context;
 
 /**
  * Abstract parent of ESQL expressions taking exactly two arguments.

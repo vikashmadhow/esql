@@ -5,7 +5,7 @@
 package ma.vi.esql.syntax.expression.comparison;
 
 import ma.vi.esql.syntax.Context;
-import ma.vi.esql.syntax.Translatable;
+import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.expression.Expression;
 
 import java.util.Map;
@@ -29,28 +29,19 @@ public class Equality extends ComparisonOperator {
 
   @Override
   public Equality copy() {
-    if (!copying()) {
-      try {
-        copying(true);
-        return new Equality(this);
-      } finally {
-        copying(false);
-      }
-    } else {
-      return this;
-    }
+    return new Equality(this);
   }
 
   @Override
-  protected String trans(Translatable.Target target, Map<String, Object> parameters) {
+  protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
     switch (target) {
       case JSON:
       case JAVASCRIPT:
-        String e = expr1().translate(target, parameters) + " === " + expr2().translate(target, parameters);
+        String e = expr1().translate(target, path.add(expr1()), parameters) + " === " + expr2().translate(target, path.add(expr2()), parameters);
         return target == JSON ? '"' + escapeJsonString(e) + '"' : e;
 
       default:
-        return super.trans(target, parameters);
+        return super.trans(target, path, parameters);
     }
   }
 }

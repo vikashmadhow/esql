@@ -27,11 +27,9 @@ public abstract class BaseLiteral<V> extends Literal<V> {
     super(context, value, children);
   }
 
-  public BaseLiteral(Context context, V value, Esql<?, ?>[] children) {
-    super(context, value, children);
-  }
-
-  public BaseLiteral(Context context, V value, List<? extends Esql<?, ?>> children) {
+  public BaseLiteral(Context context,
+                     V value,
+                     List<? extends Esql<?, ?>> children) {
     super(context, value, children);
   }
 

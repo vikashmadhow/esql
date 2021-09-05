@@ -7,6 +7,7 @@ package ma.vi.esql.syntax.define;
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
+import ma.vi.esql.syntax.EsqlPath;
 
 import java.util.HashSet;
 import java.util.List;
@@ -28,22 +29,12 @@ public class UniqueConstraint extends ConstraintDefinition {
 
   @Override
   public UniqueConstraint copy() {
-    if (!copying()) {
-      try {
-        copying(true);
-        return new UniqueConstraint(this);
-      } finally {
-        copying(false);
-      }
-    } else {
-      return this;
-    }
+    return new UniqueConstraint(this);
   }
 
   public boolean sameAs(ConstraintDefinition def) {
-    if (def instanceof UniqueConstraint) {
-      UniqueConstraint c = (UniqueConstraint)def;
-//      /*
+    if (def instanceof UniqueConstraint c) {
+      //      /*
 //       * Trim to work around an error (which I found only in HSQLDB for now)
 //       * where the names are padded with some spaces.
 //       */
@@ -60,7 +51,7 @@ public class UniqueConstraint extends ConstraintDefinition {
   }
 
   @Override
-  protected String trans(Target target, Map<String, Object> parameters) {
+  protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
     return "constraint "
         + '"' + (name() != null ? name() : defaultConstraintName(target, namePrefix())) + '"'
         + " unique(" + quotedColumnsList(columns()) + ')';

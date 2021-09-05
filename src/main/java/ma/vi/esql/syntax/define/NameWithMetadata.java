@@ -6,9 +6,15 @@ package ma.vi.esql.syntax.define;
 
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.syntax.Context;
+import ma.vi.esql.syntax.EsqlPath;
 
 import java.util.Map;
 
+/**
+ * Name with associated metadata, used in dynamic tables definition.
+ *
+ * @author Vikash Madhow (vikash.madhow@gmail.com)
+ */
 public class NameWithMetadata extends TableDefinition {
   public NameWithMetadata(Context context, String name, Metadata metadata) {
     super(context, name, T2.of("metadata", metadata));
@@ -20,20 +26,11 @@ public class NameWithMetadata extends TableDefinition {
 
   @Override
   public NameWithMetadata copy() {
-    if (!copying()) {
-      try {
-        copying(true);
-        return new NameWithMetadata(this);
-      } finally {
-        copying(false);
-      }
-    } else {
-      return this;
-    }
+    return new NameWithMetadata(this);
   }
 
   @Override
-  protected String trans(Target target, Map<String, Object> parameters) {
+  protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
     String sql = '"' + name() + "\" ";
     if (target == Target.ESQL) {
       StringBuilder st = new StringBuilder(sql);

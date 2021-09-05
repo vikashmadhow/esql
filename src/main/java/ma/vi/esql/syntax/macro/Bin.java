@@ -6,12 +6,12 @@ package ma.vi.esql.syntax.macro;
 
 import ma.vi.esql.function.Function;
 import ma.vi.esql.function.FunctionParameter;
-import ma.vi.esql.syntax.Context;
-import ma.vi.esql.syntax.Esql;
-import ma.vi.esql.syntax.Macro;
-import ma.vi.esql.syntax.TranslationException;
-import ma.vi.esql.syntax.expression.*;
 import ma.vi.esql.semantic.type.Types;
+import ma.vi.esql.syntax.*;
+import ma.vi.esql.syntax.expression.Cast;
+import ma.vi.esql.syntax.expression.Concatenation;
+import ma.vi.esql.syntax.expression.Expression;
+import ma.vi.esql.syntax.expression.FunctionCall;
 import ma.vi.esql.syntax.expression.comparison.Case;
 import ma.vi.esql.syntax.expression.comparison.LessThan;
 import ma.vi.esql.syntax.expression.comparison.Range;
@@ -56,7 +56,7 @@ public class Bin extends Function implements Macro {
   }
 
   @Override
-  public boolean expand(String name, Esql<?, ?> esql) {
+  public Esql<?, ?> expand(Esql<?, ?> esql, EsqlPath path) {
     FunctionCall call = (FunctionCall)esql;
     Context ctx = call.context;
     List<Expression<?, ?>> args = call.arguments();
@@ -79,7 +79,7 @@ public class Bin extends Function implements Macro {
         cases.add(new Concatenation(ctx,
                                     Arrays.asList(
                                         new StringLiteral(ctx, "01. "),
-                                        (Expression<?, String>)varName,
+                                        varName,
                                         new StringLiteral(ctx, " < "),
                                         new Cast(ctx, upper, Types.StringType))));
         cases.add(new LessThan(ctx, (Expression<?, String>)binVar, (Expression<?, String>)upper));
@@ -90,7 +90,7 @@ public class Bin extends Function implements Macro {
         cases.add(new Concatenation(ctx,
                                     Arrays.asList(
                                         new StringLiteral(ctx, leftPad(valueOf(order), 2, '0') + ". "),
-                                        (Expression<?, String>)varName,
+                                        varName,
                                         new StringLiteral(ctx, " >= "),
                                         new Cast(ctx, lower, Types.StringType))));
       } else {
@@ -99,7 +99,7 @@ public class Bin extends Function implements Macro {
                                         new StringLiteral(ctx, leftPad(valueOf(order), 2, '0') + ". "),
                                         new Cast(ctx, lower, Types.StringType),
                                         new StringLiteral(ctx," <= "),
-                                        (Expression<?, String>)varName,
+                                        varName,
                                         new StringLiteral(ctx," < "),
                                         new Cast(ctx, upper, Types.StringType))));
         cases.add(new Range(ctx,
@@ -111,7 +111,6 @@ public class Bin extends Function implements Macro {
         order += 1;
       }
     }
-    call.parent.replaceWith(name, new Case(ctx, cases));
-    return true;
+    return new Case(ctx, cases);
   }
 }

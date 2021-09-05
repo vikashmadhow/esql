@@ -8,6 +8,7 @@ import ma.vi.base.lang.Errors;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.semantic.type.Types;
+import ma.vi.esql.syntax.EsqlPath;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -33,16 +34,7 @@ public class DateLiteral extends BaseLiteral<String> {
 
   @Override
   public DateLiteral copy() {
-    if (!copying()) {
-      try {
-        copying(true);
-        return new DateLiteral(this);
-      } finally {
-        copying(false);
-      }
-    } else {
-      return this;
-    }
+    return new DateLiteral(this);
   }
 
   @Override
@@ -62,14 +54,14 @@ public class DateLiteral extends BaseLiteral<String> {
   }
 
   @Override
-  protected String trans(Target target, Map<String, Object> parameters) {
+  protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
     Type type = type();
     switch (target) {
       case POSTGRESQL:
-        return '\'' + value + "'::" + type().translate(target, parameters);
+        return '\'' + value + "'::" + type().translate(target, path, parameters);
 
       case SQLSERVER:
-        return "cast('" + value + "' as " + type().translate(target, parameters) + ')';
+        return "cast('" + value + "' as " + type().translate(target, path, parameters) + ')';
 
       case JSON:
       case JAVASCRIPT:

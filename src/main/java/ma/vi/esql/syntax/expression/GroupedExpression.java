@@ -5,6 +5,7 @@
 package ma.vi.esql.syntax.expression;
 
 import ma.vi.esql.syntax.Context;
+import ma.vi.esql.syntax.EsqlPath;
 
 import java.util.Map;
 
@@ -24,21 +25,12 @@ public class GroupedExpression extends SingleSubExpression {
 
   @Override
   public GroupedExpression copy() {
-    if (!copying()) {
-      try {
-        copying(true);
-        return new GroupedExpression(this);
-      } finally {
-        copying(false);
-      }
-    } else {
-      return this;
-    }
+    return new GroupedExpression(this);
   }
 
   @Override
-  protected String trans(Target target, Map<String, Object> parameters) {
-    return '(' + expr().translate(target, parameters) + ')';
+  protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
+    return '(' + expr().translate(target, path.add(expr()), parameters) + ')';
   }
 
   @Override

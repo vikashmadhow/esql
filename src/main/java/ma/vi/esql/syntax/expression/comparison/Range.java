@@ -9,6 +9,7 @@ import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.semantic.type.Types;
+import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.expression.Expression;
 
 import java.util.Map;
@@ -31,10 +32,10 @@ public class Range extends Expression<Expression<?, String>, String> {
                String rightCompare,
                Expression<?, String> rightExpression) {
     super(context, compareExpression,
-        T2.of("leftExpression", leftExpression),
-        T2.of("leftCompare", new Esql<>(context, leftCompare)),
-        T2.of("rightCompare", new Esql<>(context, rightCompare)),
-        T2.of("rightExpression", rightExpression));
+          T2.of("leftExpression", leftExpression),
+          T2.of("leftCompare", new Esql<>(context, leftCompare)),
+          T2.of("rightCompare", new Esql<>(context, rightCompare)),
+          T2.of("rightExpression", rightExpression));
   }
 
   public Range(Range other) {
@@ -43,16 +44,7 @@ public class Range extends Expression<Expression<?, String>, String> {
 
   @Override
   public Range copy() {
-    if (!copying()) {
-      try {
-        copying(true);
-        return new Range(this);
-      } finally {
-        copying(false);
-      }
-    } else {
-      return this;
-    }
+    return new Range(this);
   }
 
   @Override
@@ -61,22 +53,24 @@ public class Range extends Expression<Expression<?, String>, String> {
   }
 
   @Override
-  protected String trans(Target target, Map<String, Object> parameters) {
+  protected String trans(Target target,
+                         EsqlPath path,
+                         Map<String, Object> parameters) {
     switch (target) {
       case JSON, JAVASCRIPT -> {
-        String e = '(' + leftExpression().translate(target, parameters) + ' '
-                 + leftCompare() + ' ' + compareExpression().translate(target, parameters) + " && "
-                 + compareExpression().translate(target, parameters) + ' ' + rightCompare() + ' '
-                 + rightExpression().translate(target, parameters) + ')';
+        String compareEx = compareExpression().translate(target, path.add(compareExpression()), parameters);
+        String e = '(' + leftExpression().translate(target, path.add(leftExpression()), parameters) + ' '
+                 + leftCompare() + ' ' + compareEx + " && " + compareEx + ' ' + rightCompare() + ' '
+                 + rightExpression().translate(target, path.add(rightExpression()), parameters) + ')';
         return target == JSON ? '"' + escapeJsonString(e) + '"' : e;
       }
       default -> {
-        boolean sqlServerBool = target == Target.SQLSERVER && requireIif(this, parameters);
+        boolean sqlServerBool = target == Target.SQLSERVER && requireIif(path, parameters);
+        String compareEx = compareExpression().translate(target, path.add(compareExpression()), parameters);
         return (sqlServerBool ? "iif" : "") + '('
-             + leftExpression().translate(target, parameters) + ' ' + leftCompare() + ' '
-             + compareExpression().translate(target, parameters) + " and "
-             + compareExpression().translate(target, parameters) + ' ' + rightCompare() + ' '
-             + rightExpression().translate(target, parameters)
+             + leftExpression().translate(target, path.add(leftExpression()), parameters) + ' ' + leftCompare() + ' '
+             + compareEx + " and " + compareEx + ' ' + rightCompare() + ' '
+             + rightExpression().translate(target, path.add(rightExpression()), parameters)
              + (sqlServerBool ? ", 1, 0" : "") + ')';
       }
     }

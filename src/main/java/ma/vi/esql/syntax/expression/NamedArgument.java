@@ -6,6 +6,7 @@ package ma.vi.esql.syntax.expression;
 
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.syntax.Context;
+import ma.vi.esql.syntax.EsqlPath;
 
 import java.util.Map;
 
@@ -29,32 +30,23 @@ public class NamedArgument extends Expression<String, String> {
 
   @Override
   public NamedArgument copy() {
-    if (!copying()) {
-      try {
-        copying(true);
-        return new NamedArgument(this);
-      } finally {
-        copying(false);
-      }
-    } else {
-      return this;
-    }
+    return new NamedArgument(this);
   }
 
   @Override
-  protected String trans(Target target, Map<String, Object> parameters) {
+  protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
     switch (target) {
       case ESQL:
-        return name() + ":=" + arg().translate(target, parameters);
+        return name() + ":=" + arg().translate(target, path.add(arg()), parameters);
       case JSON:
       case JAVASCRIPT:
-        String translation = name() + '=' + arg().translate(target, parameters);
+        String translation = name() + '=' + arg().translate(target, path.add(arg()), parameters);
         return target == JSON ? '"' + translation + '"' : translation;
       default:
         /*
          * for databases drop name as it is not supported in most cases
          */
-        return arg().translate(target, parameters);
+        return arg().translate(target, path.add(arg()), parameters);
     }
   }
 

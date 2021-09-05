@@ -7,9 +7,15 @@ package ma.vi.esql.syntax.define;
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
+import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.expression.Expression;
+import ma.vi.esql.syntax.expression.literal.BooleanLiteral;
+import ma.vi.esql.syntax.expression.literal.IntegerLiteral;
+import ma.vi.esql.syntax.expression.literal.StringLiteral;
+import ma.vi.esql.syntax.expression.literal.UuidLiteral;
 
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * An attribute is a named expression used as a unit of metadata.
@@ -29,21 +35,30 @@ public class Attribute extends Esql<String, String> {
 
   @Override
   public Attribute copy() {
-    if (!copying()) {
-      try {
-        copying(true);
-        return new Attribute(this);
-      } finally {
-        copying(false);
-      }
-    } else {
-      return this;
-    }
+    return new Attribute(this);
+  }
+
+  public static Attribute from(Context context, String name, String value) {
+    return new Attribute(context, name, new StringLiteral(context, value));
+  }
+
+  public static Attribute from(Context context, String name, boolean value) {
+    return new Attribute(context, name, new BooleanLiteral(context, value));
+  }
+
+  public static Attribute from(Context context, String name, UUID value) {
+    return new Attribute(context, name, new UuidLiteral(context, value));
+  }
+
+  public static Attribute from(Context context, String name, int value) {
+    return new Attribute(context, name, new IntegerLiteral(context, (long)value));
   }
 
   @Override
-  protected String trans(Target target, Map<String, Object> parameters) {
-    return name() + ": " + (attributeValue() == null ? "null" : attributeValue().translate(target, parameters));
+  protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
+    return name() + ": " + (attributeValue() == null
+                              ? "null"
+                              : attributeValue().translate(target, path.add(attributeValue()), parameters));
   }
 
   @Override
@@ -64,7 +79,7 @@ public class Attribute extends Esql<String, String> {
     return child("value");
   }
 
-  public void attributeValue(Expression<?, String> value) {
-    child("value", value);
-  }
+//  public void attributeValue(Expression<?, String> value) {
+//    child("value", value);
+//  }
 }

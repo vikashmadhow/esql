@@ -5,6 +5,7 @@
 package ma.vi.esql.syntax.expression.comparison;
 
 import ma.vi.esql.syntax.Context;
+import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.expression.Expression;
 import ma.vi.esql.syntax.expression.MultipleSubExpressions;
 
@@ -37,20 +38,11 @@ public class Case extends MultipleSubExpressions<String> {
 
   @Override
   public Case copy() {
-    if (!copying()) {
-      try {
-        copying(true);
-        return new Case(this);
-      } finally {
-        copying(false);
-      }
-    } else {
-      return this;
-    }
+    return new Case(this);
   }
 
   @Override
-  protected String trans(Target target, Map<String, Object> parameters) {
+  protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
     switch (target) {
       case JSON, JAVASCRIPT -> {
         StringBuilder est = new StringBuilder();
@@ -60,10 +52,11 @@ public class Case extends MultipleSubExpressions<String> {
             est.append(" : ");
           }
           if (i.hasNext()) {
-            est.append(i.next().translate(target, parameters)).append(" ? ")
-               .append(e.translate(target, parameters));
+            Expression<?, String> expr = i.next();
+            est.append(expr.translate(target, path.add(expr), parameters)).append(" ? ")
+               .append(e.translate(target, path.add(e), parameters));
           } else {
-            est.append(e.translate(target, parameters));
+            est.append(e.translate(target, path.add(e), parameters));
           }
         }
         String ex = est.toString();
@@ -82,10 +75,11 @@ public class Case extends MultipleSubExpressions<String> {
             est.append(" else ");
           }
           if (i.hasNext()) {
-            est.append(e.translate(target, parameters)).append(" if ")
-               .append(i.next().translate(target, parameters));
+            Expression<?, String> expr = i.next();
+            est.append(e.translate(target, path.add(e), parameters)).append(" if ")
+               .append(expr.translate(target, path.add(expr), parameters));
           } else {
-            est.append(e.translate(target, parameters));
+            est.append(e.translate(target, path.add(e), parameters));
           }
         }
         return est.toString();
@@ -100,10 +94,11 @@ public class Case extends MultipleSubExpressions<String> {
         for (Iterator<Expression<?, String>> i = expressions().iterator(); i.hasNext(); ) {
           Expression<?, String> e = i.next();
           if (i.hasNext()) {
-            st.append(" when ").append(i.next().translate(target, dontAddIif))
-              .append(" then ").append(e.translate(target, addIif));
+            Expression<?, String> expr = i.next();
+            st.append(" when ").append(expr.translate(target, path.add(expr), dontAddIif))
+              .append(" then ").append(e.translate(target, path.add(e), addIif));
           } else {
-            st.append(" else ").append(e.translate(target, parameters));
+            st.append(" else ").append(e.translate(target, path.add(e), parameters));
           }
         }
         st.append(" end");
@@ -115,10 +110,11 @@ public class Case extends MultipleSubExpressions<String> {
         for (Iterator<Expression<?, String>> i = expressions().iterator(); i.hasNext(); ) {
           Expression<?, String> e = i.next();
           if (i.hasNext()) {
-            st.append(" when ").append(i.next().translate(target, parameters))
-              .append(" then ").append(e.translate(target, parameters));
+            Expression<?, String> expr = i.next();
+            st.append(" when ").append(expr.translate(target, path.add(expr), parameters))
+              .append(" then ").append(e.translate(target, path.add(e), parameters));
           } else {
-            st.append(" else ").append(e.translate(target, parameters));
+            st.append(" else ").append(e.translate(target, path.add(e), parameters));
           }
         }
         st.append(" end");

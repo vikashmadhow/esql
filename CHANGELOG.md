@@ -28,6 +28,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Support for Oracle database.
 - Make into Java 9 module.
 - Support for frame definition (rows and range) in window functions.
+- Support for 'within group' for ordering in string and array aggregate functions.
+
+## [Unreleased]
+### Redesigned
+- Change ESQL node:
+  - To be immutable, creating copies on mutating operations, with use of path persistence
+    for faster copies and lower memory use;
+  - To use a list for children (instead of a map) to preserve order of children;
+  - To implement a path-seeking api for selecting part of the tree and replacing it
+    with other nodes
+- New simpler map and forEach function in ESQL.
+- New simpler macro interface.
 
 ## [0.5.2] - 2021-08-19
 ### Refactored

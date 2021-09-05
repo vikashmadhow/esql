@@ -4,8 +4,10 @@
 
 package ma.vi.esql.syntax.query;
 
+import ma.vi.base.tuple.T2;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
+import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.expression.Expression;
 
 import java.util.Map;
@@ -23,9 +25,12 @@ public class JoinTableExpr extends AbstractJoinTableExpr {
                        String joinType,
                        TableExpr right,
                        Expression<?, String> on) {
-    super(context, joinType, left, right);
-    child("on", on);
-    child("joinType", new Esql<>(context, joinType));
+    super(context,
+          joinType,
+          left,
+          right,
+          T2.of("on", on),
+          T2.of("joinType", new Esql<>(context, joinType)));
   }
 
   public JoinTableExpr(JoinTableExpr other) {
@@ -34,24 +39,15 @@ public class JoinTableExpr extends AbstractJoinTableExpr {
 
   @Override
   public JoinTableExpr copy() {
-    if (!copying()) {
-      try {
-        copying(true);
-        return new JoinTableExpr(this);
-      } finally {
-        copying(false);
-      }
-    } else {
-      return this;
-    }
+    return new JoinTableExpr(this);
   }
 
   @Override
-  protected String trans(Target target, Map<String, Object> parameters) {
-    return left().translate(target, parameters)
+  protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
+    return left().translate(target, path.add(left()), parameters)
          + (joinType() == null ? " join " : ' ' + joinType() + " join ")
-         + right().translate(target, parameters) + " on "
-         + on().translate(target, parameters);
+         + right().translate(target, path.add(right()), parameters) + " on "
+         + on().translate(target, path.add(on()), parameters);
   }
 
   public String joinType() {

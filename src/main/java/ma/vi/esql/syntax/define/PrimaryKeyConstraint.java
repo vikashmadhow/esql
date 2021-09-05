@@ -7,6 +7,7 @@ package ma.vi.esql.syntax.define;
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
+import ma.vi.esql.syntax.EsqlPath;
 
 import java.util.HashSet;
 import java.util.List;
@@ -28,22 +29,12 @@ public class PrimaryKeyConstraint extends ConstraintDefinition {
 
   @Override
   public PrimaryKeyConstraint copy() {
-    if (!copying()) {
-      try {
-        copying(true);
-        return new PrimaryKeyConstraint(this);
-      } finally {
-        copying(false);
-      }
-    } else {
-      return this;
-    }
+    return new PrimaryKeyConstraint(this);
   }
 
   public boolean sameAs(ConstraintDefinition def) {
-    if (def instanceof PrimaryKeyConstraint) {
-      PrimaryKeyConstraint c = (PrimaryKeyConstraint)def;
-//      return c.columns()
+    if (def instanceof PrimaryKeyConstraint c) {
+      //      return c.columns()
 //              .stream()
 //              .map(String::trim)
 //              .collect(toSet()).equals(columns().stream()
@@ -55,7 +46,7 @@ public class PrimaryKeyConstraint extends ConstraintDefinition {
   }
 
   @Override
-  protected String trans(Target target, Map<String, Object> parameters) {
+  protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
     return "constraint "
          + '"' + (name() != null ? name() : defaultConstraintName(target, namePrefix())) + '"'
          + " primary key(" + quotedColumnsList(columns()) + ')';

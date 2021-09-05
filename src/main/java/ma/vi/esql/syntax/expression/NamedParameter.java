@@ -5,6 +5,7 @@
 package ma.vi.esql.syntax.expression;
 
 import ma.vi.esql.syntax.Context;
+import ma.vi.esql.syntax.EsqlPath;
 
 import java.util.Map;
 
@@ -25,20 +26,11 @@ public class NamedParameter extends Expression<String, String> {
 
   @Override
   public NamedParameter copy() {
-    if (!copying()) {
-      try {
-        copying(true);
-        return new NamedParameter(this);
-      } finally {
-        copying(false);
-      }
-    } else {
-      return this;
-    }
+    return new NamedParameter(this);
   }
 
   @Override
-  protected String trans(Target target, Map<String, Object> parameters) {
+  protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
     return ':' + name();
   }
 

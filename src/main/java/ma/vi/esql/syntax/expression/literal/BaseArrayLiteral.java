@@ -5,9 +5,10 @@
 package ma.vi.esql.syntax.expression.literal;
 
 import ma.vi.base.util.Convert;
-import ma.vi.esql.syntax.Context;
 import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.semantic.type.Types;
+import ma.vi.esql.syntax.Context;
+import ma.vi.esql.syntax.EsqlPath;
 
 import java.lang.reflect.Array;
 import java.util.List;
@@ -33,16 +34,7 @@ public class BaseArrayLiteral extends Literal<Type> {
 
   @Override
   public BaseArrayLiteral copy() {
-    if (!copying()) {
-      try {
-        copying(true);
-        return new BaseArrayLiteral(this);
-      } finally {
-        copying(false);
-      }
-    } else {
-      return this;
-    }
+    return new BaseArrayLiteral(this);
   }
 
   @Override
@@ -51,34 +43,34 @@ public class BaseArrayLiteral extends Literal<Type> {
   }
 
   @Override
-  protected String trans(Target target, Map<String, Object> parameters) {
+  protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
     return switch (target) {
       case POSTGRESQL
           -> "array[" + items().stream()
-                               .map(e -> e.translate(target, parameters))
+                               .map(e -> e.translate(target, path.add(e), parameters))
                                .collect(joining(",")) + "]::" + componentType().array().translate(target, parameters);
 
       case HSQLDB
           -> "array[" + items().stream()
-                               .map(e -> e.translate(target, parameters))
+                               .map(e -> e.translate(target, path.add(e), parameters))
                                .collect(joining(",")) + "]";
 
       case SQLSERVER, MARIADB, MYSQL
           -> items().stream()
                     .map(e -> e instanceof StringLiteral
                                   ? ARRAY_ESCAPE.escape((String)e.value(target))
-                                  : ARRAY_ESCAPE.escape(e.translate(target, parameters)))
+                                  : ARRAY_ESCAPE.escape(e.translate(target, path.add(e), parameters)))
                     .collect(joining(",", (target == SQLSERVER ? "N" : "") + "'[", "]'"));
 
       case JSON, JAVASCRIPT
           -> items().stream()
-                    .map(e -> e.translate(target, parameters))
+                    .map(e -> e.translate(target, path.add(e), parameters))
                     .collect(joining(",", "[", "]"));
 
       default
-          -> componentType().translate(Target.ESQL, parameters)
+          -> componentType().translate(Target.ESQL, path, parameters)
                + items().stream()
-                        .map(e -> ARRAY_ESCAPE.escape(e.translate(target, parameters)))
+                        .map(e -> ARRAY_ESCAPE.escape(e.translate(target, path.add(e), parameters)))
                         .collect(joining(",", "[", "]"));
     };
   }
@@ -112,6 +104,6 @@ public class BaseArrayLiteral extends Literal<Type> {
   }
 
   public List<BaseLiteral<?>> items() {
-    return childrenList();
+    return children();
   }
 }

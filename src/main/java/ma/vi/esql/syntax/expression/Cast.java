@@ -7,6 +7,7 @@ package ma.vi.esql.syntax.expression;
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.semantic.type.Type;
+import ma.vi.esql.syntax.EsqlPath;
 
 import java.util.Map;
 
@@ -26,16 +27,7 @@ public class Cast extends Expression<Type, String> {
 
   @Override
   public Cast copy() {
-    if (!copying()) {
-      try {
-        copying(true);
-        return new Cast(this);
-      } finally {
-        copying(false);
-      }
-    } else {
-      return this;
-    }
+    return new Cast(this);
   }
 
   @Override
@@ -44,13 +36,15 @@ public class Cast extends Expression<Type, String> {
   }
 
   @Override
-  protected String trans(Target target, Map<String, Object> parameters) {
+  protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
     return switch (target) {
-      case ESQL       -> toType().translate(target, parameters) + '<' + expr().translate(target, parameters) + '>';
-      case POSTGRESQL -> '(' + expr().translate(target, parameters) + ")::" + toType().translate(target, parameters);
+      case ESQL       -> toType().translate(target, path, parameters)
+                           + '<' + expr().translate(target, path.add(expr()), parameters) + '>';
+      case POSTGRESQL -> '(' + expr().translate(target, path.add(expr()), parameters) + ")::"
+                             + toType().translate(target, path, parameters);
       case JSON,
-           JAVASCRIPT -> expr().translate(target, parameters);    // ignore cast for Javascript
-      default         -> "cast(" + expr().translate(target, parameters) + " as " + toType().translate(target, parameters) + ')';
+           JAVASCRIPT -> expr().translate(target, path.add(expr()), parameters);    // ignore cast for Javascript
+      default         -> "cast(" + expr().translate(target, path.add(expr()), parameters) + " as " + toType().translate(target, path, parameters) + ')';
     };
   }
 

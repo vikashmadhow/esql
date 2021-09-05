@@ -44,16 +44,7 @@ public class Delete extends QueryUpdate {
 
   @Override
   public Delete copy() {
-    if (!copying()) {
-      try {
-        copying(true);
-        return new Delete(this);
-      } finally {
-        copying(false);
-      }
-    } else {
-      return this;
-    }
+    return new Delete(this);
   }
 
   @Override

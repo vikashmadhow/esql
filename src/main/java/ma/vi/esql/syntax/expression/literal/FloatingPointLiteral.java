@@ -7,6 +7,7 @@ package ma.vi.esql.syntax.expression.literal;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.semantic.type.Types;
+import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.Translatable;
 
 import java.util.Map;
@@ -30,16 +31,7 @@ public class FloatingPointLiteral extends BaseLiteral<String> {
 
   @Override
   public FloatingPointLiteral copy() {
-    if (!copying()) {
-      try {
-        copying(true);
-        return new FloatingPointLiteral(this);
-      } finally {
-        copying(false);
-      }
-    } else {
-      return this;
-    }
+    return new FloatingPointLiteral(this);
   }
 
   @Override
@@ -48,7 +40,7 @@ public class FloatingPointLiteral extends BaseLiteral<String> {
   }
 
   @Override
-  protected String trans(Translatable.Target target, Map<String, Object> parameters) {
+  protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
     return value;
   }
 

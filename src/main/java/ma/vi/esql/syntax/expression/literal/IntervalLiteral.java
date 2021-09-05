@@ -8,6 +8,7 @@ import ma.vi.esql.syntax.Context;
 import ma.vi.esql.semantic.type.Interval;
 import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.semantic.type.Types;
+import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.Translatable;
 
 import java.util.Map;
@@ -31,16 +32,7 @@ public class IntervalLiteral extends BaseLiteral<String> {
 
   @Override
   public IntervalLiteral copy() {
-    if (!copying()) {
-      try {
-        copying(true);
-        return new IntervalLiteral(this);
-      } finally {
-        copying(false);
-      }
-    } else {
-      return this;
-    }
+    return new IntervalLiteral(this);
   }
 
   @Override
@@ -49,7 +41,7 @@ public class IntervalLiteral extends BaseLiteral<String> {
   }
 
   @Override
-  protected String trans(Translatable.Target target, Map<String, Object> parameters) {
+  protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
     switch (target) {
       case POSTGRESQL:
         return '\'' + value + "'::interval";

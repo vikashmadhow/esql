@@ -5,6 +5,7 @@
 package ma.vi.esql.syntax.expression.arithmetic;
 
 import ma.vi.esql.syntax.Context;
+import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.expression.Expression;
 import ma.vi.esql.syntax.expression.SingleSubExpression;
 
@@ -26,21 +27,12 @@ public class Negation extends SingleSubExpression {
 
   @Override
   public Negation copy() {
-    if (!copying()) {
-      try {
-        copying(true);
-        return new Negation(this);
-      } finally {
-        copying(false);
-      }
-    } else {
-      return this;
-    }
+    return new Negation(this);
   }
 
   @Override
-  protected String trans(Target target, Map<String, Object> parameters) {
-    return '-' + expr().translate(target, parameters);
+  protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
+    return '-' + expr().translate(target, path.add(expr()), parameters);
   }
 
   @Override

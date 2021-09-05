@@ -4,7 +4,10 @@
 
 package ma.vi.esql.syntax.query;
 
+import ma.vi.base.tuple.T2;
 import ma.vi.esql.syntax.Context;
+import ma.vi.esql.syntax.Esql;
+import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.define.Metadata;
 import ma.vi.esql.syntax.define.NameWithMetadata;
 import ma.vi.esql.syntax.expression.ColumnRef;
@@ -38,10 +41,12 @@ public class DynamicTableExpr extends AbstractAliasTableExpr {
                           Metadata metadata,
                           List<NameWithMetadata> columns,
                           List<InsertRow> rows) {
-    super(context, "DynamicTable", alias);
-    childValue("metadata", metadata);
-    childValue("columns", columns);
-    childValue("rows", rows);
+    super(context,
+          "DynamicTable",
+          alias,
+          T2.of("metadata", metadata),
+          T2.of("columns", new Esql<>(context, "columns", columns)),
+          T2.of("rows", new Esql<>(context, "rows", rows)));
   }
 
   public DynamicTableExpr(DynamicTableExpr other) {
@@ -50,16 +55,7 @@ public class DynamicTableExpr extends AbstractAliasTableExpr {
 
   @Override
   public DynamicTableExpr copy() {
-    if (!copying()) {
-      try {
-        copying(true);
-        return new DynamicTableExpr(this);
-      } finally {
-        copying(false);
-      }
-    } else {
-      return this;
-    }
+    return new DynamicTableExpr(this);
   }
 
   @Override
@@ -123,14 +119,14 @@ public class DynamicTableExpr extends AbstractAliasTableExpr {
   }
 
   @Override
-  protected String trans(Target target, Map<String, Object> parameters) {
+  protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
     return "(values "
          + rows().stream()
-                 .map(r -> r.translate(target, parameters))
+                 .map(r -> r.translate(target, path.add(r), parameters))
                  .collect(joining(", "))
          + ") as \"" + alias() + '"'
          + "(" + columns().stream()
-                          .map(c -> c.translate(target, parameters))
+                          .map(c -> c.translate(target, path.add(c), parameters))
                           .collect(joining(", "))
          + ")";
   }

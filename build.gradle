@@ -15,7 +15,7 @@
 
 buildscript {
   repositories {
-    jcenter()
+    mavenLocal()
     mavenCentral()
   }
 }
@@ -32,7 +32,6 @@ plugins {
 repositories {
   mavenLocal()
   mavenCentral()
-  jcenter()
 //  maven {
 //    url = uri("http://maven.cubrid.org/")
 //  }
@@ -91,14 +90,14 @@ projectFilestatistics {
 dependencies {
   antlr("org.antlr:antlr4:latest.release")
 
-  implementation("org.apache.commons:commons-lang3:3.9")
+  implementation("org.apache.commons:commons-lang3:3.12.0")
 
-  implementation("org.postgresql:postgresql:42.2.19")
-  implementation("com.microsoft.sqlserver:mssql-jdbc:9.2.1.jre11")
-  implementation("org.mariadb.jdbc:mariadb-java-client:2.7.2")
-  implementation("mysql:mysql-connector-java:8.0.23")
+  implementation("org.postgresql:postgresql:42.2.23.jre7")
+  implementation('com.microsoft.sqlserver:mssql-jdbc:9.4.0.jre16')
+  implementation("org.mariadb.jdbc:mariadb-java-client:2.7.3")
+  implementation("mysql:mysql-connector-java:8.0.25")
   implementation("org.hsqldb:hsqldb:2.6.0")
-  implementation("com.zaxxer:HikariCP:4.0.3")
+  implementation("com.zaxxer:HikariCP:5.0.0")
 //  implementation("cubrid:cubrid-jdbc:10.2.2.8874")
 
   implementation("org.json:json:latest.release")
@@ -120,14 +119,18 @@ test {
 
 group = 'com.vikmad'
 archivesBaseName = 'esql'
-sourceCompatibility = JavaVersion.VERSION_14
-version = "0.5.2"
+sourceCompatibility = JavaVersion.VERSION_16
+version = "0.5.3"
 ext.isReleaseVersion = !version.endsWith("SNAPSHOT")
 
 java {
   modularity.inferModulePath = true
   withJavadocJar()
   withSourcesJar()
+}
+
+tasks.withType(Jar) {
+  duplicatesStrategy = DuplicatesStrategy.INCLUDE
 }
 
 //compileJava {

@@ -34,6 +34,7 @@ public class SelectBuilder implements Builder<Select> {
   @Override
   public Select build() {
     return new Select(context,
+                      "Select",
                       metadata.isEmpty() ? null : new Metadata(context, metadata),
                       distinct, distinctOn, explicit, columns, from, where,
                       groupBy.isEmpty() ? null : new GroupBy(context, groupBy, groupType),

@@ -29,7 +29,7 @@ curly braces ({}) with each attribute consisting of a name-expression pair. Meta
 can be attached to a table and to its columns. For instance this is a `create table`
 statement which defines metadata attributes on both the table and its columns:
 
-```postgresql
+```sql
 create table com.example.S(
   {
     # table metadata (applied to all queries on this table)

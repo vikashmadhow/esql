@@ -30,23 +30,14 @@ public class Program extends Esql<String, List<?>> {
 
   @Override
   public Program copy() {
-    if (!copying()) {
-      try {
-        copying(true);
-        return new Program(this);
-      } finally {
-        copying(false);
-      }
-    } else {
-      return this;
-    }
+    return new Program(this);
   }
 
   @Override
-  public List<?> trans(Target target, Map<String, Object> parameters) {
+  public List<?> trans(Target target, EsqlPath path, Map<String, Object> parameters) {
     return expressions().stream()
-                       .map(s -> s.translate(target, parameters))
-                       .collect(toList());
+                        .map(s -> s.translate(target, path.add(s), parameters))
+                        .collect(toList());
   }
 
   @Override
@@ -62,6 +53,6 @@ public class Program extends Esql<String, List<?>> {
   }
 
   public List<Expression<?, ?>> expressions() {
-    return childrenList();
+    return children();
   }
 }

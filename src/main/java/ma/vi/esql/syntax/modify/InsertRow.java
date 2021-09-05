@@ -4,10 +4,11 @@
 
 package ma.vi.esql.syntax.modify;
 
-import ma.vi.esql.syntax.Context;
-import ma.vi.esql.syntax.expression.Expression;
 import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.semantic.type.Types;
+import ma.vi.esql.syntax.Context;
+import ma.vi.esql.syntax.EsqlPath;
+import ma.vi.esql.syntax.expression.Expression;
 
 import java.util.List;
 import java.util.Map;
@@ -25,16 +26,7 @@ public class InsertRow extends Expression<List<Expression<?, String>>, String> {
 
   @Override
   public InsertRow copy() {
-    if (!copying()) {
-      try {
-        copying(true);
-        return new InsertRow(this);
-      } finally {
-        copying(false);
-      }
-    } else {
-      return this;
-    }
+    return new InsertRow(this);
   }
 
   @Override
@@ -43,9 +35,9 @@ public class InsertRow extends Expression<List<Expression<?, String>>, String> {
   }
 
   @Override
-  protected String trans(Target target, Map<String, Object> parameters) {
+  protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
     return values().stream()
-                   .map(e -> e.translate(target, parameters))
+                   .map(e -> e.translate(target, path.add(e), parameters))
                    .collect(joining(", ", "(", ")"));
   }
 
