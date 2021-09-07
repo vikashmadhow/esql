@@ -36,9 +36,23 @@ public class QuantifiedComparison extends Expression<Expression<?, String>, Stri
     super(other);
   }
 
+  public QuantifiedComparison(QuantifiedComparison other, Expression<?, String> value, T2<String, ? extends Esql<?, ?>>... children) {
+    super(other, value, children);
+  }
+
   @Override
   public QuantifiedComparison copy() {
     return new QuantifiedComparison(this);
+  }
+
+  /**
+   * Returns a shallow copy of this object replacing the value in the copy with
+   * the provided value and replacing the specified children in the children list
+   * of the copy.
+   */
+  @Override
+  public QuantifiedComparison copy(Expression<?, String> value, T2<String, ? extends Esql<?, ?>>... children) {
+    return new QuantifiedComparison(this, value, children);
   }
 
   @Override

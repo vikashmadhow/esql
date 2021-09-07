@@ -10,8 +10,6 @@ import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 
-import java.util.Map;
-
 /**
  * Abstract parent of ESQL expressions taking exactly two arguments.
  *
@@ -33,8 +31,20 @@ public abstract class NegatableDoubleSubExpressions<V> extends Expression<V, Str
     super(other);
   }
 
+  public NegatableDoubleSubExpressions(NegatableDoubleSubExpressions<V> other, V value, T2<String, ? extends Esql<?, ?>>... children) {
+    super(other, value, children);
+  }
+
   @Override
   public abstract NegatableDoubleSubExpressions<V> copy();
+
+  /**
+   * Returns a shallow copy of this object replacing the value in the copy with
+   * the provided value and replacing the specified children in the children list
+   * of the copy.
+   */
+  @Override
+  public abstract NegatableDoubleSubExpressions<V> copy(V value, T2<String, ? extends Esql<?, ?>>... children);
 
   @Override
   public Type type() {

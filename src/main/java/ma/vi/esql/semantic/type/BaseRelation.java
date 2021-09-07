@@ -66,7 +66,7 @@ public class BaseRelation extends Relation {
     Set<String> aliases = new HashSet<>();
     for (Column column: this.columns) {
       if (column.alias() == null) {
-        Expression<?, String> expr = column.expr();
+        Expression<?, String> expr = column.expression();
         if (expr instanceof ColumnRef) {
           column.alias(((ColumnRef)expr).name());
         } else {
@@ -84,13 +84,13 @@ public class BaseRelation extends Relation {
      */
     for (Column column: this.columns) {
       // column.parent = new Esql<>(context, this);
-      if (!(column.expr() instanceof Literal)
-         && (!(column.expr() instanceof ColumnRef)
-          || !column.expr().value.equals(column.alias()))) {
-        column.expr(expandDerived(column.expr(),
-                                  columnsByAlias,
-                                  column.alias(),
-                                  new HashSet<>()));
+      if (!(column.expression() instanceof Literal)
+         && (!(column.expression() instanceof ColumnRef)
+          || !column.expression().value.equals(column.alias()))) {
+        column.expression(expandDerived(column.expression(),
+                                        columnsByAlias,
+                                        column.alias(),
+                                        new HashSet<>()));
       }
       if (column.metadata() != null) {
         for (Attribute attr: column.metadata().attributes().values()) {
@@ -131,16 +131,7 @@ public class BaseRelation extends Relation {
 
   @Override
   public BaseRelation copy() {
-    if (!copying()) {
-      try {
-        copying(true);
-        return new BaseRelation(this);
-      } finally {
-        copying(false);
-      }
-    } else {
-      return this;
-    }
+    return new BaseRelation(this);
   }
 
   @Override
@@ -214,7 +205,7 @@ public class BaseRelation extends Relation {
               + colName + (otherColumns.isEmpty() ? "" : " and " + otherColumns));
           } else if (column.derived()) {
             GroupedExpression expanded =
-                new GroupedExpression(e.context, expandDerived(column.expr(), columns, colName, seen));
+                new GroupedExpression(e.context, expandDerived(column.expression(), columns, colName, seen));
             // expanded.parent = e.parent;
             return expanded;
           }
@@ -280,7 +271,7 @@ public class BaseRelation extends Relation {
     for (Column column: this.columns) {
       column.parent = new Esql<>(context, this);
       if (column.alias() == null) {
-        Expression<?, String> expr = column.expr();
+        Expression<?, String> expr = column.expression();
         if (expr instanceof ColumnRef) {
           column.alias(((ColumnRef)expr).name());
         } else {
@@ -353,7 +344,7 @@ public class BaseRelation extends Relation {
           newCols.add(new Column(
               column.context,
               colAlias + "/e",
-              new UncomputedExpression(column.context, rename(column.expr(), aliased)),
+              new UncomputedExpression(column.context, rename(column.expression(), aliased)),
               null
           ));
         }
@@ -366,7 +357,7 @@ public class BaseRelation extends Relation {
   }
 
   public static Expression<?, String> rename(Expression<?, String> expr, Map<String, String> aliased) {
-    return (Expression<?, String>)expr.map(e -> {
+    return (Expression<?, String>)expr.map((e, path) -> {
       if (e instanceof ColumnRef) {
         String name = ((ColumnRef)e).name();
         if (aliased.containsKey(name)) {
@@ -385,7 +376,7 @@ public class BaseRelation extends Relation {
   private static Map<String, String> aliasedColumns(List<Column> columns) {
     Map<String, String> aliased = new HashMap<>();
     for (Column col: columns) {
-      Expression<?, String> expr = col.expr();
+      Expression<?, String> expr = col.expression();
       if (expr instanceof ColumnRef) {
         String name = ((ColumnRef)expr).name();
         String alias = col.alias();

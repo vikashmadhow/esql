@@ -4,11 +4,14 @@
 
 package ma.vi.esql.syntax.expression.literal;
 
+import ma.vi.base.tuple.T2;
 import ma.vi.base.util.Convert;
 import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.Context;
+import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
+import ma.vi.esql.syntax.expression.DefaultValue;
 
 import java.lang.reflect.Array;
 import java.util.List;
@@ -32,9 +35,23 @@ public class BaseArrayLiteral extends Literal<Type> {
     super(other);
   }
 
+  public BaseArrayLiteral(BaseArrayLiteral other, Type value, T2<String, ? extends Esql<?, ?>>... children) {
+    super(other, value, children);
+  }
+
   @Override
   public BaseArrayLiteral copy() {
     return new BaseArrayLiteral(this);
+  }
+
+  /**
+   * Returns a shallow copy of this object replacing the value in the copy with
+   * the provided value and replacing the specified children in the children list
+   * of the copy.
+   */
+  @Override
+  public BaseArrayLiteral copy(String value, T2<String, ? extends Esql<?, ?>>... children) {
+    return new BaseArrayLiteral(this, value, children);
   }
 
   @Override

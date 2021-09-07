@@ -51,6 +51,21 @@ public abstract class Literal<V> extends Expression<V, String> {
     super(other);
   }
 
+  public Literal(Literal<V> other, V value, T2<String, ? extends Esql<?, ?>>... children) {
+    super(other, value, children);
+  }
+
+  @Override
+  public abstract Literal<V> copy();
+
+  /**
+   * Returns a shallow copy of this object replacing the value in the copy with
+   * the provided value and replacing the specified children in the children list
+   * of the copy.
+   */
+  @Override
+  public abstract Literal<V> copy(V value, T2<String, ? extends Esql<?, ?>>... children);
+
   public static Literal<?> makeLiteral(Context context, String value, Type type) {
     if (value == null) {
       return new NullLiteral(context);
@@ -206,7 +221,4 @@ public abstract class Literal<V> extends Expression<V, String> {
 //            return makeLiteral(context, value);
 //        }
 //    }
-
-  @Override
-  public abstract Literal<V> copy();
 }

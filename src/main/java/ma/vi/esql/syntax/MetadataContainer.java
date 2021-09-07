@@ -32,8 +32,20 @@ public abstract class MetadataContainer<V, R> extends Expression<V, R> {
     super(other);
   }
 
+  public MetadataContainer(MetadataContainer<V, R> other, V value, T2<String, ? extends Esql<?, ?>>... children) {
+    super(other, value, children);
+  }
+
   @Override
   public abstract MetadataContainer<V, R> copy();
+
+  /**
+   * Returns a shallow copy of this object replacing the value in the copy with
+   * the provided value and replacing the specified children in the children list
+   * of the copy.
+   */
+  @Override
+  public abstract MetadataContainer<V, R> copy(V value, T2<String, ? extends Esql<?, ?>>... children);
 
   /**
    * Metadata.

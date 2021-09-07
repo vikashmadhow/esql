@@ -4,11 +4,19 @@
 
 package ma.vi.esql.syntax.query;
 
+import ma.vi.base.string.Strings;
 import ma.vi.base.tuple.T2;
-import ma.vi.esql.syntax.Context;
-import ma.vi.esql.syntax.Esql;
-import ma.vi.esql.syntax.EsqlPath;
+import ma.vi.esql.semantic.type.AliasedRelation;
+import ma.vi.esql.semantic.type.BaseRelation;
+import ma.vi.esql.semantic.type.Relation;
+import ma.vi.esql.syntax.*;
+import ma.vi.esql.syntax.define.Attribute;
+import ma.vi.esql.syntax.expression.ColumnRef;
+import ma.vi.esql.syntax.expression.literal.NullLiteral;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import static ma.vi.base.string.Escape.escapeJsonString;
@@ -19,7 +27,7 @@ import static ma.vi.esql.syntax.Translatable.Target.JSON;
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public class StarColumn extends Column { // implements Macro {
+public class StarColumn extends Column implements Macro {
   public StarColumn(Context context, String qualifier) {
     super(context, "_", null, null,
           T2.of("qualifier", new Esql<>(context, qualifier)));
@@ -29,15 +37,24 @@ public class StarColumn extends Column { // implements Macro {
     super(other);
   }
 
+  public StarColumn(StarColumn other, String value, T2<String, ? extends Esql<?, ?>>... children) {
+    super(other, value, children);
+  }
+
   @Override
   public StarColumn copy() {
     return new StarColumn(this);
   }
 
-//  @Override
-//  public int expansionOrder() {
-//    return HIGHEST;
-//  }
+  /**
+   * Returns a shallow copy of this object replacing the value in the copy with
+   * the provided value and replacing the specified children in the children list
+   * of the copy.
+   */
+  @Override
+  public StarColumn copy(String value, T2<String, ? extends Esql<?, ?>>... children) {
+    return new StarColumn(this, value, children);
+  }
 
   @Override
   protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
@@ -53,77 +70,88 @@ public class StarColumn extends Column { // implements Macro {
     }
   }
 
-//  /**
-//   * Expands star columns (*) to the individual columns of the referred table
-//   * if it is not a parameter to a function.
-//   */
-//  @Override
-//  public boolean expand(String name, Esql<?, ?> esql) {
-//    int queryDistance = ancestorDistance(QueryUpdate.class);
-//    int functionDistance = ancestorDistance(FunctionCall.class);
-//
-//    if (functionDistance == -1 || functionDistance > queryDistance) {
-//      QueryUpdate stmt = ancestor(QueryUpdate.class);
-//      if (stmt == null) {
-//        throw new TranslationException("All columns reference (*) must be in a select, insert, update " +
-//            "or delete statement.");
-//      }
-//      TableExpr from = stmt.tables();
-//      BaseRelation relation = from.type();
-//      List<Column> columns = stmt.columns();
-//      int i = columns.indexOf(parent);
-//      if (i == -1) {
-//        throw new TranslationException("Could not find column corresponding to an all-columns (*) reference " +
-//            "in the parent query (" + stmt + ")");
-//      }
-//      String qualifier = qualifier();
-//      BaseRelation referred = qualifier == null ? relation : relation.forAlias(qualifier);
-//      if (referred == null) {
-//        throw new TranslationException("An all-columns reference (*) refers to a table aliased as " + qualifier +
-//            "; the table with this alias cannot be found.");
-//      }
-//
-//      columns.remove(i);
-//      for (Field field: referred.orderedFields()) {
-//        String fieldName = field.name();
-//        List<Attribute> attributes = new ArrayList<>();
-//        // String alias = qualifier != null ? qualifier : alias(from);
-//        String alias = null;
-//        if (field.relation() != null) {
-//          alias = relation.aliasFor(field.relation());
-//        }
-//        if (alias == null) {
-//          alias = qualifier;
-//        }
-//        for (Map.Entry<String, DbExpression> e: field.attributes().entrySet()) {
-//          attributes.add(new Attribute(context, e.getKey(), e.getValue().expression()));
-//        }
-//        Column col;
-//        if (field.typeOfField() == PERSISTENT || field.typeOfField() == DERIVED) {
-//          col = new Column(context,
-//              null, new ColumnRef(context, alias, fieldName),
-//              new Metadata(context, attributes.isEmpty() ? emptyList() : attributes));
-//        } else {
-//          /*
-//           * Transient: column may be an expression: qualify if necessary
-//           */
-//          Expression<?, String> colExpr = field.expression().expression();
-////                    if (qualifier != null) {
-////                        colExpr = ColumnRef.qualify(colExpr, qualifier, false);
-////                    }
-//          colExpr = ColumnRef.qualify(colExpr, alias, null, false);
-//          col = new Column(context, fieldName, colExpr,
-//              new Metadata(context, attributes.isEmpty() ? emptyList() : attributes));
-//        }
-//        col.parent = stmt;
-//        columns.add(i, col);
-//        i++;
-//      }
-//      return true;
-//    }
-//    return false;
-//  }
-//
+  /**
+   * Expands star columns (*) to the individual columns of the referred table
+   * if it is not a parameter to a function.
+   */
+  @Override
+  public Esql<?, ?> expand(Esql<?, ?> esql, EsqlPath path) {
+    /*
+     * Expand star columns (*) to the individual columns they refer to
+     */
+    Select select = path.ancestor(Select.class);
+    if (select == null) {
+      throw new TranslationException("* specified outside of a Select");
+    }
+    TableExpr from = select.tables();
+    Relation fromType = from.type();
+
+    Map<String, String> aliased = new HashMap<>();
+    Map<String, Column> resolvedColumns = new LinkedHashMap<>();
+
+    String qualifier = qualifier();
+    Relation rel = qualifier == null ? fromType : fromType.forAlias(qualifier);
+    for (Column relCol: rel.columns()) {
+      String alias = relCol.alias();
+      if (alias == null) {
+        alias = Strings.makeUnique(resolvedColumns.keySet(), "col", false);
+      }
+      Column col;
+      if (rel instanceof BaseRelation
+       || (rel instanceof AliasedRelation && ((AliasedRelation)rel).relation instanceof BaseRelation)) {
+        col = relCol.copy();
+        if (qualifier != null) {
+          ColumnRef.qualify(col.expression(), qualifier, null, true);
+        }
+        if (col.metadata() != null) {
+          for (Attribute attr: col.metadata().attributes().values()) {
+            ColumnRef.qualify(attr.attributeValue(), qualifier, null, true);
+          }
+        }
+      } else {
+        col = new Column(context,
+                         alias,
+                         new ColumnRef(context, qualifier, relCol.alias()),
+                         null);
+      }
+
+      int pos = alias.indexOf('/');
+      if (pos == -1) {
+        /*
+         * Normal column (not metadata).
+         */
+        if (resolvedColumns.containsKey(alias)) {
+          alias = Strings.makeUnique(resolvedColumns.keySet(), alias, false);
+        }
+        if (relCol.alias() != null && !alias.equals(relCol.alias())) {
+          aliased.put(relCol.alias(), alias);
+          col.alias(alias);
+        }
+        resolvedColumns.put(alias, col);
+
+      } else if (pos > 0) {
+        /*
+         * Column metadata
+         */
+        String columnName = alias.substring(0, pos);
+        if (aliased.containsKey(columnName)) {
+          // replace column name with replacement if the column name was changed
+          String aliasName = aliased.get(columnName);
+          alias = aliasName + alias.substring(pos);
+          col.alias(alias);
+        }
+        resolvedColumns.put(alias, col);
+
+      } else if (!resolvedColumns.containsKey(alias)) {
+        /*
+         * table metadata first encounter (by elimination, pos==0 in this case)
+         */
+        resolvedColumns.put(alias, col);
+      }
+    }
+    return new ArrayList<>(resolvedColumns.values());
+  }
+
 //  private String alias(TableExpr from) {
 //    if (from instanceof AbstractAliasTableExpr) {
 //      return ((AbstractAliasTableExpr)from).alias();

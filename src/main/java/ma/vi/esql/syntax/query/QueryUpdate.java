@@ -24,6 +24,7 @@ import ma.vi.esql.syntax.expression.comparison.Equality;
 import ma.vi.esql.syntax.expression.comparison.In;
 import ma.vi.esql.syntax.expression.literal.IntegerLiteral;
 import ma.vi.esql.syntax.expression.literal.Literal;
+import ma.vi.esql.syntax.expression.literal.NullLiteral;
 import ma.vi.esql.syntax.expression.logical.And;
 
 import java.sql.Connection;
@@ -57,8 +58,20 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
     this.type = other.type == null ? null : other.type.copy();
   }
 
+  public QueryUpdate(QueryUpdate other, String value, T2<String, ? extends Esql<?, ?>>... children) {
+    super(other, value, children);
+  }
+
   @Override
   public abstract QueryUpdate copy();
+
+  /**
+   * Returns a shallow copy of this object replacing the value in the copy with
+   * the provided value and replacing the specified children in the children list
+   * of the copy.
+   */
+  @Override
+  public abstract QueryUpdate copy(String value, T2<String, ? extends Esql<?, ?>>... children);
 
   @Override
   public Selection type() {
@@ -82,9 +95,9 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
           }
 
           if (expandColumns
-           && column.expr() instanceof ColumnRef
+           && column.expression() instanceof ColumnRef
            && alias.indexOf('/') == -1) {
-            ColumnRef ref = (ColumnRef)column.expr();
+            ColumnRef ref = (ColumnRef)column.expression();
             String refName = ref.name();
             if (!refName.equals(alias)) {
               aliased.put(refName, alias);
@@ -148,8 +161,8 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
        */
       if (!aliased.isEmpty()) {
         for (Column c: columns.values()) {
-          if (c.expr() instanceof UncomputedExpression) {
-            BaseRelation.rename(c.expr(), aliased);
+          if (c.expression() instanceof UncomputedExpression) {
+            BaseRelation.rename(c.expression(), aliased);
           }
         }
       }
@@ -205,6 +218,7 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
    */
   public QueryTranslation constructResult(StringBuilder query,
                                           Target target,
+                                          EsqlPath path,
                                           String qualifier,
                                           Map<String, Object> parameters) {
 
@@ -216,15 +230,18 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
      * whole expression is a single-value and expanding the column list
      * will break the query or not be of any use.
      */
-    boolean selectExpression = ancestor(SelectExpression.class) != null;
+    boolean selectExpression = path.ancestor(SelectExpression.class) != null;
 
     /*
      * If this query is part of another query, it is a subquery and its attributes
      * must not be optimised away (removed from the query and calculated statically)
      * as they could be referenced in the outer query.
      */
-    QueryUpdate ancestor = ancestor(QueryUpdate.class);
-    if (ancestor.parent != null && ancestor.parent.ancestor(QueryUpdate.class) != null) {
+    T2<QueryUpdate, EsqlPath> ancestorAndPath = path.ancestorAndPath(QueryUpdate.class);
+    EsqlPath pathAtAncestor = ancestorAndPath.b;
+    if (pathAtAncestor != null
+     && pathAtAncestor.tail() != null
+     && pathAtAncestor.tail().ancestor(QueryUpdate.class) != null) {
       optimiseAttributesLoading = false;
     }
 
@@ -246,7 +263,7 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
         String colName = column.alias();
         String attrName = colName.substring(1);
 
-        Expression<?, String> attributeValue = column.expr();
+        Expression<?, String> attributeValue = column.expression();
         if (optimiseAttributesLoading && (attributeValue instanceof Literal
                                        || attributeValue instanceof UncomputedExpression)) {
           resultAttributes.put(attrName, attributeValue.value(target));
@@ -275,7 +292,7 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
         query.append(", ");
       }
       column = column.copy();
-      Expression<?, String> expression = column.expr();
+      Expression<?, String> expression = column.expression();
       if (qualifier != null) {
         ColumnRef.qualify(expression, qualifier, null, true);
       }
@@ -307,7 +324,7 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
         }
 
         String attrName = alias.substring(pos + 1);
-        Expression<?, String> attributeValue = col.expr();
+        Expression<?, String> attributeValue = col.expression();
         if (optimiseAttributesLoading && (attributeValue instanceof Literal
                                        || attributeValue instanceof UncomputedExpression)) {
           mapping.attributes.put(attrName, attributeValue.value(target));
@@ -443,7 +460,7 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
          * they are all included in the joins.
          */
         Set<String> qualifiers = new HashSet<>();
-        where.forEach(e -> {
+        where.forEach((e, path) -> {
           if (e instanceof ColumnRef && ((ColumnRef)e).qualifier() != null) {
             qualifiers.add(((ColumnRef)e).qualifier());
           }
@@ -766,7 +783,7 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
           List<Column> cols = columns();
           if (cols != null && cols.size() == 1) {
             Column singleCol = cols.get(0);
-            if (String.valueOf(singleCol.expr()).equals("*")) {
+            if (String.valueOf(singleCol.expression()).equals("*")) {
               columns(shortestPathSource.alias() + ".*");
             }
           }

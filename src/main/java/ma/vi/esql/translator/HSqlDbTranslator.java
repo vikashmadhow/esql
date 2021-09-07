@@ -44,7 +44,7 @@ public class HSqlDbTranslator extends AbstractTranslator {
     }
 
     // add output clause
-    QueryTranslation q = select.constructResult(st, target(), null, parameters);
+    QueryTranslation q = select.constructResult(st, target(), path, null, parameters);
     if (select.tables() != null) {
       st.append(" from ").append(select.tables().translate(target(), path.add(select.tables()), parameters));
     }

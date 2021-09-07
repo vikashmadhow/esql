@@ -44,7 +44,7 @@ import static java.util.stream.Collectors.toList;
 import static ma.vi.esql.grammar.EsqlParser.*;
 import static ma.vi.esql.syntax.define.ConstraintDefinition.ForeignKeyChangeAction;
 import static ma.vi.esql.syntax.define.ConstraintDefinition.ForeignKeyChangeAction.*;
-import static ma.vi.esql.syntax.define.GroupBy.Type.*;
+import static ma.vi.esql.syntax.query.GroupBy.Type.*;
 
 /**
  * The analyser interprets the syntactic tree produced by the parser for an ESQL

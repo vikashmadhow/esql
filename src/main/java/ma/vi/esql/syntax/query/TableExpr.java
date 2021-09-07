@@ -25,6 +25,10 @@ public abstract class TableExpr extends Esql<String, String> {
     super(other);
   }
 
+  public TableExpr(TableExpr other, String value, T2<String, ? extends Esql<?, ?>>... children) {
+    super(other, value, children);
+  }
+
   /**
    * Returns the table expression with the specified alias in this
    * table expression. This could be this table itself or a joined
@@ -34,6 +38,14 @@ public abstract class TableExpr extends Esql<String, String> {
 
   @Override
   public abstract TableExpr copy();
+
+  /**
+   * Returns a shallow copy of this object replacing the value in the copy with
+   * the provided value and replacing the specified children in the children list
+   * of the copy.
+   */
+  @Override
+  public abstract TableExpr copy(String value, T2<String, ? extends Esql<?, ?>>... children);
 
   @Override
   public abstract Relation type();

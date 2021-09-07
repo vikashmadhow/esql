@@ -1,5 +1,7 @@
 package ma.vi.esql.syntax;
 
+import ma.vi.base.tuple.T2;
+
 import static java.lang.Integer.MAX_VALUE;
 
 /**
@@ -39,6 +41,17 @@ public class EsqlPath {
   }
 
   /**
+   * Returns this instance or its first ancestor, going up from the current parent,
+   * which is an instance of the specified class. Returns null if no such instance
+   * can be found.
+   */
+  public <T extends Esql<?, ?>> T2<T, EsqlPath> ancestorAndPath(Class<T> cls) {
+    return cls.isAssignableFrom(head.getClass()) ? T2.of((T)head, this) :
+           tail == null                          ? null    :
+           tail.ancestorAndPath(cls);
+  }
+
+  /**
    * Returns the ancestor by the specified name if this esql is a
    * descendant of that ancestor.
    */
@@ -48,6 +61,19 @@ public class EsqlPath {
     while (path != null) {
       if (path.head.has(name) && path.head.child(name) == previous) {
         return (T)previous;
+      }
+      previous = path.head;
+      path = path.tail;
+    }
+    return null;
+  }
+
+  public <T extends Esql<?, ?>> T2<T, EsqlPath> ancestorAndPath(String name) {
+    EsqlPath path = tail;
+    Esql<?, ?> previous = head;
+    while (path != null) {
+      if (path.head.has(name) && path.head.child(name) == previous) {
+        return T2.of((T)previous, path);
       }
       previous = path.head;
       path = path.tail;

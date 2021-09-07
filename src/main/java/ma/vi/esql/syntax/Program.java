@@ -4,6 +4,7 @@
 
 package ma.vi.esql.syntax;
 
+import ma.vi.base.tuple.T2;
 import ma.vi.esql.database.Database;
 import ma.vi.esql.exec.Result;
 import ma.vi.esql.syntax.expression.Expression;
@@ -28,9 +29,22 @@ public class Program extends Esql<String, List<?>> {
     super(other);
   }
 
+  public Program(Program other, String value, T2<String, ? extends Esql<?, ?>>... children) {
+    super(other, value, children);
+  }
+
   @Override
   public Program copy() {
     return new Program(this);
+  }
+
+  /**
+   * Returns a shallow copy of this object replacing the value in the copy with
+   * the provided value and replacing the specified children in the children list
+   * of the copy.
+   */
+  public Program copy(String value, T2<String, ? extends Esql<?, ?>>... children) {
+    return new Program(this, value, children);
   }
 
   @Override

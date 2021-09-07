@@ -1201,7 +1201,7 @@ public abstract class AbstractDatabase implements Database {
         attributes.put(ID, Attribute.from(column.context, ID, columnId));
         column = new Column(column.context,
                             column.alias(),
-                            column.expr(),
+                            column.expression(),
                             new Metadata(column.context, new ArrayList<>(attributes.values())));
       }
       econ.exec(insertCol,
@@ -1213,7 +1213,7 @@ public abstract class AbstractDatabase implements Database {
                 Param.of("type",          column.type().translate(ESQL)),
                 Param.of("nonNull",       column.notNull()),
                 Param.of("expression",
-                         column.derived()                   ? column.expr().translate(ESQL) :
+                         column.derived()                   ? column.expression().translate(ESQL) :
                          column.defaultExpression() != null ? column.defaultExpression().translate(ESQL) : null));
       addColumnMetadata(econ, column, insertColAttr);
     }

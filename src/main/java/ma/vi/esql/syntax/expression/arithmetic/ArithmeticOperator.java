@@ -4,10 +4,13 @@
 
 package ma.vi.esql.syntax.expression.arithmetic;
 
+import ma.vi.base.tuple.T2;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.semantic.type.BaseType;
 import ma.vi.esql.semantic.type.Type;
+import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.expression.BinaryOperator;
+import ma.vi.esql.syntax.expression.DefaultValue;
 import ma.vi.esql.syntax.expression.Expression;
 
 /**
@@ -28,8 +31,20 @@ abstract class ArithmeticOperator extends BinaryOperator {
     super(other);
   }
 
+  public ArithmeticOperator(ArithmeticOperator other, String value, T2<String, ? extends Esql<?, ?>>... children) {
+    super(other, value, children);
+  }
+
   @Override
   public abstract ArithmeticOperator copy();
+
+  /**
+   * Returns a shallow copy of this object replacing the value in the copy with
+   * the provided value and replacing the specified children in the children list
+   * of the copy.
+   */
+  @Override
+  public abstract ArithmeticOperator copy(String value, T2<String, ? extends Esql<?, ?>>... children);
 
   @Override
   public Type type() {

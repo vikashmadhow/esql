@@ -4,9 +4,12 @@
 
 package ma.vi.esql.syntax.expression.logical;
 
+import ma.vi.base.tuple.T2;
 import ma.vi.esql.syntax.Context;
+import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.expression.Expression;
+import ma.vi.esql.syntax.expression.GroupedExpression;
 import ma.vi.esql.syntax.expression.SingleSubExpression;
 
 import java.util.Map;
@@ -28,9 +31,23 @@ public class Not extends SingleSubExpression {
     super(other);
   }
 
+  public Not(Not other, Expression<?, String> value, T2<String, ? extends Esql<?, ?>>... children) {
+    super(other, value, children);
+  }
+
   @Override
   public Not copy() {
     return new Not(this);
+  }
+
+  /**
+   * Returns a shallow copy of this object replacing the value in the copy with
+   * the provided value and replacing the specified children in the children list
+   * of the copy.
+   */
+  @Override
+  public Not copy(Expression<?, String> value, T2<String, ? extends Esql<?, ?>>... children) {
+    return new Not(this, value, children);
   }
 
   @Override

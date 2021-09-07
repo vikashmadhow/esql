@@ -4,7 +4,9 @@
 
 package ma.vi.esql.syntax.expression.literal;
 
+import ma.vi.base.tuple.T2;
 import ma.vi.esql.syntax.Context;
+import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.Translatable;
 import ma.vi.esql.syntax.define.Attribute;
@@ -14,6 +16,7 @@ import org.json.JSONObject;
 
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import static java.util.stream.Collectors.joining;
 
@@ -31,9 +34,23 @@ public class JsonObjectLiteral extends Literal<List<Attribute>> {
     super(other);
   }
 
+  public JsonObjectLiteral(JsonObjectLiteral other, List<Attribute> value, T2<String, ? extends Esql<?, ?>>... children) {
+    super(other, value, children);
+  }
+
   @Override
   public JsonObjectLiteral copy() {
     return new JsonObjectLiteral(this);
+  }
+
+  /**
+   * Returns a shallow copy of this object replacing the value in the copy with
+   * the provided value and replacing the specified children in the children list
+   * of the copy.
+   */
+  @Override
+  public JsonObjectLiteral copy(List<Attribute> value, T2<String, ? extends Esql<?, ?>>... children) {
+    return new JsonObjectLiteral(this, value, children);
   }
 
   @Override

@@ -33,9 +33,22 @@ public class Attribute extends Esql<String, String> {
     super(other);
   }
 
+  public Attribute(Attribute other, String value, T2<String, ? extends Esql<?, ?>>... children) {
+    super(other, value, children);
+  }
+
   @Override
   public Attribute copy() {
     return new Attribute(this);
+  }
+
+  /**
+   * Returns a shallow copy of this object replacing the value in the copy with
+   * the provided value and replacing the specified children in the children list
+   * of the copy.
+   */
+  public Attribute copy(String value, T2<String, ? extends Esql<?, ?>>... children) {
+    return new Attribute(this, value, children);
   }
 
   public static Attribute from(Context context, String name, String value) {

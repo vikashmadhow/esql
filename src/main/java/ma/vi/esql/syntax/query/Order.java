@@ -28,9 +28,22 @@ public class Order extends Esql<Expression<?, String>, String> {
     super(other);
   }
 
+  public Order(Order other, Expression<?, String> value, T2<String, ? extends Esql<?, ?>>... children) {
+    super(other, value, children);
+  }
+
   @Override
   public Order copy() {
     return new Order(this);
+  }
+
+  /**
+   * Returns a shallow copy of this object replacing the value in the copy with
+   * the provided value and replacing the specified children in the children list
+   * of the copy.
+   */
+  public Order copy(Expression<?, String> value, T2<String, ? extends Esql<?, ?>>... children) {
+    return new Order(this, value, children);
   }
 
   @Override

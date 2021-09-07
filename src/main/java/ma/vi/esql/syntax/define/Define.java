@@ -35,7 +35,19 @@ public abstract class Define<V> extends Expression<V, String> implements Stateme
     super(other);
   }
 
+  public Define(Define<V> other, V value, T2<String, ? extends Esql<?, ?>>... children) {
+    super(other, value, children);
+  }
+
   @Override
   public abstract Define<V> copy();
+
+  /**
+   * Returns a shallow copy of this object replacing the value in the copy with
+   * the provided value and replacing the specified children in the children list
+   * of the copy.
+   */
+  @Override
+  public abstract Define<V> copy(V value, T2<String, ? extends Esql<?, ?>>... children);
 }
 

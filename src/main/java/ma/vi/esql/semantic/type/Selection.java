@@ -46,16 +46,7 @@ public class Selection extends Relation {
 
   @Override
   public Selection copy() {
-    if (!copying()) {
-      try {
-        copying(true);
-        return new Selection(this);
-      } finally {
-        copying(false);
-      }
-    } else {
-      return this;
-    }
+    return new Selection(this);
   }
 
   @Override

@@ -9,6 +9,7 @@ import ma.vi.esql.syntax.*;
 import ma.vi.esql.syntax.expression.ColumnRef;
 import ma.vi.esql.semantic.type.Selection;
 import ma.vi.esql.semantic.type.Type;
+import ma.vi.esql.syntax.expression.literal.NullLiteral;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -61,9 +62,23 @@ public class Cte extends QueryUpdate {
     super(other);
   }
 
+  public Cte(Cte other, String value, T2<String, ? extends Esql<?, ?>>... children) {
+    super(other, value, children);
+  }
+
   @Override
   public Cte copy() {
     return new Cte(this);
+  }
+
+  /**
+   * Returns a shallow copy of this object replacing the value in the copy with
+   * the provided value and replacing the specified children in the children list
+   * of the copy.
+   */
+  @Override
+  public Cte copy(String value, T2<String, ? extends Esql<?, ?>>... children) {
+    return new Cte(this, value, children);
   }
 
   /**
@@ -94,7 +109,7 @@ public class Cte extends QueryUpdate {
           Column col = typeCols.get(i).copy();
           Type type = col.type();
           col.type(type);
-          col.expr(new ColumnRef(context, name(), fields.get(i)));
+          col.expression(new ColumnRef(context, name(), fields.get(i)));
           col.alias(fields.get(i));
           typeFields.add(col);
         }

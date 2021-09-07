@@ -7,6 +7,7 @@ package ma.vi.esql.syntax.modify;
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
+import ma.vi.esql.syntax.expression.literal.NullLiteral;
 import ma.vi.esql.syntax.query.QueryUpdate;
 import ma.vi.esql.syntax.define.Attribute;
 import ma.vi.esql.syntax.define.Metadata;
@@ -47,9 +48,23 @@ public class Update extends QueryUpdate {
     super(other);
   }
 
+  public Update(Update other, String value, T2<String, ? extends Esql<?, ?>>... children) {
+    super(other, value, children);
+  }
+
   @Override
   public Update copy() {
     return new Update(this);
+  }
+
+  /**
+   * Returns a shallow copy of this object replacing the value in the copy with
+   * the provided value and replacing the specified children in the children list
+   * of the copy.
+   */
+  @Override
+  public Update copy(String value, T2<String, ? extends Esql<?, ?>>... children) {
+    return new Update(this, value, children);
   }
 
   @Override

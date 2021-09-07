@@ -42,9 +42,23 @@ public class Range extends Expression<Expression<?, String>, String> {
     super(other);
   }
 
+  public Range(Range other, Expression<?, String> value, T2<String, ? extends Esql<?, ?>>... children) {
+    super(other, value, children);
+  }
+
   @Override
   public Range copy() {
     return new Range(this);
+  }
+
+  /**
+   * Returns a shallow copy of this object replacing the value in the copy with
+   * the provided value and replacing the specified children in the children list
+   * of the copy.
+   */
+  @Override
+  public Range copy(Expression<?, String> value, T2<String, ? extends Esql<?, ?>>... children) {
+    return new Range(this, value, children);
   }
 
   @Override

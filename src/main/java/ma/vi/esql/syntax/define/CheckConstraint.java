@@ -6,8 +6,10 @@ package ma.vi.esql.syntax.define;
 
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.syntax.Context;
+import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.expression.ColumnRef;
+import ma.vi.esql.syntax.expression.DefaultValue;
 import ma.vi.esql.syntax.expression.Expression;
 
 import java.util.ArrayList;
@@ -23,9 +25,9 @@ public class CheckConstraint extends ConstraintDefinition {
   public CheckConstraint(Context context, String name, Expression<?, String> expression) {
     super(context, name, T2.of("expr", expression));
     List<String> columns = new ArrayList<>();
-    expression.forEach(e -> {
-      if (e instanceof ColumnRef) {
-        columns.add(((ColumnRef)e).name());
+    expression.forEach((esql, path) -> {
+      if (esql instanceof ColumnRef) {
+        columns.add(((ColumnRef)esql).name());
       }
       return true;
     });
@@ -36,9 +38,23 @@ public class CheckConstraint extends ConstraintDefinition {
     super(other);
   }
 
+  public CheckConstraint(CheckConstraint other, String value, T2<String, ? extends Esql<?, ?>>... children) {
+    super(other, value, children);
+  }
+
   @Override
   public CheckConstraint copy() {
     return new CheckConstraint(this);
+  }
+
+  /**
+   * Returns a shallow copy of this object replacing the value in the copy with
+   * the provided value and replacing the specified children in the children list
+   * of the copy.
+   */
+  @Override
+  public CheckConstraint copy(String value, T2<String, ? extends Esql<?, ?>>... children) {
+    return new CheckConstraint(this, value, children);
   }
 
   @Override

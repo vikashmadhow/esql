@@ -38,9 +38,23 @@ public class Between extends Expression<Expression<?, ?>, String> {
     super(other);
   }
 
+  public Between(Between other, Expression<?, ?> value, T2<String, ? extends Esql<?, ?>>... children) {
+    super(other, value, children);
+  }
+
   @Override
   public Between copy() {
     return new Between(this);
+  }
+
+  /**
+   * Returns a shallow copy of this object replacing the value in the copy with
+   * the provided value and replacing the specified children in the children list
+   * of the copy.
+   */
+  @Override
+  public Between copy(Expression<?, ?> value, T2<String, ? extends Esql<?, ?>>... children) {
+    return new Between(this, value, children);
   }
 
   @Override

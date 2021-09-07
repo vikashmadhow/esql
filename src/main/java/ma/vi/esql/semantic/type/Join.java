@@ -36,16 +36,7 @@ public class Join extends Relation {
 
   @Override
   public Join copy() {
-    if (!copying()) {
-      try {
-        copying(true);
-        return new Join(this);
-      } finally {
-        copying(false);
-      }
-    } else {
-      return this;
-    }
+    return new Join(this);
   }
 
   @Override

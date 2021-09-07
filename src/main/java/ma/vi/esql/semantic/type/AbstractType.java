@@ -71,21 +71,6 @@ public abstract class AbstractType implements Type {
     return name.hashCode();
   }
 
-  @Override
-  public boolean copying() {
-    return copying;
-  }
-
-  @Override
-  public void copying(boolean copying) {
-    this.copying = copying;
-  }
-
-  /**
-   * Set to true while copying.
-   */
-  private volatile boolean copying;
-
   /**
    * The unique qualified type name.
    */

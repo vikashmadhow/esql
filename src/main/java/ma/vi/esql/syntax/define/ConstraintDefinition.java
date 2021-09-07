@@ -8,6 +8,7 @@ import ma.vi.base.string.Strings;
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
+import ma.vi.esql.syntax.expression.DefaultValue;
 
 import java.util.List;
 
@@ -31,8 +32,20 @@ public abstract class ConstraintDefinition extends TableDefinition {
     super(other);
   }
 
+  public ConstraintDefinition(ConstraintDefinition other, String value, T2<String, ? extends Esql<?, ?>>... children) {
+    super(other, value, children);
+  }
+
   @Override
   public abstract ConstraintDefinition copy();
+
+  /**
+   * Returns a shallow copy of this object replacing the value in the copy with
+   * the provided value and replacing the specified children in the children list
+   * of the copy.
+   */
+  @Override
+  public abstract ConstraintDefinition copy(String value, T2<String, ? extends Esql<?, ?>>... children);
 
   /**
    * Returns true if this constraint is the same as the provided definition,

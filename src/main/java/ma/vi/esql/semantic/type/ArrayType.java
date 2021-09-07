@@ -4,6 +4,8 @@
 
 package ma.vi.esql.semantic.type;
 
+import ma.vi.esql.syntax.EsqlPath;
+
 import java.util.Map;
 
 import static ma.vi.base.lang.Errors.checkArgument;
@@ -26,25 +28,16 @@ public class ArrayType extends AbstractType {
 
   @Override
   public ArrayType copy() {
-    if (!copying()) {
-      try {
-        copying(true);
-        return new ArrayType(this);
-      } finally {
-        copying(false);
-      }
-    } else {
-      return this;
-    }
+    return new ArrayType(this);
   }
 
   @Override
-  public String translate(Target target, Map<String, Object> parameters) {
+  public String translate(Target target, EsqlPath path, Map<String, Object> parameters) {
     return switch (target) {
       case SQLSERVER      -> "nvarchar(max)";
       case MARIADB, MYSQL -> "text";
-      case HSQLDB         -> componentType.translate(target, parameters) + " array";
-      default             -> componentType.translate(target, parameters) + "[]";
+      case HSQLDB         -> componentType.translate(target, path, parameters) + " array";
+      default             -> componentType.translate(target, path, parameters) + "[]";
     };
   }
 

@@ -18,6 +18,7 @@ import ma.vi.esql.syntax.define.DerivedColumnDefinition;
 import ma.vi.esql.syntax.define.Metadata;
 import ma.vi.esql.syntax.expression.ColumnRef;
 import ma.vi.esql.syntax.expression.Expression;
+import ma.vi.esql.syntax.expression.literal.NullLiteral;
 
 import java.util.*;
 import java.util.stream.Stream;
@@ -30,18 +31,18 @@ import static ma.vi.esql.syntax.Translatable.Target.ESQL;
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public class Column extends MetadataContainer<Expression<?, String>, String> {
+public class Column extends MetadataContainer<String, String> {
   public Column(Context context,
                 String alias,
-                Expression<?, String> expr,
+                Expression<?, String> expression,
                 Metadata metadata,
                 T2<String, ? extends Esql<?, ?>>... children) {
     super(context,
-          expr,
+          autoAlias(expression, alias),
           Stream.concat(
             Arrays.stream(
               new T2[]{
-                T2.of("alias", new Esql<>(context, autoAlias(expr, alias))),
+                T2.of("expression", new Esql<>(context, expression)),
                 T2.of("metadata", metadata)
               }),
             Arrays.stream(children)).toArray(T2[]::new));
@@ -49,6 +50,25 @@ public class Column extends MetadataContainer<Expression<?, String>, String> {
 
   public Column(Column other) {
     super(other);
+  }
+
+  public Column(Column other, String value, T2<String, ? extends Esql<?, ?>>... children) {
+    super(other, value, children);
+  }
+
+  @Override
+  public Column copy() {
+    return new Column(this);
+  }
+
+  /**
+   * Returns a shallow copy of this object replacing the value in the copy with
+   * the provided value and replacing the specified children in the children list
+   * of the copy.
+   */
+  @Override
+  public Column copy(String value, T2<String, ? extends Esql<?, ?>>... children) {
+    return new Column(this, value, children);
   }
 
   /**
@@ -101,18 +121,13 @@ public class Column extends MetadataContainer<Expression<?, String>, String> {
   }
 
   @Override
-  public Column copy() {
-    return new Column(this);
-  }
-
-  @Override
   protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
     if (target == ESQL) {
       StringBuilder st = new StringBuilder();
       if (alias() != null) {
         st.append(alias()).append(':');
       }
-      st.append(expr().translate(target, path.add(expr()), parameters));
+      st.append(expression().translate(target, path.add(expression()), parameters));
       Metadata metadata = metadata();
       if (metadata != null && !metadata.attributes().isEmpty()) {
         st.append(" {");
@@ -128,7 +143,7 @@ public class Column extends MetadataContainer<Expression<?, String>, String> {
       return st.toString();
 
     } else {
-      StringBuilder st = new StringBuilder(expr().translate(target, path.add(expr()), parameters));
+      StringBuilder st = new StringBuilder(expression().translate(target, path.add(expression()), parameters));
       if (alias() != null) {
         st.append(" \"").append(alias()).append('"');
       }
@@ -203,7 +218,7 @@ public class Column extends MetadataContainer<Expression<?, String>, String> {
          * Derived type are set to void on load. Their actual types can
          * be determined at this point.
          */
-        type = expr().type();
+        type = expression().type();
         if (type != Types.VoidType) {
 //          type(type);
 
@@ -225,7 +240,7 @@ public class Column extends MetadataContainer<Expression<?, String>, String> {
       }
       return type;
     } else {
-      Type type = expr().type();
+      Type type = expression().type();
 //      type(type);
       return type;
     }
@@ -243,23 +258,24 @@ public class Column extends MetadataContainer<Expression<?, String>, String> {
     if (alias() != null) {
       st.append(alias()).append(':');
     }
-    st.append(expr());
+    st.append(expression());
     if (metadata() != null && !metadata().attributes().isEmpty()) {
       metadata()._toString(st, level, indent);
     }
   }
 
-  public Expression<?, String> expr() {
+  public String alias() {
     return value;
+  }
+
+  public Expression<?, String> expression() {
+    return childValue("expression");
   }
 
 //  public void expr(Expression<?, String> expr) {
 //    value = expr;
 //  }
 
-  public String alias() {
-    return childValue("alias");
-  }
 
 //  public void alias(String alias) {
 //    ((Esql<String, ?>)child("alias")).value = alias;

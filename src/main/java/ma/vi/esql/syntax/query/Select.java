@@ -5,21 +5,21 @@
 package ma.vi.esql.syntax.query;
 
 import ma.vi.base.string.Strings;
+import ma.vi.base.tuple.T2;
 import ma.vi.esql.function.Function;
+import ma.vi.esql.semantic.type.AliasedRelation;
+import ma.vi.esql.semantic.type.BaseRelation;
+import ma.vi.esql.semantic.type.Relation;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.Macro;
 import ma.vi.esql.syntax.define.Attribute;
-import ma.vi.esql.syntax.define.GroupBy;
 import ma.vi.esql.syntax.define.Metadata;
 import ma.vi.esql.syntax.expression.ColumnRef;
 import ma.vi.esql.syntax.expression.Expression;
 import ma.vi.esql.syntax.expression.FunctionCall;
 import ma.vi.esql.syntax.expression.SelectExpression;
-import ma.vi.esql.semantic.type.AliasedRelation;
-import ma.vi.esql.semantic.type.BaseRelation;
-import ma.vi.esql.semantic.type.Relation;
 
 import java.util.*;
 
@@ -51,7 +51,7 @@ public class Select extends QueryUpdate implements Macro {
           of("distinctOn",  new Esql<>(context, "distinctOn", distinctOn)),
           of("explicit",    new Esql<>(context, explicit)),
           of("metadata",    metadata),
-          of("columns",     new Esql<>(context, "columns", columns)),
+          of("columns",     renameColumns(context, columns)),
           of("tables",      from),
           of("where",       where),
           of("groupBy",     groupBy),
@@ -59,33 +59,51 @@ public class Select extends QueryUpdate implements Macro {
           of("orderBy",     orderBy == null ? null : new Esql<>(context, "orderBy", orderBy)),
           of("offset",      offset),
           of("limit",       limit));
-
-    /*
-     * Rename column names to be unique without random characters.
-     */
-    Set<String> names = new HashSet<>();
-    for (Column column: columns) {
-      String alias = column.alias();
-      if (alias.startsWith("__auto_col")) {
-        if (column.expr() instanceof FunctionCall) {
-          alias = makeUnique(names, ((FunctionCall)column.expr()).functionName());
-        } else {
-          alias = makeUnique(names, "column");
-        }
-      } else {
-        alias = makeUnique(names, alias);
-      }
-      column.alias(alias);
-    }
   }
 
   public Select(Select other) {
     super(other);
   }
 
+  public Select(Select other, String value, T2<String, ? extends Esql<?, ?>>... children) {
+    super(other, value, children);
+  }
+
   @Override
   public Select copy() {
     return new Select(this);
+  }
+
+  /**
+   * Returns a shallow copy of this object replacing the value in the copy with
+   * the provided value and replacing the specified children in the children list
+   * of the copy.
+   */
+  @Override
+  public Select copy(String value, T2<String, ? extends Esql<?, ?>>... children) {
+    return new Select(this, value, children);
+  }
+
+  /*
+   * Rename column names to be unique without random characters.
+   */
+  private static ColumnList renameColumns(Context context, List<Column> columns) {
+    List<Column> renamed = new ArrayList<>();
+    Set<String> names = new HashSet<>();
+    for (Column column: columns) {
+      String alias = column.alias();
+      if (alias.startsWith("__auto_col")) {
+        if (column.expression() instanceof FunctionCall) {
+          alias = makeUnique(names, ((FunctionCall)column.expression()).functionName());
+        } else {
+          alias = makeUnique(names, "column");
+        }
+      } else {
+        alias = makeUnique(names, alias);
+      }
+      renamed.add(column.copy(alias));
+    }
+    return new ColumnList(context, renamed);
   }
 
   @Override
@@ -102,11 +120,6 @@ public class Select extends QueryUpdate implements Macro {
     names.add(name);
     return name;
   }
-
-//  @Override
-//  public int expansionOrder() {
-//    return HIGHEST;
-//  }
 
   @Override
   public Esql<?, ?> expand(Esql<?, ?> esql, EsqlPath path) {
@@ -134,7 +147,7 @@ public class Select extends QueryUpdate implements Macro {
            || (rel instanceof AliasedRelation && ((AliasedRelation)rel).relation instanceof BaseRelation)) {
             col = relCol.copy();
             if (qualifier != null) {
-              ColumnRef.qualify(col.expr(), qualifier, null, true);
+              ColumnRef.qualify(col.expression(), qualifier, null, true);
             }
             if (col.metadata() != null) {
               for (Attribute attr: col.metadata().attributes().values()) {
@@ -183,14 +196,14 @@ public class Select extends QueryUpdate implements Macro {
           }
         }
       } else {
-        column.expr().forEach(e -> {
+        column.expression().forEach(e -> {
           if (e instanceof ColumnRef) {
             SelectExpression selExpr = e.ancestor(SelectExpression.class);
             if (selExpr == null) {
               ColumnRef c = (ColumnRef)e;
               if (c.qualifier() == null) {
                 Column col = fromType.column(c.name());
-                c.replaceWith(col.expr());
+                c.replaceWith(col.expression());
               }
             }
           }
@@ -212,7 +225,7 @@ public class Select extends QueryUpdate implements Macro {
        * such as count or max.
        */
       Column col = columns().get(0);
-      Expression<?, String> expr = col.expr();
+      Expression<?, String> expr = col.expression();
       if (expr instanceof FunctionCall fc) {
         Function function = context.structure.function(fc.functionName());
         return function != null && function.aggregate;

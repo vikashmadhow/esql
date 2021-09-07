@@ -4,8 +4,10 @@
 
 package ma.vi.esql.syntax.expression;
 
+import ma.vi.base.tuple.T2;
 import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.syntax.Context;
+import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.query.Column;
 import ma.vi.esql.syntax.query.Order;
@@ -30,9 +32,23 @@ public class SelectExpression extends Expression<Select, String> {
     super(other);
   }
 
+  public SelectExpression(SelectExpression other, Select value, T2<String, ? extends Esql<?, ?>>... children) {
+    super(other, value, children);
+  }
+
   @Override
   public SelectExpression copy() {
     return new SelectExpression(this);
+  }
+
+  /**
+   * Returns a shallow copy of this object replacing the value in the copy with
+   * the provided value and replacing the specified children in the children list
+   * of the copy.
+   */
+  @Override
+  public SelectExpression copy(Select value, T2<String, ? extends Esql<?, ?>>... children) {
+    return new SelectExpression(this, value, children);
   }
 
   @Override
@@ -60,7 +76,7 @@ public class SelectExpression extends Expression<Select, String> {
       if (col.alias() != null) {
         st.append(col.alias()).append(':');
       }
-      st.append(col.expr().translate(target, path.add(col.expr()), parameters));
+      st.append(col.expression().translate(target, path.add(col.expression()), parameters));
 
       if (sel.where() != null) {
         st.append(" where ").append(sel.where().translate(target, path.add(sel.where()), parameters));

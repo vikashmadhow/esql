@@ -11,6 +11,7 @@ import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.Restriction;
 import ma.vi.esql.semantic.type.Selection;
+import ma.vi.esql.syntax.expression.literal.NullLiteral;
 
 import java.util.List;
 import java.util.Map;
@@ -39,9 +40,23 @@ public class With extends QueryUpdate {
     super(other);
   }
 
+  public With(With other, String value, T2<String, ? extends Esql<?, ?>>... children) {
+    super(other, value, children);
+  }
+
   @Override
   public With copy() {
     return new With(this);
+  }
+
+  /**
+   * Returns a shallow copy of this object replacing the value in the copy with
+   * the provided value and replacing the specified children in the children list
+   * of the copy.
+   */
+  @Override
+  public With copy(String value, T2<String, ? extends Esql<?, ?>>... children) {
+    return new With(this, value, children);
   }
 
   @Override

@@ -40,6 +40,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     with other nodes
 - New simpler map and forEach function in ESQL.
 - New simpler macro interface.
+- New copy constructor and method allowing changes to be applied to the value and
+  children of the copy.
 
 ## [0.5.2] - 2021-08-19
 ### Refactored

@@ -33,9 +33,23 @@ public class ColumnRef extends Expression<String, String> implements Macro {
     super(other);
   }
 
+  public ColumnRef(ColumnRef other, String value, T2<String, ? extends Esql<?, ?>>... children) {
+    super(other, value, children);
+  }
+
   @Override
   public ColumnRef copy() {
     return new ColumnRef(this);
+  }
+
+  /**
+   * Returns a shallow copy of this object replacing the value in the copy with
+   * the provided value and replacing the specified children in the children list
+   * of the copy.
+   */
+  @Override
+  public ColumnRef copy(String value, T2<String, ? extends Esql<?, ?>>... children) {
+    return new ColumnRef(this, value, children);
   }
 
   @Override
@@ -59,7 +73,7 @@ public class ColumnRef extends Expression<String, String> implements Macro {
            * an outer level, if it is in a subquery, e.g.
            */
           Column column = column(qu);
-          if (column.expr() instanceof ColumnRef) {
+          if (column.expression() instanceof ColumnRef) {
             if (column.metadata() != null && column.metadata().attribute(TYPE) != null) {
               type = Types.typeOf((String)column.metadata().evaluateAttribute(TYPE));
             } else {
@@ -139,7 +153,7 @@ public class ColumnRef extends Expression<String, String> implements Macro {
     }
     return column;
   }
-//
+
 //  @Override
 //  public int expansionOrder() {
 //    return HIGH;
@@ -160,7 +174,7 @@ public class ColumnRef extends Expression<String, String> implements Macro {
       || (rel instanceof AliasedRelation && ((AliasedRelation)rel).relation instanceof BaseRelation)) {
         Column column = rel.column(qualifier(), name());
         if (column.derived()) {
-          Expression<?, String> expr = column.expr().copy();
+          Expression<?, String> expr = column.expression().copy();
           if (qualifier() != null) {
             qualify(expr, qualifier(), null, true);
           }
@@ -233,9 +247,9 @@ public class ColumnRef extends Expression<String, String> implements Macro {
                                                  String qualifier,
                                                  String suffix,
                                                  boolean replaceExistingQualifier) {
-    esql.forEach(e -> {
+    esql.forEach((e, path) -> {
       if (e instanceof ColumnRef) {
-        SelectExpression selExpr = e.ancestor(SelectExpression.class);
+        SelectExpression selExpr = path.ancestor(SelectExpression.class);
         if (selExpr == null) {
           changeQualifierInColumnRef((ColumnRef)e, qualifier, suffix, replaceExistingQualifier);
         }

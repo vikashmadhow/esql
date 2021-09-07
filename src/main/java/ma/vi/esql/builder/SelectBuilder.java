@@ -8,7 +8,7 @@ import ma.vi.base.lang.Builder;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Parser;
 import ma.vi.esql.syntax.define.Attribute;
-import ma.vi.esql.syntax.define.GroupBy;
+import ma.vi.esql.syntax.query.GroupBy;
 import ma.vi.esql.syntax.define.Metadata;
 import ma.vi.esql.syntax.expression.Expression;
 import ma.vi.esql.syntax.query.*;
@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
-import static ma.vi.esql.syntax.define.GroupBy.Type.*;
+import static ma.vi.esql.syntax.query.GroupBy.Type.*;
 
 /**
  * A builder for directly constructing select statements.

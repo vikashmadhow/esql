@@ -13,9 +13,7 @@ import ma.vi.esql.translator.TranslatorFactory;
 
 import java.sql.Connection;
 import java.util.*;
-import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
-import java.util.function.Function;
 import java.util.function.Predicate;
 
 import static java.util.Collections.emptyMap;
@@ -99,12 +97,31 @@ public class Esql<V, R> implements Copy<Esql<V, R>>, Translatable<R> {
     this.children.addAll(other.children);
   }
 
+  public Esql(Esql<V, R> other, V value, T2<String, ? extends Esql<?, ?>>... children) {
+    this.context = other.context;
+    this.value = value;
+    this.childrenNames = other.childrenNames;
+    this.children.addAll(other.children);
+    for (T2<String, ? extends Esql<?, ?>> child: children) {
+      this.children.set(this.indexOf(child.a), child.b);
+    }
+  }
+
   /**
    * Returns a shallow copy of this object. The copy will have a separate children
    * list pointing to the same children as this object.
    */
   public Esql<V, R> copy() {
     return new Esql<>(this);
+  }
+
+  /**
+   * Returns a shallow copy of this object replacing the value in the copy with
+   * the provided value and replacing the specified children in the children list
+   * of the copy.
+   */
+  public Esql<V, R> copy(V value, T2<String, ? extends Esql<?, ?>>... children) {
+    return new Esql<>(this, value, children);
   }
 
   public <T extends Esql<?, ?>> List<T> children() {
@@ -193,13 +210,17 @@ public class Esql<V, R> implements Copy<Esql<V, R>>, Translatable<R> {
     return node;
   }
 
-  public Esql<V, R> set(int index, Esql<?, ?> child) {
+  public <T extends Esql<V, R>> T set(V value) {
+    return (T)copy(value);
+  }
+
+  public <T extends Esql<V, R>> T set(int index, Esql<?, ?> child) {
     Esql<V, R> copy = copy();
     while (copy.children.size() <= index) {
       copy.children.add(null);
     }
     copy.children.set(index, child);
-    return copy;
+    return (T)copy;
   }
 
   public Esql<V, R> set(String path, Esql<?, ?> child) {
@@ -244,7 +265,7 @@ public class Esql<V, R> implements Copy<Esql<V, R>>, Translatable<R> {
     return null;
   }
 
-  public boolean forEach(Function<Esql<?, ?>, Boolean> visitor) {
+  public boolean forEach(BiFunction<Esql<?, ?>, EsqlPath, Boolean> visitor) {
     return forEach(visitor, null);
   }
 
@@ -253,17 +274,28 @@ public class Esql<V, R> implements Copy<Esql<V, R>>, Translatable<R> {
    * and itself in depth-first post-order. If the visitor returns false on any
    * Esql part, the visit is terminated.
    */
-  public boolean forEach(Function<Esql<?, ?>, Boolean> visitor,
+  public boolean forEach(BiFunction<Esql<?, ?>, EsqlPath, Boolean> visitor,
                          Predicate<Esql<?, ?>> explore) {
+    return _forEach(visitor, explore, new EsqlPath(this));
+  }
+
+  /**
+   * Executes the visitor function for each Esql children of this Esql object
+   * and itself in depth-first post-order. If the visitor returns false on any
+   * Esql part, the visit is terminated.
+   */
+  private boolean _forEach(BiFunction<Esql<?, ?>, EsqlPath, Boolean> visitor,
+                           Predicate<Esql<?, ?>> explore,
+                           EsqlPath path) {
     if (explore == null || explore.test(this)) {
       for (Esql<?, ?> child: children) {
         if (child != null) {
-          if (!child.forEach(visitor, explore)) {
+          if (!child._forEach(visitor, explore, path.add(child))) {
             return false;
           }
         }
       }
-      return visitor.apply(this);
+      return visitor.apply(this, path);
     } else {
       return true;
     }
@@ -389,19 +421,6 @@ public class Esql<V, R> implements Copy<Esql<V, R>>, Translatable<R> {
           st.append("\n");
         }
       }
-//      } else {
-//        int i = 0;
-//        for (Esql<?, ?> c: children) {
-//          if (c != null) {
-//            st.append(repeat(" ", level * indent))
-//              .append(i)
-//              .append(": ");
-//            c._toString(st, level + 1, indent);
-//            st.append("\n");
-//          }
-//          i++;
-//        }
-//      }
       st.append(repeat(" ", (level > 0 ? level-1 : 0) * indent))
         .append("}");
     }

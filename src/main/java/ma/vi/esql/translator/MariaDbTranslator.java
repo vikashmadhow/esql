@@ -39,7 +39,7 @@ public class MariaDbTranslator extends AbstractTranslator {
     }
 
     // add output clause
-    QueryTranslation q = select.constructResult(st, target(), null, parameters);
+    QueryTranslation q = select.constructResult(st, target(), path, null, parameters);
     if (select.tables() != null) {
       st.append(" from ").append(select.tables().translate(target(), path.add(select.tables()), parameters));
     }
@@ -120,7 +120,7 @@ public class MariaDbTranslator extends AbstractTranslator {
     }
     if (delete.columns() != null) {
       st.append(" returning ");
-      q = delete.constructResult(st, target(), null, parameters);
+      q = delete.constructResult(st, target(), path, null, parameters);
     }
     if (q == null) {
       return new QueryTranslation(st.toString(), emptyList(), emptyMap(),
@@ -164,7 +164,7 @@ public class MariaDbTranslator extends AbstractTranslator {
     QueryTranslation q = null;
     if (insert.columns() != null && !insert.columns().isEmpty()) {
       st.append(" returning ");
-      q = insert.constructResult(st, target(), null, parameters);
+      q = insert.constructResult(st, target(), path, null, parameters);
     }
 
     if (q == null) {

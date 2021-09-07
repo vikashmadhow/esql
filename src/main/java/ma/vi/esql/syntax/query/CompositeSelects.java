@@ -9,6 +9,7 @@ import ma.vi.esql.syntax.*;
 import ma.vi.esql.syntax.define.Attribute;
 import ma.vi.esql.syntax.define.Metadata;
 import ma.vi.esql.syntax.expression.Expression;
+import ma.vi.esql.syntax.expression.literal.NullLiteral;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -71,9 +72,23 @@ public class CompositeSelects extends Select {
     super(other);
   }
 
+  public CompositeSelects(CompositeSelects other, String value, T2<String, ? extends Esql<?, ?>>... children) {
+    super(other, value, children);
+  }
+
   @Override
   public CompositeSelects copy() {
     return new CompositeSelects(this);
+  }
+
+  /**
+   * Returns a shallow copy of this object replacing the value in the copy with
+   * the provided value and replacing the specified children in the children list
+   * of the copy.
+   */
+  @Override
+  public CompositeSelects copy(String value, T2<String, ? extends Esql<?, ?>>... children) {
+    return new CompositeSelects(this, value, children);
   }
 
   @Override

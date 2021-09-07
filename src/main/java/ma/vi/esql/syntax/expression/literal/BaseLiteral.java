@@ -8,6 +8,7 @@ import ma.vi.base.tuple.T2;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.Translatable;
+import ma.vi.esql.syntax.expression.DefaultValue;
 
 import java.util.List;
 
@@ -37,8 +38,20 @@ public abstract class BaseLiteral<V> extends Literal<V> {
     super(other);
   }
 
+  public BaseLiteral(BaseLiteral<V> other, V value, T2<String, ? extends Esql<?, ?>>... children) {
+    super(other, value, children);
+  }
+
   @Override
   public abstract BaseLiteral<V> copy();
+
+  /**
+   * Returns a shallow copy of this object replacing the value in the copy with
+   * the provided value and replacing the specified children in the children list
+   * of the copy.
+   */
+  @Override
+  public abstract BaseLiteral<V> copy(V value, T2<String, ? extends Esql<?, ?>>... children);
 
   @Override
   public void _toString(StringBuilder st, int level, int indent) {

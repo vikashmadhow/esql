@@ -2,7 +2,7 @@
  * Copyright (c) 2020 Vikash Madhow
  */
 
-package ma.vi.esql.syntax.define;
+package ma.vi.esql.syntax.query;
 
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.syntax.Context;
@@ -16,9 +16,8 @@ import java.util.Map;
 import static java.util.stream.Collectors.joining;
 
 /**
- * A list of attributes (name expression pairs) describing
- * certain parts of queries, tables, etc. This is also used as
- * the update set clause as it has the same structure.
+ * The group by clause of a Select consisting of a list of expressions and the
+ * type of group (simple, rollup or cube).
  *
  * @author Vikash Madhow (vikash.madhow@gmail.mail)
  */
@@ -40,9 +39,22 @@ public class GroupBy extends Esql<String, String> {
     super(other);
   }
 
+  public GroupBy(GroupBy other, String value, T2<String, ? extends Esql<?, ?>>... children) {
+    super(other, value, children);
+  }
+
   @Override
   public GroupBy copy() {
     return new GroupBy(this);
+  }
+
+  /**
+   * Returns a shallow copy of this object replacing the value in the copy with
+   * the provided value and replacing the specified children in the children list
+   * of the copy.
+   */
+  public GroupBy copy(String value, T2<String, ? extends Esql<?, ?>>... children) {
+    return new GroupBy(this, value, children);
   }
 
   @Override

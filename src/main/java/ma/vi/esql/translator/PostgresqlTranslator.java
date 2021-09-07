@@ -48,7 +48,7 @@ public class PostgresqlTranslator extends AbstractTranslator {
     }
 
     // add output clause
-    QueryTranslation q = select.constructResult(st, target(), null, parameters);
+    QueryTranslation q = select.constructResult(st, target(), path, null, parameters);
     if (select.tables() != null) {
       st.append(" from ").append(select.tables().translate(target(), path.add(select.tables()), parameters));
     }
@@ -93,7 +93,7 @@ public class PostgresqlTranslator extends AbstractTranslator {
       QueryTranslation q = null;
       if (update.columns() != null && !update.columns().isEmpty()) {
         st.append(" returning ");
-        q = update.constructResult(st, target(), null, parameters);
+        q = update.constructResult(st, target(), path, null, parameters);
       }
       if (q == null) {
         return new QueryTranslation(st.toString(), emptyList(), emptyMap(),
@@ -188,7 +188,7 @@ public class PostgresqlTranslator extends AbstractTranslator {
       QueryTranslation q = null;
       if (update.columns() != null && !update.columns().isEmpty()) {
         st.append(" returning ");
-        q = update.constructResult(st, target(), null, parameters);
+        q = update.constructResult(st, target(), path, null, parameters);
       }
       if (q == null) {
         return new QueryTranslation(st.toString(), emptyList(), emptyMap(),
@@ -242,7 +242,7 @@ public class PostgresqlTranslator extends AbstractTranslator {
 
     if (delete.columns() != null && !delete.columns().isEmpty()) {
       st.append(" returning ");
-      QueryTranslation q = delete.constructResult(st, target(), null, parameters);
+      QueryTranslation q = delete.constructResult(st, target(), path, null, parameters);
       return new QueryTranslation(st.toString(), q.columns, q.columnToIndex,
                                   q.resultAttributeIndices, q.resultAttributes);
     } else {
@@ -286,7 +286,7 @@ public class PostgresqlTranslator extends AbstractTranslator {
     QueryTranslation q = null;
     if (insert.columns() != null && !insert.columns().isEmpty()) {
       st.append(" returning ");
-      q = insert.constructResult(st, target(), null, parameters);
+      q = insert.constructResult(st, target(), path, null, parameters);
     }
 
     if (q == null) {

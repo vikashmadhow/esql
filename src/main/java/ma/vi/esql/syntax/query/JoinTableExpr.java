@@ -37,9 +37,23 @@ public class JoinTableExpr extends AbstractJoinTableExpr {
     super(other);
   }
 
+  public JoinTableExpr(JoinTableExpr other, String value, T2<String, ? extends Esql<?, ?>>... children) {
+    super(other, value, children);
+  }
+
   @Override
   public JoinTableExpr copy() {
     return new JoinTableExpr(this);
+  }
+
+  /**
+   * Returns a shallow copy of this object replacing the value in the copy with
+   * the provided value and replacing the specified children in the children list
+   * of the copy.
+   */
+  @Override
+  public JoinTableExpr copy(String value, T2<String, ? extends Esql<?, ?>>... children) {
+    return new JoinTableExpr(this, value, children);
   }
 
   @Override

@@ -6,7 +6,7 @@ import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.Translatable;
 import ma.vi.esql.syntax.TranslationException;
-import ma.vi.esql.syntax.define.GroupBy;
+import ma.vi.esql.syntax.query.GroupBy;
 import ma.vi.esql.syntax.expression.ColumnRef;
 import ma.vi.esql.syntax.expression.Expression;
 import ma.vi.esql.syntax.expression.FunctionCall;
@@ -56,7 +56,7 @@ public class SqlServerTranslator extends AbstractTranslator {
           if (select.columns().size() < colPos) {
             throw new TranslationException("Group " + colPos + " does not exist in the columns list of the query");
           } else {
-            newGroupExpressions.add(select.columns().get(colPos - 1).expr().copy());
+            newGroupExpressions.add(select.columns().get(colPos - 1).expression().copy());
           }
         } else {
           newGroupExpressions.add(expr.copy());
@@ -76,7 +76,7 @@ public class SqlServerTranslator extends AbstractTranslator {
 
       // add output clause
       StringBuilder columns = new StringBuilder();
-      QueryTranslation q = select.constructResult(columns, target(), null, parameters);
+      QueryTranslation q = select.constructResult(columns, target(), path, null, parameters);
 
       st.append(columns);
       st.append(", ").append("row_number() over (partition by ");
@@ -175,7 +175,7 @@ public class SqlServerTranslator extends AbstractTranslator {
         Map<String, String> addedInnerCols = new HashMap<>();
         Set<Expression<?, String>> groups = new HashSet<>(select.groupBy().groupBy());
         for (Column column: select.columns()) {
-          Expression<?, String> colExpr = column.expr();
+          Expression<?, String> colExpr = column.expression();
           AtomicBoolean aggregate = new AtomicBoolean();
           colExpr.forEach(e -> {
             if (e instanceof FunctionCall) {
@@ -280,7 +280,7 @@ public class SqlServerTranslator extends AbstractTranslator {
           st.append("distinct ");
         }
         // add output clause
-        QueryTranslation q = select.constructResult(st, target(), null, parameters);
+        QueryTranslation q = select.constructResult(st, target(), path, null, parameters);
         if (select.tables() != null) {
           st.append(" from ").append(select.tables().translate(target(), path.add(select.tables()), parameters));
         }
@@ -338,7 +338,7 @@ public class SqlServerTranslator extends AbstractTranslator {
     QueryTranslation q = null;
     if (update.columns() != null && !update.columns().isEmpty()) {
       st.append(" output ");
-      q = update.constructResult(st, target(), "inserted", parameters);
+      q = update.constructResult(st, target(), path, "inserted", parameters);
     }
     st.append(" from ").append(from.translate(target(), path.add(from), parameters));
 
@@ -362,7 +362,7 @@ public class SqlServerTranslator extends AbstractTranslator {
     TableExpr from = delete.tables();
     if (delete.columns() != null && !delete.columns().isEmpty()) {
       st.append(" output ");
-      q = delete.constructResult(st, target(), "deleted", parameters);
+      q = delete.constructResult(st, target(), path, "deleted", parameters);
     }
     st.append(" from ").append(from.translate(target(), path.add(from), parameters));
 
@@ -399,7 +399,7 @@ public class SqlServerTranslator extends AbstractTranslator {
     QueryTranslation q = null;
     if (insert.columns() != null && !insert.columns().isEmpty()) {
       st.append(" output ");
-      q = insert.constructResult(st, target(), "inserted", parameters);
+      q = insert.constructResult(st, target(), path, "inserted", parameters);
     }
 
     List<InsertRow> rows = insert.rows();

@@ -31,16 +31,7 @@ public class AliasedRelation extends Relation {
 
   @Override
   public AliasedRelation copy() {
-    if (!copying()) {
-      try {
-        copying(true);
-        return new AliasedRelation(this);
-      } finally {
-        copying(false);
-      }
-    } else {
-      return this;
-    }
+    return new AliasedRelation(this);
   }
 
   @Override

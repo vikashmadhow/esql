@@ -10,6 +10,7 @@ import ma.vi.esql.database.Database;
 import ma.vi.esql.exec.Result;
 import ma.vi.esql.syntax.*;
 import ma.vi.esql.syntax.expression.ColumnRef;
+import ma.vi.esql.syntax.expression.DefaultValue;
 import ma.vi.esql.syntax.expression.Expression;
 import ma.vi.esql.syntax.query.Column;
 import ma.vi.esql.syntax.query.Select;
@@ -68,6 +69,29 @@ public class CreateTable extends Define<String> {
     }
   }
 
+  public CreateTable(CreateTable other) {
+    super(other);
+  }
+
+  public CreateTable(CreateTable other, String value, T2<String, ? extends Esql<?, ?>>... children) {
+    super(other, value, children);
+  }
+
+  @Override
+  public CreateTable copy() {
+    return new CreateTable(this);
+  }
+
+  /**
+   * Returns a shallow copy of this object replacing the value in the copy with
+   * the provided value and replacing the specified children in the children list
+   * of the copy.
+   */
+  @Override
+  public CreateTable copy(String value, T2<String, ? extends Esql<?, ?>>... children) {
+    return new CreateTable(this, value, children);
+  }
+
   public static void circular(String column,
                               Expression<?, String> expression,
                               Set<String> persistentCols,
@@ -75,36 +99,27 @@ public class CreateTable extends Define<String> {
                               List<String> circularPath) {
     try {
       circularPath.add(column);
-      expression.forEach(e -> {
-        if (e instanceof ColumnRef) {
-          ColumnRef ref = (ColumnRef)e;
-          String colName = ref.name();
-          if (!persistentCols.contains(colName) && !derivedCols.containsKey(colName)) {
-            throw new TranslationException("Unknown column " + colName
-                                         + " in derived expression " + expression);
-          } else if (circularPath.contains(colName)) {
-            circularPath.add(colName);
-            throw new CircularReferenceException("A circular reference was detected in the expression "
-                                               + expression + " consisting of the column path " + circularPath);
-          } else if (derivedCols.containsKey(colName)) {
-            circular(colName, derivedCols.get(colName), persistentCols, derivedCols, circularPath);
-          }
-        }
-        return true;
-      },
-      e -> !(e instanceof Select));
+      expression.forEach((esql, path) -> {
+                           if (esql instanceof ColumnRef) {
+                             ColumnRef ref = (ColumnRef)esql;
+                             String colName = ref.name();
+                             if (!persistentCols.contains(colName) && !derivedCols.containsKey(colName)) {
+                               throw new TranslationException("Unknown column " + colName
+                                                                  + " in derived expression " + expression);
+                             } else if (circularPath.contains(colName)) {
+                               circularPath.add(colName);
+                               throw new CircularReferenceException("A circular reference was detected in the expression "
+                                                                        + expression + " consisting of the column path " + circularPath);
+                             } else if (derivedCols.containsKey(colName)) {
+                               circular(colName, derivedCols.get(colName), persistentCols, derivedCols, circularPath);
+                             }
+                           }
+                           return true;
+                         },
+                         e -> !(e instanceof Select));
     } finally {
       circularPath.remove(column);
     }
-  }
-
-  public CreateTable(CreateTable other) {
-    super(other);
-  }
-
-  @Override
-  public CreateTable copy() {
-    return new CreateTable(this);
   }
 
   @Override
@@ -128,7 +143,7 @@ public class CreateTable extends Define<String> {
       }
     }
     for (ConstraintDefinition constraint: constraints()) {
-      st.append(", ").append(constraint.translate(target, parameters));
+      st.append(", ").append(constraint.translate(target, path.add(constraint), parameters));
     }
     st.append(')');
     return st.toString();

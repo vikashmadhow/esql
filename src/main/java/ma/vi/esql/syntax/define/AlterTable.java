@@ -11,6 +11,7 @@ import ma.vi.esql.exec.Result;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
+import ma.vi.esql.syntax.expression.DefaultValue;
 import ma.vi.esql.syntax.query.Column;
 import ma.vi.esql.semantic.type.BaseRelation;
 
@@ -41,9 +42,23 @@ public class AlterTable extends Define<String> {
     super(other);
   }
 
+  public AlterTable(AlterTable other, String value, T2<String, ? extends Esql<?, ?>>... children) {
+    super(other, value, children);
+  }
+
   @Override
   public AlterTable copy() {
     return new AlterTable(this);
+  }
+
+  /**
+   * Returns a shallow copy of this object replacing the value in the copy with
+   * the provided value and replacing the specified children in the children list
+   * of the copy.
+   */
+  @Override
+  public AlterTable copy(String value, T2<String, ? extends Esql<?, ?>>... children) {
+    return new AlterTable(this, value, children);
   }
 
   @Override
