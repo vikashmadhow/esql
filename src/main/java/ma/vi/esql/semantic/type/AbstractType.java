@@ -61,8 +61,7 @@ public abstract class AbstractType implements Type {
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
-    if (!(o instanceof AbstractType)) return false;
-    AbstractType type = (AbstractType)o;
+    if (!(o instanceof AbstractType type)) return false;
     return name.equals(type.name);
   }
 

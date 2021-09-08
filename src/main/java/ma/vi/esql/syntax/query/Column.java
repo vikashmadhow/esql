@@ -18,7 +18,6 @@ import ma.vi.esql.syntax.define.DerivedColumnDefinition;
 import ma.vi.esql.syntax.define.Metadata;
 import ma.vi.esql.syntax.expression.ColumnRef;
 import ma.vi.esql.syntax.expression.Expression;
-import ma.vi.esql.syntax.expression.literal.NullLiteral;
 
 import java.util.*;
 import java.util.stream.Stream;
@@ -42,7 +41,7 @@ public class Column extends MetadataContainer<String, String> {
           Stream.concat(
             Arrays.stream(
               new T2[]{
-                T2.of("expression", new Esql<>(context, expression)),
+                T2.of("expression", expression),
                 T2.of("metadata", metadata)
               }),
             Arrays.stream(children)).toArray(T2[]::new));
@@ -272,12 +271,11 @@ public class Column extends MetadataContainer<String, String> {
     return childValue("expression");
   }
 
-//  public void expr(Expression<?, String> expr) {
-//    value = expr;
-//  }
+  public Column expression(Expression<?, String> expression) {
+    return set(indexOf("expression"), expression);
+  }
 
-
-//  public void alias(String alias) {
-//    ((Esql<String, ?>)child("alias")).value = alias;
-//  }
+  public Column alias(String alias) {
+    return copy(alias);
+  }
 }

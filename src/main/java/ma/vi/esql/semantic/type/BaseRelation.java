@@ -187,7 +187,7 @@ public class BaseRelation extends Relation {
                                                     Set<String> seen) {
     try {
       seen.add(columnName);
-      return (Expression<?, String>)derivedExpression.map(e -> {
+      return (Expression<?, String>)derivedExpression.map((e, path) -> {
         if (e instanceof ColumnRef) {
           ColumnRef ref = (ColumnRef)e;
           String colName = ref.name();
@@ -566,8 +566,7 @@ public class BaseRelation extends Relation {
     PriorityQueue<Node> toExplore = new PriorityQueue<>();
     Map<Node, Integer> toBeExplored = new HashMap<>();
     for (ConstraintDefinition c: constraints) {
-      if (c instanceof ForeignKeyConstraint) {
-        ForeignKeyConstraint fk = (ForeignKeyConstraint)c;
+      if (c instanceof ForeignKeyConstraint fk) {
         if (fk.forwardCost() >= 0
             && (!ignoreHiddenFields
             || (fk.sourceColumns().stream().noneMatch(f -> !f.equals("_id") && f.charAt(0) == '_')
@@ -619,8 +618,7 @@ public class BaseRelation extends Relation {
         BaseRelation rel = node.reverse ? context.structure.relation(node.constraint.table())
                                         : context.structure.relation(node.constraint.targetTable());
         for (ConstraintDefinition c: rel.constraints) {
-          if (c instanceof ForeignKeyConstraint) {
-            ForeignKeyConstraint fk = (ForeignKeyConstraint)c;
+          if (c instanceof ForeignKeyConstraint fk) {
             if (fk.forwardCost() >= 0
                 && (!ignoreHiddenFields
                 || (fk.sourceColumns().stream().noneMatch(f -> !f.equals("_id") && f.charAt(0) == '_')
