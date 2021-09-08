@@ -5,13 +5,12 @@
 package ma.vi.esql.syntax.expression.comparison;
 
 import ma.vi.base.tuple.T2;
-import ma.vi.esql.syntax.Context;
-import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.semantic.type.Types;
+import ma.vi.esql.syntax.Context;
+import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.expression.Expression;
-import ma.vi.esql.syntax.expression.GroupedExpression;
 import ma.vi.esql.syntax.expression.SingleSubExpression;
 
 import java.util.Map;
@@ -28,8 +27,7 @@ public class IsNull extends SingleSubExpression {
   public IsNull(Context context,
                 boolean not,
                 Expression<?, String> expr) {
-    super(context, expr);
-    child("not", new Esql<>(context, not));
+    super(context, expr, T2.of("not", new Esql<>(context, not)));
   }
 
   public IsNull(IsNull other) {
@@ -56,7 +54,7 @@ public class IsNull extends SingleSubExpression {
   }
 
   @Override
-  public Type type() {
+  public Type type(EsqlPath path) {
     return Types.BoolType;
   }
 

@@ -11,7 +11,6 @@ import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
-import ma.vi.esql.syntax.expression.DefaultValue;
 
 import java.lang.reflect.Array;
 import java.util.List;
@@ -50,12 +49,12 @@ public class BaseArrayLiteral extends Literal<Type> {
    * of the copy.
    */
   @Override
-  public BaseArrayLiteral copy(String value, T2<String, ? extends Esql<?, ?>>... children) {
+  public BaseArrayLiteral copy(Type value, T2<String, ? extends Esql<?, ?>>... children) {
     return new BaseArrayLiteral(this, value, children);
   }
 
   @Override
-  public Type type() {
+  public Type type(EsqlPath path) {
     return componentType().array();
   }
 
@@ -65,7 +64,7 @@ public class BaseArrayLiteral extends Literal<Type> {
       case POSTGRESQL
           -> "array[" + items().stream()
                                .map(e -> e.translate(target, path.add(e), parameters))
-                               .collect(joining(",")) + "]::" + componentType().array().translate(target, parameters);
+                               .collect(joining(",")) + "]::" + componentType().array().translate(target, path, parameters);
 
       case HSQLDB
           -> "array[" + items().stream()

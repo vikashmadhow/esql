@@ -50,7 +50,7 @@ public class BooleanLiteral extends BaseLiteral<Boolean> {
   }
 
   @Override
-  public Type type() {
+  public Type type(EsqlPath path) {
     return BoolType;
   }
 

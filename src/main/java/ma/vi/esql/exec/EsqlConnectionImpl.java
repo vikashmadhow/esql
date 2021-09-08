@@ -155,7 +155,7 @@ public class EsqlConnectionImpl implements EsqlConnection {
     for (EsqlTransformer t: db.esqlTransformers()) {
       esql = t.transform(db, esql);
     }
-    return esql.execute(db, con);
+    return esql.execute(db, con, new EsqlPath(esql));
   }
 
   private static Esql<?, ?> expandMacros(Esql<?, ?> esql) {

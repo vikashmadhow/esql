@@ -47,7 +47,7 @@ public class Order extends Esql<Expression<?, String>, String> {
   }
 
   @Override
-  public Type type() {
+  public Type type(EsqlPath path) {
     return Types.VoidType;
   }
 

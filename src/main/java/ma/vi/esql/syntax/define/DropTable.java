@@ -63,7 +63,7 @@ public class DropTable extends Define<String> {
    * Drops a table, removing dependent tables in cascade, if necessary.
    */
   @Override
-  public Result execute(Database db, Connection con) {
+  public Result execute(Database db, Connection con, EsqlPath path) {
     try {
       /*
        * Execute drop cascading to dependents and updating internal structures.

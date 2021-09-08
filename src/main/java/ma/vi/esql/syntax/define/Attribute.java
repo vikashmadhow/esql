@@ -92,7 +92,7 @@ public class Attribute extends Esql<String, String> {
     return child("value");
   }
 
-//  public void attributeValue(Expression<?, String> value) {
-//    child("value", value);
-//  }
+  public Attribute attributeValue(Expression<?, String> value) {
+    return set(indexOf("value"), value);
+  }
 }

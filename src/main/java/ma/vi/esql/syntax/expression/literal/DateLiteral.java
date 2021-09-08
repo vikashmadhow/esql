@@ -55,7 +55,7 @@ public class DateLiteral extends BaseLiteral<String> {
   }
 
   @Override
-  public Type type() {
+  public Type type(EsqlPath path) {
     boolean containsDate = hasDate();
     boolean containsTime = hasTime();
 
@@ -72,13 +72,12 @@ public class DateLiteral extends BaseLiteral<String> {
 
   @Override
   protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
-    Type type = type();
     switch (target) {
       case POSTGRESQL:
-        return '\'' + value + "'::" + type().translate(target, path, parameters);
+        return '\'' + value + "'::" + type(path).translate(target, path, parameters);
 
       case SQLSERVER:
-        return "cast('" + value + "' as " + type().translate(target, path, parameters) + ')';
+        return "cast('" + value + "' as " + type(path).translate(target, path, parameters) + ')';
 
       case JSON:
       case JAVASCRIPT:

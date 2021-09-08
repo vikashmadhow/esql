@@ -10,11 +10,11 @@ import ma.vi.esql.syntax.CircularReferenceException;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.TranslationException;
-import ma.vi.esql.syntax.define.Attribute;
-import ma.vi.esql.syntax.define.ConstraintDefinition;
-import ma.vi.esql.syntax.define.ForeignKeyConstraint;
-import ma.vi.esql.syntax.define.PrimaryKeyConstraint;
-import ma.vi.esql.syntax.expression.*;
+import ma.vi.esql.syntax.define.*;
+import ma.vi.esql.syntax.expression.ColumnRef;
+import ma.vi.esql.syntax.expression.Expression;
+import ma.vi.esql.syntax.expression.GroupedExpression;
+import ma.vi.esql.syntax.expression.UncomputedExpression;
 import ma.vi.esql.syntax.expression.literal.Literal;
 import ma.vi.esql.syntax.query.Column;
 import ma.vi.esql.syntax.query.Select;
@@ -58,56 +58,49 @@ public class BaseRelation extends Relation {
       }
     }
 //    this.columns = expandColumns(attributes, columns);
-    this.columns = columns;
+//    this.columns = columns;
 
-    /*
-     * Implicit aliasing of columns.
-     */
+    this.columns = new ArrayList<>();
     Set<String> aliases = new HashSet<>();
-    for (Column column: this.columns) {
+    for (Column column: columns) {
+      /*
+       * Implicit aliasing of columns.
+       */
       if (column.alias() == null) {
         Expression<?, String> expr = column.expression();
         if (expr instanceof ColumnRef) {
-          column.alias(((ColumnRef)expr).name());
+          column = column.alias(((ColumnRef)expr).name());
         } else {
-          column.alias(makeUnique(aliases, "column"));
+          column = column.alias(makeUnique(aliases, "column"));
         }
       }
       aliases.add(column.alias());
-      this.columnsByAlias.put(column.alias(), column);
-    }
 
-    /*
-     * Expand expressions of derived columns until they consist only of
-     * base columns. E.g., {a:a, b:a+5, c:a+b, d:c+b}
-     *      is expanded to {a:a, b:a+5, c:a+a+5, d:a+a+5+a+5}
-     */
-    for (Column column: this.columns) {
-      // column.parent = new Esql<>(context, this);
+      /*
+       * Expand expressions of derived columns until they consist only of
+       * base columns. E.g., {a:a, b:a+5, c:a+b, d:c+b}
+       *      is expanded to {a:a, b:a+5, c:a+a+5, d:a+a+5+a+5}
+       */
       if (!(column.expression() instanceof Literal)
          && (!(column.expression() instanceof ColumnRef)
-          || !column.expression().value.equals(column.alias()))) {
-        column.expression(expandDerived(column.expression(),
-                                        columnsByAlias,
-                                        column.alias(),
-                                        new HashSet<>()));
+             || !column.expression().value.equals(column.alias()))) {
+        column = column.expression(expandDerived(column.expression(),
+                                                 columnsByAlias,
+                                                 column.alias(),
+                                                 new HashSet<>()));
       }
-      if (column.metadata() != null) {
+      if (column.metadata() != null && !column.metadata().attributes().isEmpty()) {
+        List<Attribute> attrs = new ArrayList<>();
         for (Attribute attr: column.metadata().attributes().values()) {
-          attr.attributeValue(expandDerived(attr.attributeValue(),
-                                            columnsByAlias,
-                                            column.alias() + '/' + attr.name(),
-                                            new HashSet<>()));
+          attrs.add(attr.attributeValue(expandDerived(attr.attributeValue(),
+                                                      columnsByAlias,
+                                                      column.alias() + '/' + attr.name(),
+                                                      new HashSet<>())));
         }
+        column = column.metadata(new Metadata(column.context, attrs));
       }
-//      if (!(column.expr() instanceof Literal)
-//         && (!(column.expr() instanceof ColumnRef)
-//          || !column.expr().value.equals(column.alias()))) {
-//        column.expr(expandDerived(column.expr(),
-//                                  columnsByAlias,
-//                                  column.alias(),
-//                                  new HashSet<>()));
-//      }
+      this.columns.add(column);
+      this.columnsByAlias.put(column.alias(), column);
     }
   }
 
@@ -194,7 +187,7 @@ public class BaseRelation extends Relation {
           Column column = columns.get(colName);
           if (column == null) {
             throw new TranslationException("Unknown column " + colName
-                                         + " in derived expresion " + derivedExpression);
+                                        + " in derived expression " + derivedExpression);
           } else if (seen.contains(colName)) {
             Set<String> otherColumns = seen.stream()
                                            .filter(c -> !c.equals(colName) && !c.contains("/"))
@@ -204,10 +197,7 @@ public class BaseRelation extends Relation {
               + derivedExpression + " consisting of the column "
               + colName + (otherColumns.isEmpty() ? "" : " and " + otherColumns));
           } else if (column.derived()) {
-            GroupedExpression expanded =
-                new GroupedExpression(e.context, expandDerived(column.expression(), columns, colName, seen));
-            // expanded.parent = e.parent;
-            return expanded;
+            return new GroupedExpression(e.context, expandDerived(column.expression(), columns, colName, seen));
           }
         }
         return e;
@@ -237,23 +227,19 @@ public class BaseRelation extends Relation {
     List<Column> cols = new ArrayList<>();
     String attrPrefix = prefix + attr.name();
     Expression<?, String> expr = attr.attributeValue().copy();
-    cols.add(new Column(
-        attr.context,
-        attrPrefix,
-        expr,
-        null
-    ));
+    cols.add(new Column(attr.context,
+                        attrPrefix,
+                        expr,
+                        null));
     if (!(expr instanceof Literal)) {
       /*
        * Rename columns to aliases in uncomputed expression as those will be
        * computed on the client-side where the aliased names will be valid.
        */
-      cols.add(new Column(
-          attr.context,
-          attrPrefix + "/e",
-          new UncomputedExpression(attr.context, rename(expr, aliased)),
-          null
-      ));
+      cols.add(new Column(attr.context,
+                          attrPrefix + "/e",
+                          new UncomputedExpression(attr.context, rename(expr, aliased)),
+                          null));
     }
     return cols;
   }
@@ -261,7 +247,7 @@ public class BaseRelation extends Relation {
   public void expandColumns() {
     this.columns = expandColumns(attributes().entrySet().stream()
                                              .map(e -> new Attribute(e.getValue().context, e.getKey(), e.getValue()))
-                                             .collect(toList()), columns);
+                                             .collect(toList()), this.columns);
     /*
      * Implicit aliasing of columns.
      */
@@ -269,7 +255,7 @@ public class BaseRelation extends Relation {
                                       .map(Column::alias)
                                       .collect(toCollection(HashSet::new));
     for (Column column: this.columns) {
-      column.parent = new Esql<>(context, this);
+      column = column.set(column.indexOf("relation"), new Esql<>(context, this));
       if (column.alias() == null) {
         Expression<?, String> expr = column.expression();
         if (expr instanceof ColumnRef) {
@@ -285,28 +271,28 @@ public class BaseRelation extends Relation {
     }
   }
 
+  /**
+   * Add relation and column metadata to the column list.
+   * For example, `select a from S` becomes
+   *     ```
+   *     select /tm1:(max:max(S.b) from S:S),
+   *            /tm1/e:$(max:max(S.b) from S:S),
+   *            /tm2:(S.a>S.b),
+   *            /tm2/e:$(S.a>S.b),
+   *
+   *            a:S.a,
+   *            a/m1:(S.b>5),
+   *            a/m2:(10),
+   *            a/m3:(S.a!=0),
+   *            a/m3/e:$(S.a!=0)
+   *       from S:S
+   *     ```
+   */
   public static List<Column> expandColumns(List<Attribute> attributes,
                                            List<Column> columns) {
     List<Column> newCols = new ArrayList<>();
     Map<String, String> aliased = aliasedColumns(columns);
 
-    /*
-     * Add relation metadata.
-     * For example, `select a from S` becomes
-     *     ```
-     *     select /tm1:(max:max(S.b) from S:S),
-     *            /tm1/e:$(max:max(S.b) from S:S),
-     *            /tm2:(S.a>S.b),
-     *            /tm2/e:$(S.a>S.b),
-     *
-     *            a:S.a,
-     *            a/m1:(S.b>5),
-     *            a/m2:(10),
-     *            a/m3:(S.a!=0),
-     *            a/m3/e:$(S.a!=0)
-     *       from S:S
-     *     ```
-     */
     if (attributes != null) {
       for (Attribute attr: attributes) {
         newCols.addAll(columnsForAttribute(attr, "/", aliased));
@@ -341,12 +327,11 @@ public class BaseRelation extends Relation {
       if (column.metadata() != null) {
         Boolean derived = column.metadata().evaluateAttribute(DERIVED);
         if (derived != null && derived) {
-          newCols.add(new Column(
-              column.context,
-              colAlias + "/e",
-              new UncomputedExpression(column.context, rename(column.expression(), aliased)),
-              null
-          ));
+          newCols.add(new Column(column.context,
+                                 colAlias + "/e",
+                                 new UncomputedExpression(column.context,
+                                                          rename(column.expression(), aliased)),
+                                 null));
         }
         for (Attribute attr: column.metadata().attributes().values()) {
           newCols.addAll(columnsForAttribute(attr, colAlias + '/', aliased));

@@ -74,12 +74,12 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
   public abstract QueryUpdate copy(String value, T2<String, ? extends Esql<?, ?>>... children);
 
   @Override
-  public Selection type() {
+  public Selection type(EsqlPath path) {
     if (type == null) {
       TableExpr from = tables();
       Relation fromType = from.type();
 
-      boolean expandColumns = !grouped() && ancestor(Cte.class) == null;
+      boolean expandColumns = !grouped() && path.ancestor(Cte.class) == null;
 
       /*
        * Add selected columns and metadata
@@ -95,9 +95,8 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
           }
 
           if (expandColumns
-           && column.expression() instanceof ColumnRef
+           && column.expression() instanceof ColumnRef ref
            && alias.indexOf('/') == -1) {
-            ColumnRef ref = (ColumnRef)column.expression();
             String refName = ref.name();
             if (!refName.equals(alias)) {
               aliased.put(refName, alias);
@@ -250,7 +249,7 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
     Map<String, Object> resultAttributes = new HashMap<>();
     List<T3<Integer, String, Type>> resultAttributeIndices = new ArrayList<>();
     int itemIndex = 0;
-    Selection selection = type();
+    Selection selection = type(path);
 
     /*
      * Output result metadata
@@ -273,7 +272,7 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
             query.append(", ");
           }
           appendExpression(query, attributeValue, target, qualifier, colName);
-          resultAttributeIndices.add(T3.of(itemIndex, attrName, attributeValue.type()));
+          resultAttributeIndices.add(T3.of(itemIndex, attrName, attributeValue.type(path)));
         }
       }
     }
@@ -301,7 +300,7 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
       columnToIndex.put(colName, columnIndex);
       columnMappings.put(colName, new ColumnMapping(itemIndex,
                                                     column,
-                                                    column.type(),
+                                                    column.type(path),
                                                     new ArrayList<>(),
                                                     new HashMap<>()));
     }
@@ -519,26 +518,23 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
 
   protected static void lineariseJoins(TableExpr tables,
                                        List<Join> joins) {
-    if (tables instanceof AbstractJoinTableExpr) {
-      AbstractJoinTableExpr join = (AbstractJoinTableExpr)tables;
+    if (tables instanceof AbstractJoinTableExpr join) {
       lineariseJoins(join.left(), joins);
 
       TableExpr right = join.right();
       lineariseJoins(right, joins);
-      if (join instanceof JoinTableExpr
-          && right instanceof SingleTableExpr) {
-        JoinTableExpr jt = (JoinTableExpr)join;
-        SingleTableExpr single = (SingleTableExpr)right;
+      if (join instanceof JoinTableExpr jt
+       && right instanceof SingleTableExpr single) {
         joins.add(new Join(jt.joinType(), single, jt.on()));
       }
     }
   }
 
   @Override
-  public Result execute(Database db, Connection con) {
+  public Result execute(Database db, Connection con, EsqlPath path) {
     QueryTranslation translation = translate(db.target());
     try {
-      Selection selection = type();
+      Selection selection = type(path);
       if (!selection.columns().isEmpty()) {
         ResultSet rs = con.createStatement(TYPE_SCROLL_INSENSITIVE, CONCUR_READ_ONLY)
                           .executeQuery(translation.statement);

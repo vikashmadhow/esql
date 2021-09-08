@@ -54,7 +54,7 @@ public class JsonObjectLiteral extends Literal<List<Attribute>> {
   }
 
   @Override
-  public Type type() {
+  public Type type(EsqlPath path) {
     /*
      * The database should treat this as an opaque string.
      */

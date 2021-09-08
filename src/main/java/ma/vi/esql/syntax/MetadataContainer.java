@@ -54,12 +54,12 @@ public abstract class MetadataContainer<V, R> extends Expression<V, R> {
     return child("metadata");
   }
 
-//  /**
-//   * Set metadata.
-//   */
-//  public void metadata(Metadata metadata) {
-//    child("metadata", metadata);
-//  }
+  /**
+   * Set metadata.
+   */
+  public <T extends MetadataContainer> T metadata(Metadata metadata) {
+    return (T)set(indexOf("metadata"), metadata);
+  }
 
   public Attribute attribute(String name) {
     return metadata() == null ? null : metadata().attribute(name);

@@ -56,7 +56,7 @@ public class QuantifiedComparison extends Expression<Expression<?, String>, Stri
   }
 
   @Override
-  public Type type() {
+  public Type type(EsqlPath path) {
     return Types.BoolType;
   }
 

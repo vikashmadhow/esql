@@ -52,7 +52,7 @@ public class FloatingPointLiteral extends BaseLiteral<String> {
   }
 
   @Override
-  public Type type() {
+  public Type type(EsqlPath path) {
     return Types.DoubleType;
   }
 

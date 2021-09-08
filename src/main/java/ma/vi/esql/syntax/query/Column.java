@@ -84,7 +84,7 @@ public class Column extends MetadataContainer<String, String> {
     return alias;
   }
 
-  public static Column fromDefinition(ColumnDefinition def) {
+  public static Column fromDefinition(ColumnDefinition def, EsqlPath path) {
     boolean derived = def instanceof DerivedColumnDefinition;
     DerivedColumnDefinition derivedDef = derived ? (DerivedColumnDefinition)def : null;
 
@@ -107,7 +107,7 @@ public class Column extends MetadataContainer<String, String> {
       attributes.put(EXPRESSION, new Attribute(def.context, EXPRESSION, defaultExpr));
     }
     attributes.put(TYPE, Attribute.from(def.context, TYPE,
-                                        derived ? "'" + derivedDef.expression().type().translate(ESQL) + "'" // Types.VoidType.translate(ESQL)
+                                        derived ? "'" + derivedDef.expression().type(path).translate(ESQL) + "'" // Types.VoidType.translate(ESQL)
                                                 : "'" + columnType.translate(ESQL) + "'"));
     if (notNull) {
       attributes.put(REQUIRED, Attribute.from(def.context, REQUIRED, true));
@@ -209,7 +209,7 @@ public class Column extends MetadataContainer<String, String> {
 //  }
 
   @Override
-  public Type type() {
+  public Type type(EsqlPath path) {
     if (metadata() != null && metadata().attribute(TYPE) != null) {
       Type type = Types.typeOf((String)metadata().evaluateAttribute(TYPE));
       if (type == Types.VoidType && derived()) {
@@ -217,7 +217,7 @@ public class Column extends MetadataContainer<String, String> {
          * Derived type are set to void on load. Their actual types can
          * be determined at this point.
          */
-        type = expression().type();
+        type = expression().type(path);
         if (type != Types.VoidType) {
 //          type(type);
 
@@ -239,7 +239,7 @@ public class Column extends MetadataContainer<String, String> {
       }
       return type;
     } else {
-      Type type = expression().type();
+      Type type = expression().type(path);
 //      type(type);
       return type;
     }

@@ -49,7 +49,7 @@ public class NullLiteral extends Literal<String> {
   }
 
   @Override
-  public Type type() {
+  public Type type(EsqlPath path) {
     return Types.NullType;
   }
 

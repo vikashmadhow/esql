@@ -223,11 +223,13 @@ public class Esql<V, R> implements Copy<Esql<V, R>>, Translatable<R> {
     return (T)copy;
   }
 
-  public Esql<V, R> set(String path, Esql<?, ?> child) {
-    return _set(path.split("/"), 0, child);
+  public <T extends Esql<V, R>> T setPath(String path, Esql<?, ?> child) {
+    return _setPath(path.split("/"), 0, child);
   }
 
-  private Esql<V, R> _set(String[] path, int indexInPath, Esql<?, ?> child) {
+  private <T extends Esql<V, R>> T _setPath(String[] path,
+                                            int indexInPath,
+                                            Esql<?, ?> child) {
     while (indexInPath < path.length
        && (path[indexInPath] == null || path[indexInPath].length() == 0)) {
       indexInPath++;
@@ -237,12 +239,12 @@ public class Esql<V, R> implements Copy<Esql<V, R>>, Translatable<R> {
       int childIndex = indexOf(path[indexInPath]);
       Esql<?, ?> childCopy = copy.get(childIndex);
       if (childCopy != null) {
-        Esql<?, ?> rep = childCopy._set(path, indexInPath++, child);
+        Esql<?, ?> rep = childCopy._setPath(path, indexInPath++, child);
         copy.children.set(childIndex, rep);
       }
-      return copy;
+      return (T)copy;
     } else {
-      return (Esql<V, R>)child;
+      return (T)child;
     }
   }
 
@@ -361,7 +363,7 @@ public class Esql<V, R> implements Copy<Esql<V, R>>, Translatable<R> {
    * Default is the {@link Type#Void} type representing the case that
    * the expression does not produce anything.
    */
-  public Type type() {
+  public Type type(EsqlPath path) {
     return VoidType;
   }
 
@@ -379,7 +381,7 @@ public class Esql<V, R> implements Copy<Esql<V, R>>, Translatable<R> {
     return TranslatorFactory.get(target).translate(this, path, parameters);
   }
 
-  public Result execute(Database db, Connection con) {
+  public Result execute(Database db, Connection con, EsqlPath path) {
     return Result.Nothing;
   }
 

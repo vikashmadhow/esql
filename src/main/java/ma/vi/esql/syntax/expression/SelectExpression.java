@@ -52,8 +52,8 @@ public class SelectExpression extends Expression<Select, String> {
   }
 
   @Override
-  public Type type() {
-    return select().columns().get(0).type();
+  public Type type(EsqlPath path) {
+    return select().columns().get(0).type(path);
   }
 
   @Override

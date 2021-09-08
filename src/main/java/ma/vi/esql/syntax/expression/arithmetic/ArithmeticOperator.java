@@ -9,6 +9,7 @@ import ma.vi.esql.syntax.Context;
 import ma.vi.esql.semantic.type.BaseType;
 import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.syntax.Esql;
+import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.expression.BinaryOperator;
 import ma.vi.esql.syntax.expression.DefaultValue;
 import ma.vi.esql.syntax.expression.Expression;
@@ -47,9 +48,9 @@ abstract class ArithmeticOperator extends BinaryOperator {
   public abstract ArithmeticOperator copy(String value, T2<String, ? extends Esql<?, ?>>... children);
 
   @Override
-  public Type type() {
-    Type leftType = expr1().type();
-    Type rightType = expr2().type();
+  public Type type(EsqlPath path) {
+    Type leftType = expr1().type(path);
+    Type rightType = expr2().type(path);
 
     if (leftType instanceof BaseType left
      && rightType instanceof BaseType right) {

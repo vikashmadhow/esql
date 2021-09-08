@@ -49,7 +49,7 @@ public class UuidLiteral extends BaseLiteral<UUID> {
   }
 
   @Override
-  public Type type() {
+  public Type type(EsqlPath path) {
     return Types.UuidType;
   }
 

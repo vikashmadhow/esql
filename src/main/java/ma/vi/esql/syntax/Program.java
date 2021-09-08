@@ -55,10 +55,10 @@ public class Program extends Esql<String, List<?>> {
   }
 
   @Override
-  public Result execute(Database database, Connection connection) {
+  public Result execute(Database db, Connection con, EsqlPath path) {
     Result result = Result.Nothing;
     for (Expression<?, ?> st: expressions()) {
-      Result r = st.execute(database, connection);
+      Result r = st.execute(db, con, path);
       if (r != Result.Nothing) {
         result = r;
       }

@@ -62,7 +62,7 @@ public class Range extends Expression<Expression<?, String>, String> {
   }
 
   @Override
-  public Type type() {
+  public Type type(EsqlPath path) {
     return Types.BoolType;
   }
 

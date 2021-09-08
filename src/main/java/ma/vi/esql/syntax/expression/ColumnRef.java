@@ -53,7 +53,7 @@ public class ColumnRef extends Expression<String, String> implements Macro {
   }
 
   @Override
-  public Type type() {
+  public Type type(EsqlPath path) {
     if (type == null) {
       if (qualifier() != null && context.type(qualifier()) instanceof Relation) {
         /*
@@ -62,17 +62,17 @@ public class ColumnRef extends Expression<String, String> implements Macro {
          */
         Column column = ((Relation)context.type(qualifier())).findColumn(null, name());
         if (column != null) {
-          type = column.type();
+          type = column.type(path);
         }
       }
       if (type == null) {
-        QueryUpdate qu = ancestor(QueryUpdate.class);
+        QueryUpdate qu = path.ancestor(QueryUpdate.class);
         if (qu != null) {
           /*
            * In a query check all levels as the column might refer to a table in
            * an outer level, if it is in a subquery, e.g.
            */
-          Column column = column(qu);
+          Column column = column(qu, path);
           if (column.expression() instanceof ColumnRef) {
             if (column.metadata() != null && column.metadata().attribute(TYPE) != null) {
               type = Types.typeOf((String)column.metadata().evaluateAttribute(TYPE));
@@ -80,21 +80,22 @@ public class ColumnRef extends Expression<String, String> implements Macro {
               type = Types.VoidType;
             }
           } else {
-            type = column.type();
+            type = column.type(path);
           }
         } else {
-          Column column = ancestor(Column.class);
-          if (column != null && column.parent != null && column.parent.value instanceof BaseRelation) {
+          Column column = path.ancestor(Column.class);
+          if (column != null
+           && column.has("relation")
+           && column.childValue("relation") instanceof BaseRelation rel) {
             /*
              * Derived columns which are part of base relations can use the type
              * information of the relation to find their correct type. (the columns
              * of base relations are loaded on startup and their type set to void
              * for derived columns).
              */
-            BaseRelation rel = (BaseRelation)column.parent.value;
             Column col = rel.findColumn(null, name());
             if (col != null) {
-              type = col.type();
+              type = col.type(path);
             }
           }
         }
@@ -103,12 +104,12 @@ public class ColumnRef extends Expression<String, String> implements Macro {
         /*
          * The column could be part of a create statement.
          */
-        CreateTable create = ancestor(CreateTable.class);
+        CreateTable create = path.ancestor(CreateTable.class);
         if (create != null) {
           for (ColumnDefinition col: create.columns()) {
             if (col.name().equals(name())) {
               if (col instanceof DerivedColumnDefinition) {
-                type = col.expression().type();
+                type = col.expression().type(path);
               } else {
                 type = col.type();
               }
@@ -118,7 +119,7 @@ public class ColumnRef extends Expression<String, String> implements Macro {
           /*
            * The column could be part of an alter table statement.
            */
-          AlterTable alter = ancestor(AlterTable.class);
+          AlterTable alter = path.ancestor(AlterTable.class);
           if (alter != null) {
             BaseRelation table = context.structure.relation(alter.name());
             if (table == null) {
@@ -128,7 +129,7 @@ public class ColumnRef extends Expression<String, String> implements Macro {
             if (column == null) {
               throw new TranslationException("Could not find field " + name() + " in table " + alter.name());
             }
-            type = column.type();
+            type = column.type(path);
           }
         }
       }
@@ -145,11 +146,17 @@ public class ColumnRef extends Expression<String, String> implements Macro {
    * find surrounding ones if the column cannot be successfully matched in
    * the current selection context.
    */
-  private Column column(QueryUpdate qu) {
+  private Column column(QueryUpdate qu, EsqlPath path) {
     Column column = null;
     while (column == null && qu != null) {
       column = qu.tables().type().findColumn(qualifier(), name());
-      qu = qu.parent() == null ? null : qu.parent().ancestor(QueryUpdate.class);
+      if (path == null) {
+        qu = null;
+      } else {
+        T2<QueryUpdate, EsqlPath> ancestor = path.ancestorAndPath(QueryUpdate.class);
+        qu = ancestor.a;
+        path = ancestor.b;
+      }
     }
     return column;
   }
@@ -190,7 +197,7 @@ public class ColumnRef extends Expression<String, String> implements Macro {
                          EsqlPath path,
                          Map<String, Object> parameters) {
     boolean sqlServerBool = target == Target.SQLSERVER
-                         && type() == Types.BoolType
+                         && type(path) == Types.BoolType
                          && !requireIif(path, parameters)
                          && (path.ancestor(Coalesce.class) == null);
     return switch (target) {

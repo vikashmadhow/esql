@@ -49,7 +49,7 @@ public class IntegerLiteral extends BaseLiteral<Long> {
   }
 
   @Override
-  public Type type() {
+  public Type type(EsqlPath path) {
     return Types.LongType;
   }
 

@@ -8,14 +8,13 @@ import ma.vi.base.collections.Sets;
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.database.Database;
 import ma.vi.esql.exec.Result;
+import ma.vi.esql.semantic.type.BaseRelation;
+import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.syntax.*;
 import ma.vi.esql.syntax.expression.ColumnRef;
-import ma.vi.esql.syntax.expression.DefaultValue;
 import ma.vi.esql.syntax.expression.Expression;
 import ma.vi.esql.syntax.query.Column;
 import ma.vi.esql.syntax.query.Select;
-import ma.vi.esql.semantic.type.BaseRelation;
-import ma.vi.esql.semantic.type.Type;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -29,8 +28,8 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static ma.vi.esql.builder.Attributes.DESCRIPTION;
 import static ma.vi.esql.builder.Attributes.NAME;
-import static ma.vi.esql.syntax.Translatable.Target.*;
 import static ma.vi.esql.semantic.type.Type.dbTableName;
+import static ma.vi.esql.syntax.Translatable.Target.*;
 
 /**
  * Create table statement.
@@ -100,8 +99,7 @@ public class CreateTable extends Define<String> {
     try {
       circularPath.add(column);
       expression.forEach((esql, path) -> {
-                           if (esql instanceof ColumnRef) {
-                             ColumnRef ref = (ColumnRef)esql;
+                           if (esql instanceof ColumnRef ref) {
                              String colName = ref.name();
                              if (!persistentCols.contains(colName) && !derivedCols.containsKey(colName)) {
                                throw new TranslationException("Unknown column " + colName
@@ -150,7 +148,7 @@ public class CreateTable extends Define<String> {
   }
 
   @Override
-  public Result execute(Database db, Connection con) {
+  public Result execute(Database db, Connection con, EsqlPath path) {
     try {
       // create schema if it does not exist already
       String tableName = name();
@@ -210,7 +208,7 @@ public class CreateTable extends Define<String> {
                                               tableDescription,
                                               new ArrayList<>(metadata().attributes().values()),
                                               columns().stream()
-                                                       .map(Column::fromDefinition)
+                                                       .map(c -> Column.fromDefinition(c, path))
                                                        .collect(toList()),
                                               constraints);
         /*
@@ -237,7 +235,7 @@ public class CreateTable extends Define<String> {
                                  tableName,
                                  singletonList(new AddTableDefinition(context, metadata())));
           alter.parent = this;
-          alter.execute(db, con);
+          alter.execute(db, con, path);
         }
 
         // add missing columns and alter existing ones if needed
@@ -253,12 +251,12 @@ public class CreateTable extends Define<String> {
                                    tableName,
                                    singletonList(new AddTableDefinition(context, column)));
             alter.parent = this;
-            alter.execute(db, con);
+            alter.execute(db, con, path);
           } else {
             /*
              * alter existing field
              */
-            Type toType = !existingColumn.type().equals(column.type()) ? column.type() : null;
+            Type toType = !existingColumn.type(path).equals(column.type()) ? column.type() : null;
 
             boolean setNotNull = column.notNull() != null
                 && column.notNull()
@@ -293,7 +291,7 @@ public class CreateTable extends Define<String> {
                                                                                              dropDefault,
                                                                                              metadata))));
               alter.parent = this;
-              alter.execute(db, con);
+              alter.execute(db, con, path);
             }
           }
         }
@@ -306,23 +304,22 @@ public class CreateTable extends Define<String> {
              * A constraint same as this one does not exist;: add it
              */
             new AlterTable(context, tableName,
-                           singletonList(new AddTableDefinition(context, constraint))).execute(db, con);
+                           singletonList(new AddTableDefinition(context, constraint))).execute(db, con, path);
           } else {
             /*
              * There is a similar constraint. For foreign keys check that the cascading
              * parameters have not changed. If so, update the constraint by dropping
              * the existing one and recreating it with the new definition.
              */
-            if (constraint instanceof ForeignKeyConstraint) {
-              ForeignKeyConstraint fk = (ForeignKeyConstraint)constraint;
+            if (constraint instanceof ForeignKeyConstraint fk) {
               ForeignKeyConstraint existing = (ForeignKeyConstraint)tableConstraint;
               if (!Objects.equals(fk.onDelete(), existing.onDelete())
                   || !Objects.equals(fk.onUpdate(), existing.onUpdate())) {
 
                 new AlterTable(context, tableName,
-                               singletonList(new DropConstraint(context, tableConstraint.name()))).execute(db, con);
+                               singletonList(new DropConstraint(context, tableConstraint.name()))).execute(db, con, path);
                 new AlterTable(context, tableName,
-                               singletonList(new AddTableDefinition(context, constraint))).execute(db, con);
+                               singletonList(new AddTableDefinition(context, constraint))).execute(db, con, path);
               }
             }
           }
@@ -346,7 +343,7 @@ public class CreateTable extends Define<String> {
               alter = new AlterTable(context, tableName,
                                      singletonList(new DropColumn(context, columnName)));
               alter.parent = this;
-              alter.execute(db, con);
+              alter.execute(db, con, path);
             }
           }
 
@@ -370,7 +367,7 @@ public class CreateTable extends Define<String> {
             }
           }
           for (String c: toDrop) {
-            new AlterTable(context, tableName, singletonList(new DropConstraint(context, c))).execute(db, con);
+            new AlterTable(context, tableName, singletonList(new DropConstraint(context, c))).execute(db, con, path);
           }
 
           /*
@@ -381,7 +378,7 @@ public class CreateTable extends Define<String> {
               || metadata().attributes().isEmpty()) {
             alter = new AlterTable(context, tableName, singletonList(new DropMetadata(context)));
             alter.parent = this;
-            alter.execute(db, con);
+            alter.execute(db, con, path);
           }
         }
       }

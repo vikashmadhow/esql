@@ -68,14 +68,14 @@ public class FunctionCall extends Expression<String, String> implements Macro {
   }
 
   @Override
-  public Type type() {
+  public Type type(EsqlPath path) {
     Type type = Types.TopType;
     List<Expression<?, ?>> arguments = arguments();
     Function function = context.structure.function(functionName());
     if (function != null) {
       type = function.returnType;
       if (type.equals(Types.AsParameterType) && !arguments.isEmpty()) {
-        type = arguments.get(0).type();
+        type = arguments.get(0).type(path);
       }
     }
     return type;

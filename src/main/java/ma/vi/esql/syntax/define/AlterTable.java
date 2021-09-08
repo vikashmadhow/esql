@@ -79,7 +79,7 @@ public class AlterTable extends Define<String> {
   }
 
   @Override
-  public Result execute(Database db, Connection con) {
+  public Result execute(Database db, Connection con, EsqlPath path) {
     String name = name();
     String dbName = dbTableName(name, db.target());
     Structure s = context.structure;
@@ -89,11 +89,10 @@ public class AlterTable extends Define<String> {
     }
     try {
       for (Alteration alteration: alterations()) {
-        if (alteration instanceof RenameTable) {
+        if (alteration instanceof RenameTable rename) {
           /*
            * Rename table
            */
-          RenameTable rename = (RenameTable)alteration;
           T2<String, String> split = splitName(name);
           String schema = split.a;
           String newFullName = schema + '.' + rename.toName();
@@ -117,11 +116,10 @@ public class AlterTable extends Define<String> {
            * Add table definitions (columns, constraints and metadata)
            */
           TableDefinition definition = ((AddTableDefinition)alteration).definition();
-          if (definition instanceof ColumnDefinition) {
+          if (definition instanceof ColumnDefinition column) {
             /*
              * add a column to table
              */
-            ColumnDefinition column = (ColumnDefinition)definition;
             if (!(column instanceof DerivedColumnDefinition)) {
               /*
                * Alter table only for non-derived columns. Derived columns
@@ -134,7 +132,7 @@ public class AlterTable extends Define<String> {
                                                         " ADD COLUMN " + column.translate(db.target()));
               }
             }
-            Column col = Column.fromDefinition(column);
+            Column col = Column.fromDefinition(column, path);
             if (parent instanceof CreateTable) {
               col.parent = parent;
             } else {
@@ -143,29 +141,26 @@ public class AlterTable extends Define<String> {
             s.database.column(con, relation.id(), col);
             relation.addColumn(col);
 
-          } else if (definition instanceof ConstraintDefinition) {
+          } else if (definition instanceof ConstraintDefinition constraint) {
             /*
              * add a constraint to table
              */
-            ConstraintDefinition constraint = (ConstraintDefinition)definition;
             con.createStatement().executeUpdate("ALTER TABLE " + dbName +
                                                     " ADD " + constraint.translate(db.target()));
             s.database.constraint(con, relation.id(), constraint);
             relation.constraint(constraint);
 
-            if (constraint instanceof ForeignKeyConstraint) {
-              ForeignKeyConstraint foreign = (ForeignKeyConstraint)constraint;
+            if (constraint instanceof ForeignKeyConstraint foreign) {
               BaseRelation targetTable = db.structure().relation(foreign.targetTable());
               if (targetTable != null) {
                 targetTable.dependentConstraint(foreign);
               }
             }
 
-          } else if (definition instanceof Metadata) {
+          } else if (definition instanceof Metadata metadata) {
             /*
              * add table metadata, removing previous ones
              */
-            Metadata metadata = (Metadata)definition;
             s.database.clearTableMetadata(con, relation.id());
             s.database.tableMetadata(con, relation.id(), metadata);
 
@@ -174,8 +169,7 @@ public class AlterTable extends Define<String> {
               relation.attribute(attr.name(), attr.attributeValue());
             }
           }
-        } else if (alteration instanceof AlterColumn) {
-          AlterColumn alterCol = (AlterColumn)alteration;
+        } else if (alteration instanceof AlterColumn alterCol) {
           Column column = relation.column(alterCol.columnName());
           if (column == null) {
             throw new IllegalArgumentException("Relation " + name() + " does not contain column " + alterCol.columnName());
@@ -284,7 +278,7 @@ public class AlterTable extends Define<String> {
                 con.createStatement().executeUpdate(
                     "ALTER TABLE " + dbName +
                         " ALTER COLUMN \"" + column.alias() +
-                        "\" " + column.type().translate(db.target()) + " NOT NULL");
+                        "\" " + column.type(path).translate(db.target()) + " NOT NULL");
               } else {
                 con.createStatement().executeUpdate(
                     "ALTER TABLE " + dbName +
@@ -304,7 +298,7 @@ public class AlterTable extends Define<String> {
                 con.createStatement().executeUpdate(
                     "ALTER TABLE " + dbName +
                         " ALTER COLUMN \"" + column.alias() +
-                        "\" " + column.type().translate(db.target()) + " NULL");
+                        "\" " + column.type(path).translate(db.target()) + " NULL");
               } else {
                 con.createStatement().executeUpdate(
                     "ALTER TABLE " + dbName +
@@ -327,11 +321,10 @@ public class AlterTable extends Define<String> {
               column.attribute(attr.name(), attr.attributeValue());
             }
           }
-        } else if (alteration instanceof DropColumn) {
+        } else if (alteration instanceof DropColumn drop) {
           /*
            * Drop a column.
            */
-          DropColumn drop = (DropColumn)alteration;
           Column column = relation.column(drop.columnName());
           if (column == null) {
             throw new IllegalArgumentException("Relation " + name() + " does not contain column " + drop.columnName());
@@ -343,7 +336,7 @@ public class AlterTable extends Define<String> {
             for (ConstraintDefinition c: new ArrayList<>(constraints)) {
               if (c.columns().contains(column.alias())) {
                 new AlterTable(context, relation.name(),
-                               singletonList(new DropConstraint(context, c.name()))).execute(db, con);
+                               singletonList(new DropConstraint(context, c.name()))).execute(db, con, path);
               }
             }
           }
@@ -359,11 +352,10 @@ public class AlterTable extends Define<String> {
           s.database.dropColumn(con, column.id());
           relation.removeColumn(drop.columnName());
 
-        } else if (alteration instanceof DropConstraint) {
+        } else if (alteration instanceof DropConstraint drop) {
           /*
            * Drop a constraint.
            */
-          DropConstraint drop = (DropConstraint)alteration;
           ConstraintDefinition c = relation.constraint(drop.constraintName());
 
           if (c == null) {
@@ -397,6 +389,6 @@ public class AlterTable extends Define<String> {
   }
 
   public List<Alteration> alterations() {
-    return child("alterations").childrenList();
+    return child("alterations").children();
   }
 }

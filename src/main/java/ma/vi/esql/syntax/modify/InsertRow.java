@@ -46,7 +46,7 @@ public class InsertRow extends Expression<List<Expression<?, String>>, String> {
   }
 
   @Override
-  public Type type() {
+  public Type type(EsqlPath path) {
     return Types.BoolType;
   }
 

@@ -5,9 +5,10 @@
 package ma.vi.esql.syntax.expression;
 
 import ma.vi.base.tuple.T2;
-import ma.vi.esql.syntax.Context;
 import ma.vi.esql.semantic.type.Type;
+import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
+import ma.vi.esql.syntax.EsqlPath;
 
 /**
  * Abstract parent of ESQL expressions taking exactly one argument.
@@ -15,8 +16,8 @@ import ma.vi.esql.syntax.Esql;
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 public abstract class SingleSubExpression extends Expression<Expression<?, String>, String> {
-  public SingleSubExpression(Context context, Expression<?, String> expr) {
-    super(context, expr);
+  public SingleSubExpression(Context context, Expression<?, String> expr, T2<String, ? extends Esql<?, ?>>... children) {
+    super(context, expr, children);
   }
 
   public SingleSubExpression(SingleSubExpression other) {
@@ -39,8 +40,8 @@ public abstract class SingleSubExpression extends Expression<Expression<?, Strin
   public abstract SingleSubExpression copy(Expression<?, String> value, T2<String, ? extends Esql<?, ?>>... children);
 
   @Override
-  public Type type() {
-    return expr().type();
+  public Type type(EsqlPath path) {
+    return expr().type(path);
   }
 
   public Expression<?, String> expr() {

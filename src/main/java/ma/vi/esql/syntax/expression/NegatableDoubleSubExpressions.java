@@ -47,7 +47,7 @@ public abstract class NegatableDoubleSubExpressions<V> extends Expression<V, Str
   public abstract NegatableDoubleSubExpressions<V> copy(V value, T2<String, ? extends Esql<?, ?>>... children);
 
   @Override
-  public Type type() {
+  public Type type(EsqlPath path) {
     return Types.BoolType;
   }
 
