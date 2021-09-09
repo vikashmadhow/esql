@@ -17,8 +17,8 @@ import java.util.Properties;
 
 import static ma.vi.base.collections.ArrayUtils.ARRAY_ESCAPE;
 import static ma.vi.base.lang.Errors.unchecked;
-import static ma.vi.esql.syntax.Translatable.Target.SQLSERVER;
 import static ma.vi.esql.semantic.type.BaseType.BASE_TYPE;
+import static ma.vi.esql.syntax.Translatable.Target.SQLSERVER;
 
 /**
  * @author Vikash Madhow (vikash.madhow@gmail.com)

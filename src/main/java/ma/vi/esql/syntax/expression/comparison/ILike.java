@@ -11,7 +11,6 @@ import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.Translatable;
 import ma.vi.esql.syntax.expression.Expression;
 import ma.vi.esql.syntax.expression.NegatableDoubleSubExpressions;
-import ma.vi.esql.syntax.expression.literal.NullLiteral;
 
 import java.util.Map;
 

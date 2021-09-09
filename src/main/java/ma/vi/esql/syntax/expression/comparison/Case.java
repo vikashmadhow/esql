@@ -10,7 +10,6 @@ import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.expression.Expression;
 import ma.vi.esql.syntax.expression.MultipleSubExpressions;
-import ma.vi.esql.syntax.expression.literal.NullLiteral;
 
 import java.util.HashMap;
 import java.util.Iterator;

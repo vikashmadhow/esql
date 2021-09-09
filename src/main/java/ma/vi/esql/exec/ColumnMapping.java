@@ -5,8 +5,8 @@
 package ma.vi.esql.exec;
 
 import ma.vi.base.tuple.T3;
-import ma.vi.esql.syntax.query.Column;
 import ma.vi.esql.semantic.type.Type;
+import ma.vi.esql.syntax.query.Column;
 
 import java.util.List;
 import java.util.Map;

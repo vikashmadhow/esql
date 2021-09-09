@@ -9,7 +9,6 @@ import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
-import ma.vi.esql.syntax.expression.literal.NullLiteral;
 
 import java.util.List;
 import java.util.Map;
@@ -79,7 +78,7 @@ public class Coalesce extends MultipleSubExpressions<String> {
 
       default -> {
         boolean sqlServerBool = target == Target.SQLSERVER
-                             && type() == Types.BoolType
+                             && type(path) == Types.BoolType
                              && (path.ancestor("on") != null || path.ancestor("where") != null || path.ancestor("having") != null)
                              && (path.ancestor(Coalesce.class) == null);
         StringBuilder st = new StringBuilder();

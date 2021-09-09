@@ -5,9 +5,10 @@
 package ma.vi.esql.syntax.query;
 
 import ma.vi.base.tuple.T2;
-import ma.vi.esql.syntax.Context;
 import ma.vi.esql.semantic.type.Join;
+import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
+import ma.vi.esql.syntax.EsqlPath;
 
 import java.util.Arrays;
 import java.util.stream.Stream;
@@ -56,9 +57,9 @@ public abstract class AbstractJoinTableExpr extends TableExpr {
   public abstract AbstractJoinTableExpr copy(String value, T2<String, ? extends Esql<?, ?>>... children);
 
   @Override
-  public Join type() {
+  public Join type(EsqlPath path) {
     if (type == null) {
-      type = new Join(left().type(), right().type());
+      type = new Join(left().type(path), right().type(path));
     }
     return type;
   }

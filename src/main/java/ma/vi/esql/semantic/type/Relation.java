@@ -53,12 +53,12 @@ public abstract class Relation extends AbstractType {
     super(other);
   }
 
+  @Override
+  public abstract Relation copy();
+
   public Relation forAlias(String alias) {
     return alias == null ? this : null;
   }
-
-  @Override
-  public abstract Relation copy();
 
   @Override
   public Kind kind() {

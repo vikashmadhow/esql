@@ -6,10 +6,11 @@ package ma.vi.esql.function.date;
 
 import ma.vi.esql.function.Function;
 import ma.vi.esql.function.FunctionParameter;
+import ma.vi.esql.semantic.type.Types;
+import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.Translatable;
 import ma.vi.esql.syntax.expression.Expression;
 import ma.vi.esql.syntax.expression.FunctionCall;
-import ma.vi.esql.semantic.type.Types;
 
 import java.util.List;
 
@@ -29,9 +30,9 @@ public class EndOfMonth extends Function {
   }
 
   @Override
-  public String translate(FunctionCall call, Translatable.Target target) {
+  public String translate(FunctionCall call, Translatable.Target target, EsqlPath path) {
     List<Expression<?, ?>> args = call.arguments();
-    String arg = args.get(0).translate(target).toString();
+    String arg = args.get(0).translate(target, path.add(args.get(0))).toString();
     if (target == POSTGRESQL) {
       return "(date_trunc('MONTH', " + arg + ") + INTERVAL '1 MONTH - 1 day')::DATE";
 

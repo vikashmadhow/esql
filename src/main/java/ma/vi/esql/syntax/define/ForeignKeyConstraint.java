@@ -4,22 +4,17 @@
 
 package ma.vi.esql.syntax.define;
 
-import ma.vi.base.string.Strings;
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
-import ma.vi.esql.syntax.expression.DefaultValue;
 
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
-import static java.util.stream.Collectors.joining;
-import static ma.vi.esql.syntax.Translatable.Target.MARIADB;
-import static ma.vi.esql.syntax.Translatable.Target.MYSQL;
 import static ma.vi.esql.semantic.type.Type.dbTableName;
-import static ma.vi.esql.semantic.type.Type.splitName;
+import static ma.vi.esql.syntax.Translatable.Target.*;
 
 /**
  * Represents a foreign key in ESQL statement
@@ -30,6 +25,7 @@ import static ma.vi.esql.semantic.type.Type.splitName;
 public class ForeignKeyConstraint extends ConstraintDefinition {
   public ForeignKeyConstraint(Context context,
                               String name,
+                              String sourceTable,
                               List<String> sourceColumns,
                               String targetTable,
                               List<String> targetColumns,
@@ -37,14 +33,16 @@ public class ForeignKeyConstraint extends ConstraintDefinition {
                               int reverseCost,
                               ForeignKeyChangeAction onUpdate,
                               ForeignKeyChangeAction onDelete) {
-    super(context, name,
-        T2.of("columns", new Esql<>(context, sourceColumns)),
-        T2.of("targetTable", new Esql<>(context, targetTable)),
-        T2.of("targetColumns", new Esql<>(context, targetColumns)),
-        T2.of("forwardCost", new Esql<>(context, forwardCost)),
-        T2.of("reverseCost", new Esql<>(context, reverseCost)),
-        T2.of("onUpdate", new Esql<>(context, onUpdate)),
-        T2.of("onDelete", new Esql<>(context, onDelete)));
+    super(context,
+          name != null ? name : defaultConstraintName("fk_", sourceColumns, targetColumns),
+          sourceTable,
+          sourceColumns,
+          T2.of("targetTable", new Esql<>(context, targetTable)),
+          T2.of("targetColumns", new Esql<>(context, targetColumns)),
+          T2.of("forwardCost", new Esql<>(context, forwardCost)),
+          T2.of("reverseCost", new Esql<>(context, reverseCost)),
+          T2.of("onUpdate", new Esql<>(context, onUpdate)),
+          T2.of("onDelete", new Esql<>(context, onDelete)));
   }
 
   public ForeignKeyConstraint(ForeignKeyConstraint other) {
@@ -92,39 +90,20 @@ public class ForeignKeyConstraint extends ConstraintDefinition {
 
   @Override
   protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
-    return "constraint "
-        + '"' + (name() != null ? name() : defaultConstraintName(target, namePrefix())) + '"'
-        + " foreign key(" + quotedColumnsList(sourceColumns()) + ") "
-        + "references " + dbTableName(targetTable(), target) + '('
-        + quotedColumnsList(targetColumns()) + ')'
-        + (onUpdate() != null ? " on update " + onUpdate().keyword : "")
-        + (onDelete() != null ? " on delete " + onDelete().keyword : "");
-  }
-
-  @Override
-  protected String defaultConstraintName(Target target, String prefix) {
-    String name = (prefix != null ? prefix : "")
-         + sourceColumns().stream()
-                         .map(String::toLowerCase)
-                         .collect(joining("_"))
-         + "_" + splitName(targetTable()).b + '_'
-         + targetColumns().stream()
-                         .map(String::toLowerCase)
-                         .collect(joining("_"))
-         + '_' + Strings.random(4);
-    if (target == MARIADB || target == MYSQL) {
+    String name = name();
+    if (name.length() >= 64 && (target == MARIADB || target == MYSQL)) {
       /*
        * Identifiers in MySQL and MariaDB are limited to 64 characters.
        */
-      return name.length() < 64 ? name : name.substring(name.length() - 64);
-    } else {
-      return name;
+      name = name.substring(name.length() - 64);
     }
-  }
-
-  @Override
-  protected String namePrefix() {
-    return "fk_";
+    return "constraint "
+      + '"' + name + '"'
+      + " foreign key(" + quotedColumnsList(sourceColumns()) + ") "
+      + "references " + dbTableName(targetTable(), target) + '('
+      + quotedColumnsList(targetColumns()) + ')'
+      + (onUpdate() != null ? " on update " + onUpdate().keyword : "")
+      + (onDelete() != null ? " on delete " + onDelete().keyword : "");
   }
 
   public List<String> sourceColumns() {

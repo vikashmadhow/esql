@@ -303,7 +303,7 @@ public class Esql<V, R> implements Copy<Esql<V, R>>, Translatable<R> {
     }
   }
 
-  public Esql<V, R> map(BiFunction<Esql<?, ?>, EsqlPath, Esql<?, ?>> mapper) {
+  public <T extends Esql<V, R>> T map(BiFunction<Esql<?, ?>, EsqlPath, Esql<?, ?>> mapper) {
     return map(mapper, null);
   }
 
@@ -317,8 +317,8 @@ public class Esql<V, R> implements Copy<Esql<V, R>>, Translatable<R> {
    * @param explore
    * @return
    */
-  public Esql<V, R> map(BiFunction<Esql<?, ?>, EsqlPath, Esql<?, ?>> mapper,
-                        Predicate<Esql<?, ?>> explore) {
+  public <T extends Esql<V, R>> T map(BiFunction<Esql<?, ?>, EsqlPath, Esql<?, ?>> mapper,
+                                      Predicate<Esql<?, ?>> explore) {
     return _map(mapper, explore, new EsqlPath(this));
   }
 
@@ -332,9 +332,9 @@ public class Esql<V, R> implements Copy<Esql<V, R>>, Translatable<R> {
    * @param explore
    * @return
    */
-  private Esql<V, R> _map(BiFunction<Esql<?, ?>, EsqlPath, Esql<?, ?>> mapper,
-                          Predicate<Esql<?, ?>> explore,
-                          EsqlPath path) {
+  private <T extends Esql<V, R>> T _map(BiFunction<Esql<?, ?>, EsqlPath, Esql<?, ?>> mapper,
+                                        Predicate<Esql<?, ?>> explore,
+                                        EsqlPath path) {
     if (explore == null || explore.test(this)) {
       Esql<V, R> mapped = (Esql<V, R>)mapper.apply(this, path);
       if (mapped == null) {
@@ -353,9 +353,9 @@ public class Esql<V, R> implements Copy<Esql<V, R>>, Translatable<R> {
           }
         }
       }
-      return copy != null ? copy : mapped;
+      return (T)(copy != null ? copy : mapped);
     }
-    return this;
+    return (T)this;
   }
 
   /**

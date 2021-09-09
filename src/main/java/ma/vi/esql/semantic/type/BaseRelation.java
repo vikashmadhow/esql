@@ -143,6 +143,14 @@ public class BaseRelation extends Relation {
     }
   }
 
+  public void addOrReplaceColumn(Column column) {
+    String columnName = column.alias();
+    if (hasColumn(columnName)) {
+      removeColumn(columnName);
+    }
+    addColumn(column);
+  }
+
   public boolean removeColumn(String columnName) {
     List<T2<String, Column>> cols = columnsByAlias.getPrefixed(columnName);
     columnsByAlias.deletePrefixed(columnName);

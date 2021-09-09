@@ -1,3 +1,4 @@
+
 # Changelog
 All notable changes to this project will be documented in this file.
 
@@ -42,6 +43,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New simpler macro interface.
 - New copy constructor and method allowing changes to be applied to the value and
   children of the copy.
+- EsqlPath added to type() and execute() methods to allow for searching for
+  ancestors in those methods"
 
 ## [0.5.2] - 2021-08-19
 ### Refactored

@@ -5,13 +5,12 @@
 package ma.vi.esql.syntax.expression.literal;
 
 import ma.vi.base.tuple.T2;
-import ma.vi.esql.syntax.Context;
 import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.semantic.type.Types;
+import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.Translatable;
-import ma.vi.esql.syntax.expression.DefaultValue;
 import org.json.JSONArray;
 
 import java.util.List;
@@ -81,9 +80,9 @@ public class JsonArrayLiteral extends Literal<List<Literal<?>>> {
   }
 
   @Override
-  public JSONArray value(Translatable.Target target) {
+  public JSONArray value(Translatable.Target target, EsqlPath path) {
     return new JSONArray(items().stream()
-                                .map(e -> e.value(target))
+                                .map(e -> e.value(target, path))
                                 .collect(Collectors.toList()));
   }
 

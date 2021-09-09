@@ -4,18 +4,21 @@
 
 package ma.vi.esql.database;
 
-import ma.vi.esql.function.*;
+import ma.vi.esql.function.Function;
+import ma.vi.esql.function.FunctionParameter;
+import ma.vi.esql.function.Range;
 import ma.vi.esql.function.date.*;
 import ma.vi.esql.function.string.*;
+import ma.vi.esql.semantic.type.BaseRelation;
+import ma.vi.esql.semantic.type.Sequence;
+import ma.vi.esql.semantic.type.Type;
+import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.Translatable;
 import ma.vi.esql.syntax.TranslationException;
 import ma.vi.esql.syntax.expression.Expression;
 import ma.vi.esql.syntax.expression.FunctionCall;
 import ma.vi.esql.syntax.macro.Bin;
 import ma.vi.esql.syntax.macro.InMonth;
-import ma.vi.esql.semantic.type.BaseRelation;
-import ma.vi.esql.semantic.type.Sequence;
-import ma.vi.esql.semantic.type.Type;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -25,8 +28,8 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.*;
 import static java.util.stream.Collectors.joining;
 import static ma.vi.esql.function.date.DatePart.Part.*;
-import static ma.vi.esql.syntax.Translatable.Target.*;
 import static ma.vi.esql.semantic.type.Types.*;
+import static ma.vi.esql.syntax.Translatable.Target.*;
 
 /**
  * Holds type information on the objects of interest, such as tables
@@ -43,7 +46,7 @@ public class Structure {
      */
     UnknownFunction = new Function("<unknown_function>", TopType, emptyList()) {
       @Override
-      public String translate(FunctionCall call, Translatable.Target target) {
+      public String translate(FunctionCall call, Translatable.Target target, EsqlPath path) {
         String functionName = call.functionName();
         if (functionName.contains(".")) {
           functionName = Type.dbTableName(functionName, target);

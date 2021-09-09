@@ -149,7 +149,7 @@ public class ColumnRef extends Expression<String, String> implements Macro {
   private Column column(QueryUpdate qu, EsqlPath path) {
     Column column = null;
     while (column == null && qu != null) {
-      column = qu.tables().type().findColumn(qualifier(), name());
+      column = qu.tables().type(path).findColumn(qualifier(), name());
       if (path == null) {
         qu = null;
       } else {
@@ -173,7 +173,7 @@ public class ColumnRef extends Expression<String, String> implements Macro {
   public Esql<?, ?> expand(Esql<?, ?> esql, EsqlPath path)  {
     QueryUpdate stmt = path.ancestor(QueryUpdate.class);
     if (stmt != null) {
-      Relation rel = stmt.tables().type();
+      Relation rel = stmt.tables().type(path);
       if (qualifier() != null) {
         rel = rel.forAlias(qualifier());
       }

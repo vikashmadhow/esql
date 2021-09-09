@@ -53,7 +53,7 @@ public class SingleTableExpr extends AbstractAliasTableExpr {
   }
 
   @Override
-  public AliasedRelation type() {
+  public AliasedRelation type(EsqlPath path) {
 //    if (type == null) {
 //      type = new AliasedRelation(relation(), alias());
 ////      type = (BaseRelation)t;
@@ -70,10 +70,10 @@ public class SingleTableExpr extends AbstractAliasTableExpr {
          * for 'with' queries, ensure that CTEs have been added to local type registry
          * before throwing an exception
          */
-        With with = ancestor(With.class);
+        With with = path.ancestor(With.class);
         if (with != null) {
           for (Cte cte: with.ctes()) {
-            cte.type();
+            cte.type(path);
           }
         }
         t = context.type(table);

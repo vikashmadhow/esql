@@ -9,7 +9,6 @@ import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.Translatable;
-import ma.vi.esql.syntax.expression.DefaultValue;
 import ma.vi.esql.syntax.expression.Expression;
 
 import java.util.Map;

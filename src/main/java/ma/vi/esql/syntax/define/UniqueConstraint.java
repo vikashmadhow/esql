@@ -8,11 +8,13 @@ import ma.vi.base.tuple.T2;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
-import ma.vi.esql.syntax.expression.DefaultValue;
 
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+
+import static ma.vi.esql.syntax.Translatable.Target.MARIADB;
+import static ma.vi.esql.syntax.Translatable.Target.MYSQL;
 
 /**
  * A unique constraint over one or more columns of a table.
@@ -20,8 +22,14 @@ import java.util.Map;
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 public class UniqueConstraint extends ConstraintDefinition {
-  public UniqueConstraint(Context context, String name, List<String> columns) {
-    super(context, name, T2.of("columns", new Esql<>(context, columns)));
+  public UniqueConstraint(Context context,
+                          String name,
+                          String table,
+                          List<String> columns) {
+    super(context,
+          name != null ? name : defaultConstraintName("uq_", columns),
+          table,
+          columns);
   }
 
   public UniqueConstraint(UniqueConstraint other) {
@@ -67,13 +75,15 @@ public class UniqueConstraint extends ConstraintDefinition {
 
   @Override
   protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
+    String name = name();
+    if (name.length() >= 64 && (target == MARIADB || target == MYSQL)) {
+      /*
+       * Identifiers in MySQL and MariaDB are limited to 64 characters.
+       */
+      name = name.substring(name.length() - 64);
+    }
     return "constraint "
-        + '"' + (name() != null ? name() : defaultConstraintName(target, namePrefix())) + '"'
+        + '"' + name + '"'
         + " unique(" + quotedColumnsList(columns()) + ')';
-  }
-
-  @Override
-  protected String namePrefix() {
-    return "uq_";
   }
 }

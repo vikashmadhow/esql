@@ -8,7 +8,6 @@ import ma.vi.base.tuple.T2;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
-import ma.vi.esql.syntax.expression.DefaultValue;
 import ma.vi.esql.syntax.expression.Expression;
 
 import java.util.List;
@@ -93,7 +92,7 @@ public class Metadata extends TableDefinition {
       return null;
     } else {
       Expression<?, String> expr = a.attributeValue();
-      return (T)expr.value(Target.ESQL);
+      return (T)expr.value(Target.ESQL, new EsqlPath(expr));
     }
   }
 }

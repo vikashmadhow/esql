@@ -6,6 +6,7 @@ package ma.vi.esql;
 
 import ma.vi.esql.database.Database;
 import ma.vi.esql.database.Structure;
+import ma.vi.esql.semantic.type.BaseRelation;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.EsqlTransformer;
 import ma.vi.esql.syntax.Parser;
@@ -15,7 +16,6 @@ import ma.vi.esql.syntax.define.ConstraintDefinition;
 import ma.vi.esql.syntax.define.Metadata;
 import ma.vi.esql.syntax.query.Column;
 import ma.vi.esql.translator.*;
-import ma.vi.esql.semantic.type.BaseRelation;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;

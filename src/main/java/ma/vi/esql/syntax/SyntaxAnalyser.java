@@ -971,8 +971,9 @@ public class SyntaxAnalyser extends EsqlBaseListener {
                         .collect(toList());
 
     String tableName = value(ctx.qualifiedName());
+    List<ConstraintDefinition> withAddedTable = new ArrayList<>();
     for (ConstraintDefinition c: constraints) {
-      c.table(tableName);
+      withAddedTable.add(c.table(tableName));
     }
 
     List<Metadata> metadata =
@@ -989,7 +990,7 @@ public class SyntaxAnalyser extends EsqlBaseListener {
                                     tableName,
                                     ctx.dropUndefined() != null,
                                     columns,
-                                    constraints,
+                                    withAddedTable,
                                     new Metadata(context, attributes)));
   }
 
@@ -1039,16 +1040,17 @@ public class SyntaxAnalyser extends EsqlBaseListener {
   public void exitAlterTable(AlterTableContext ctx) {
     String tableName = value(ctx.qualifiedName());
     List<Alteration> alterations = value(ctx.alterations());
+    List<Alteration> withAddedTable = new ArrayList<>();
     for (Alteration alteration: alterations) {
-      if (alteration instanceof AddTableDefinition) {
-        AddTableDefinition def = (AddTableDefinition)alteration;
-        if (def.definition() instanceof ConstraintDefinition) {
-          ConstraintDefinition constraint = (ConstraintDefinition)def.definition();
-          constraint.table(tableName);
-        }
+      if (alteration instanceof AddTableDefinition def
+       && def.definition() instanceof ConstraintDefinition constraint) {
+        withAddedTable.add(new AddTableDefinition(context, constraint.table(tableName)));
+      } else {
+        withAddedTable.add(alteration);
       }
     }
-    put(ctx.parent, new AlterTable(context, tableName, alterations));
+    put(ctx.alterations(), new Esql<>(context, withAddedTable));
+    put(ctx.parent, new AlterTable(context, tableName, withAddedTable));
   }
 
   @Override
@@ -1141,12 +1143,12 @@ public class SyntaxAnalyser extends EsqlBaseListener {
 
   @Override
   public void exitUniqueConstraint(UniqueConstraintContext ctx) {
-    put(ctx, new UniqueConstraint(context, value(ctx.constraintName()), value(ctx.names())));
+    put(ctx, new UniqueConstraint(context, value(ctx.constraintName()), "unknown_table", value(ctx.names())));
   }
 
   @Override
   public void exitPrimaryKeyConstraint(PrimaryKeyConstraintContext ctx) {
-    put(ctx, new PrimaryKeyConstraint(context, value(ctx.constraintName()), value(ctx.names())));
+    put(ctx, new PrimaryKeyConstraint(context, value(ctx.constraintName()), "unknown_table", value(ctx.names())));
   }
 
   @Override
@@ -1172,6 +1174,7 @@ public class SyntaxAnalyser extends EsqlBaseListener {
     put(ctx, new ForeignKeyConstraint(
         context,
         value(ctx.constraintName()),
+        "unknown_table",
         value(ctx.from),
         value(ctx.qualifiedName()),
         value(ctx.to),
@@ -1203,7 +1206,7 @@ public class SyntaxAnalyser extends EsqlBaseListener {
 
   @Override
   public void exitCheckConstraint(CheckConstraintContext ctx) {
-    put(ctx, new CheckConstraint(context, value(ctx.constraintName()), get(ctx.expr())));
+    put(ctx, new CheckConstraint(context, value(ctx.constraintName()), "unknown_table", get(ctx.expr())));
   }
 
   @Override

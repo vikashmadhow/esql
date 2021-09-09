@@ -7,7 +7,6 @@ package ma.vi.esql.syntax.expression.comparison;
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
-import ma.vi.esql.syntax.expression.DefaultValue;
 import ma.vi.esql.syntax.expression.Expression;
 
 /**
@@ -42,6 +41,6 @@ public class LessThanOrEqual extends ComparisonOperator {
    */
   @Override
   public LessThanOrEqual copy(String value, T2<String, ? extends Esql<?, ?>>... children) {
-    return new DefaultValue(this, value, children);
+    return new LessThanOrEqual(this, value, children);
   }
 }

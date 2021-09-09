@@ -7,6 +7,7 @@ package ma.vi.esql.function;
 import ma.vi.esql.semantic.type.AbstractType;
 import ma.vi.esql.semantic.type.Kind;
 import ma.vi.esql.semantic.type.Type;
+import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.Translatable;
 import ma.vi.esql.syntax.expression.Expression;
 import ma.vi.esql.syntax.expression.FunctionCall;
@@ -50,7 +51,7 @@ public class Function extends AbstractType {
     return this;
   }
 
-  public String translate(FunctionCall call, Translatable.Target target) {
+  public String translate(FunctionCall call, Translatable.Target target, EsqlPath path) {
     String functionName = translations == null || !translations.containsKey(target) ? name : translations.get(target);
     if (functionName.contains(".")) {
       functionName = Type.dbTableName(functionName, target);

@@ -8,7 +8,6 @@ import ma.vi.base.tuple.T2;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
-import ma.vi.esql.syntax.expression.literal.NullLiteral;
 
 import java.util.List;
 import java.util.Map;

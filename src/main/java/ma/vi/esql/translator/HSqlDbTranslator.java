@@ -1,5 +1,6 @@
 package ma.vi.esql.translator;
 
+import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.Translatable;
 import ma.vi.esql.syntax.TranslationException;
@@ -12,7 +13,6 @@ import ma.vi.esql.syntax.query.QueryTranslation;
 import ma.vi.esql.syntax.query.Select;
 import ma.vi.esql.syntax.query.SingleTableExpr;
 import ma.vi.esql.syntax.query.TableExpr;
-import ma.vi.esql.semantic.type.Type;
 
 import java.util.List;
 import java.util.Map;

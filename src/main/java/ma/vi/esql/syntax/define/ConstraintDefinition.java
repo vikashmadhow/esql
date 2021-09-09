@@ -8,13 +8,12 @@ import ma.vi.base.string.Strings;
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
-import ma.vi.esql.syntax.expression.DefaultValue;
 
 import java.util.List;
+import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.joining;
 import static ma.vi.base.lang.Errors.checkArgument;
-import static ma.vi.esql.syntax.Translatable.Target.*;
 
 /**
  * Represent a constraint (primary key, foreign key, etc.) on a table.
@@ -24,8 +23,16 @@ import static ma.vi.esql.syntax.Translatable.Target.*;
 public abstract class ConstraintDefinition extends TableDefinition {
   public ConstraintDefinition(Context context,
                               String name,
+                              String table,
+                              List<String> columns,
                               T2<String, ? extends Esql<?, ?>>... children) {
-    super(context, name, children);
+    super(context,
+          name,
+          Stream.concat(
+              Stream.of(
+                  T2.of("table", new Esql<>(context, table)),
+                  T2.of("columns", new Esql<>(context, columns))),
+              Stream.of(children)).toArray(T2[]::new));
   }
 
   public ConstraintDefinition(ConstraintDefinition other) {
@@ -56,44 +63,29 @@ public abstract class ConstraintDefinition extends TableDefinition {
 
   @Override
   public String name() {
-    if (value == null) {
-      value = defaultConstraintName(ESQL, namePrefix());
-    }
     return value;
   }
 
-  public void table(String table) {
-    childValue("table", table);
+  public <T extends ConstraintDefinition> T table(String table) {
+    return (T)set(indexOf("table"), new Esql<>(context, table));
   }
 
   public String table() {
     return childValue("table");
   }
 
-  public void columns(List<String> columns) {
-    childValue("columns", columns);
-  }
-
   public List<String> columns() {
     return childValue("columns");
   }
 
-  protected abstract String namePrefix();
-
-  protected String defaultConstraintName(Target target, String prefix) {
-    String name = (prefix != null ? prefix : "")
-                + columns().stream()
-                           .map(String::toLowerCase)
-                           .collect(joining("_"))
-                + '_' + Strings.random(4);
-    if (target == MARIADB || target == MYSQL) {
-      /*
-       * Identifiers in MySQL and MariaDB are limited to 64 characters.
-       */
-      return name.length() < 64 ? name : name.substring(name.length() - 64);
-    } else {
-      return name;
-    }
+  protected static String defaultConstraintName(String prefix, List<String>... columns) {
+    return (prefix != null ? prefix : "")
+          + Stream.of(columns)
+                  .map(cols -> cols.stream()
+                                   .map(String::toLowerCase)
+                                   .collect(joining("_")))
+                  .collect(joining("__"))
+          + '_' + Strings.random(4);
   }
 
   /**

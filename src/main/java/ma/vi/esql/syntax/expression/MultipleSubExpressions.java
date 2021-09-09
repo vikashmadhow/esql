@@ -5,10 +5,11 @@
 package ma.vi.esql.syntax.expression;
 
 import ma.vi.base.tuple.T2;
-import ma.vi.esql.syntax.Context;
 import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.semantic.type.Types;
+import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
+import ma.vi.esql.syntax.EsqlPath;
 
 import java.util.List;
 
@@ -44,7 +45,7 @@ public abstract class MultipleSubExpressions<V> extends Expression<V, String> {
   @Override
   public Type type(EsqlPath path) {
     for (Expression<?, ?> e: expressions()) {
-      Type type = e.type();
+      Type type = e.type(path);
       if (!type.equals(Types.NullType)) {
         return type;
       }

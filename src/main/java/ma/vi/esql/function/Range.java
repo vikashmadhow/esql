@@ -4,10 +4,11 @@
 
 package ma.vi.esql.function;
 
+import ma.vi.esql.semantic.type.Types;
+import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.Translatable;
 import ma.vi.esql.syntax.expression.Expression;
 import ma.vi.esql.syntax.expression.FunctionCall;
-import ma.vi.esql.semantic.type.Types;
 
 import java.util.Arrays;
 import java.util.Iterator;
@@ -36,21 +37,22 @@ public class Range extends Function {
   }
 
   @Override
-  public String translate(FunctionCall call, Translatable.Target target) {
+  public String translate(FunctionCall call, Translatable.Target target, EsqlPath path) {
     List<Expression<?, ?>> args = call.arguments();
     Iterator<Expression<?, ?>> i = args.iterator();
     Expression<?, ?> value = i.next();
 
     if (target == POSTGRESQL) {
-      StringBuilder func = new StringBuilder("_core.range((" + value.translate(target) + ")::double precision");
+      StringBuilder func = new StringBuilder("_core.range((" + value.translate(target, path.add(value)) + ")::double precision");
       while (i.hasNext()) {
-        func.append(", (").append(i.next().translate(target)).append(")::int");
+        Expression<?, ?> v = i.next();
+        func.append(", (").append(v.translate(target, path.add(v))).append(")::int");
       }
       func.append(')');
       return func.toString();
 
     } else if (target == SQLSERVER) {
-      StringBuilder func = new StringBuilder("_core.range(cast(" + value.translate(target) + " as float)");
+      StringBuilder func = new StringBuilder("_core.range(cast(" + value.translate(target, path.add(value)) + " as float)");
       boolean first = true;
       while (i.hasNext()) {
         if (first) {
@@ -59,15 +61,17 @@ public class Range extends Function {
         } else {
           func.append(',');
         }
-        func.append(i.next().translate(target));
+        Expression<?, ?> v = i.next();
+        func.append(v.translate(target, path.add(v)));
       }
       func.append("')");
       return func.toString();
 
     } else {
-      StringBuilder func = new StringBuilder("range(" + value.translate(target));
+      StringBuilder func = new StringBuilder("range(" + value.translate(target, path.add(value)));
       while (i.hasNext()) {
-        func.append(", ").append(i.next().translate(target));
+        Expression<?, ?> v = i.next();
+        func.append(", ").append(v.translate(target, path.add(v)));
       }
       func.append(')');
       return func.toString();

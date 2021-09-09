@@ -5,9 +5,9 @@
 package ma.vi.esql.syntax.expression;
 
 import ma.vi.base.tuple.T2;
-import ma.vi.esql.syntax.Context;
 import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.semantic.type.Types;
+import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
 
@@ -67,7 +67,7 @@ public class DefaultValue extends Expression<String, String> {
   }
 
   @Override
-  public Object value(Target target) {
+  public Object value(Target target, EsqlPath path) {
     return null;
   }
 }

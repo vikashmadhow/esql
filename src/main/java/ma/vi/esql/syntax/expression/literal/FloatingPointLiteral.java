@@ -5,13 +5,12 @@
 package ma.vi.esql.syntax.expression.literal;
 
 import ma.vi.base.tuple.T2;
-import ma.vi.esql.syntax.Context;
 import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.semantic.type.Types;
+import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.Translatable;
-import ma.vi.esql.syntax.expression.DefaultValue;
 
 import java.util.Map;
 
@@ -62,7 +61,7 @@ public class FloatingPointLiteral extends BaseLiteral<String> {
   }
 
   @Override
-  public Double value(Translatable.Target target) {
+  public Double value(Translatable.Target target, EsqlPath path) {
     return parseDouble(value);
   }
 }

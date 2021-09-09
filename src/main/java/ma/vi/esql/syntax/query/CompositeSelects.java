@@ -9,7 +9,6 @@ import ma.vi.esql.syntax.*;
 import ma.vi.esql.syntax.define.Attribute;
 import ma.vi.esql.syntax.define.Metadata;
 import ma.vi.esql.syntax.expression.Expression;
-import ma.vi.esql.syntax.expression.literal.NullLiteral;
 
 import java.util.ArrayList;
 import java.util.HashMap;

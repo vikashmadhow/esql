@@ -8,6 +8,7 @@ import ma.vi.base.tuple.T2;
 import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
+import ma.vi.esql.syntax.EsqlPath;
 
 /**
  * Abstract parent of ESQL expressions taking exactly two arguments.
@@ -43,7 +44,7 @@ abstract class DoubleSubExpressions<V> extends Expression<V, String> {
 
   @Override
   public Type type(EsqlPath path) {
-    return expr1().type();
+    return expr1().type(path);
   }
 
   @Override

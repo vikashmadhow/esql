@@ -4,6 +4,7 @@
 
 package ma.vi.esql.syntax;
 
+import java.util.Collections;
 import java.util.Map;
 
 /**
@@ -42,6 +43,10 @@ public interface Translatable<T> {
    */
   T translate(Target target);
 
+  default T translate(Target target, EsqlPath path) {
+    return translate(target, path, Collections.emptyMap());
+  }
+
   /**
    * Translate the statement for running on the specified target.
    *
@@ -59,7 +64,7 @@ public interface Translatable<T> {
    * For example, a string translation will keep quotes around the text,
    * while its value will remove it.
    */
-  default Object value(Target target) {
-    return translate(target);
+  default Object value(Target target, EsqlPath path) {
+    return translate(target, path, Collections.emptyMap());
   }
 }

@@ -6,10 +6,11 @@ package ma.vi.esql.function.date;
 
 import ma.vi.esql.function.Function;
 import ma.vi.esql.function.FunctionParameter;
+import ma.vi.esql.semantic.type.Types;
+import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.Translatable;
 import ma.vi.esql.syntax.expression.Expression;
 import ma.vi.esql.syntax.expression.FunctionCall;
-import ma.vi.esql.semantic.type.Types;
 
 import java.util.Arrays;
 import java.util.List;
@@ -34,22 +35,22 @@ public class NewDateTime extends Function {
   }
 
   @Override
-  public String translate(FunctionCall call, Translatable.Target target) {
+  public String translate(FunctionCall call, Translatable.Target target, EsqlPath path) {
     List<Expression<?, ?>> args = call.arguments();
     if (target == POSTGRESQL) {
       return "make_timestamp("
-          + args.get(0).translate(target) + ", "
-          + args.get(1).translate(target) + ", "
-          + args.get(2).translate(target) + ", "
-          + args.get(3).translate(target) + ", "
-          + args.get(4).translate(target) + ", "
-          + args.get(5).translate(target) + ')';
+          + args.get(0).translate(target, path.add(args.get(0))) + ", "
+          + args.get(1).translate(target, path.add(args.get(1))) + ", "
+          + args.get(2).translate(target, path.add(args.get(2))) + ", "
+          + args.get(3).translate(target, path.add(args.get(3))) + ", "
+          + args.get(4).translate(target, path.add(args.get(4))) + ", "
+          + args.get(5).translate(target, path.add(args.get(5))) + ')';
 
     } else if (target == SQLSERVER) {
       // precision and fractional second values must agree in SQL Server
       int fractional = 0;
       int precision = 0;
-      String seconds = args.get(5).translate(target).toString();
+      String seconds = args.get(5).translate(target, path.add(args.get(5))).toString();
       int pos = seconds.indexOf('.');
       if (pos != -1) {
         String fraction = seconds.substring(pos + 1);
@@ -64,23 +65,23 @@ public class NewDateTime extends Function {
         precision = fraction.length();
       }
       return "datetime2fromparts("
-          + args.get(0).translate(target) + ", "
-          + args.get(1).translate(target) + ", "
-          + args.get(2).translate(target) + ", "
-          + args.get(3).translate(target) + ", "
-          + args.get(4).translate(target) + ", "
+          + args.get(0).translate(target, path.add(args.get(0))) + ", "
+          + args.get(1).translate(target, path.add(args.get(1))) + ", "
+          + args.get(2).translate(target, path.add(args.get(2))) + ", "
+          + args.get(3).translate(target, path.add(args.get(3))) + ", "
+          + args.get(4).translate(target, path.add(args.get(4))) + ", "
           + seconds + ", "
           + fractional + ", "
           + precision + ')';
 
     } else {
       return name + '('
-          + args.get(0).translate(target) + ", "
-          + args.get(1).translate(target) + ", "
-          + args.get(2).translate(target) + ", "
-          + args.get(3).translate(target) + ", "
-          + args.get(4).translate(target) + ", "
-          + args.get(5).translate(target) + ')';
+          + args.get(0).translate(target, path.add(args.get(0))) + ", "
+          + args.get(1).translate(target, path.add(args.get(1))) + ", "
+          + args.get(2).translate(target, path.add(args.get(2))) + ", "
+          + args.get(3).translate(target, path.add(args.get(3))) + ", "
+          + args.get(4).translate(target, path.add(args.get(4))) + ", "
+          + args.get(5).translate(target, path.add(args.get(5))) + ')';
     }
   }
 }

@@ -5,15 +5,14 @@
 package ma.vi.esql.syntax.expression.literal;
 
 import ma.vi.base.tuple.T2;
-import ma.vi.esql.syntax.Context;
 import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.semantic.type.Types;
+import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.Translatable;
 
 import java.util.Map;
-import java.util.UUID;
 
 /**
  * The null literal ('null') in ESQL.
@@ -64,7 +63,7 @@ public class NullLiteral extends Literal<String> {
   }
 
   @Override
-  public Object value(Translatable.Target target) {
+  public Object value(Translatable.Target target, EsqlPath path) {
     return null;
   }
 }

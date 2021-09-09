@@ -7,19 +7,12 @@ package ma.vi.esql.syntax.query;
 import ma.vi.base.string.Strings;
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.function.Function;
-import ma.vi.esql.semantic.type.AliasedRelation;
-import ma.vi.esql.semantic.type.BaseRelation;
-import ma.vi.esql.semantic.type.Relation;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
-import ma.vi.esql.syntax.EsqlPath;
-import ma.vi.esql.syntax.Macro;
-import ma.vi.esql.syntax.define.Attribute;
 import ma.vi.esql.syntax.define.Metadata;
 import ma.vi.esql.syntax.expression.ColumnRef;
 import ma.vi.esql.syntax.expression.Expression;
 import ma.vi.esql.syntax.expression.FunctionCall;
-import ma.vi.esql.syntax.expression.SelectExpression;
 
 import java.util.*;
 
@@ -30,7 +23,7 @@ import static ma.vi.base.tuple.T2.of;
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public class Select extends QueryUpdate implements Macro {
+public class Select extends QueryUpdate /* implements Macro */ {
   public Select(Context                     context,
                 String                      value,
                 Metadata                    metadata,
@@ -121,100 +114,100 @@ public class Select extends QueryUpdate implements Macro {
     return name;
   }
 
-  @Override
-  public Esql<?, ?> expand(Esql<?, ?> esql, EsqlPath path) {
-    /*
-     * Expand star columns (*) to the individual columns they refer to
-     */
-    TableExpr from = tables();
-    Relation fromType = from.type();
-
-    boolean expanded = false;
-    Map<String, String> aliased = new HashMap<>();
-    Map<String, Column> resolvedColumns = new LinkedHashMap<>();
-    for (Column column: columns()) {
-      if (column instanceof StarColumn all) {
-        expanded = true;
-        String qualifier = all.qualifier();
-        Relation rel = qualifier == null ? fromType : fromType.forAlias(qualifier);
-        for (Column relCol: rel.columns()) {
-          String alias = relCol.alias();
-          if (alias == null) {
-            alias = Strings.makeUnique(resolvedColumns.keySet(), "col", false);
-          }
-          Column col;
-          if (rel instanceof BaseRelation
-           || (rel instanceof AliasedRelation && ((AliasedRelation)rel).relation instanceof BaseRelation)) {
-            col = relCol.copy();
-            if (qualifier != null) {
-              ColumnRef.qualify(col.expression(), qualifier, null, true);
-            }
-            if (col.metadata() != null) {
-              for (Attribute attr: col.metadata().attributes().values()) {
-                ColumnRef.qualify(attr.attributeValue(), qualifier, null, true);
-              }
-            }
-          } else {
-            col = new Column(context,
-                             alias,
-                             new ColumnRef(context, qualifier, relCol.alias()),
-                             null);
-          }
-
-          int pos = alias.indexOf('/');
-          if (pos == -1) {
-            /*
-             * Normal column (not metadata).
-             */
-            if (resolvedColumns.containsKey(alias)) {
-              alias = Strings.makeUnique(resolvedColumns.keySet(), alias, false);
-            }
-            if (relCol.alias() != null && !alias.equals(relCol.alias())) {
-              aliased.put(relCol.alias(), alias);
-              col.alias(alias);
-            }
-            resolvedColumns.put(alias, col);
-
-          } else if (pos > 0) {
-            /*
-             * Column metadata
-             */
-            String columnName = alias.substring(0, pos);
-            if (aliased.containsKey(columnName)) {
-              // replace column name with replacement if the column name was changed
-              String aliasName = aliased.get(columnName);
-              alias = aliasName + alias.substring(pos);
-              col.alias(alias);
-            }
-            resolvedColumns.put(alias, col);
-
-          } else if (!resolvedColumns.containsKey(alias)) {
-            /*
-             * table metadata first encounter (by elimination, pos==0 in this case)
-             */
-            resolvedColumns.put(alias, col);
-          }
-        }
-      } else {
-        column.expression().forEach(e -> {
-          if (e instanceof ColumnRef) {
-            SelectExpression selExpr = e.ancestor(SelectExpression.class);
-            if (selExpr == null) {
-              ColumnRef c = (ColumnRef)e;
-              if (c.qualifier() == null) {
-                Column col = fromType.column(c.name());
-                c.replaceWith(col.expression());
-              }
-            }
-          }
-          return true;
-        });
-        resolvedColumns.put(column.alias(), column);
-      }
-    }
-    columns(new ArrayList<>(resolvedColumns.values()));
-    return expanded;
-  }
+//  @Override
+//  public Esql<?, ?> expand(Esql<?, ?> esql, EsqlPath path) {
+//    /*
+//     * Expand star columns (*) to the individual columns they refer to
+//     */
+//    TableExpr from = tables();
+//    Relation fromType = from.type(path);
+//
+//    boolean expanded = false;
+//    Map<String, String> aliased = new HashMap<>();
+//    Map<String, Column> resolvedColumns = new LinkedHashMap<>();
+//    for (Column column: columns()) {
+//      if (column instanceof StarColumn all) {
+//        expanded = true;
+//        String qualifier = all.qualifier();
+//        Relation rel = qualifier == null ? fromType : fromType.forAlias(qualifier);
+//        for (Column relCol: rel.columns()) {
+//          String alias = relCol.alias();
+//          if (alias == null) {
+//            alias = Strings.makeUnique(resolvedColumns.keySet(), "col", false);
+//          }
+//          Column col;
+//          if (rel instanceof BaseRelation
+//           || (rel instanceof AliasedRelation && ((AliasedRelation)rel).relation instanceof BaseRelation)) {
+//            col = relCol.copy();
+//            if (qualifier != null) {
+//              ColumnRef.qualify(col.expression(), qualifier, null, true);
+//            }
+//            if (col.metadata() != null) {
+//              for (Attribute attr: col.metadata().attributes().values()) {
+//                ColumnRef.qualify(attr.attributeValue(), qualifier, null, true);
+//              }
+//            }
+//          } else {
+//            col = new Column(context,
+//                             alias,
+//                             new ColumnRef(context, qualifier, relCol.alias()),
+//                             null);
+//          }
+//
+//          int pos = alias.indexOf('/');
+//          if (pos == -1) {
+//            /*
+//             * Normal column (not metadata).
+//             */
+//            if (resolvedColumns.containsKey(alias)) {
+//              alias = Strings.makeUnique(resolvedColumns.keySet(), alias, false);
+//            }
+//            if (relCol.alias() != null && !alias.equals(relCol.alias())) {
+//              aliased.put(relCol.alias(), alias);
+//              col.alias(alias);
+//            }
+//            resolvedColumns.put(alias, col);
+//
+//          } else if (pos > 0) {
+//            /*
+//             * Column metadata
+//             */
+//            String columnName = alias.substring(0, pos);
+//            if (aliased.containsKey(columnName)) {
+//              // replace column name with replacement if the column name was changed
+//              String aliasName = aliased.get(columnName);
+//              alias = aliasName + alias.substring(pos);
+//              col.alias(alias);
+//            }
+//            resolvedColumns.put(alias, col);
+//
+//          } else if (!resolvedColumns.containsKey(alias)) {
+//            /*
+//             * table metadata first encounter (by elimination, pos==0 in this case)
+//             */
+//            resolvedColumns.put(alias, col);
+//          }
+//        }
+//      } else {
+//        column.expression().forEach((e, p) -> {
+//          if (e instanceof ColumnRef) {
+//            SelectExpression selExpr = p.ancestor(SelectExpression.class);
+//            if (selExpr == null) {
+//              ColumnRef c = (ColumnRef)e;
+//              if (c.qualifier() == null) {
+//                Column col = fromType.column(c.name());
+//                c.replaceWith(col.expression());
+//              }
+//            }
+//          }
+//          return true;
+//        });
+//        resolvedColumns.put(column.alias(), column);
+//      }
+//    }
+//    columns(new ArrayList<>(resolvedColumns.values()));
+//    return expanded;
+//  }
 
   @Override protected boolean grouped() {
     if (groupBy() != null) {
@@ -251,7 +244,7 @@ public class Select extends QueryUpdate implements Macro {
      * Find column references in the expression and add to the columns
      * of the inner query.
      */
-    expression.forEach(e -> {
+    expression.forEach((e, p) -> {
       if (e instanceof ColumnRef ref) {
         if (!addedInnerCols.containsKey(ref.qualifiedName())) {
           String alias = Strings.makeUnique(new HashSet<>(addedInnerCols.values()), ref.name());
@@ -265,7 +258,7 @@ public class Select extends QueryUpdate implements Macro {
     /*
      * Remap expression to be added to outer query.
      */
-    return (Expression<?, String>)expression.map(e -> {
+    return (Expression<?, String>)expression.map((e, p) -> {
       if (e instanceof ColumnRef) {
         ColumnRef ref = (ColumnRef)e;
         String qualifiedName = ref.qualifiedName();
@@ -288,7 +281,7 @@ public class Select extends QueryUpdate implements Macro {
   }
 
   public List<Expression<?, String>> distinctOn() {
-    return child("distinctOn").childrenList();
+    return child("distinctOn").children();
   }
 
   public Select distinctOn(List<Expression<?, String>> on) {

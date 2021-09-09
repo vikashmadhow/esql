@@ -8,7 +8,6 @@ import ma.vi.base.lang.Builder;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Parser;
 import ma.vi.esql.syntax.define.Attribute;
-import ma.vi.esql.syntax.query.GroupBy;
 import ma.vi.esql.syntax.define.Metadata;
 import ma.vi.esql.syntax.expression.Expression;
 import ma.vi.esql.syntax.query.*;

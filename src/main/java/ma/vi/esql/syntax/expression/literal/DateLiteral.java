@@ -6,12 +6,11 @@ package ma.vi.esql.syntax.expression.literal;
 
 import ma.vi.base.lang.Errors;
 import ma.vi.base.tuple.T2;
-import ma.vi.esql.syntax.Context;
 import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.semantic.type.Types;
+import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
-import ma.vi.esql.syntax.expression.DefaultValue;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -91,9 +90,9 @@ public class DateLiteral extends BaseLiteral<String> {
   }
 
   @Override
-  public Date value(Target target) {
+  public Date value(Target target, EsqlPath path) {
     try {
-      Type type = type();
+      Type type = type(path);
       if (type == Types.DateType) {
         return DateFormat.parse(value);
 

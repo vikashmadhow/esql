@@ -6,10 +6,11 @@ package ma.vi.esql.function.string;
 
 import ma.vi.esql.function.Function;
 import ma.vi.esql.function.FunctionParameter;
+import ma.vi.esql.semantic.type.Types;
+import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.Translatable;
 import ma.vi.esql.syntax.expression.Expression;
 import ma.vi.esql.syntax.expression.FunctionCall;
-import ma.vi.esql.semantic.type.Types;
 
 import java.util.List;
 
@@ -29,10 +30,10 @@ public class Trim extends Function {
   }
 
   @Override
-  public String translate(FunctionCall call, Translatable.Target target) {
+  public String translate(FunctionCall call, Translatable.Target target, EsqlPath path) {
     List<Expression<?, ?>> args = call.arguments();
     if (target == JAVASCRIPT) {
-      return "(" + args.get(0).translate(target) + ").trim()";
+      return "(" + args.get(0).translate(target, path.add(args.get(0))) + ").trim()";
 
     } else if (target == SQLSERVER) {
       /*
@@ -41,10 +42,10 @@ public class Trim extends Function {
        * remove.
        */
       return name + "(nchar(0x09) + nchar(0x20) + nchar(0x0D) + nchar(0x0A) from "
-          + args.get(0).translate(target) + ')';
+          + args.get(0).translate(target, path.add(args.get(0))) + ')';
     } else {
       // ESQL and all other databases
-      return name + '(' + args.get(0).translate(target) + ')';
+      return name + '(' + args.get(0).translate(target, path.add(args.get(0))) + ')';
     }
   }
 }

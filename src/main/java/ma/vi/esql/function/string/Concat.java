@@ -6,10 +6,11 @@ package ma.vi.esql.function.string;
 
 import ma.vi.esql.function.Function;
 import ma.vi.esql.function.FunctionParameter;
+import ma.vi.esql.semantic.type.Types;
+import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.Translatable;
 import ma.vi.esql.syntax.expression.Expression;
 import ma.vi.esql.syntax.expression.FunctionCall;
-import ma.vi.esql.semantic.type.Types;
 
 import java.util.Iterator;
 
@@ -29,12 +30,13 @@ public class Concat extends Function {
   }
 
   @Override
-  public String translate(FunctionCall call, Translatable.Target target) {
+  public String translate(FunctionCall call, Translatable.Target target, EsqlPath path) {
     StringBuilder sb = new StringBuilder();
     Iterator<Expression<?, ?>> args = call.arguments().iterator();
 
     if (target == JAVASCRIPT) {
-      sb.append("(").append(args.next().translate(target)).append(").concat(");
+      Expression<?, ?> arg = args.next();
+      sb.append("(").append(arg.translate(target, path.add(arg))).append(").concat(");
 
     } else {
       // sql server, esql and all databases
@@ -48,7 +50,8 @@ public class Concat extends Function {
       } else {
         sb.append(", ");
       }
-      sb.append(args.next().translate(target));
+      Expression<?, ?> arg = args.next();
+      sb.append(arg.translate(target, path.add(arg)));
     }
     return sb.append(')').toString();
   }

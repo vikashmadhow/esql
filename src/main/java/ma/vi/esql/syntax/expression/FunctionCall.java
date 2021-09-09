@@ -7,13 +7,13 @@ package ma.vi.esql.syntax.expression;
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.database.Structure;
 import ma.vi.esql.function.Function;
+import ma.vi.esql.semantic.type.Type;
+import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.Macro;
 import ma.vi.esql.syntax.query.Order;
-import ma.vi.esql.semantic.type.Type;
-import ma.vi.esql.semantic.type.Types;
 
 import java.util.List;
 import java.util.Map;
@@ -27,14 +27,14 @@ import static ma.vi.base.tuple.T2.of;
  * @author vikash.madhow@gmail.com
  */
 public class FunctionCall extends Expression<String, String> implements Macro {
-  public FunctionCall(Context             context,
-                      String              functionName,
-                      boolean             distinct,
+  public FunctionCall(Context                     context,
+                      String                      functionName,
+                      boolean                     distinct,
                       List<Expression<?, String>> distinctOn,
-                      List<Expression<?, ?>> arguments,
-                      boolean             star,
+                      List<Expression<?, ?>>      arguments,
+                      boolean                     star,
                       List<Expression<?, String>> partitions,
-                      List<Order>         orderBy) {
+                      List<Order>                 orderBy) {
     super(context, functionName,
           of("distinct",   new Esql<>(context, distinct)),
           of("distinctOn", new Esql<>(context, "distinctOn", distinctOn)),
@@ -100,7 +100,7 @@ public class FunctionCall extends Expression<String, String> implements Macro {
     if (function == null) {
       function = s.UnknownFunction;
     }
-    String translation = function.translate(this, target);
+    String translation = function.translate(this, target, path);
 
     /*
      * add window suffix

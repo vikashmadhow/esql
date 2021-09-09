@@ -5,12 +5,12 @@
 package ma.vi.esql.syntax.query;
 
 import ma.vi.base.tuple.T2;
+import ma.vi.esql.semantic.type.AliasedRelation;
+import ma.vi.esql.semantic.type.Selection;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.expression.ColumnRef;
-import ma.vi.esql.semantic.type.AliasedRelation;
-import ma.vi.esql.semantic.type.Selection;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -58,17 +58,20 @@ public class SelectTableExpr extends AbstractAliasTableExpr {
   }
 
   @Override
-  public AliasedRelation type() {
+  public AliasedRelation type(EsqlPath path) {
     if (type == null) {
-      Selection selectType = select().type();
-      List<Column> cols = new ArrayList<>();
-      for (Column c: selectType.columns()) {
-        Column col = new Column(c.context, c.alias(), new ColumnRef(c.context, null, c.alias()), null);
-        col.parent = ancestor(QueryUpdate.class);
-        cols.add(col);
-      }
+//      Selection selectType = select().type(path);
+//      List<Column> cols = new ArrayList<>();
+//      for (Column c: selectType.columns()) {
+//        Column col = new Column(c.context, c.alias(), new ColumnRef(c.context, null, c.alias()), null);
+//        col.parent = path.ancestor(QueryUpdate.class);
+//        cols.add(col);
+//      }
 //      type = new AliasedRelation(select().type(), alias());
-      type = new AliasedRelation(new Selection(cols, this), alias());
+//      type = new AliasedRelation(new Selection(cols, this), alias());
+      type = new AliasedRelation(new Selection(select().type(path).columns().stream()
+                                                       .map(c -> c.expression(new ColumnRef(c.context, null, c.alias())))
+                                                       .toList() , this), alias());
     }
     return type;
   }

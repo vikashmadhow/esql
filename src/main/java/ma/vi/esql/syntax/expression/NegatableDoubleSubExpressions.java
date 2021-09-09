@@ -9,6 +9,7 @@ import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
+import ma.vi.esql.syntax.EsqlPath;
 
 /**
  * Abstract parent of ESQL expressions taking exactly two arguments.

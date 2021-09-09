@@ -8,7 +8,6 @@ import ma.vi.base.tuple.T2;
 import ma.vi.esql.database.Database;
 import ma.vi.esql.exec.Result;
 import ma.vi.esql.semantic.type.Type;
-import ma.vi.esql.translator.TranslatorFactory;
 
 import java.lang.reflect.Array;
 import java.sql.Connection;

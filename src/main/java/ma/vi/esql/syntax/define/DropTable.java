@@ -8,18 +8,17 @@ import ma.vi.base.tuple.T2;
 import ma.vi.esql.database.Database;
 import ma.vi.esql.database.Structure;
 import ma.vi.esql.exec.Result;
-import ma.vi.esql.syntax.Context;
 import ma.vi.esql.semantic.type.BaseRelation;
+import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
-import ma.vi.esql.syntax.expression.DefaultValue;
 
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Map;
 
-import static ma.vi.esql.syntax.Translatable.Target.ESQL;
 import static ma.vi.esql.semantic.type.Type.dbTableName;
+import static ma.vi.esql.syntax.Translatable.Target.ESQL;
 
 /**
  * Drop table statement.

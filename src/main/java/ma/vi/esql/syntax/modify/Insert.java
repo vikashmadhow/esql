@@ -9,7 +9,6 @@ import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.Restriction;
 import ma.vi.esql.syntax.define.Metadata;
-import ma.vi.esql.syntax.expression.literal.NullLiteral;
 import ma.vi.esql.syntax.query.Column;
 import ma.vi.esql.syntax.query.QueryUpdate;
 import ma.vi.esql.syntax.query.Select;

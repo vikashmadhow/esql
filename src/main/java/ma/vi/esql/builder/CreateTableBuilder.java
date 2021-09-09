@@ -5,10 +5,10 @@
 package ma.vi.esql.builder;
 
 import ma.vi.base.lang.Builder;
+import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Parser;
 import ma.vi.esql.syntax.define.*;
-import ma.vi.esql.semantic.type.Types;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -85,8 +85,8 @@ public class CreateTableBuilder implements Builder<CreateTable> {
     return namedUnique(null, fields);
   }
 
-  public CreateTableBuilder namedUnique(String name, String... fields) {
-    constraints.add(new UniqueConstraint(context, name, Arrays.asList(fields)));
+  public CreateTableBuilder namedUnique(String constraintName, String... fields) {
+    constraints.add(new UniqueConstraint(context, constraintName, name, Arrays.asList(fields)));
     return this;
   }
 
@@ -94,8 +94,8 @@ public class CreateTableBuilder implements Builder<CreateTable> {
     return namedPrimaryKey(null, fields);
   }
 
-  public CreateTableBuilder namedPrimaryKey(String name, String... fields) {
-    constraints.add(new PrimaryKeyConstraint(context, name, Arrays.asList(fields)));
+  public CreateTableBuilder namedPrimaryKey(String constraintName, String... fields) {
+    constraints.add(new PrimaryKeyConstraint(context, constraintName, name, Arrays.asList(fields)));
     return this;
   }
 
@@ -103,9 +103,9 @@ public class CreateTableBuilder implements Builder<CreateTable> {
     return check(null, expression);
   }
 
-  public CreateTableBuilder check(String name, String expression) {
+  public CreateTableBuilder check(String constraintName, String expression) {
     Parser parser = new Parser(context.structure);
-    constraints.add(new CheckConstraint(context, name, parser.parseExpression(expression)));
+    constraints.add(new CheckConstraint(context, constraintName, name, parser.parseExpression(expression)));
     return this;
   }
 
@@ -151,13 +151,14 @@ public class CreateTableBuilder implements Builder<CreateTable> {
                       onDelete);
   }
 
-  public CreateTableBuilder foreignKey(String name,
+  public CreateTableBuilder foreignKey(String constraintName,
                                        List<String> sourceFields,
                                        String targetTable,
                                        List<String> targetFields,
                                        ConstraintDefinition.ForeignKeyChangeAction onUpdate,
                                        ConstraintDefinition.ForeignKeyChangeAction onDelete) {
     constraints.add(new ForeignKeyConstraint(context,
+                                             constraintName,
                                              name,
                                              sourceFields,
                                              targetTable,

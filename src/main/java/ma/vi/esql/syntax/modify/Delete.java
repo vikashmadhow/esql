@@ -7,14 +7,9 @@ package ma.vi.esql.syntax.modify;
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
-import ma.vi.esql.syntax.expression.literal.NullLiteral;
-import ma.vi.esql.syntax.query.QueryUpdate;
 import ma.vi.esql.syntax.define.Metadata;
 import ma.vi.esql.syntax.expression.Expression;
-import ma.vi.esql.syntax.query.AbstractJoinTableExpr;
-import ma.vi.esql.syntax.query.Column;
-import ma.vi.esql.syntax.query.SingleTableExpr;
-import ma.vi.esql.syntax.query.TableExpr;
+import ma.vi.esql.syntax.query.*;
 
 import java.util.List;
 

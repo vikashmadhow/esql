@@ -171,6 +171,7 @@ public class CreateTable extends Define<String> {
       // update structure if this was not a system table creation and
       // the table did not exist before
       if (!db.structure().relationExists(tableName)) {
+        CreateTable modified = this;
         List<ConstraintDefinition> constraints = constraints();
         if (db.target() == MARIADB || db.target() == MYSQL) {
           /*
@@ -189,7 +190,7 @@ public class CreateTable extends Define<String> {
               && !Sets.intersect(new HashSet<>(c.columns()),
                                  columnsInForeignKey).isEmpty());
           if (constraints.size() != size) {
-            constraints(constraints);
+            modified = constraints(constraints);
           }
         }
 
@@ -214,7 +215,7 @@ public class CreateTable extends Define<String> {
         /*
          * Does not exist and valid: create
          */
-        con.createStatement().executeUpdate(translate(db.target()));
+        con.createStatement().executeUpdate(modified.translate(db.target()));
         db.structure().relation(table);
         table.expandColumns();
         db.structure().database.table(con, table);
@@ -234,8 +235,7 @@ public class CreateTable extends Define<String> {
           alter = new AlterTable(context,
                                  tableName,
                                  singletonList(new AddTableDefinition(context, metadata())));
-          alter.parent = this;
-          alter.execute(db, con, path);
+          alter.execute(db, con, path.add(alter));
         }
 
         // add missing columns and alter existing ones if needed
@@ -250,8 +250,7 @@ public class CreateTable extends Define<String> {
             alter = new AlterTable(context,
                                    tableName,
                                    singletonList(new AddTableDefinition(context, column)));
-            alter.parent = this;
-            alter.execute(db, con, path);
+            alter.execute(db, con, path.add(alter));
           } else {
             /*
              * alter existing field
@@ -290,8 +289,7 @@ public class CreateTable extends Define<String> {
                                                                                              setDefault,
                                                                                              dropDefault,
                                                                                              metadata))));
-              alter.parent = this;
-              alter.execute(db, con, path);
+              alter.execute(db, con, path.add(alter));
             }
           }
         }
@@ -342,8 +340,7 @@ public class CreateTable extends Define<String> {
                */
               alter = new AlterTable(context, tableName,
                                      singletonList(new DropColumn(context, columnName)));
-              alter.parent = this;
-              alter.execute(db, con, path);
+              alter.execute(db, con, path.add(alter));
             }
           }
 
@@ -377,8 +374,7 @@ public class CreateTable extends Define<String> {
               || metadata().attributes() == null
               || metadata().attributes().isEmpty()) {
             alter = new AlterTable(context, tableName, singletonList(new DropMetadata(context)));
-            alter.parent = this;
-            alter.execute(db, con, path);
+            alter.execute(db, con, path.add(alter));
           }
         }
       }
@@ -402,8 +398,8 @@ public class CreateTable extends Define<String> {
     return child("columns").children();
   }
 
-  public void constraints(List<ConstraintDefinition> constraints) {
-    child("constraints", new Esql<>(context, "constraints", constraints));
+  public CreateTable constraints(List<ConstraintDefinition> constraints) {
+    return set(indexOf("constraints"), new Esql<>(context, "constraints", constraints));
   }
 
   public List<ConstraintDefinition> constraints() {

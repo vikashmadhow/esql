@@ -6,10 +6,11 @@ package ma.vi.esql.function.string;
 
 import ma.vi.esql.function.Function;
 import ma.vi.esql.function.FunctionParameter;
+import ma.vi.esql.semantic.type.Types;
+import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.Translatable;
 import ma.vi.esql.syntax.expression.Expression;
 import ma.vi.esql.syntax.expression.FunctionCall;
-import ma.vi.esql.semantic.type.Types;
 
 import java.util.Arrays;
 import java.util.List;
@@ -30,34 +31,34 @@ public class IndexOf extends Function {
   }
 
   @Override
-  public String translate(FunctionCall call, Translatable.Target target) {
+  public String translate(FunctionCall call, Translatable.Target target, EsqlPath path) {
     List<Expression<?, ?>> args = call.arguments();
     if (target == POSTGRESQL) {
       if (args.size() > 2) {
         return "strpos("
             + "substring(" + args.get(1).translate(target) + ", " + args.get(2).translate(target) + "), "
-            + args.get(0).translate(target) + ')';
+            + args.get(0).translate(target, path.add(args.get(0))) + ')';
       } else {
         return "strpos("
-            + args.get(1).translate(target) + ", "
-            + args.get(0).translate(target) + ')';
+            + args.get(1).translate(target, path.add(args.get(1))) + ", "
+            + args.get(0).translate(target, path.add(args.get(0))) + ')';
       }
     } else if (target == SQLSERVER) {
       return "charindex("
-          + args.get(0).translate(target) + ", "
-          + args.get(1).translate(target)
-          + (args.size() > 2 ? ", " + args.get(2).translate(target) : "")
+          + args.get(0).translate(target, path.add(args.get(0))) + ", "
+          + args.get(1).translate(target, path.add(args.get(1)))
+          + (args.size() > 2 ? ", " + args.get(2).translate(target, path.add(args.get(2))) : "")
           + ')';
     } else if (target == JAVASCRIPT) {
-      return "((" + args.get(1).translate(target) + ").indexOf("
-          + args.get(0).translate(target)
-          + (args.size() > 2 ? ", " + args.get(2).translate(target) : "")
+      return "((" + args.get(1).translate(target, path.add(args.get(1))) + ").indexOf("
+          + args.get(0).translate(target, path.add(args.get(0)))
+          + (args.size() > 2 ? ", " + args.get(2).translate(target, path.add(args.get(2))) : "")
           + ") + 1)";
     } else {
       return name + '('
-          + args.get(0).translate(target) + ", "
-          + args.get(1).translate(target)
-          + (args.size() > 2 ? ", " + args.get(2).translate(target) : "")
+          + args.get(0).translate(target, path.add(args.get(0))) + ", "
+          + args.get(1).translate(target, path.add(args.get(1)))
+          + (args.size() > 2 ? ", " + args.get(2).translate(target, path.add(args.get(2))) : "")
           + ')';
     }
   }

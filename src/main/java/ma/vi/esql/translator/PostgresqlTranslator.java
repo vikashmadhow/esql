@@ -1,6 +1,7 @@
 package ma.vi.esql.translator;
 
 import ma.vi.base.tuple.T2;
+import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.Translatable;
 import ma.vi.esql.syntax.TranslationException;
@@ -11,7 +12,6 @@ import ma.vi.esql.syntax.modify.Insert;
 import ma.vi.esql.syntax.modify.InsertRow;
 import ma.vi.esql.syntax.modify.Update;
 import ma.vi.esql.syntax.query.*;
-import ma.vi.esql.semantic.type.Type;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -18,6 +18,8 @@ import ma.vi.esql.syntax.define.DerivedColumnDefinition;
 import ma.vi.esql.syntax.define.Metadata;
 import ma.vi.esql.syntax.expression.ColumnRef;
 import ma.vi.esql.syntax.expression.Expression;
+import ma.vi.esql.syntax.expression.literal.BooleanLiteral;
+import ma.vi.esql.syntax.expression.literal.StringLiteral;
 
 import java.util.*;
 import java.util.stream.Stream;
@@ -166,12 +168,13 @@ public class Column extends MetadataContainer<String, String> {
     return false;
   }
 
-//  public void notNull(boolean notNull) {
+  public Column notNull(boolean notNull) {
 //    if (metadata() == null) {
 //      metadata(new Metadata(context, new ArrayList<>()));
 //    }
 //    metadata().attribute(REQUIRED, new BooleanLiteral(context, notNull));
-//  }
+    return setMetadata(REQUIRED, new BooleanLiteral(context, notNull));
+  }
 
   public UUID id() {
     if (metadata() != null && metadata().attribute(ID) != null) {
@@ -190,13 +193,10 @@ public class Column extends MetadataContainer<String, String> {
     }
   }
 
-//  public void defaultExpression(Expression<?, String> expr) {
-//    if (metadata() == null) {
-//      metadata(new Metadata(context, new ArrayList<>()));
-//    }
-//    metadata().attribute(EXPRESSION, expr);
-//  }
-//
+  public Column defaultExpression(Expression<?, String> expr) {
+    return setMetadata(EXPRESSION, expr);
+  }
+
 //  @Override
 //  public void attribute(String name, Expression<?, String> value) {
 //    if (metadata() == null) {
@@ -218,7 +218,7 @@ public class Column extends MetadataContainer<String, String> {
          * be determined at this point.
          */
         type = expression().type(path);
-        if (type != Types.VoidType) {
+//        if (type != Types.VoidType) {
 //          type(type);
 
           /*
@@ -235,22 +235,27 @@ public class Column extends MetadataContainer<String, String> {
 //              }
 //            }
 //          }
-        }
+//        }
       }
       return type;
     } else {
-      Type type = expression().type(path);
-//      type(type);
-      return type;
+      //      type(type);
+      return expression().type(path);
     }
   }
 
-//  public void type(Type type) {
-//    if (metadata() == null) {
-//      metadata(new Metadata(context, new ArrayList<>()));
-//    }
-//    metadata().attribute(TYPE, new StringLiteral(context, type.translate(ESQL)));
-//  }
+  public Column type(Type type) {
+    return setMetadata(TYPE, new StringLiteral(context, type.translate(ESQL)));
+  }
+
+  private Column setMetadata(String name, Expression<?, String> expr) {
+    List<Attribute> attributes = new ArrayList<>();
+    if (metadata() != null && metadata().attributes() != null) {
+      attributes.addAll(metadata().attributes().values().stream().filter(a -> !a.name().equals(name)).toList());
+    }
+    attributes.add(new Attribute(context, name, expr));
+    return set(indexOf("metadata"), new Metadata(context, attributes));
+  }
 
   @Override
   public void _toString(StringBuilder st, int level, int indent) {

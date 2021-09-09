@@ -5,6 +5,10 @@
 package ma.vi.esql.syntax.query;
 
 import ma.vi.base.tuple.T2;
+import ma.vi.esql.semantic.type.AliasedRelation;
+import ma.vi.esql.semantic.type.BaseRelation;
+import ma.vi.esql.semantic.type.Selection;
+import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
@@ -13,10 +17,6 @@ import ma.vi.esql.syntax.define.NameWithMetadata;
 import ma.vi.esql.syntax.expression.ColumnRef;
 import ma.vi.esql.syntax.expression.Expression;
 import ma.vi.esql.syntax.modify.InsertRow;
-import ma.vi.esql.semantic.type.AliasedRelation;
-import ma.vi.esql.semantic.type.BaseRelation;
-import ma.vi.esql.semantic.type.Selection;
-import ma.vi.esql.semantic.type.Type;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -73,7 +73,7 @@ public class DynamicTableExpr extends AbstractAliasTableExpr {
   }
 
   @Override
-  public AliasedRelation type() {
+  public AliasedRelation type(EsqlPath path) {
     if (type == null) {
       List<Type> columnTypes = new ArrayList<>();
       for (NameWithMetadata ignored: columns()) {
@@ -81,10 +81,10 @@ public class DynamicTableExpr extends AbstractAliasTableExpr {
       }
 
       /*
-       * Infer column types of the rows by looking at up to 100 rows
-       * probabilistically. Using a random sampling of rows ensure that we are
-       * not looking at any specific cluster (such as the top 100) and inferring
-       * only the type characteristics of that cluster.
+       * Infer column types of the rows by looking at up to 100 rows probabilistically.
+       * Using a random sampling of rows ensure that we are not looking at any specific
+       * cluster (such as the top 100) and inferring only the type characteristics of
+       * that cluster.
        */
       Random random = new Random();
       List<InsertRow> rows = rows();
@@ -95,7 +95,7 @@ public class DynamicTableExpr extends AbstractAliasTableExpr {
         boolean hasAbstractTypes = false;
         List<Expression<?, String>> values = row.values();
         for (int j = 0; j < values.size(); j++) {
-          Type type = values.get(j).type();
+          Type type = values.get(j).type(path);
           hasAbstractTypes |= columnTypes.get(j).isAbstract() && type.isAbstract();
           if (columnTypes.get(j).isAbstract()) {
             columnTypes.set(j, type);
@@ -114,7 +114,7 @@ public class DynamicTableExpr extends AbstractAliasTableExpr {
                                 column.name(),
                                 new ColumnRef(context, null, column.name()),
                                 column.metadata());
-        col.type(columnTypes.get(i));
+        col = col.type(columnTypes.get(i));
         relationColumns.add(col);
       }
       Selection selection = new Selection(BaseRelation.expandColumns(

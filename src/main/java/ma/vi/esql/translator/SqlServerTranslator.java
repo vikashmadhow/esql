@@ -6,7 +6,6 @@ import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.Translatable;
 import ma.vi.esql.syntax.TranslationException;
-import ma.vi.esql.syntax.query.GroupBy;
 import ma.vi.esql.syntax.expression.ColumnRef;
 import ma.vi.esql.syntax.expression.Expression;
 import ma.vi.esql.syntax.expression.FunctionCall;
@@ -177,7 +176,7 @@ public class SqlServerTranslator extends AbstractTranslator {
         for (Column column: select.columns()) {
           Expression<?, String> colExpr = column.expression();
           AtomicBoolean aggregate = new AtomicBoolean();
-          colExpr.forEach(e -> {
+          colExpr.forEach((e, p) -> {
             if (e instanceof FunctionCall) {
               Function function = select.context.structure.function(((FunctionCall)e).functionName());
               if (function != null && function.aggregate) {

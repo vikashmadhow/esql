@@ -9,7 +9,6 @@ import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.expression.Expression;
-import ma.vi.esql.syntax.expression.GroupedExpression;
 import ma.vi.esql.syntax.expression.SingleSubExpression;
 
 import java.util.Map;

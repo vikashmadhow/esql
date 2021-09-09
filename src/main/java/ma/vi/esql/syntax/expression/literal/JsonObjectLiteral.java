@@ -5,18 +5,17 @@
 package ma.vi.esql.syntax.expression.literal;
 
 import ma.vi.base.tuple.T2;
+import ma.vi.esql.semantic.type.Type;
+import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.Translatable;
 import ma.vi.esql.syntax.define.Attribute;
-import ma.vi.esql.semantic.type.Type;
-import ma.vi.esql.semantic.type.Types;
 import org.json.JSONObject;
 
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 import static java.util.stream.Collectors.joining;
 
@@ -69,10 +68,10 @@ public class JsonObjectLiteral extends Literal<List<Attribute>> {
   }
 
   @Override
-  public JSONObject value(Translatable.Target target) {
+  public JSONObject value(Translatable.Target target, EsqlPath path) {
     JSONObject object = new JSONObject();
     for (Attribute member: members()) {
-      object.put(member.name(), member.attributeValue().value(target));
+      object.put(member.name(), member.attributeValue().value(target, path));
     }
     return object;
   }

@@ -6,9 +6,9 @@ package ma.vi.esql.database;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
-import ma.vi.esql.syntax.Translatable;
 import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.semantic.type.Types;
+import ma.vi.esql.syntax.Translatable;
 import org.postgresql.ds.PGSimpleDataSource;
 
 import java.sql.*;

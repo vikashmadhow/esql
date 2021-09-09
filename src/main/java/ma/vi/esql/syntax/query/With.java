@@ -6,12 +6,11 @@ package ma.vi.esql.syntax.query;
 
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.database.SqlServer;
+import ma.vi.esql.semantic.type.Selection;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.Restriction;
-import ma.vi.esql.semantic.type.Selection;
-import ma.vi.esql.syntax.expression.literal.NullLiteral;
 
 import java.util.List;
 import java.util.Map;
@@ -60,8 +59,8 @@ public class With extends QueryUpdate {
   }
 
   @Override
-  public Selection type() {
-    return query().type();
+  public Selection type(EsqlPath path) {
+    return query().type(path);
   }
 
   @Override
@@ -70,7 +69,7 @@ public class With extends QueryUpdate {
      * Ensure all CTE types are added to context-specific (local) type registry.
      */
     for (Cte cte: ctes()) {
-      cte.type();
+      cte.type(path);
     }
 
     StringBuilder st = new StringBuilder("with ");

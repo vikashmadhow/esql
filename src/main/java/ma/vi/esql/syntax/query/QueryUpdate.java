@@ -24,7 +24,6 @@ import ma.vi.esql.syntax.expression.comparison.Equality;
 import ma.vi.esql.syntax.expression.comparison.In;
 import ma.vi.esql.syntax.expression.literal.IntegerLiteral;
 import ma.vi.esql.syntax.expression.literal.Literal;
-import ma.vi.esql.syntax.expression.literal.NullLiteral;
 import ma.vi.esql.syntax.expression.logical.And;
 
 import java.sql.Connection;
@@ -77,7 +76,7 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
   public Selection type(EsqlPath path) {
     if (type == null) {
       TableExpr from = tables();
-      Relation fromType = from.type();
+      Relation fromType = from.type(path);
 
       boolean expandColumns = !grouped() && path.ancestor(Cte.class) == null;
 
@@ -265,7 +264,7 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
         Expression<?, String> attributeValue = column.expression();
         if (optimiseAttributesLoading && (attributeValue instanceof Literal
                                        || attributeValue instanceof UncomputedExpression)) {
-          resultAttributes.put(attrName, attributeValue.value(target));
+          resultAttributes.put(attrName, attributeValue.value(target, path));
         } else if (addAttributes) {
           itemIndex += 1;
           if (itemIndex > 1) {
@@ -326,12 +325,12 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
         Expression<?, String> attributeValue = col.expression();
         if (optimiseAttributesLoading && (attributeValue instanceof Literal
                                        || attributeValue instanceof UncomputedExpression)) {
-          mapping.attributes.put(attrName, attributeValue.value(target));
+          mapping.attributes.put(attrName, attributeValue.value(target, path));
         } else if (addAttributes) {
           itemIndex += 1;
           query.append(", ");
           appendExpression(query, attributeValue, target, qualifier, alias);
-          mapping.attributeIndices.add(T3.of(itemIndex, attrName, attributeValue.type()));
+          mapping.attributeIndices.add(T3.of(itemIndex, attrName, attributeValue.type(path)));
         }
       }
     }
@@ -826,7 +825,7 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
                     new ColumnRef(context, restrictTableAlias, restrictColumn),
                     exclude,
                     restrictValues.stream()
-                                  .map(v -> Literal.makeLiteral(context, v, column.type()))
+                                  .map(v -> Literal.makeLiteral(context, v, column.type(new EsqlPath(column))))
                                   .collect(toList()));
     }
   }

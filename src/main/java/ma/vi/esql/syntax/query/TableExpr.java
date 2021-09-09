@@ -5,9 +5,10 @@
 package ma.vi.esql.syntax.query;
 
 import ma.vi.base.tuple.T2;
+import ma.vi.esql.semantic.type.Relation;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
-import ma.vi.esql.semantic.type.Relation;
+import ma.vi.esql.syntax.EsqlPath;
 
 /**
  * The table expression in the from clause of a select, update or delete statement
@@ -48,5 +49,5 @@ public abstract class TableExpr extends Esql<String, String> {
   public abstract TableExpr copy(String value, T2<String, ? extends Esql<?, ?>>... children);
 
   @Override
-  public abstract Relation type();
+  public abstract Relation type(EsqlPath path);
 }

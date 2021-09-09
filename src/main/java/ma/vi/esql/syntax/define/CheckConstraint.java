@@ -9,12 +9,14 @@ import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.expression.ColumnRef;
-import ma.vi.esql.syntax.expression.DefaultValue;
 import ma.vi.esql.syntax.expression.Expression;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
+import static ma.vi.esql.syntax.Translatable.Target.MARIADB;
+import static ma.vi.esql.syntax.Translatable.Target.MYSQL;
 
 /**
  * Represents a check constraint defined on a table.
@@ -22,16 +24,15 @@ import java.util.Map;
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 public class CheckConstraint extends ConstraintDefinition {
-  public CheckConstraint(Context context, String name, Expression<?, String> expression) {
-    super(context, name, T2.of("expr", expression));
-    List<String> columns = new ArrayList<>();
-    expression.forEach((esql, path) -> {
-      if (esql instanceof ColumnRef) {
-        columns.add(((ColumnRef)esql).name());
-      }
-      return true;
-    });
-    columns(columns);
+  public CheckConstraint(Context context,
+                         String name,
+                         String table,
+                         Expression<?, String> expression) {
+    super(context,
+          name != null ? name : defaultConstraintName("ck_", columnsInExpression(expression)),
+          table,
+          columnsInExpression(expression),
+          T2.of("expr", expression));
   }
 
   public CheckConstraint(CheckConstraint other) {
@@ -57,6 +58,17 @@ public class CheckConstraint extends ConstraintDefinition {
     return new CheckConstraint(this, value, children);
   }
 
+  private static List<String> columnsInExpression(Expression<?, String> expression) {
+    List<String> columns = new ArrayList<>();
+    expression.forEach((esql, path) -> {
+      if (esql instanceof ColumnRef) {
+        columns.add(((ColumnRef)esql).name());
+      }
+      return true;
+    });
+    return columns;
+  }
+
   @Override
   public boolean sameAs(ConstraintDefinition def) {
     if (def instanceof CheckConstraint c) {
@@ -67,14 +79,16 @@ public class CheckConstraint extends ConstraintDefinition {
 
   @Override
   protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
+    String name = name();
+    if (name.length() >= 64 && (target == MARIADB || target == MYSQL)) {
+      /*
+       * Identifiers in MySQL and MariaDB are limited to 64 characters.
+       */
+      name = name.substring(name.length() - 64);
+    }
     return "constraint "
-        + '"' + (name() != null ? name() : defaultConstraintName(target, namePrefix())) + '"'
+        + '"' + name + '"'
         + " check(" + expr().translate(target, path.add(expr()), parameters) + ')';
-  }
-
-  @Override
-  protected String namePrefix() {
-    return "ck_";
   }
 
   public Expression<?, String> expr() {

@@ -7,9 +7,9 @@ package ma.vi.esql.database;
 import com.mysql.cj.jdbc.MysqlDataSource;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
-import ma.vi.esql.syntax.Translatable;
 import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.semantic.type.Types;
+import ma.vi.esql.syntax.Translatable;
 
 import java.sql.*;
 import java.util.Map;

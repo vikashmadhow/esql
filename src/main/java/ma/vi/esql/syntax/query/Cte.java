@@ -5,11 +5,10 @@
 package ma.vi.esql.syntax.query;
 
 import ma.vi.base.tuple.T2;
-import ma.vi.esql.syntax.*;
-import ma.vi.esql.syntax.expression.ColumnRef;
 import ma.vi.esql.semantic.type.Selection;
 import ma.vi.esql.semantic.type.Type;
-import ma.vi.esql.syntax.expression.literal.NullLiteral;
+import ma.vi.esql.syntax.*;
+import ma.vi.esql.syntax.expression.ColumnRef;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,10 +28,9 @@ public class Cte extends QueryUpdate {
              QueryUpdate query) {
     super(context, name,
           T2.of("fields", fields == null ? null : new Esql<>(context, fields)),
-          T2.of("query", query));
-
-    T2.of("tables", query.tables(), false);
-    T2.of("metadata", query.metadata(), false);
+          T2.of("query", query),
+          T2.of("tables", query.tables()),
+          T2.of("metadata", query.metadata()));
 
     if (fields != null && !fields.isEmpty()) {
       /*
@@ -87,13 +85,13 @@ public class Cte extends QueryUpdate {
    * part of.
    */
   @Override
-  public Selection type() {
+  public Selection type(EsqlPath path) {
     if (type == null) {
-      type = query().type();
+      type = query().type(path);
       type.name(name());
 
       /*
-       * rename columns using CTE field list.
+       * Rename columns using CTE field list.
        */
       List<String> fields = fields();
       if (fields != null && !fields.isEmpty()) {
@@ -105,13 +103,11 @@ public class Cte extends QueryUpdate {
         }
         List<Column> typeFields = new ArrayList<>();
         for (int i = 0; i < fields.size(); i++) {
-//          typeFields.get(i).alias(fields.get(i));
-          Column col = typeCols.get(i).copy();
-          Type type = col.type();
-          col.type(type);
-          col.expression(new ColumnRef(context, name(), fields.get(i)));
-          col.alias(fields.get(i));
-          typeFields.add(col);
+          Column col = typeCols.get(i);
+          Type type = col.type(path);
+          typeFields.add(col.type(type)
+                            .expression(new ColumnRef(context, name(), fields.get(i)))
+                            .alias(fields.get(i)));
         }
         type = new Selection(typeFields, query().from());
       }
@@ -130,7 +126,7 @@ public class Cte extends QueryUpdate {
     /*
      * translate query and surround by CTE fields definition
      */
-    QueryTranslation q = query().translate(target, parameters);
+    QueryTranslation q = query().translate(target, path, parameters);
     String s = '"' + name() + '"'
              + (fields() == null
                   ? ""

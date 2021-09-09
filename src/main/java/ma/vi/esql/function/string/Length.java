@@ -6,10 +6,11 @@ package ma.vi.esql.function.string;
 
 import ma.vi.esql.function.Function;
 import ma.vi.esql.function.FunctionParameter;
+import ma.vi.esql.semantic.type.Types;
+import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.Translatable;
 import ma.vi.esql.syntax.expression.Expression;
 import ma.vi.esql.syntax.expression.FunctionCall;
-import ma.vi.esql.semantic.type.Types;
 
 import java.util.List;
 
@@ -29,17 +30,17 @@ public class Length extends Function {
   }
 
   @Override
-  public String translate(FunctionCall call, Translatable.Target target) {
+  public String translate(FunctionCall call, Translatable.Target target, EsqlPath path) {
     List<Expression<?, ?>> args = call.arguments();
     if (target == SQLSERVER) {
-      return "len(" + args.get(0).translate(target) + ')';
+      return "len(" + args.get(0).translate(target, path.add(args.get(0))) + ')';
 
     } else if (target == JAVASCRIPT) {
-      return "(" + args.get(0).translate(target) + ").length";
+      return "(" + args.get(0).translate(target, path.add(args.get(0))) + ").length";
 
     } else {
       // Postgres, ESQL and everything else
-      return name + '(' + args.get(0).translate(target) + ')';
+      return name + '(' + args.get(0).translate(target, path.add(args.get(0))) + ')';
     }
   }
 }
