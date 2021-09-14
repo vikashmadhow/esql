@@ -319,7 +319,7 @@ public class AlterTable extends Define<String> {
              * add field metadata, removing previous ones
              */
             s.database.columnMetadata(con, column.id(), def.metadata());
-            relation.addOrReplaceColumn(column.set(indexOf("metadata"), def.metadata()));
+            relation.addOrReplaceColumn(column.set("metadata", def.metadata()));
           }
         } else if (alteration instanceof DropColumn drop) {
           /*

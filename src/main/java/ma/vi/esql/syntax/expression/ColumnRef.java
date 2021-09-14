@@ -161,11 +161,6 @@ public class ColumnRef extends Expression<String, String> implements Macro {
     return column;
   }
 
-//  @Override
-//  public int expansionOrder() {
-//    return HIGH;
-//  }
-
   /**
    * Expand derived columns to their base expressions.
    */
@@ -183,7 +178,7 @@ public class ColumnRef extends Expression<String, String> implements Macro {
         if (column.derived()) {
           Expression<?, String> expr = column.expression().copy();
           if (qualifier() != null) {
-            qualify(expr, qualifier(), null, true);
+            qualify(expr, qualifier(), true);
           }
           return new GroupedExpression(context, expr);
         }
@@ -224,17 +219,18 @@ public class ColumnRef extends Expression<String, String> implements Macro {
     return childValue("qualifier");
   }
 
-  public void qualifier(String qualifier) {
-    Esql<String, ?> v = (Esql<String, ?>)children.get("qualifier");
-    v.value = qualifier;
+  public ColumnRef qualifier(String qualifier) {
+//    Esql<String, ?> v = (Esql<String, ?>)children.get("qualifier");
+//    v.value = qualifier;
+    return set("qualifier", new Esql<>(context, qualifier));
   }
 
   public String name() {
     return value;
   }
 
-  public void name(String name) {
-    value = name;
+  public ColumnRef name(String name) {
+    return copy(name);
   }
 
   public String qualifiedName() {
@@ -252,31 +248,31 @@ public class ColumnRef extends Expression<String, String> implements Macro {
    */
   public static <T extends Esql<?, ?>> T qualify(T esql,
                                                  String qualifier,
-                                                 String suffix,
                                                  boolean replaceExistingQualifier) {
-    esql.forEach((e, path) -> {
-      if (e instanceof ColumnRef) {
+    return (T)esql.map((e, path) -> {
+      if (e instanceof ColumnRef ref) {
         SelectExpression selExpr = path.ancestor(SelectExpression.class);
         if (selExpr == null) {
-          changeQualifierInColumnRef((ColumnRef)e, qualifier, suffix, replaceExistingQualifier);
+          if (ref.qualifier() == null || replaceExistingQualifier) {
+            return ref.qualifier(qualifier);
+          }
         }
       }
-      return true;
+      return e;
     });
-    return esql;
   }
 
-  private static void changeQualifierInColumnRef(ColumnRef ref,
-                                                 String qualifier,
-                                                 String suffix,
-                                                 boolean replaceExistingQuantifier) {
-    if (ref.qualifier() == null || replaceExistingQuantifier) {
-      ref.qualifier(qualifier);
-    }
-    if (suffix != null) {
-      ref.name(ref.name() + suffix);
-    }
-  }
+//  private static void changeQualifierInColumnRef(ColumnRef ref,
+//                                                 String qualifier,
+//                                                 String suffix,
+//                                                 boolean replaceExistingQuantifier) {
+//    if (ref.qualifier() == null || replaceExistingQuantifier) {
+//      ref.qualifier(qualifier);
+//    }
+//    if (suffix != null) {
+//      ref.name(ref.name() + suffix);
+//    }
+//  }
 
   private transient volatile Type type;
 }

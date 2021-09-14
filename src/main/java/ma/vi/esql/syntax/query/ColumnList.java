@@ -84,11 +84,11 @@ public class ColumnList extends Esql<String, String> implements Macro {
            || (rel instanceof AliasedRelation && ((AliasedRelation)rel).relation instanceof BaseRelation)) {
             col = relCol.copy();
             if (qualifier != null) {
-              ColumnRef.qualify(col.expression(), qualifier, null, true);
+              ColumnRef.qualify(col.expression(), qualifier, true);
             }
             if (col.metadata() != null) {
               for (Attribute attr: col.metadata().attributes().values()) {
-                ColumnRef.qualify(attr.attributeValue(), qualifier, null, true);
+                ColumnRef.qualify(attr.attributeValue(), qualifier, true);
               }
             }
           } else {

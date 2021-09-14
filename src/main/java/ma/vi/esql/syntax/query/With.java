@@ -30,7 +30,7 @@ public class With extends QueryUpdate {
           T2.of("recursive", new Esql<>(context, recursive)),
           T2.of("ctes",      new Esql<>(context, ctes)),
           T2.of("query",     query),
-          T2.of("columns",   new Esql<>(context,"columns", query.columns())),
+          T2.of("columns",   new ColumnList(context, query.columns())),
           T2.of("tables",    query.tables()),
           T2.of("metadata",  query.metadata()));
   }
@@ -100,33 +100,33 @@ public class With extends QueryUpdate {
     return false;
   }
 
-  @Override
-  public T2<Boolean, String> restrict(Restriction restriction,
-                                      String targetAlias,
-                                      boolean ignoreHiddenFields,
-                                      boolean followSubSelect) {
-    boolean joined = false;
-    String alias = null;
-    boolean first = true;
-    for (Cte cte: ctes()) {
-      /*
-       * For recursive with query, the first CTE does not support distinct for
-       * SQL SERVER; thus for that part of the WITH query, disable the rewriting.
-       */
-      if (!(context.structure.database instanceof SqlServer)
-          || !recursive()
-          || !first) {
-        T2<Boolean, String> res = cte.restrict(restriction, targetAlias, ignoreHiddenFields, followSubSelect);
-        joined |= res.a;
-        alias = res.b == null ? alias : res.b;
-      }
-      first = false;
-    }
-    T2<Boolean, String> res = query().restrict(restriction, targetAlias, ignoreHiddenFields, followSubSelect);
-    joined |= res.a;
-    alias = res.b == null ? alias : res.b;
-    return T2.of(joined, alias);
-  }
+//  @Override
+//  public T2<Boolean, String> restrict(Restriction restriction,
+//                                      String targetAlias,
+//                                      boolean ignoreHiddenFields,
+//                                      boolean followSubSelect) {
+//    boolean joined = false;
+//    String alias = null;
+//    boolean first = true;
+//    for (Cte cte: ctes()) {
+//      /*
+//       * For recursive with query, the first CTE does not support distinct for
+//       * SQL SERVER; thus for that part of the WITH query, disable the rewriting.
+//       */
+//      if (!(context.structure.database instanceof SqlServer)
+//          || !recursive()
+//          || !first) {
+//        T2<Boolean, String> res = cte.restrict(restriction, targetAlias, ignoreHiddenFields, followSubSelect);
+//        joined |= res.a;
+//        alias = res.b == null ? alias : res.b;
+//      }
+//      first = false;
+//    }
+//    T2<Boolean, String> res = query().restrict(restriction, targetAlias, ignoreHiddenFields, followSubSelect);
+//    joined |= res.a;
+//    alias = res.b == null ? alias : res.b;
+//    return T2.of(joined, alias);
+//  }
 
   public boolean recursive() {
     return childValue("recursive");

@@ -214,6 +214,10 @@ public class Esql<V, R> implements Copy<Esql<V, R>>, Translatable<R> {
     return (T)copy(value);
   }
 
+  public <T extends Esql<V, R>> T set(String childName, Esql<?, ?> child) {
+    return set(indexOf(childName), child);
+  }
+
   public <T extends Esql<V, R>> T set(int index, Esql<?, ?> child) {
     Esql<V, R> copy = copy();
     while (copy.children.size() <= index) {
@@ -356,6 +360,10 @@ public class Esql<V, R> implements Copy<Esql<V, R>>, Translatable<R> {
       return (T)(copy != null ? copy : mapped);
     }
     return (T)this;
+  }
+
+  public <T extends Esql<?, ?>> T replace(Esql<?, ?> searchFor, Esql<?, ?> replaceWith) {
+    return (T)map((e, path) -> e == searchFor ? replaceWith : e);
   }
 
   /**

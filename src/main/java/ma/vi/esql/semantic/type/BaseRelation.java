@@ -164,7 +164,7 @@ public class BaseRelation extends Relation {
     return cols.stream()
                .map(t -> alias == null
                             ? t.b().copy()
-                            : qualify(t.b().copy(), alias, null, true))
+                            : qualify(t.b().copy(), alias, true))
                .collect(toList());
   }
 
@@ -263,13 +263,13 @@ public class BaseRelation extends Relation {
                                       .map(Column::alias)
                                       .collect(toCollection(HashSet::new));
     for (Column column: this.columns) {
-      column = column.set(column.indexOf("relation"), new Esql<>(context, this));
+      column = column.set("relation", new Esql<>(context, this));
       if (column.alias() == null) {
         Expression<?, String> expr = column.expression();
         if (expr instanceof ColumnRef) {
-          column.alias(((ColumnRef)expr).name());
+          column = column.alias(((ColumnRef)expr).name());
         } else {
-          column.alias(makeUnique(aliases, "column"));
+          column = column.alias(makeUnique(aliases, "column"));
         }
       }
       aliases.add(column.alias());
@@ -349,12 +349,13 @@ public class BaseRelation extends Relation {
     return newCols;
   }
 
-  public static Expression<?, String> rename(Expression<?, String> expr, Map<String, String> aliased) {
+  public static Expression<?, String> rename(Expression<?, String> expr,
+                                             Map<String, String> aliased) {
     return (Expression<?, String>)expr.map((e, path) -> {
-      if (e instanceof ColumnRef) {
-        String name = ((ColumnRef)e).name();
+      if (e instanceof ColumnRef ref) {
+        String name = ref.name();
         if (aliased.containsKey(name)) {
-          ((ColumnRef)e).name(aliased.get(name));
+          return ref.name(aliased.get(name));
         }
       }
       return e;

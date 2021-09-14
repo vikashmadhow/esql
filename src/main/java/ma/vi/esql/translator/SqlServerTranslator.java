@@ -3,6 +3,7 @@ package ma.vi.esql.translator;
 import ma.vi.base.string.Strings;
 import ma.vi.esql.function.Function;
 import ma.vi.esql.semantic.type.Type;
+import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.Translatable;
 import ma.vi.esql.syntax.TranslationException;
@@ -62,7 +63,7 @@ public class SqlServerTranslator extends AbstractTranslator {
         }
       }
       if (groupExpressionsChanged) {
-        select.groupBy(new GroupBy(select.context, newGroupExpressions, groupBy.groupType()));
+        select = select.groupBy(new GroupBy(select.context, newGroupExpressions, groupBy.groupType()));
       }
     }
 
@@ -176,9 +177,10 @@ public class SqlServerTranslator extends AbstractTranslator {
         for (Column column: select.columns()) {
           Expression<?, String> colExpr = column.expression();
           AtomicBoolean aggregate = new AtomicBoolean();
+          Context context = select.context;
           colExpr.forEach((e, p) -> {
             if (e instanceof FunctionCall) {
-              Function function = select.context.structure.function(((FunctionCall)e).functionName());
+              Function function = context.structure.function(((FunctionCall)e).functionName());
               if (function != null && function.aggregate) {
                 aggregate.set(true);
                 return false;

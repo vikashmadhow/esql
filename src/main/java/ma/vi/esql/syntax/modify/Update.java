@@ -36,7 +36,7 @@ public class Update extends QueryUpdate {
           of("tables", from),
           of("where", where),
           of("metadata", returnMetadata),
-          of("columns", new Esql<>(context, "returning", returnColumns)));
+          of("columns", new ColumnList(context, returnColumns)));
   }
 
   public Update(Update other) {
@@ -85,62 +85,6 @@ public class Update extends QueryUpdate {
       }
       st.append('"').append(columnName).append("\"=")
         .append(set.attributeValue().translate(target));
-    }
-  }
-
-  /**
-   * For postgresql updates, the table to be updated must be specified after the
-   * `update` keyword and not repeated in the from table expression (unless for
-   * a self-join). Since ESQL allows a single table expression containing the
-   * whole join together with the table to update, the latter must be extracted.
-   * This method finds the table to update (using its alias supplied in the
-   * update statement), removes it from the whole table expression and returns
-   * it, together with the parent join it belongs to. The parent join is used to
-   * extract any condition set on the join and put it in the `where` clause.
-   *
-   * @param join The join to search for single update table.
-   * @param singleTableAlias The alias of the single table being searched.
-   * @return The single table to update together with the parent join it belongs
-   *         to. The parent join is used to extract any condition set on the
-   *         join and put it in the `where` clause of the query.
-   */
-  public static T2<AbstractJoinTableExpr, SingleTableExpr> removeSingleTable(AbstractJoinTableExpr join,
-                                                                             String singleTableAlias) {
-    if (join.left() instanceof SingleTableExpr
-     && singleTableAlias.equals(((SingleTableExpr)join.left()).alias())) {
-      /*
-       *        J                    J
-       *      /  \    remove x     /  \
-       *     J    z  ---------->  y    z
-       *    / \
-       *   x  y
-       */
-      SingleTableExpr table = (SingleTableExpr)join.left();
-      join.replaceWith(join.right());
-      return T2.of(join, table);
-
-    } else if (join.right() instanceof SingleTableExpr
-            && singleTableAlias.equals(((SingleTableExpr)join.right()).alias())) {
-      /*
-       *        J                     J
-       *      /  \   remove y       /  \
-       *     J    z ---------->    x    z
-       *    / \
-       *   x  y
-       */
-
-      SingleTableExpr table = (SingleTableExpr)join.right();
-      join.replaceWith(join.left());
-      return T2.of(join, table);
-
-    } else if (join.left() instanceof AbstractJoinTableExpr) {
-      return removeSingleTable((AbstractJoinTableExpr)join.left(), singleTableAlias);
-
-    } else if (join.right() instanceof AbstractJoinTableExpr) {
-      return removeSingleTable((AbstractJoinTableExpr)join.right(), singleTableAlias);
-
-    } else {
-      return null;
     }
   }
 

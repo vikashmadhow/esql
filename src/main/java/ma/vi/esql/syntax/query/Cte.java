@@ -11,8 +11,10 @@ import ma.vi.esql.syntax.*;
 import ma.vi.esql.syntax.expression.ColumnRef;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.joining;
 
@@ -27,33 +29,9 @@ public class Cte extends QueryUpdate {
              List<String> fields,
              QueryUpdate query) {
     super(context, name,
-          T2.of("fields", fields == null ? null : new Esql<>(context, fields)),
-          T2.of("query", query),
-          T2.of("tables", query.tables()),
-          T2.of("metadata", query.metadata()));
-
-    if (fields != null && !fields.isEmpty()) {
-      /*
-       * Set the alias of columns to the name of the corresponding field
-       */
-      List<QueryUpdate> queries = new ArrayList<>();
-      if (query instanceof CompositeSelects) {
-        queries.addAll(((CompositeSelects)query).selects());
-      } else {
-        queries.add(query);
-      }
-      for (QueryUpdate q: queries) {
-        if (fields.size() != q.columns().size()) {
-          throw new SyntaxException("Number of fields for CTE is " + fields.size()
-                                  + " while number of columns in the query for the CTE is " + q.columns().size());
-        }
-        for (int i = 0; i < fields.size(); i++) {
-          Column col = q.columns().get(i);
-          col.alias(fields.get(i));
-        }
-      }
-    }
-    child("columns", query.columnsAsEsql(), false);
+          Stream.concat(
+            Stream.of(T2.of("fields", fields == null ? null : new Esql<>(context, fields))),
+            Stream.of(queryColumns(query, fields))).toArray(T2[]::new));
   }
 
   public Cte(Cte other) {
@@ -77,6 +55,47 @@ public class Cte extends QueryUpdate {
   @Override
   public Cte copy(String value, T2<String, ? extends Esql<?, ?>>... children) {
     return new Cte(this, value, children);
+  }
+
+  private static List<T2<String, Esql<?, ?>>> queryColumns(QueryUpdate query, List<String> fields) {
+    if (fields != null && !fields.isEmpty()) {
+      /*
+       * Set the alias of columns to the name of the corresponding field
+       */
+      if (query instanceof CompositeSelects com) {
+        List<Select> aliased = new ArrayList<>();
+        List<Select> selects = com.selects();
+        for (Select q: selects) {
+          if (fields.size() != q.columns().size()) {
+            throw new SyntaxException("Number of fields for CTE is " + fields.size()
+                                    + " while number of columns in the query for the CTE is " + q.columns().size());
+          }
+          List<Column> cols = q.columns();
+          List<Column> columns = new ArrayList<>();
+          for (int i = 0; i < fields.size(); i++) {
+            columns.add(cols.get(i).alias(fields.get(i)));
+          }
+          aliased.add(q.set("columns", new ColumnList(q.context, columns)));
+        }
+        query = new CompositeSelects(com.context, com.operator(), aliased);
+      } else {
+        if (fields.size() != query.columns().size()) {
+          throw new SyntaxException("Number of fields for CTE is " + fields.size()
+                                  + " while number of columns in the query for the CTE is " + query.columns().size());
+        }
+        List<Column> cols = query.columns();
+        List<Column> columns = new ArrayList<>();
+        for (int i = 0; i < fields.size(); i++) {
+          columns.add(cols.get(i).alias(fields.get(i)));
+        }
+        query = query.set("columns", new ColumnList(query.context, columns));;
+      }
+    }
+    return Arrays.asList(
+        T2.of("query",    query),
+        T2.of("tables",   query.tables()),
+        T2.of("metadata", query.metadata()),
+        T2.of("columns",  query.columnList()));
   }
 
   /**
@@ -139,13 +158,13 @@ public class Cte extends QueryUpdate {
                                 q.resultAttributeIndices, q.resultAttributes);
   }
 
-  @Override
-  public T2<Boolean, String> restrict(Restriction restriction,
-                                      String targetAlias,
-                                      boolean ignoreHiddenFields,
-                                      boolean followSubSelect) {
-    return query().restrict(restriction, targetAlias, ignoreHiddenFields, followSubSelect);
-  }
+//  @Override
+//  public T2<Boolean, String> restrict(Restriction restriction,
+//                                      String targetAlias,
+//                                      boolean ignoreHiddenFields,
+//                                      boolean followSubSelect) {
+//    return query().restrict(restriction, targetAlias, ignoreHiddenFields, followSubSelect);
+//  }
 
   @Override
   public String name() {

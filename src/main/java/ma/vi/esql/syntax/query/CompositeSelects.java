@@ -64,7 +64,7 @@ public class CompositeSelects extends Select {
       mergeMetadata(columns);
     }
 //    columns(selects.get(0).columnsAsEsql() == null ? null : selects.get(0).columnsAsEsql().copy().value);
-    columnsAsEsql(selects.get(0).columnsAsEsql());
+    columnList(selects.get(0).columnList());
   }
 
   public CompositeSelects(CompositeSelects other) {
@@ -170,18 +170,18 @@ public class CompositeSelects extends Select {
     return value;
   }
 
-  @Override
-  public T2<Boolean, String> restrict(Restriction restriction,
-                                      String targetAlias,
-                                      boolean ignoreHiddenFields,
-                                      boolean followSubSelect) {
-    boolean joined = false;
-    String alias = null;
-    for (Select sel: selects()) {
-      T2<Boolean, String> res = sel.restrict(restriction, targetAlias, ignoreHiddenFields, followSubSelect);
-      joined |= res.a;
-      alias = alias == null ? res.b : alias;
-    }
-    return T2.of(joined, alias);
-  }
+//  @Override
+//  public T2<Boolean, String> restrict(Restriction restriction,
+//                                      String targetAlias,
+//                                      boolean ignoreHiddenFields,
+//                                      boolean followSubSelect) {
+//    boolean joined = false;
+//    String alias = null;
+//    for (Select sel: selects()) {
+//      T2<Boolean, String> res = sel.restrict(restriction, targetAlias, ignoreHiddenFields, followSubSelect);
+//      joined |= res.a;
+//      alias = alias == null ? res.b : alias;
+//    }
+//    return T2.of(joined, alias);
+//  }
 }

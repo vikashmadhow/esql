@@ -1,13 +1,11 @@
 /*
- * Copyright (c) 2020 Vikash Madhow
+ * Copyright (c) 2020-2021 Vikash Madhow
  */
 
 package ma.vi.esql.syntax.query;
 
-import ma.vi.base.string.Strings;
 import ma.vi.base.tuple.T2;
 import ma.vi.base.tuple.T3;
-import ma.vi.esql.builder.Attr;
 import ma.vi.esql.database.Database;
 import ma.vi.esql.exec.ColumnMapping;
 import ma.vi.esql.exec.Result;
@@ -17,12 +15,8 @@ import ma.vi.esql.semantic.type.Selection;
 import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.syntax.*;
 import ma.vi.esql.syntax.define.Attribute;
-import ma.vi.esql.syntax.define.ForeignKeyConstraint;
 import ma.vi.esql.syntax.define.Metadata;
 import ma.vi.esql.syntax.expression.*;
-import ma.vi.esql.syntax.expression.comparison.Equality;
-import ma.vi.esql.syntax.expression.comparison.In;
-import ma.vi.esql.syntax.expression.literal.IntegerLiteral;
 import ma.vi.esql.syntax.expression.literal.Literal;
 import ma.vi.esql.syntax.expression.logical.And;
 
@@ -36,7 +30,6 @@ import static java.sql.ResultSet.CONCUR_READ_ONLY;
 import static java.sql.ResultSet.TYPE_SCROLL_INSENSITIVE;
 import static java.util.Collections.emptyMap;
 import static java.util.stream.Collectors.toList;
-import static ma.vi.base.string.Strings.makeUnique;
 import static ma.vi.base.string.Strings.random;
 
 /**
@@ -57,7 +50,9 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
     this.type = other.type == null ? null : other.type.copy();
   }
 
-  public QueryUpdate(QueryUpdate other, String value, T2<String, ? extends Esql<?, ?>>... children) {
+  public QueryUpdate(QueryUpdate other,
+                     String value,
+                     T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }
 
@@ -88,11 +83,6 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
       if (columns() != null) {
         for (Column column: columns()) {
           String alias = column.alias();
-          if (alias == null) {
-            alias = makeUnique(columns.keySet(), "col", false);
-            column.alias(alias);
-          }
-
           if (expandColumns
            && column.expression() instanceof ColumnRef ref
            && alias.indexOf('/') == -1) {
@@ -102,8 +92,7 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
             }
             for (Column col: fromType.columns(ref.qualifier(), refName)) {
               String colAlias = col.alias();
-              col = col.copy();
-              col.alias(alias + colAlias.substring(refName.length()));
+              col = col.alias(alias + colAlias.substring(refName.length()));
               columns.put(col.alias(), col);
             }
           } else {
@@ -117,7 +106,7 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
             if (column.metadata() != null && column.metadata().attributes() != null) {
               for (Attribute a: column.metadata().attributes().values()) {
                 for (Column c: BaseRelation.columnsForAttribute(a, alias + '/', aliased)) {
-                  columns.put(c.alias(), c.copy());
+                  columns.put(c.alias(), c);
                 }
               }
             }
@@ -154,18 +143,21 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
       }
 
       /*
-       * Replace column names with their aliases in uncomputed forms intended.
+       * Replace column names with their aliases in uncomputed forms intended
        * to be run on client-side.
        */
+      List<Column> cols = new ArrayList<>(columns.values());
       if (!aliased.isEmpty()) {
-        for (Column c: columns.values()) {
+        for (int i = 0; i < cols.size(); i++) {
+          Column c = cols.get(i);
           if (c.expression() instanceof UncomputedExpression) {
-            BaseRelation.rename(c.expression(), aliased);
+            c = c.set("expression", BaseRelation.rename(c.expression(), aliased));
+            cols.set(i, c);
           }
         }
       }
-      List<Column> cols = new ArrayList<>(columns.values());
-      columns(cols);
+
+//      columns(cols);
       type = new Selection(cols, from);
       context.type(type);
     }
@@ -292,7 +284,7 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
       column = column.copy();
       Expression<?, String> expression = column.expression();
       if (qualifier != null) {
-        ColumnRef.qualify(expression, qualifier, null, true);
+        ColumnRef.qualify(expression, qualifier, true);
       }
       query.append(column.translate(target));
       String colName = column.alias();
@@ -350,7 +342,7 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
                                   String qualifier,
                                   String alias) {
     if (qualifier != null) {
-      ColumnRef.qualify(expression, qualifier, null, true);
+      ColumnRef.qualify(expression, qualifier, true);
     }
     query.append(expression.translate(target));
     if (alias != null) {
@@ -376,13 +368,13 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
   public List<Column> columns() {
     return child("columns").children();
   }
-//
-//  /**
-//   * Returns the columns embedded in its Esql envelop.
-//   */
-//  public Esql<List<Column>, ?> columnsAsEsql() {
-//    return child("columns");
-//  }
+
+  /**
+   * Returns the columns embedded in its Esql envelop.
+   */
+  public ColumnList columnList() {
+    return child("columns");
+  }
 
 //  public void columns(List<Column> columns) {
 //    child("columns", new Esql<>(context, columns));
@@ -394,37 +386,37 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
 //    type = null;
 //  }
 
-  public void columns(T3<String, String, List<Attr>>... columns) {
-    List<Column> cols = new ArrayList<>();
-    Parser parser = new Parser(context.structure);
-    for (var column: columns) {
-      cols.add(new Column(
-          context,
-          column.b,
-          parser.parseExpression(column.a),
-          column.c == null
-            ? null
-            : new Metadata(context,
-                           column.c.stream()
-                                 .map(a -> new Attribute(context,
-                                                         a.name,
-                                                         parser.parseExpression(a.expr)))
-                                 .collect(toList()))));
-    }
-    columns(cols);
-  }
+//  public void columns(T3<String, String, List<Attr>>... columns) {
+//    List<Column> cols = new ArrayList<>();
+//    Parser parser = new Parser(context.structure);
+//    for (var column: columns) {
+//      cols.add(new Column(
+//          context,
+//          column.b,
+//          parser.parseExpression(column.a),
+//          column.c == null
+//            ? null
+//            : new Metadata(context,
+//                           column.c.stream()
+//                                 .map(a -> new Attribute(context,
+//                                                         a.name,
+//                                                         parser.parseExpression(a.expr)))
+//                                 .collect(toList()))));
+//    }
+//    columns(cols);
+//  }
 
-  public void columns(String... columns) {
-    Parser parser = new Parser(context.structure);
-    List<Column> cols = new ArrayList<>();
-    for (var column: columns) {
-      cols.add(new Column(context,
-                          null,
-                          parser.parseExpression(column),
-                          null));
-    }
-    columns(cols);
-  }
+//  public void columns(String... columns) {
+//    Parser parser = new Parser(context.structure);
+//    List<Column> cols = new ArrayList<>();
+//    for (var column: columns) {
+//      cols.add(new Column(context,
+//                          null,
+//                          parser.parseExpression(column),
+//                          null));
+//    }
+//    columns(cols);
+//  }
 
   /**
    * Returns the table expression for selection or updates.
@@ -445,8 +437,7 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
     return where(where, false);
   }
 
-  public QueryUpdate where(Expression<?, String> where, boolean addToJoin) {
-    boolean added = false;
+  public <T extends QueryUpdate> T where(Expression<?, String> where, boolean addToJoin) {
     if (addToJoin) {
       /*
        * Add to the join list if there is one.
@@ -477,38 +468,25 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
 
           if (join.joinType != null) {
             /*
-             * Don't add to join if there's an outer join
-             * as such a join is not restrictive.
+             * Don't add to join if there's an outer join as such a join is not
+             * restrictive.
              */
             break;
           }
           if (aliases.containsAll(qualifiers)) {
-            join.on.replaceWith(
-                new And(
-                    where.context,
-                    join.on.copy(),
-                    new GroupedExpression(where.context, where)
-                )
-            );
-            added = true;
-            break;
+            return replace(join.on, new And(context, join.on, new GroupedExpression(context, where)));
           }
         }
       }
     }
-    if (!added) {
-      /*
-       * Add as where clause.
-       */
-      Expression<?, String> w = where();
-      child("where",
-            w == null
-              ? where
-              : new And(context,
-                        new GroupedExpression(context, w),
-                        new GroupedExpression(context, where)));
-    }
-    return this;
+    /*
+     * Add as where clause.
+     */
+    Expression<?, String> w = where();
+    return set("where", w == null ? where
+                                  : new And(context,
+                                            new GroupedExpression(context, w),
+                                            new GroupedExpression(context, where)));
   }
 
   public QueryUpdate where(String where) {
@@ -519,7 +497,6 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
                                        List<Join> joins) {
     if (tables instanceof AbstractJoinTableExpr join) {
       lineariseJoins(join.left(), joins);
-
       TableExpr right = join.right();
       lineariseJoins(right, joins);
       if (join instanceof JoinTableExpr jt
@@ -571,264 +548,264 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
     public final SingleTableExpr table;
     public final Expression<?, String> on;
   }
-
-  public T2<Boolean, String> restrict(String restrictToTable) {
-    return restrict(context.structure.relation(restrictToTable));
-  }
-
-  public T2<Boolean, String> restrict(Relation restrictToTable) {
-    return restrict(restrictToTable, true);
-  }
-
-  public T2<Boolean, String> restrict(Relation restrictToTable,
-                                      boolean ignoreHiddenFields) {
-    return restrict(restrictToTable, null, ignoreHiddenFields, true);
-  }
-
-  public T2<Boolean, String> restrict(Relation restrictToTable,
-                                      boolean ignoreHiddenFields,
-                                      boolean followSubSelect) {
-    return restrict(restrictToTable, null, ignoreHiddenFields, followSubSelect);
-  }
-
-  public T2<Boolean, String> restrict(Relation restrictToTable,
-                                      String targetAlias,
-                                      boolean ignoreHiddenFields,
-                                      boolean followSubSelect) {
-    return restrict(new Restriction(restrictToTable), targetAlias, ignoreHiddenFields, followSubSelect);
-  }
-
-  public T2<Boolean, String> restrict(Restriction restriction,
-                                      String targetAlias,
-                                      boolean ignoreHiddenFields,
-                                      boolean followSubSelect) {
-    TableExpr selectFrom = tables();
-    if (selectFrom instanceof SelectTableExpr) {
-      if (followSubSelect) {
-        return ((SelectTableExpr)selectFrom).select()
-                                            .restrict(restriction, targetAlias, ignoreHiddenFields, followSubSelect);
-      } else {
-        return T2.of(false, null);
-      }
-    } else {
-      boolean joined = false;
-      String alias = null;
-
-      List<T2<ForeignKeyConstraint, Boolean>> shortestPath = null;
-      SingleTableExpr shortestPathSource = null;
-      Restriction.By by = null;
-
-      restrict:
-      for (Iterator<Restriction.By> i = restriction.by.iterator(); i.hasNext(); ) {
-        by = i.next();
-        if (selectFrom instanceof SingleTableExpr singleTableExpr) {
-          if (singleTableExpr.tableName().equals(by.table.name())) {
-            /*
-             * The from clause is the restricted table, no need to search
-             * for other restrictions as this is the shortest possible path.
-             */
-            shortestPathSource = singleTableExpr;
-            shortestPath = null;
-            break;
-          } else {
-            /*
-             * find a path to the restricted table if any;
-             * keep only the shortest path.
-             */
-            BaseRelation sourceTable = context.structure.relation(singleTableExpr.tableName());
-            if (sourceTable != null) {
-              List<T2<ForeignKeyConstraint, Boolean>> path = sourceTable.path(by.table, ignoreHiddenFields);
-              if (!path.isEmpty() && (shortestPath == null || path.size() < shortestPath.size())) {
-                shortestPath = path;
-                shortestPathSource = singleTableExpr;
-              }
-            }
-          }
-        } else if (selectFrom instanceof AbstractJoinTableExpr join) {
-          /*
-           * Perform a BFS over the branches of a join tree to find
-           * the shortest path from one of the table in the join to
-           * the restricted table.
-           */
-          Queue<AbstractJoinTableExpr> toExplore = new ArrayDeque<>();
-          toExplore.add(join);
-
-          while (!toExplore.isEmpty()) {
-            join = toExplore.remove();
-            TableExpr[] branches = new TableExpr[]{join.left(), join.right()};
-            for (TableExpr tableExpr: branches) {
-              if (tableExpr instanceof SingleTableExpr singleTableExpr) {
-                String tableName = singleTableExpr.tableName();
-                if (tableName.equals(by.table.name())) {
-                  /*
-                   * One of the joined table is the restricted table, no need to search
-                   * for other restrictions as this is the shortest possible path.
-                   */
-                  shortestPathSource = singleTableExpr;
-                  shortestPath = null;
-                  break restrict;
-                } else {
-                  BaseRelation source = context.structure.relation(tableName);
-                  if (source != null) {
-                    List<T2<ForeignKeyConstraint, Boolean>> path = source.path(by.table, ignoreHiddenFields);
-                    if (!path.isEmpty() && (shortestPath == null || path.size() < shortestPath.size())) {
-                      shortestPath = path;
-                      shortestPathSource = singleTableExpr;
-                    }
-                  }
-                }
-              } else if (tableExpr instanceof SelectTableExpr) {
-                if (followSubSelect) {
-                  ((SelectTableExpr)tableExpr).select()
-                                              .restrict(restriction, targetAlias, ignoreHiddenFields, followSubSelect);
-                }
-              } else if (tableExpr instanceof AbstractJoinTableExpr) {
-                toExplore.add((AbstractJoinTableExpr)tableExpr);
-              }
-            }
-          }
-        }
-      }
-      if (shortestPathSource != null) {
-        joined = true;
-        if (shortestPath != null && !shortestPath.isEmpty()) {
-          boolean hasReverseLink = shortestPath.stream().anyMatch(T2::b);
-          if (hasReverseLink && this instanceof Select) {
-            /*
-             * Joining a table along a reverse foreign key path may result
-             * in duplicates in the source table records (consequence of
-             * joining along one-to-many relationships paths). These duplicates
-             * can be removed by selecting only distinct records.
-             */
-            ((Select)this).distinct(true);
-          }
-          String sourceAlias = shortestPathSource.alias();
-          TableExpr toReplace = shortestPathSource.parent() instanceof JoinTableExpr
-                                ? (JoinTableExpr)shortestPathSource.parent()
-                                : shortestPathSource;
-          TableExpr pathJoin = toReplace.copy();
-          for (int i = 0; i < shortestPath.size(); i++) {
-            T2<ForeignKeyConstraint, Boolean> l = shortestPath.get(i);
-            ForeignKeyConstraint link = l.a;
-            boolean reversePath = l.b;
-
-            if (i == shortestPath.size() - 1) {
-              alias = targetAlias == null ? "t" + Strings.random() : targetAlias;
-            } else {
-              alias = "t" + Strings.random();
-            }
-
-            /*
-             * Links can be in reverse path. (foreign key from target to source).
-             * E.g. Com c <- Emp e: from Com c join Emp t on c._id (target field in link)=e.com_id (source fields in link)
-             * Or normal path (foreign key from source to target).
-             * E.g. Emp e -> Com c: from Emp e join Com t on e.company_id=t._id
-             */
-            Expression<?, String> on = new Equality(context,
-                                                    new ColumnRef(context,
-                                                          sourceAlias,
-                                                          reversePath ? link.targetColumns().get(0)
-                                                                      : link.sourceColumns().get(0)),
-                                                    new ColumnRef(context,
-                                                          alias,
-                                                          reversePath ? link.sourceColumns().get(0)
-                                                                      : link.targetColumns().get(0)));
-            if (link.sourceColumns().size() > 1) {
-              for (int j = 1; j < link.sourceColumns().size(); j++) {
-                on = new And(context,
-                             on,
-                             new Equality(context,
-                                                 new ColumnRef(context,
-                                                               sourceAlias,
-                                                               reversePath ? link.targetColumns().get(j)
-                                                                           : link.sourceColumns().get(j)),
-                                                 new ColumnRef(context,
-                                                               alias,
-                                                               reversePath ? link.sourceColumns().get(j)
-                                                                           : link.targetColumns().get(j))));
-              }
-            }
-            if (i == shortestPath.size() - 1
-                && by.column != null
-                && restriction.values != null
-                && !restriction.values.isEmpty()) {
-              /*
-               * Add restrict clause on the last part of the path
-               * (which is the target restricted table).
-               */
-              on = new And(context,
-                           on,
-                           restrictClause(context,
-                                                 reversePath ? link.table() : link.targetTable(),
-                                                 alias,
-                                                 restriction.excluded,
-                                                 by.column,
-                                                 restriction.values));
-            }
-            pathJoin = new JoinTableExpr(context,
-                                         pathJoin,
-                                         null,
-                                         new SingleTableExpr(context,
-                                                             reversePath ? link.table() : link.targetTable(),
-                                                             alias),
-                                         on);
-            sourceAlias = alias;
-          }
-          toReplace.replaceWith(pathJoin);
-          List<Column> cols = columns();
-          if (cols != null && cols.size() == 1) {
-            Column singleCol = cols.get(0);
-            if (String.valueOf(singleCol.expression()).equals("*")) {
-              columns(shortestPathSource.alias() + ".*");
-            }
-          }
-          type = null;
-        } else {
-          /*
-           * The shortestPathSource is the table to restrict (there's no need for a path).
-           */
-          alias = shortestPathSource.alias();
-          if (by.column != null
-              && restriction.values != null
-              && !restriction.values.isEmpty()) {
-            Expression<?, String> restrict = restrictClause(context,
-                                                            shortestPathSource.tableName(),
-                                                            shortestPathSource.alias(),
-                                                            restriction.excluded,
-                                                            by.column,
-                                                            restriction.values);
-            where(where() == null
-                  ? restrict
-                  : new And(context, where(), restrict));
-          }
-        }
-      }
-      return T2.of(joined, alias);
-    }
-  }
-
-  private static Expression<?, String> restrictClause(Context context,
-                                                      String restrictTableName,
-                                                      String restrictTableAlias,
-                                                      boolean exclude,
-                                                      String restrictColumn,
-                                                      Set<String> restrictValues) {
-    if (restrictColumn == null
-        || restrictValues == null
-        || restrictValues.isEmpty()) {
-      var one = new IntegerLiteral(context, 1L);
-      return new Equality(context, one, one);
-    } else {
-      BaseRelation relation = context.structure.relation(restrictTableName);
-      Column column = relation.column(restrictColumn);
-      return new In(context,
-                    new ColumnRef(context, restrictTableAlias, restrictColumn),
-                    exclude,
-                    restrictValues.stream()
-                                  .map(v -> Literal.makeLiteral(context, v, column.type(new EsqlPath(column))))
-                                  .collect(toList()));
-    }
-  }
+//
+//  public T2<Boolean, String> restrict(String restrictToTable) {
+//    return restrict(context.structure.relation(restrictToTable));
+//  }
+//
+//  public T2<Boolean, String> restrict(Relation restrictToTable) {
+//    return restrict(restrictToTable, true);
+//  }
+//
+//  public T2<Boolean, String> restrict(Relation restrictToTable,
+//                                      boolean ignoreHiddenFields) {
+//    return restrict(restrictToTable, null, ignoreHiddenFields, true);
+//  }
+//
+//  public T2<Boolean, String> restrict(Relation restrictToTable,
+//                                      boolean ignoreHiddenFields,
+//                                      boolean followSubSelect) {
+//    return restrict(restrictToTable, null, ignoreHiddenFields, followSubSelect);
+//  }
+//
+//  public T2<Boolean, String> restrict(Relation restrictToTable,
+//                                      String targetAlias,
+//                                      boolean ignoreHiddenFields,
+//                                      boolean followSubSelect) {
+//    return restrict(new Restriction(restrictToTable), targetAlias, ignoreHiddenFields, followSubSelect);
+//  }
+//
+//  public T2<Boolean, String> restrict(Restriction restriction,
+//                                      String targetAlias,
+//                                      boolean ignoreHiddenFields,
+//                                      boolean followSubSelect) {
+//    TableExpr selectFrom = tables();
+//    if (selectFrom instanceof SelectTableExpr) {
+//      if (followSubSelect) {
+//        return ((SelectTableExpr)selectFrom).select()
+//                                            .restrict(restriction, targetAlias, ignoreHiddenFields, followSubSelect);
+//      } else {
+//        return T2.of(false, null);
+//      }
+//    } else {
+//      boolean joined = false;
+//      String alias = null;
+//
+//      List<T2<ForeignKeyConstraint, Boolean>> shortestPath = null;
+//      SingleTableExpr shortestPathSource = null;
+//      Restriction.By by = null;
+//
+//      restrict:
+//      for (Iterator<Restriction.By> i = restriction.by.iterator(); i.hasNext(); ) {
+//        by = i.next();
+//        if (selectFrom instanceof SingleTableExpr singleTableExpr) {
+//          if (singleTableExpr.tableName().equals(by.table.name())) {
+//            /*
+//             * The from clause is the restricted table, no need to search
+//             * for other restrictions as this is the shortest possible path.
+//             */
+//            shortestPathSource = singleTableExpr;
+//            shortestPath = null;
+//            break;
+//          } else {
+//            /*
+//             * find a path to the restricted table if any;
+//             * keep only the shortest path.
+//             */
+//            BaseRelation sourceTable = context.structure.relation(singleTableExpr.tableName());
+//            if (sourceTable != null) {
+//              List<T2<ForeignKeyConstraint, Boolean>> path = sourceTable.path(by.table, ignoreHiddenFields);
+//              if (!path.isEmpty() && (shortestPath == null || path.size() < shortestPath.size())) {
+//                shortestPath = path;
+//                shortestPathSource = singleTableExpr;
+//              }
+//            }
+//          }
+//        } else if (selectFrom instanceof AbstractJoinTableExpr join) {
+//          /*
+//           * Perform a BFS over the branches of a join tree to find
+//           * the shortest path from one of the table in the join to
+//           * the restricted table.
+//           */
+//          Queue<AbstractJoinTableExpr> toExplore = new ArrayDeque<>();
+//          toExplore.add(join);
+//
+//          while (!toExplore.isEmpty()) {
+//            join = toExplore.remove();
+//            TableExpr[] branches = new TableExpr[]{join.left(), join.right()};
+//            for (TableExpr tableExpr: branches) {
+//              if (tableExpr instanceof SingleTableExpr singleTableExpr) {
+//                String tableName = singleTableExpr.tableName();
+//                if (tableName.equals(by.table.name())) {
+//                  /*
+//                   * One of the joined table is the restricted table, no need to search
+//                   * for other restrictions as this is the shortest possible path.
+//                   */
+//                  shortestPathSource = singleTableExpr;
+//                  shortestPath = null;
+//                  break restrict;
+//                } else {
+//                  BaseRelation source = context.structure.relation(tableName);
+//                  if (source != null) {
+//                    List<T2<ForeignKeyConstraint, Boolean>> path = source.path(by.table, ignoreHiddenFields);
+//                    if (!path.isEmpty() && (shortestPath == null || path.size() < shortestPath.size())) {
+//                      shortestPath = path;
+//                      shortestPathSource = singleTableExpr;
+//                    }
+//                  }
+//                }
+//              } else if (tableExpr instanceof SelectTableExpr) {
+//                if (followSubSelect) {
+//                  ((SelectTableExpr)tableExpr).select()
+//                                              .restrict(restriction, targetAlias, ignoreHiddenFields, followSubSelect);
+//                }
+//              } else if (tableExpr instanceof AbstractJoinTableExpr) {
+//                toExplore.add((AbstractJoinTableExpr)tableExpr);
+//              }
+//            }
+//          }
+//        }
+//      }
+//      if (shortestPathSource != null) {
+//        joined = true;
+//        if (shortestPath != null && !shortestPath.isEmpty()) {
+//          boolean hasReverseLink = shortestPath.stream().anyMatch(T2::b);
+//          if (hasReverseLink && this instanceof Select) {
+//            /*
+//             * Joining a table along a reverse foreign key path may result
+//             * in duplicates in the source table records (consequence of
+//             * joining along one-to-many relationships paths). These duplicates
+//             * can be removed by selecting only distinct records.
+//             */
+//            ((Select)this).distinct(true);
+//          }
+//          String sourceAlias = shortestPathSource.alias();
+//          TableExpr toReplace = shortestPathSource.parent() instanceof JoinTableExpr
+//                                ? (JoinTableExpr)shortestPathSource.parent()
+//                                : shortestPathSource;
+//          TableExpr pathJoin = toReplace.copy();
+//          for (int i = 0; i < shortestPath.size(); i++) {
+//            T2<ForeignKeyConstraint, Boolean> l = shortestPath.get(i);
+//            ForeignKeyConstraint link = l.a;
+//            boolean reversePath = l.b;
+//
+//            if (i == shortestPath.size() - 1) {
+//              alias = targetAlias == null ? "t" + Strings.random() : targetAlias;
+//            } else {
+//              alias = "t" + Strings.random();
+//            }
+//
+//            /*
+//             * Links can be in reverse path. (foreign key from target to source).
+//             * E.g. Com c <- Emp e: from Com c join Emp t on c._id (target field in link)=e.com_id (source fields in link)
+//             * Or normal path (foreign key from source to target).
+//             * E.g. Emp e -> Com c: from Emp e join Com t on e.company_id=t._id
+//             */
+//            Expression<?, String> on = new Equality(context,
+//                                                    new ColumnRef(context,
+//                                                          sourceAlias,
+//                                                          reversePath ? link.targetColumns().get(0)
+//                                                                      : link.sourceColumns().get(0)),
+//                                                    new ColumnRef(context,
+//                                                          alias,
+//                                                          reversePath ? link.sourceColumns().get(0)
+//                                                                      : link.targetColumns().get(0)));
+//            if (link.sourceColumns().size() > 1) {
+//              for (int j = 1; j < link.sourceColumns().size(); j++) {
+//                on = new And(context,
+//                             on,
+//                             new Equality(context,
+//                                                 new ColumnRef(context,
+//                                                               sourceAlias,
+//                                                               reversePath ? link.targetColumns().get(j)
+//                                                                           : link.sourceColumns().get(j)),
+//                                                 new ColumnRef(context,
+//                                                               alias,
+//                                                               reversePath ? link.sourceColumns().get(j)
+//                                                                           : link.targetColumns().get(j))));
+//              }
+//            }
+//            if (i == shortestPath.size() - 1
+//                && by.column != null
+//                && restriction.values != null
+//                && !restriction.values.isEmpty()) {
+//              /*
+//               * Add restrict clause on the last part of the path
+//               * (which is the target restricted table).
+//               */
+//              on = new And(context,
+//                           on,
+//                           restrictClause(context,
+//                                                 reversePath ? link.table() : link.targetTable(),
+//                                                 alias,
+//                                                 restriction.excluded,
+//                                                 by.column,
+//                                                 restriction.values));
+//            }
+//            pathJoin = new JoinTableExpr(context,
+//                                         pathJoin,
+//                                         null,
+//                                         new SingleTableExpr(context,
+//                                                             reversePath ? link.table() : link.targetTable(),
+//                                                             alias),
+//                                         on);
+//            sourceAlias = alias;
+//          }
+//          toReplace.replaceWith(pathJoin);
+//          List<Column> cols = columns();
+//          if (cols != null && cols.size() == 1) {
+//            Column singleCol = cols.get(0);
+//            if (String.valueOf(singleCol.expression()).equals("*")) {
+//              columns(shortestPathSource.alias() + ".*");
+//            }
+//          }
+//          type = null;
+//        } else {
+//          /*
+//           * The shortestPathSource is the table to restrict (there's no need for a path).
+//           */
+//          alias = shortestPathSource.alias();
+//          if (by.column != null
+//              && restriction.values != null
+//              && !restriction.values.isEmpty()) {
+//            Expression<?, String> restrict = restrictClause(context,
+//                                                            shortestPathSource.tableName(),
+//                                                            shortestPathSource.alias(),
+//                                                            restriction.excluded,
+//                                                            by.column,
+//                                                            restriction.values);
+//            where(where() == null
+//                  ? restrict
+//                  : new And(context, where(), restrict));
+//          }
+//        }
+//      }
+//      return T2.of(joined, alias);
+//    }
+//  }
+//
+//  private static Expression<?, String> restrictClause(Context context,
+//                                                      String restrictTableName,
+//                                                      String restrictTableAlias,
+//                                                      boolean exclude,
+//                                                      String restrictColumn,
+//                                                      Set<String> restrictValues) {
+//    if (restrictColumn == null
+//        || restrictValues == null
+//        || restrictValues.isEmpty()) {
+//      var one = new IntegerLiteral(context, 1L);
+//      return new Equality(context, one, one);
+//    } else {
+//      BaseRelation relation = context.structure.relation(restrictTableName);
+//      Column column = relation.column(restrictColumn);
+//      return new In(context,
+//                    new ColumnRef(context, restrictTableAlias, restrictColumn),
+//                    exclude,
+//                    restrictValues.stream()
+//                                  .map(v -> Literal.makeLiteral(context, v, column.type(new EsqlPath(column))))
+//                                  .collect(toList()));
+//    }
+//  }
 
   /**
    * Result type of the query/update.

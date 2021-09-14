@@ -67,7 +67,7 @@ public abstract class ConstraintDefinition extends TableDefinition {
   }
 
   public <T extends ConstraintDefinition> T table(String table) {
-    return (T)set(indexOf("table"), new Esql<>(context, table));
+    return (T)set("table", new Esql<>(context, table));
   }
 
   public String table() {

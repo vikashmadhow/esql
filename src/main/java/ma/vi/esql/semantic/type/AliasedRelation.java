@@ -44,7 +44,7 @@ public class AliasedRelation extends Relation {
     if (columns == null) {
       columns = relation.columns()
                         .stream()
-                        .map(c -> qualify(c.copy(), alias, null, true))
+                        .map(c -> qualify(c.copy(), alias, true))
                         .collect(toList());
     }
     return columns;
@@ -54,7 +54,7 @@ public class AliasedRelation extends Relation {
   public List<Column> columns(String relationAlias, String prefix) {
     return relation.columns(relationAlias, prefix)
                    .stream()
-                   .map(c -> qualify(c, alias, null, true))
+                   .map(c -> qualify(c, alias, true))
                    .collect(toList());
   }
 
@@ -63,7 +63,7 @@ public class AliasedRelation extends Relation {
     if (relationAlias == null || relationAlias.equals(alias)) {
       Column col = relation.findColumn(null, name);
       if (col != null) {
-        col = qualify(col.copy(), alias, null, true);
+        col = qualify(col.copy(), alias, true);
       }
       return col;
     } else {

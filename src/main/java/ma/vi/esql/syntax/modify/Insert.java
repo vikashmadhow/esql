@@ -9,10 +9,7 @@ import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.Restriction;
 import ma.vi.esql.syntax.define.Metadata;
-import ma.vi.esql.syntax.query.Column;
-import ma.vi.esql.syntax.query.QueryUpdate;
-import ma.vi.esql.syntax.query.Select;
-import ma.vi.esql.syntax.query.SingleTableExpr;
+import ma.vi.esql.syntax.query.*;
 
 import java.util.List;
 
@@ -40,7 +37,7 @@ public class Insert extends QueryUpdate {
           of("defaultValues", new Esql<>(context, defaultValues)),
           of("select",        select),
           of("metadata",      metadata),
-          of("columns",       new Esql<>(context, "returning", returning)));
+          of("columns",       new ColumnList(context, returning)));
   }
 
   public Insert(Insert other) {
@@ -71,14 +68,14 @@ public class Insert extends QueryUpdate {
     return true;
   }
 
-  @Override
-  public T2<Boolean, String> restrict(Restriction restriction,
-                                      String targetAlias,
-                                      boolean ignoreHiddenFields,
-                                      boolean followSubSelect) {
-    return select() != null ? select().restrict(restriction, targetAlias, ignoreHiddenFields, followSubSelect)
-                            : T2.of(false, null);
-  }
+//  @Override
+//  public T2<Boolean, String> restrict(Restriction restriction,
+//                                      String targetAlias,
+//                                      boolean ignoreHiddenFields,
+//                                      boolean followSubSelect) {
+//    return select() != null ? select().restrict(restriction, targetAlias, ignoreHiddenFields, followSubSelect)
+//                            : T2.of(false, null);
+//  }
 
   public List<String> fields() {
     return childValue("fields");

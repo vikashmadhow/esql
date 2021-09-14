@@ -399,7 +399,7 @@ public class CreateTable extends Define<String> {
   }
 
   public CreateTable constraints(List<ConstraintDefinition> constraints) {
-    return set(indexOf("constraints"), new Esql<>(context, "constraints", constraints));
+    return set("constraints", new Esql<>(context, "constraints", constraints));
   }
 
   public List<ConstraintDefinition> constraints() {

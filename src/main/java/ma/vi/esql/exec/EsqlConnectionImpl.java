@@ -162,7 +162,7 @@ public class EsqlConnectionImpl implements EsqlConnection {
       iteration++;
       if (iteration > 50) {
         throw new TranslationException(
-            "Macro expansion continued for more than 50 iterations and was stopped."
+            "Macro expansion continued for more than 50 iterations and was stopped. "
           + "A macro could be expanding recursively into other macros. Esql: " + esql);
       }
     }

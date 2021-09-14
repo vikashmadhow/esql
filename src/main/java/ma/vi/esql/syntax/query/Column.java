@@ -254,7 +254,7 @@ public class Column extends MetadataContainer<String, String> {
       attributes.addAll(metadata().attributes().values().stream().filter(a -> !a.name().equals(name)).toList());
     }
     attributes.add(new Attribute(context, name, expr));
-    return set(indexOf("metadata"), new Metadata(context, attributes));
+    return set("metadata", new Metadata(context, attributes));
   }
 
   @Override
@@ -277,7 +277,7 @@ public class Column extends MetadataContainer<String, String> {
   }
 
   public Column expression(Expression<?, String> expression) {
-    return set(indexOf("expression"), expression);
+    return set("expression", expression);
   }
 
   public Column alias(String alias) {

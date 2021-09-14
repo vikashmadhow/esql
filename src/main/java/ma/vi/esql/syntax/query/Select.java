@@ -259,13 +259,12 @@ public class Select extends QueryUpdate /* implements Macro */ {
      * Remap expression to be added to outer query.
      */
     return (Expression<?, String>)expression.map((e, p) -> {
-      if (e instanceof ColumnRef) {
-        ColumnRef ref = (ColumnRef)e;
+      if (e instanceof ColumnRef ref) {
         String qualifiedName = ref.qualifiedName();
-        ref.qualifier(innerSelectAlias);
-        if (addedInnerCols.containsKey(qualifiedName)) {
-          ref.name(addedInnerCols.get(qualifiedName));
-        }
+        ref = ref.qualifier(innerSelectAlias);
+        return addedInnerCols.containsKey(qualifiedName)
+                  ? ref.name(addedInnerCols.get(qualifiedName))
+                  : ref;
       }
       return e;
     });
@@ -275,71 +274,70 @@ public class Select extends QueryUpdate /* implements Macro */ {
     return childValue("distinct");
   }
 
-  public Select distinct(Boolean distinct) {
-    childValue("distinct", distinct);
-    return this;
-  }
+//  public Select distinct(Boolean distinct) {
+//    childValue("distinct", distinct);
+//    return this;
+//  }
 
   public List<Expression<?, String>> distinctOn() {
     return child("distinctOn").children();
   }
 
-  public Select distinctOn(List<Expression<?, String>> on) {
-    childrenList("distinctOn", on);
-    return this;
-  }
+//  public Select distinctOn(List<Expression<?, String>> on) {
+//    childrenList("distinctOn", on);
+//    return this;
+//  }
 
   public Boolean explicit() {
     return childValue("explicit");
   }
 
-  public Select explicit(Boolean explicit) {
-    childValue("explicit", explicit);
-    return this;
-  }
+//  public Select explicit(Boolean explicit) {
+//    childValue("explicit", explicit);
+//    return this;
+//  }
 
   public GroupBy groupBy() {
     return child("groupBy");
   }
 
   public Select groupBy(GroupBy groupBy) {
-    child("groupBy", groupBy);
-    return this;
+    return set("groupBy", groupBy);
   }
 
   public Expression<?, String> having() {
     return child("having");
   }
 
-  public Select having(Expression<?, String> having) {
-    child("having", having);
-    return this;
-  }
+//  public Select having(Expression<?, String> having) {
+//    child("having", having);
+//    return this;
+//  }
 
   public List<Order> orderBy() {
     return child("orderBy").children();
   }
 
-  public Select orderBy(List<Order> orderBy) {
-    childrenList("orderBy", orderBy);
-    return this;
-  }
+//  public Select orderBy(List<Order> orderBy) {
+//    childrenList("orderBy", orderBy);
+//    return this;
+//  }
 
   public Expression<?, String> offset() {
     return child("offset");
   }
 
-  public Select offset(Expression<?, String> offset) {
-    child("offset", offset);
-    return this;
-  }
+//  public Select offset(Expression<?, String> offset) {
+//    child("offset", offset);
+//    return this;
+//  }
 
   public Expression<?, String> limit() {
     return child("limit");
   }
 
-  public Select limit(Expression<?, String> limit) {
-    child("limit", limit);
-    return this;
-  }
+//  public Select limit(Expression<?, String> limit) {
+//    child("limit", limit);
+//    return this;
+//  }
 }

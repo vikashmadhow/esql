@@ -11,7 +11,7 @@ import ma.vi.esql.database.Database;
  *
  * <p>
  * They are invoked after parameter substitution and macro expansion of the ESQL
- * statement and can be viewed as external macro expansion system. After all
+ * statement and can be viewed as an external macro expansion system. After all
  * transformers have been run, the final ESQL returned is translated and executed
  * on the database.
  * </p>
