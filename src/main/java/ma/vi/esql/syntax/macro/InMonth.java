@@ -55,8 +55,8 @@ public class InMonth extends Function implements Macro {
     Expression<?, ?> year = arguments.get(2);
 
     if (month instanceof IntegerLiteral && year instanceof IntegerLiteral) {
-      String prefix = year.translate(ESQL).toString() + '-'
-                    + StringUtils.leftPad(month.translate(ESQL).toString(), 2, '0') + '-';
+      String prefix = year.translate(ESQL, path.add(year)).toString() + '-'
+                    + StringUtils.leftPad(month.translate(ESQL, path.add(month)).toString(), 2, '0') + '-';
       String startDate = prefix + "01";
       LocalDate end = LocalDate.of(((IntegerLiteral)year).value.intValue(),
                                    ((IntegerLiteral)month).value.intValue(), 1);

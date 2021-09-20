@@ -78,6 +78,6 @@ public class IntervalLiteral extends BaseLiteral<String> {
 
   @Override
   public Object value(Translatable.Target target, EsqlPath path) {
-    return target == JSON ? translate(target) : new Interval(value);
+    return target == JSON ? translate(target, path.add(this)) : new Interval(value);
   }
 }

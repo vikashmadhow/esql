@@ -3,8 +3,8 @@ package ma.vi.esql.database;
 import java.util.Set;
 
 /**
- * An extension is a function invoked on initialisation of the database whereupon
- * it can create tables, functions, install esql transformers, etc. to add features
+ * An extension is invoked on initialisation of the database whereupon it can
+ * create tables, functions, install esql transformers, etc. to add features
  * to the base ESQL language.
  *
  * For example, extensions can create tables for lookup and create macro/function
@@ -16,7 +16,6 @@ import java.util.Set;
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 public interface Extension {
-
   /**
    * Initialises the database with tables, functions, macros, transformers, etc.
    * required to implement this extension.

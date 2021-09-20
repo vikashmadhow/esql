@@ -153,9 +153,13 @@ public class ColumnRef extends Expression<String, String> implements Macro {
       if (path == null) {
         qu = null;
       } else {
-        T2<QueryUpdate, EsqlPath> ancestor = path.ancestorAndPath(QueryUpdate.class);
-        qu = ancestor.a;
-        path = ancestor.b;
+        T2<QueryUpdate, EsqlPath> ancestor = path.tail().ancestorAndPath(QueryUpdate.class);
+        if (ancestor == null) {
+          qu = null;
+        } else {
+          qu = ancestor.a;
+          path = ancestor.b;
+        }
       }
     }
     return column;

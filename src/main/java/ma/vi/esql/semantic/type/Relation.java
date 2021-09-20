@@ -113,8 +113,13 @@ public abstract class Relation extends AbstractType {
   public Column column(String relationAlias, String name) throws NotFoundException {
     Column col = findColumn(relationAlias, name);
     if (col == null) {
-      throw new NotFoundException("Column " + (relationAlias == null ? "" : relationAlias + '.') + name
-                                + " could not be found in relation " + forAlias(relationAlias).name());
+      Relation rel = forAlias(relationAlias);
+      if (rel == null) {
+        throw new NotFoundException("Relation with alias " + relationAlias + " not found");
+      } else {
+        throw new NotFoundException("Column " + (relationAlias == null ? "" : relationAlias + '.') + name
+                                 + " could not be found in relation " + rel.name());
+      }
     }
     return col;
   }

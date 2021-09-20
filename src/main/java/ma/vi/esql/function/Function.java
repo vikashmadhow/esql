@@ -63,7 +63,7 @@ public class Function extends AbstractType {
       if (distinctOn != null && !distinctOn.isEmpty()) {
         st.append(target != HSQLDB ? "on (" : "(")
           .append(distinctOn.stream()
-                            .map(e -> e.translate(target))
+                            .map(e -> e.translate(target, path.add(e)))
                             .collect(joining(", ")))
           .append(") ");
       }
@@ -79,7 +79,7 @@ public class Function extends AbstractType {
         } else {
           st.append(", ");
         }
-        st.append(e.translate(target).toString());
+        st.append(e.translate(target, path.add(e)).toString());
       }
     }
     return st.append(')').toString();

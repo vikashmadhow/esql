@@ -203,7 +203,9 @@ public class PostgresqlTranslator extends AbstractTranslator {
   }
 
   @Override
-  protected QueryTranslation translate(Delete delete, EsqlPath path, Map<String, Object> parameters) {
+  protected QueryTranslation translate(Delete delete,
+                                       EsqlPath path,
+                                       Map<String, Object> parameters) {
     StringBuilder st = new StringBuilder("delete ");
 
     TableExpr from = delete.tables();
@@ -255,7 +257,7 @@ public class PostgresqlTranslator extends AbstractTranslator {
           }
         }
         return e;
-      });
+      }, null, path.add(delete));
 
       if (deleteTable.a == null) {
         throw new TranslationException("Could not find table with alias " + singleTableAlias);

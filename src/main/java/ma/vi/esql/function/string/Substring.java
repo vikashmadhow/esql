@@ -41,7 +41,7 @@ public class Substring extends Function {
           + args.get(2).translate(target, path.add(args.get(2))) + ')';
 
     } else if (target == JAVASCRIPT) {
-      return "(" + args.get(0).translate(target) + ").substring("
+      return "(" + args.get(0).translate(target, path.add(args.get(0))) + ").substring("
           + args.get(1).translate(target, path.add(args.get(1))) + "-1, "
           + args.get(1).translate(target, path.add(args.get(1))) + " + " + args.get(2).translate(target, path.add(args.get(2))) + "-1"
           + ")";

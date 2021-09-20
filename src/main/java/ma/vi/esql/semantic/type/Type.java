@@ -6,11 +6,14 @@ package ma.vi.esql.semantic.type;
 
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.semantic.scope.Symbol;
+import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Copy;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.Translatable;
+import ma.vi.esql.syntax.define.Attribute;
 import ma.vi.esql.syntax.expression.Expression;
 
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
 
@@ -44,6 +47,12 @@ public interface Type extends Symbol, Copy<Type>, Translatable<String> {
    * Type attributes.
    */
   ConcurrentMap<String, Expression<?, String>> attributes();
+
+  default List<Attribute> attributesList(Context context) {
+    return attributes().entrySet().stream()
+                       .map(e -> new Attribute(context, e.getKey(), e.getValue()))
+                       .toList();
+  }
 
   /**
    * Returns a copy of this type which can be modified without impacting

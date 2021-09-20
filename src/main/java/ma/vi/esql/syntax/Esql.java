@@ -82,9 +82,11 @@ public class Esql<V, R> implements Copy<Esql<V, R>>, Translatable<R> {
           index++;
         }
       } else {
+        index = 0;
         for (Esql<?, ?> c: children) {
           childrenNames.put(c.value.toString(), index);
           this.children.add(c);
+          index++;
         }
       }
     }
@@ -131,7 +133,7 @@ public class Esql<V, R> implements Copy<Esql<V, R>>, Translatable<R> {
   public <T extends Esql<?, ?>> Map<String, T> childrenMap() {
     Map<String, Integer> names = childrenNames();
     Map<String, T> children = new LinkedHashMap<>(names.size());
-    for (Map.Entry<String, Integer> e: childrenNames.entrySet()) {
+    for (Map.Entry<String, Integer> e: names.entrySet()) {
       children.put(e.getKey(), (T)this.children.get(e.getValue()));
     }
     return children;
@@ -215,8 +217,21 @@ public class Esql<V, R> implements Copy<Esql<V, R>>, Translatable<R> {
   }
 
   public <T extends Esql<V, R>> T set(String childName, Esql<?, ?> child) {
-    return set(indexOf(childName), child);
+    // return set(indexOf(childName), child);
+    if (has(childName)) {
+      return set(indexOf(childName), child);
+    } else {
+      return set(children.size(), child);
+    }
   }
+
+//  public <T extends Esql<V, R>> T setOrAdd(String childName, Esql<?, ?> child) {
+//    if (has(childName)) {
+//      return set(indexOf(childName), child);
+//    } else {
+//      return set(children.size(), child);
+//    }
+//  }
 
   public <T extends Esql<V, R>> T set(int index, Esql<?, ?> child) {
     Esql<V, R> copy = copy();
@@ -323,7 +338,7 @@ public class Esql<V, R> implements Copy<Esql<V, R>>, Translatable<R> {
    */
   public <T extends Esql<V, R>> T map(BiFunction<Esql<?, ?>, EsqlPath, Esql<?, ?>> mapper,
                                       Predicate<Esql<?, ?>> explore) {
-    return _map(mapper, explore, new EsqlPath(this));
+    return map(mapper, explore, new EsqlPath(this));
   }
 
   /**
@@ -336,9 +351,9 @@ public class Esql<V, R> implements Copy<Esql<V, R>>, Translatable<R> {
    * @param explore
    * @return
    */
-  private <T extends Esql<V, R>> T _map(BiFunction<Esql<?, ?>, EsqlPath, Esql<?, ?>> mapper,
-                                        Predicate<Esql<?, ?>> explore,
-                                        EsqlPath path) {
+  public <T extends Esql<V, R>> T map(BiFunction<Esql<?, ?>, EsqlPath, Esql<?, ?>> mapper,
+                                      Predicate<Esql<?, ?>> explore,
+                                      EsqlPath path) {
     if (explore == null || explore.test(this)) {
       Esql<V, R> mapped = (Esql<V, R>)mapper.apply(this, path);
       if (mapped == null) {
@@ -348,7 +363,7 @@ public class Esql<V, R> implements Copy<Esql<V, R>>, Translatable<R> {
       for (int i = 0; i < mapped.children.size(); i++) {
         Esql<?, ?> child = mapped.children.get(i);
         if (child != null) {
-          Esql<?, ?> mappedChild = child._map(mapper, explore, path.add(child));
+          Esql<?, ?> mappedChild = child.map(mapper, explore, path.add(child));
           if (mappedChild != child) {
             if (copy == null) {
               copy = mapped == this ? mapped.copy() : mapped;

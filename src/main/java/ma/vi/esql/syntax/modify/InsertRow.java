@@ -17,16 +17,16 @@ import java.util.Map;
 
 import static java.util.stream.Collectors.joining;
 
-public class InsertRow extends Expression<List<Expression<?, String>>, String> {
+public class InsertRow extends Expression<String, String> {
   public InsertRow(Context context, List<Expression<?, String>> values) {
-    super(context, values);
+    super(context, "row", values);
   }
 
   public InsertRow(InsertRow other) {
     super(other);
   }
 
-  public InsertRow(InsertRow other, List<Expression<?, String>> value, T2<String, ? extends Esql<?, ?>>... children) {
+  public InsertRow(InsertRow other, String value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }
 
@@ -41,13 +41,8 @@ public class InsertRow extends Expression<List<Expression<?, String>>, String> {
    * of the copy.
    */
   @Override
-  public InsertRow copy(List<Expression<?, String>> value, T2<String, ? extends Esql<?, ?>>... children) {
+  public InsertRow copy(String value, T2<String, ? extends Esql<?, ?>>... children) {
     return new InsertRow(this, value, children);
-  }
-
-  @Override
-  public Type type(EsqlPath path) {
-    return Types.BoolType;
   }
 
   @Override
@@ -70,6 +65,6 @@ public class InsertRow extends Expression<List<Expression<?, String>>, String> {
   }
 
   public List<Expression<?, String>> values() {
-    return value;
+    return children();
   }
 }

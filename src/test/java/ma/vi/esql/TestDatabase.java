@@ -296,11 +296,21 @@ public class TestDatabase implements Database {
   }
 
   @Override
-  public void table(Connection con, BaseRelation table) {
+  public void addTable(Connection con, BaseRelation table) {
   }
 
   @Override
-  public void tableName(Connection con, UUID tableId, String name) {
+  public UUID tableId(Connection con, String tableName) {
+    return null;
+  }
+
+  @Override
+  public BaseRelation updateTable(Connection con, BaseRelation table) {
+    return null;
+  }
+
+  @Override
+  public void renameTable(Connection con, UUID tableId, String name) {
   }
 
   @Override

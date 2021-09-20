@@ -39,7 +39,7 @@ public class AddIntervalToDate extends Function {
     List<Expression<?, ?>> args = call.arguments();
     if (target == POSTGRESQL) {
       return '(' + args.get(0).translate(target, path.add(args.get(0))).toString() + " + "
-           + args.get(1).translate(target) + ')';
+           + args.get(1).translate(target, path.add(args.get(1))) + ')';
 
     } else if (target == SQLSERVER) {
       return "_core.add_interval("

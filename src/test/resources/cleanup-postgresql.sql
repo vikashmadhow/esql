@@ -259,3 +259,10 @@ order by "a"
 
 
 create table if not exists "_core"."constraints"("_id" uuid not null, "name" text not null, "relation_id" uuid not null, "type" char(1) not null, "check_expr" text, "source_columns" text[], "target_relation_id" uuid, "target_columns" text[], "forward_cost" integer not null default select 1, "reverse_cost" integer not null default select 2, "on_update" char(1), "on_delete" char(1), constraint "_core_constraints_pk" primary key("_id"), constraint "_core_constraints_rel_id_fk" foreign key("relation_id") references "_core"."relations"("_id") on update cascade on delete cascade)
+
+
+insert into "_core"."columns"("_id", "_can_delete", "relation_id", "name", "derived_column", "type", "not_null",
+                              "expression", "seq")
+values ('6b7a76e6-b97d-49b1-b24e-9a38a622f41b'::uuid, null, '23a9d6df-d3e4-4f8e-a540-06a9134bf83c'::uuid, '_id', false,
+        'uuid', true, null,
+        coalesce((select max("seq") "max" from "_core"."columns" "columns" where ("relation_id" = :relation)), 0) + 1)

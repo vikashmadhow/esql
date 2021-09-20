@@ -846,18 +846,6 @@ public class EsqlBaseListener implements EsqlListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterCoalesceExpr(EsqlParser.CoalesceExprContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitCoalesceExpr(EsqlParser.CoalesceExprContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
 	@Override public void enterSelectExpr(EsqlParser.SelectExprContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -1002,54 +990,6 @@ public class EsqlBaseListener implements EsqlListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterSimpleLiteralExpr(EsqlParser.SimpleLiteralExprContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitSimpleLiteralExpr(EsqlParser.SimpleLiteralExprContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterSimpleGroupingExpr(EsqlParser.SimpleGroupingExprContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitSimpleGroupingExpr(EsqlParser.SimpleGroupingExprContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterSimpleExponentiationExpr(EsqlParser.SimpleExponentiationExprContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitSimpleExponentiationExpr(EsqlParser.SimpleExponentiationExprContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterSimpleSelectExpr(EsqlParser.SimpleSelectExprContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitSimpleSelectExpr(EsqlParser.SimpleSelectExprContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
 	@Override public void enterSimpleAdditionExpr(EsqlParser.SimpleAdditionExprContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -1086,6 +1026,30 @@ public class EsqlBaseListener implements EsqlListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterSimpleLiteralExpr(EsqlParser.SimpleLiteralExprContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitSimpleLiteralExpr(EsqlParser.SimpleLiteralExprContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterSimpleGroupingExpr(EsqlParser.SimpleGroupingExprContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitSimpleGroupingExpr(EsqlParser.SimpleGroupingExprContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterSimpleCastExpr(EsqlParser.SimpleCastExprContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -1093,6 +1057,18 @@ public class EsqlBaseListener implements EsqlListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitSimpleCastExpr(EsqlParser.SimpleCastExprContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterSimpleExponentiationExpr(EsqlParser.SimpleExponentiationExprContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitSimpleExponentiationExpr(EsqlParser.SimpleExponentiationExprContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -1110,13 +1086,13 @@ public class EsqlBaseListener implements EsqlListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterSimpleCoalesceExpr(EsqlParser.SimpleCoalesceExprContext ctx) { }
+	@Override public void enterSimpleSelectExpr(EsqlParser.SimpleSelectExprContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitSimpleCoalesceExpr(EsqlParser.SimpleCoalesceExprContext ctx) { }
+	@Override public void exitSimpleSelectExpr(EsqlParser.SimpleSelectExprContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *

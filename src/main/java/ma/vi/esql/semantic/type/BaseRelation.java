@@ -62,6 +62,11 @@ public class BaseRelation extends Relation {
 
     this.columns = new ArrayList<>();
     Set<String> aliases = new HashSet<>();
+
+    PathTrie<Column> aliasedColumns = new PathTrie<>();
+    for (Column column: columns) {
+      aliasedColumns.put(column.alias(), column);
+    }
     for (Column column: columns) {
       /*
        * Implicit aliasing of columns.
@@ -85,7 +90,7 @@ public class BaseRelation extends Relation {
          && (!(column.expression() instanceof ColumnRef)
              || !column.expression().value.equals(column.alias()))) {
         column = column.expression(expandDerived(column.expression(),
-                                                 columnsByAlias,
+                                                 aliasedColumns,
                                                  column.alias(),
                                                  new HashSet<>()));
       }
@@ -93,7 +98,7 @@ public class BaseRelation extends Relation {
         List<Attribute> attrs = new ArrayList<>();
         for (Attribute attr: column.metadata().attributes().values()) {
           attrs.add(attr.attributeValue(expandDerived(attr.attributeValue(),
-                                                      columnsByAlias,
+                                                      aliasedColumns,
                                                       column.alias() + '/' + attr.name(),
                                                       new HashSet<>())));
         }
@@ -660,6 +665,17 @@ public class BaseRelation extends Relation {
 
   public UUID id() {
     return id;
+  }
+
+  public BaseRelation id(UUID id) {
+    return new BaseRelation(context,
+                            id,
+                            name,
+                            displayName,
+                            description,
+                            attributesList(context),
+                            columns,
+                            constraints);
   }
 
   public final Context context;

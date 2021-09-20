@@ -864,15 +864,15 @@ public class SyntaxAnalyser extends EsqlBaseListener {
     put(ctx, new IsNull(context, ctx.Not() != null, get(ctx.expr())));
    }
 
-  @Override
-  public void exitCoalesceExpr(CoalesceExprContext ctx) {
-    createCoalesce(ctx, ctx.expr());
-  }
+//  @Override
+//  public void exitCoalesceExpr(CoalesceExprContext ctx) {
+//    createCoalesce(ctx, ctx.expr());
+//  }
 
-  @Override
-  public void exitSimpleCoalesceExpr(SimpleCoalesceExprContext ctx) {
-    createCoalesce(ctx, ctx.simpleExpr());
-  }
+//  @Override
+//  public void exitSimpleCoalesceExpr(SimpleCoalesceExprContext ctx) {
+//    createCoalesce(ctx, ctx.simpleExpr());
+//  }
 
   private void createCoalesce(ParserRuleContext ctx,
                               List<? extends ParserRuleContext> expressions) {

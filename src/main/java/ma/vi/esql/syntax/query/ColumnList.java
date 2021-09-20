@@ -159,7 +159,7 @@ public class ColumnList extends Esql<String, String> implements Macro {
             }
           }
           return e;
-        });
+        }, null, path.add(colExpr));
         if (expr != colExpr) {
           changed = true;
           resolvedColumns.put(column.alias(), column.expression(expr));

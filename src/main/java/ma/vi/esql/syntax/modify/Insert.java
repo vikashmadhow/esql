@@ -7,7 +7,6 @@ package ma.vi.esql.syntax.modify;
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
-import ma.vi.esql.syntax.Restriction;
 import ma.vi.esql.syntax.define.Metadata;
 import ma.vi.esql.syntax.query.*;
 
@@ -32,7 +31,8 @@ public class Insert extends QueryUpdate {
     super(context,
           "Insert",
           of("tables",        table),
-          of("fields",        new Esql<>(context, "fields", fields.stream().map(f -> new Esql<>(context, f)).toList())),
+//          of("fields",        new Esql<>(context, "fields", fields.stream().map(f -> new Esql<>(context, f)).toList())),
+          of("fields",        new Esql<>(context, fields)),
           of("rows",          new Esql<>(context, "rows", rows)),
           of("defaultValues", new Esql<>(context, defaultValues)),
           of("select",        select),
@@ -82,7 +82,7 @@ public class Insert extends QueryUpdate {
   }
 
   public List<InsertRow> rows() {
-    return childValue("rows");
+    return child("rows").children();
   }
 
   public Boolean defaultValues() {

@@ -15,6 +15,7 @@ import ma.vi.esql.syntax.expression.Expression;
 import ma.vi.esql.syntax.expression.FunctionCall;
 
 import java.util.*;
+import java.util.stream.Stream;
 
 import static ma.vi.base.tuple.T2.of;
 
@@ -37,21 +38,25 @@ public class Select extends QueryUpdate /* implements Macro */ {
                 Expression<?, String>       having,
                 List<Order>                 orderBy,
                 Expression<?, String>       offset,
-                Expression<?, String>       limit) {
+                Expression<?, String>       limit,
+                T2<String, ? extends Esql<?, ?>>... children) {
     super(context,
           value,
-          of("distinct",    new Esql<>(context, distinct)),
-          of("distinctOn",  new Esql<>(context, "distinctOn", distinctOn)),
-          of("explicit",    new Esql<>(context, explicit)),
-          of("metadata",    metadata),
-          of("columns",     renameColumns(context, columns)),
-          of("tables",      from),
-          of("where",       where),
-          of("groupBy",     groupBy),
-          of("having",      having),
-          of("orderBy",     orderBy == null ? null : new Esql<>(context, "orderBy", orderBy)),
-          of("offset",      offset),
-          of("limit",       limit));
+          Stream.concat(
+            Stream.of(
+              of("distinct",    new Esql<>(context, distinct)),
+              of("distinctOn",  new Esql<>(context, "distinctOn", distinctOn)),
+              of("explicit",    new Esql<>(context, explicit)),
+              of("metadata",    metadata),
+              of("columns",     renameColumns(context, columns)),
+              of("tables",      from),
+              of("where",       where),
+              of("groupBy",     groupBy),
+              of("having",      having),
+              of("orderBy",     orderBy == null ? null : new Esql<>(context, "orderBy", orderBy)),
+              of("offset",      offset),
+              of("limit",       limit)),
+            Stream.of(children)).toArray(T2[]::new));
   }
 
   public Select(Select other) {
@@ -315,7 +320,7 @@ public class Select extends QueryUpdate /* implements Macro */ {
 //  }
 
   public List<Order> orderBy() {
-    return child("orderBy").children();
+    return child("orderBy") == null ? null : child("orderBy").children();
   }
 
 //  public Select orderBy(List<Order> orderBy) {

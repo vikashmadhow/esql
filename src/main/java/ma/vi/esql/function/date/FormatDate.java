@@ -89,7 +89,7 @@ public class FormatDate extends Function {
                        .replace("ms", "MS");
       }
 
-      return "to_char(" + date.translate(target) + ", '"
+      return "to_char(" + date.translate(target, path.add(date)) + ", '"
           + format + "')";
 
     } else if (target == SQLSERVER) {
@@ -120,11 +120,10 @@ public class FormatDate extends Function {
                        .replace("pm", "tt");
       }
 
-      return "format(" + date.translate(target) + ", '"
-          + format + "')";
+      return "format(" + date.translate(target, path.add(date)) + ", '" + format + "')";
     } else {
-      return "format(" + date.translate(target)
-          + (format == null ? "" : ", " + args.get(1).translate(target)) + ')';
+      return "format(" + date.translate(target, path.add(date))
+          + (format == null ? "" : ", " + args.get(1).translate(target, path.add(args.get(1)))) + ')';
     }
   }
 }

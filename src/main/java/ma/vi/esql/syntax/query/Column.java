@@ -41,12 +41,12 @@ public class Column extends MetadataContainer<String, String> {
     super(context,
           autoAlias(expression, alias),
           Stream.concat(
-            Arrays.stream(
+            Stream.of(
               new T2[]{
                 T2.of("expression", expression),
                 T2.of("metadata", metadata)
               }),
-            Arrays.stream(children)).toArray(T2[]::new));
+            Stream.of(children)).toArray(T2[]::new));
   }
 
   public Column(Column other) {
@@ -109,8 +109,8 @@ public class Column extends MetadataContainer<String, String> {
       attributes.put(EXPRESSION, new Attribute(def.context, EXPRESSION, defaultExpr));
     }
     attributes.put(TYPE, Attribute.from(def.context, TYPE,
-                                        derived ? "'" + derivedDef.expression().type(path).translate(ESQL) + "'" // Types.VoidType.translate(ESQL)
-                                                : "'" + columnType.translate(ESQL) + "'"));
+                                        derived ? "'" + derivedDef.expression().type(path).translate(ESQL, path.add(derivedDef.expression())) + "'" // Types.VoidType.translate(ESQL)
+                                                : "'" + columnType.translate(ESQL, path) + "'"));
     if (notNull) {
       attributes.put(REQUIRED, Attribute.from(def.context, REQUIRED, true));
     }
@@ -273,7 +273,7 @@ public class Column extends MetadataContainer<String, String> {
   }
 
   public Expression<?, String> expression() {
-    return childValue("expression");
+    return child("expression");
   }
 
   public Column expression(Expression<?, String> expression) {

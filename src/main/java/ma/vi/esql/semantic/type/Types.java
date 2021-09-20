@@ -100,19 +100,19 @@ public class Types {
   }
 
   public static String sqlServerToEsqlType(String sqlServerType) {
-    return sqlServerTypeMapping.get(normaliseType(sqlServerType));
+    return sqlServerTypeMapping.getOrDefault(normaliseType(sqlServerType), UNKNOWN_TYPE);
   }
 
   public static String postgresqlToEsqlType(String postgresqlType) {
-    return postgresqlTypeMapping.get(normaliseType(postgresqlType));
+    return postgresqlTypeMapping.getOrDefault(normaliseType(postgresqlType), UNKNOWN_TYPE);
   }
 
   public static String hsqldbToEsqlType(String hsqldbType) {
-    return hsqldbTypeMapping.get(normaliseType(hsqldbType));
+    return hsqldbTypeMapping.getOrDefault(normaliseType(hsqldbType), UNKNOWN_TYPE);
   }
 
   public static String mariadbToEsqlType(String hsqldbType) {
-    return mariadbTypeMapping.get(normaliseType(hsqldbType));
+    return mariadbTypeMapping.getOrDefault(normaliseType(hsqldbType), UNKNOWN_TYPE);
   }
 
   private static String normaliseType(String typeName) {
@@ -161,6 +161,12 @@ public class Types {
   private static final Map<String, Type> esqlTypes = new HashMap<>();
 
   private static final Map<String, Type> customTypes = new ConcurrentHashMap<>();
+
+  /**
+   * The unknown type is used when an ESQL type-equivalent is not known for a
+   * database type.
+   */
+  public static final String UNKNOWN_TYPE = "__unknown__";
 
   public static final Type ByteType =
       new BaseType("byte", 1, true,
@@ -282,6 +288,14 @@ public class Types {
                           MYSQL, "json",
                           SQLSERVER, "varchar(max)"));
 
+  public static final Type UnknownType =
+      new BaseType(UNKNOWN_TYPE, MAX_VALUE, false,
+                   Map.of(POSTGRESQL, "_",
+                          HSQLDB, "_",
+                          MARIADB, "_",
+                          MYSQL, "_",
+                          SQLSERVER, "_"));
+
   // Generic numeric types
   ///////////////////////////////////
   public static final Type NumberType =
@@ -365,24 +379,25 @@ public class Types {
   };
 
   static {
-    esqlTypes.put("byte",     ByteType);
-    esqlTypes.put("short",    ShortType);
-    esqlTypes.put("int",      IntType);
-    esqlTypes.put("long",     LongType);
-    esqlTypes.put("float",    FloatType);
-    esqlTypes.put("double",   DoubleType);
-    esqlTypes.put("money",    MoneyType);
-    esqlTypes.put("bool",     BoolType);
-    esqlTypes.put("char",     CharType);
-    esqlTypes.put("string",   StringType);
-    esqlTypes.put("text",     TextType);
-    esqlTypes.put("bytes",    BytesType);
-    esqlTypes.put("date",     DateType);
-    esqlTypes.put("time",     TimeType);
-    esqlTypes.put("datetime", DatetimeType);
-    esqlTypes.put("interval", IntervalType);
-    esqlTypes.put("uuid",     UuidType);
-    esqlTypes.put("json",     JsonType);
+    esqlTypes.put("byte",       ByteType);
+    esqlTypes.put("short",      ShortType);
+    esqlTypes.put("int",        IntType);
+    esqlTypes.put("long",       LongType);
+    esqlTypes.put("float",      FloatType);
+    esqlTypes.put("double",     DoubleType);
+    esqlTypes.put("money",      MoneyType);
+    esqlTypes.put("bool",       BoolType);
+    esqlTypes.put("char",       CharType);
+    esqlTypes.put("string",     StringType);
+    esqlTypes.put("text",       TextType);
+    esqlTypes.put("bytes",      BytesType);
+    esqlTypes.put("date",       DateType);
+    esqlTypes.put("time",       TimeType);
+    esqlTypes.put("datetime",   DatetimeType);
+    esqlTypes.put("interval",   IntervalType);
+    esqlTypes.put("uuid",       UuidType);
+    esqlTypes.put("json",       JsonType);
+    esqlTypes.put(UNKNOWN_TYPE, JsonType);
 
     // abstract numeric types
     esqlTypes.put("number",     NumberType);

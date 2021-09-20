@@ -36,7 +36,8 @@ public class IndexOf extends Function {
     if (target == POSTGRESQL) {
       if (args.size() > 2) {
         return "strpos("
-            + "substring(" + args.get(1).translate(target) + ", " + args.get(2).translate(target) + "), "
+            + "substring(" + args.get(1).translate(target, path.add(args.get(1)))
+            + ", " + args.get(2).translate(target, path.add(args.get(2))) + "), "
             + args.get(0).translate(target, path.add(args.get(0))) + ')';
       } else {
         return "strpos("

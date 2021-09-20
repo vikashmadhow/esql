@@ -63,8 +63,8 @@ public class SingleTableExpr extends AbstractAliasTableExpr {
     if (type == null) {
       String table = tableName();
       Type t = context.type(table);
-      if (t instanceof BaseRelation) {
-        type = new AliasedRelation(relation(), alias());
+      if (t instanceof BaseRelation r) {
+        type = new AliasedRelation(r, alias());
       } else {
         /*
          * for 'with' queries, ensure that CTEs have been added to local type registry
@@ -78,24 +78,12 @@ public class SingleTableExpr extends AbstractAliasTableExpr {
         }
         t = context.type(table);
         if (t == null) {
-          throw new NotFoundException(table + " is not known relation in this query");
+          throw new NotFoundException(table + " is not a known relation in this query");
         }
         type = new AliasedRelation((Relation)t, alias());
       }
     }
     return type;
-  }
-
-  public BaseRelation relation() {
-    Type t = context.type(tableName());
-    if (t == null) {
-      throw new NotFoundException(tableName() + " is not a known relation " +
-          "in this query");
-    } else if (!(t instanceof BaseRelation)) {
-      throw new NotFoundException(tableName() + " is not a base relation " +
-          "in this query. It is a " + t.getClass().getSimpleName());
-    }
-    return (BaseRelation)t;
   }
 
   @Override

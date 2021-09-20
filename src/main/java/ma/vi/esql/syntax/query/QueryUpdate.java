@@ -262,7 +262,7 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
           if (itemIndex > 1) {
             query.append(", ");
           }
-          appendExpression(query, attributeValue, target, qualifier, colName);
+          appendExpression(query, attributeValue, target, path, qualifier, colName);
           resultAttributeIndices.add(T3.of(itemIndex, attrName, attributeValue.type(path)));
         }
       }
@@ -286,7 +286,7 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
       if (qualifier != null) {
         ColumnRef.qualify(expression, qualifier, true);
       }
-      query.append(column.translate(target));
+      query.append(column.translate(target, path.add(column)));
       String colName = column.alias();
       columnToIndex.put(colName, columnIndex);
       columnMappings.put(colName, new ColumnMapping(itemIndex,
@@ -321,7 +321,7 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
         } else if (addAttributes) {
           itemIndex += 1;
           query.append(", ");
-          appendExpression(query, attributeValue, target, qualifier, alias);
+          appendExpression(query, attributeValue, target, path, qualifier, alias);
           mapping.attributeIndices.add(T3.of(itemIndex, attrName, attributeValue.type(path)));
         }
       }
@@ -339,12 +339,13 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
   protected void appendExpression(StringBuilder query,
                                   Expression<?, String> expression,
                                   Target target,
+                                  EsqlPath path,
                                   String qualifier,
                                   String alias) {
     if (qualifier != null) {
       ColumnRef.qualify(expression, qualifier, true);
     }
-    query.append(expression.translate(target));
+    query.append(expression.translate(target, path.add(expression)));
     if (alias != null) {
       query.append(" \"").append(alias).append('"');
     }
@@ -508,7 +509,7 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
 
   @Override
   public Result execute(Database db, Connection con, EsqlPath path) {
-    QueryTranslation translation = translate(db.target());
+    QueryTranslation translation = translate(db.target(), path);
     try {
       Selection selection = type(path);
       if (!selection.columns().isEmpty()) {

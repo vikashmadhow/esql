@@ -22,11 +22,15 @@ import static ma.vi.esql.syntax.Translatable.Target.ESQL;
  */
 public class AlterColumnDefinition extends Define<String> {
   public AlterColumnDefinition(Context context,
-                               String toName, Type toType,
-                               boolean setNotNull, boolean dropNotNull,
-                               Expression<?, String> setDefault, boolean dropDefault,
+                               String toName,
+                               Type toType,
+                               boolean setNotNull,
+                               boolean dropNotNull,
+                               Expression<?, String> setDefault,
+                               boolean dropDefault,
                                Metadata metadata) {
-    super(context, toName,
+    super(context,
+          toName,
           T2.of("toType", new Esql<>(context, toType)),
           T2.of("setNotNull", new Esql<>(context, setNotNull)),
           T2.of("dropNotNull", new Esql<>(context, dropNotNull)),
@@ -70,7 +74,7 @@ public class AlterColumnDefinition extends Define<String> {
   }
 
   public String toName() {
-    return childValue("toName");
+    return value;
   }
 
   public Type toType() {

@@ -130,7 +130,7 @@ public class CreateTable extends Define<String> {
 
     boolean first = true;
     for (ColumnDefinition column: columns()) {
-      String def = column.translate(target);
+      String def = column.translate(target, path.add(column));
       if (def != null) {
         if (first) {
           first = false;
@@ -215,10 +215,10 @@ public class CreateTable extends Define<String> {
         /*
          * Does not exist and valid: create
          */
-        con.createStatement().executeUpdate(modified.translate(db.target()));
+        con.createStatement().executeUpdate(modified.translate(db.target(), path.add(modified)));
         db.structure().relation(table);
         table.expandColumns();
-        db.structure().database.table(con, table);
+        db.structure().database.addTable(con, table);
       } else {
         /*
          * already exists: alter

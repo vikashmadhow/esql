@@ -36,7 +36,7 @@ public class AgeInYears extends Function {
     if (target == POSTGRESQL) {
       return "extract(year from age("
            + args.get(0).translate(target, path.add(args.get(0))) + ", "
-           + args.get(1).translate(target) + "))";
+           + args.get(1).translate(target, path.add(args.get(1))) + "))";
     } else if (target == SQLSERVER) {
       return "case when dateadd(year, datediff(year, "
            + args.get(1).translate(target, path.add(args.get(1))) + ", "

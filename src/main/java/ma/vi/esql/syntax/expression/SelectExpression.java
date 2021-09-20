@@ -23,16 +23,16 @@ import static java.util.stream.Collectors.joining;
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public class SelectExpression extends Expression<Select, String> {
+public class SelectExpression extends Expression<String, String> {
   public SelectExpression(Context context, Select select) {
-    super(context, select);
+    super(context, "selectExpression", T2.of("select", select));
   }
 
   public SelectExpression(SelectExpression other) {
     super(other);
   }
 
-  public SelectExpression(SelectExpression other, Select value, T2<String, ? extends Esql<?, ?>>... children) {
+  public SelectExpression(SelectExpression other, String value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }
 
@@ -47,7 +47,7 @@ public class SelectExpression extends Expression<Select, String> {
    * of the copy.
    */
   @Override
-  public SelectExpression copy(Select value, T2<String, ? extends Esql<?, ?>>... children) {
+  public SelectExpression copy(String value, T2<String, ? extends Esql<?, ?>>... children) {
     return new SelectExpression(this, value, children);
   }
 
@@ -142,6 +142,6 @@ public class SelectExpression extends Expression<Select, String> {
   }
 
   public Select select() {
-    return value;
+    return child("select");
   }
 }

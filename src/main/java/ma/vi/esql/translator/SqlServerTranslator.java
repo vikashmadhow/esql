@@ -109,7 +109,7 @@ public class SqlServerTranslator extends AbstractTranslator {
       if (select.orderBy() != null && !select.orderBy().isEmpty()) {
         st.append(" order by ")
           .append(select.orderBy().stream()
-                        .map(e -> e.translate(target()))
+                        .map(e -> e.translate(target(), path.add(e)))
                         .collect(joining(", ")));
         if (select.offset() == null && select.limit() == null) {
           /*

@@ -245,12 +245,24 @@ public interface Database {
   /**
    * Adds a table to the core information tables if latter are present.
    */
-  void table(Connection con, BaseRelation table);
+  void addTable(Connection con, BaseRelation table);
+
+  /**
+   * Returns the table id of the table with the specified name in the core
+   * information table if it exists, or returns null otherwise.
+   */
+  UUID tableId(Connection con, String tableName);
+
+  /**
+   * Updates the table data in the core information tables; returns a new
+   * BaseRelation table representing the updated table.
+   */
+  BaseRelation updateTable(Connection con, BaseRelation table);
 
   /**
    * Rename the table in the core information tables, if latter are present.
    */
-  void tableName(Connection con, UUID tableId, String name);
+  void renameTable(Connection con, UUID tableId, String name);
 
   void clearTableMetadata(Connection con, UUID tableId);
 

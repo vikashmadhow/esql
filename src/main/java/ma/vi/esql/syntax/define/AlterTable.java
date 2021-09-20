@@ -108,7 +108,7 @@ public class AlterTable extends Define<String> {
           s.remove(relation);
           relation.name(newFullName);
           s.relation(relation);
-          s.database.tableName(con, relation.id(), newFullName);
+          s.database.renameTable(con, relation.id(), newFullName);
 
         } else if (alteration instanceof AddTableDefinition) {
           /*
@@ -125,10 +125,10 @@ public class AlterTable extends Define<String> {
                * are only inserted in the _core.fields table, below.
                */
               if (db.target() == SQLSERVER) {
-                con.createStatement().executeUpdate("ALTER TABLE " + dbName + " ADD " + column.translate(db.target()));
+                con.createStatement().executeUpdate("ALTER TABLE " + dbName + " ADD " + column.translate(db.target(), path.add(column)));
               } else {
                 con.createStatement().executeUpdate("ALTER TABLE " + dbName +
-                                                        " ADD COLUMN " + column.translate(db.target()));
+                                                        " ADD COLUMN " + column.translate(db.target(), path.add(column)));
               }
             }
             Column col = Column.fromDefinition(column, path);
@@ -145,7 +145,7 @@ public class AlterTable extends Define<String> {
              * add a constraint to table
              */
             con.createStatement().executeUpdate("ALTER TABLE " + dbName +
-                                                    " ADD " + constraint.translate(db.target()));
+                                                    " ADD " + constraint.translate(db.target(), path.add(constraint)));
             s.database.constraint(con, relation.id(), constraint);
             relation.constraint(constraint);
 
@@ -203,14 +203,14 @@ public class AlterTable extends Define<String> {
                 con.createStatement().executeUpdate(
                     "ALTER TABLE " + dbName +
                         " ALTER COLUMN \"" + column.alias() +
-                        "\" TYPE " + def.toType().translate(db.target()));
+                        "\" TYPE " + def.toType().translate(db.target(), path.add(def)));
               } else {
                 con.createStatement().executeUpdate(
                     "ALTER TABLE " + dbName +
                         " ALTER COLUMN \"" + column.alias() +
-                        "\" " + def.toType().translate(db.target()));
+                        "\" " + def.toType().translate(db.target(), path.add(def)));
               }
-              s.database.columnType(con, column.id(), def.toType().translate(ESQL));
+              s.database.columnType(con, column.id(), def.toType().translate(ESQL, path.add(def)));
               column = column.type(def.toType());
               relation.addOrReplaceColumn(column);
             }
@@ -257,16 +257,16 @@ public class AlterTable extends Define<String> {
               if (db.target() == SQLSERVER) {
                 con.createStatement().executeUpdate(
                     "ALTER TABLE " + dbName +
-                        " ADD DEFAULT " + def.setDefault().translate(db.target()) +
+                        " ADD DEFAULT " + def.setDefault().translate(db.target(), path.add(def.setDefault())) +
                         " FOR \"" + column.alias() + '"');
               } else {
                 // change the table name only
                 con.createStatement().executeUpdate(
                     "ALTER TABLE " + dbName +
                         " ALTER COLUMN \"" + column.alias() +
-                        "\" SET DEFAULT " + def.setDefault().translate(db.target()));
+                        "\" SET DEFAULT " + def.setDefault().translate(db.target(), path.add(def.setDefault())));
               }
-              s.database.defaultValue(con, column.id(), def.setDefault().translate(ESQL));
+              s.database.defaultValue(con, column.id(), def.setDefault().translate(ESQL, path.add(def.setDefault())));
               relation.addOrReplaceColumn(column.defaultExpression(def.setDefault()));
             }
           }
@@ -280,7 +280,7 @@ public class AlterTable extends Define<String> {
                 con.createStatement().executeUpdate(
                     "ALTER TABLE " + dbName +
                         " ALTER COLUMN \"" + column.alias() +
-                        "\" " + column.type(path).translate(db.target()) + " NOT NULL");
+                        "\" " + column.type(path).translate(db.target(), path.add(column)) + " NOT NULL");
               } else {
                 con.createStatement().executeUpdate(
                     "ALTER TABLE " + dbName +
@@ -300,7 +300,7 @@ public class AlterTable extends Define<String> {
                 con.createStatement().executeUpdate(
                     "ALTER TABLE " + dbName +
                         " ALTER COLUMN \"" + column.alias() +
-                        "\" " + column.type(path).translate(db.target()) + " NULL");
+                        "\" " + column.type(path).translate(db.target(), path.add(column)) + " NULL");
               } else {
                 con.createStatement().executeUpdate(
                     "ALTER TABLE " + dbName +

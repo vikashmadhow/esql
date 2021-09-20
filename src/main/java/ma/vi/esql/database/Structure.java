@@ -58,7 +58,7 @@ public class Structure {
           if (distinctOn != null && !distinctOn.isEmpty()) {
             st.append("on (")
               .append(distinctOn.stream()
-                                .map(e -> e.translate(target))
+                                .map(e -> e.translate(target, path.add(e)))
                                 .collect(joining(", ")))
               .append(") ");
           }
@@ -72,7 +72,7 @@ public class Structure {
             } else {
               st.append(", ");
             }
-            st.append(e.translate(target));
+            st.append(e.translate(target, path.add(e)));
           }
         }
         return st.append(')').toString();
