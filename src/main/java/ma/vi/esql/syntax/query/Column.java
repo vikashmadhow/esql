@@ -32,19 +32,19 @@ import static ma.vi.esql.syntax.Translatable.Target.ESQL;
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public class Column extends MetadataContainer<String, String> {
+public class Column extends MetadataContainer<String> {
   public Column(Context context,
                 String alias,
                 Expression<?, String> expression,
                 Metadata metadata,
                 T2<String, ? extends Esql<?, ?>>... children) {
-    super(context,
-          autoAlias(expression, alias),
+    super(context, "Column",
           Stream.concat(
             Stream.of(
               new T2[]{
+                T2.of("alias", new Esql<>(context, autoAlias(expression, alias))),
                 T2.of("expression", expression),
-                T2.of("metadata", metadata)
+                T2.of("metadata", addId(metadata))
               }),
             Stream.of(children)).toArray(T2[]::new));
   }
@@ -70,6 +70,17 @@ public class Column extends MetadataContainer<String, String> {
   @Override
   public Column copy(String value, T2<String, ? extends Esql<?, ?>>... children) {
     return new Column(this, value, children);
+  }
+
+  private static Metadata addId(Metadata metadata) {
+    if (metadata != null) {
+      Map<String, Attribute> attributes = metadata.attributes();
+      if (!attributes.containsKey(ID)) {
+        attributes.put(ID, Attribute.from(metadata.context, ID, UUID.randomUUID()));
+        return new Metadata(metadata.context, new ArrayList<>(attributes.values()));
+      }
+    }
+    return metadata;
   }
 
   /**
@@ -109,7 +120,7 @@ public class Column extends MetadataContainer<String, String> {
       attributes.put(EXPRESSION, new Attribute(def.context, EXPRESSION, defaultExpr));
     }
     attributes.put(TYPE, Attribute.from(def.context, TYPE,
-                                        derived ? "'" + derivedDef.expression().type(path).translate(ESQL, path.add(derivedDef.expression())) + "'" // Types.VoidType.translate(ESQL)
+                                        derived ? "'" + derivedDef.expression().type(path.add(derivedDef.expression())).translate(ESQL, path.add(derivedDef.expression())) + "'" // Types.VoidType.translate(ESQL)
                                                 : "'" + columnType.translate(ESQL, path) + "'"));
     if (notNull) {
       attributes.put(REQUIRED, Attribute.from(def.context, REQUIRED, true));
@@ -217,7 +228,7 @@ public class Column extends MetadataContainer<String, String> {
          * Derived type are set to void on load. Their actual types can
          * be determined at this point.
          */
-        type = expression().type(path);
+        type = expression().type(path.add(expression()));
 //        if (type != Types.VoidType) {
 //          type(type);
 
@@ -238,9 +249,10 @@ public class Column extends MetadataContainer<String, String> {
 //        }
       }
       return type;
+    } else if (derived() || !(expression() instanceof ColumnRef)) {
+      return expression().type(path.add(expression()));
     } else {
-      //      type(type);
-      return expression().type(path);
+      return Types.UnknownType;
     }
   }
 
@@ -269,7 +281,7 @@ public class Column extends MetadataContainer<String, String> {
   }
 
   public String alias() {
-    return value;
+    return childValue("alias");
   }
 
   public Expression<?, String> expression() {
@@ -281,6 +293,6 @@ public class Column extends MetadataContainer<String, String> {
   }
 
   public Column alias(String alias) {
-    return copy(alias);
+    return set("alias", new Esql<>(context, alias));
   }
 }

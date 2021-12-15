@@ -182,6 +182,7 @@ public abstract class AbstractDatabase implements Database {
               + "(" + ignoredSchemas.stream()
                                     .map(s -> "'" + s + "'")
                                     .collect(Collectors.joining(",")) + ")"
+              + "   and upper(constraint_name) not like '%_NOT_NULL'"
               + " order by table_schema, table_name")) {
 
           while (crs.next()) {
@@ -295,8 +296,7 @@ public abstract class AbstractDatabase implements Database {
   public void postInit(Connection con, Structure structure) {
     Context context = new Context(structure);
     Parser p = new Parser(structure);
-    boolean hasCoreTables = hasCoreTables(con);
-    if (createCoreTables() && !hasCoreTables) {
+    if (createCoreTables() && !hasCoreTables(con)) {
       // CREATE _core tables
       ///////////////////////////////////////////
       try (EsqlConnection c = esql(pooledConnection(true, -1))) {
@@ -615,13 +615,7 @@ public abstract class AbstractDatabase implements Database {
       try (EsqlConnection econ = esql(con);
            Statement stmt = con.createStatement()) {
         /*
-         * Load structure from the _core tables.
-         */
-
-        /*
-         * Save missing relations into core tables, but limit to those
-         * having a period in their as those are the ESQL user-defined
-         * tables.
+         * Load structure from the _core tables and save missing relations into core tables.
          */
 
         /*
@@ -645,26 +639,36 @@ public abstract class AbstractDatabase implements Database {
               /*
                * Delete non-derived columns which are not in information schema anymore.
                */
-              econ.exec(p.parse("delete c from c:_core.columns "
-                              + "  where relation_id='" + tableId + "'"
-                              + "    and not coalesce(derived_column, false) "
-                              + "    and name not in ("
-                              + rel.columns().stream()
-                                   .map(c -> "'" + c.alias() + "'")
-                                   .collect(joining(","))
-                              + ")"));
+              if (rel.columns().isEmpty()) {
+                econ.exec(p.parse("delete c from c:_core.columns "
+                                + "  where relation_id='" + tableId + "'"
+                                + "    and coalesce(derived_column, false)=false "));
+              } else {
+                econ.exec(p.parse("delete c from c:_core.columns "
+                                      + "  where relation_id='" + tableId + "'"
+                                      + "    and coalesce(derived_column, false)=false "
+                                      + "    and name not in ("
+                                      + rel.columns().stream()
+                                           .map(c -> "'" + c.alias() + "'")
+                                           .collect(joining(","))
+                                      + ")"));
+              }
 
               /*
                * Delete constraints which are not in information schema anymore.
                */
-              econ.exec(p.parse("delete c from c:_core.constraints "
-                                    + "  where relation_id='" + tableId + "'"
-                                    + "    and name not in ("
-                                    + rel.constraints().stream()
-                                         .map(c -> "'" + c.name() + "'")
-                                         .collect(joining(","))
-                                    + ")"));
-
+              if (rel.constraints().isEmpty()) {
+                econ.exec(p.parse("delete c from c:_core.constraints "
+                                      + "  where relation_id='" + tableId + "'"));
+              } else {
+                econ.exec(p.parse("delete c from c:_core.constraints "
+                                      + "  where relation_id='" + tableId + "'"
+                                      + "    and name not in ("
+                                      + rel.constraints().stream()
+                                           .map(c -> "'" + c.name() + "'")
+                                           .collect(joining(","))
+                                      + ")"));
+              }
               if (!tableId.equals(rel.id())) {
                 updatedTables.add(rel.id(tableId));
               }
@@ -942,7 +946,6 @@ public abstract class AbstractDatabase implements Database {
                                          parser.parseExpression(ars.getString("value"))));
           }
         }
-        Metadata metadata = new Metadata(context, new ArrayList<>());
 
         Column col;
         Expression<?, String> expr = expression != null ? parser.parseExpression(expression) : null;
@@ -951,7 +954,7 @@ public abstract class AbstractDatabase implements Database {
           col = new Column(context,
                            columnName,
                            expr,
-                           metadata);
+                           new Metadata(context, new ArrayList<>(attributes.values())));
         } else {
           if (expr != null) {
             attributes.put(EXPRESSION, new Attribute(context, EXPRESSION, expr));
@@ -1135,7 +1138,7 @@ public abstract class AbstractDatabase implements Database {
            */
           econ.exec(p.parse(
               "insert into _core.relations(_id, name, display_name, description, type) values(" +
-                  "'" + table.id().toString() + "', " +
+                  "u'" + table.id() + "', " +
                   "'" + table.name() + "', " +
                   (table.displayName == null ? "'" + table.name() + "'" : "'" + escapeSqlString(table.displayName) + "'") + ", " +
                   (table.description == null ? "null" : "'" + escapeSqlString(table.description) + "'") + ", " +
@@ -1154,8 +1157,12 @@ public abstract class AbstractDatabase implements Database {
           // add columns
           Insert insertCol = p.parse(INSERT_COLUMN, "insert");
           Insert insertColAttr = p.parse(INSERT_COLUMN_ATTRIBUTE, "insert");
+
           for (Column column: table.columns()) {
-            addColumn(econ, table.id(), column, insertCol, insertColAttr);
+            Column c = addColumn(econ, table.id(), column, insertCol, insertColAttr);
+//            if (c != column) {
+//
+//            }
           }
 
           // add constraints

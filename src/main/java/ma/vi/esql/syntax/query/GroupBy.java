@@ -30,7 +30,7 @@ public class GroupBy extends Esql<String, String> {
   public GroupBy(Context context,
                  List<Expression<?, String>> groupBy,
                  Type groupType) {
-    super(context, "groupBy",
+    super(context, "GroupBy",
           T2.of("groupBy", new Esql<>(context, "groupBy", groupBy)),
           T2.of("type", new Esql<>(context, groupType)));
   }

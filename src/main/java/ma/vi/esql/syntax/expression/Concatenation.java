@@ -20,9 +20,9 @@ import static ma.vi.esql.syntax.Translatable.Target.JSON;
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public class Concatenation extends MultipleSubExpressions<String> {
+public class Concatenation extends MultipleSubExpressions {
   public Concatenation(Context context, List<Expression<?, ?>> expressions) {
-    super(context, "concat", expressions);
+    super(context, "Concat", expressions);
   }
 
   public Concatenation(Concatenation other) {

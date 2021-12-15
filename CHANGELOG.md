@@ -30,21 +30,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Make into Java 9 module.
 - Support for frame definition (rows and range) in window functions.
 - Support for 'within group' for ordering in string and array aggregate functions.
+- Support for bulk copy manager in postgresql
+- Support for merge queries.
 
 ## [Unreleased]
 ### Redesigned
-- Change ESQL node:
-  - To be immutable, creating copies on mutating operations, with use of path persistence
-    for faster copies and lower memory use;
+- ESQL node changed:
+  - To be immutable, creating copies on mutating operations, with use of path 
+    persistence for faster copies and lower memory use;
   - To use a list for children (instead of a map) to preserve order of children;
-  - To implement a path-seeking api for selecting part of the tree and replacing it
-    with other nodes
+  - To implement a path-seeking api for selecting part of the tree and replacing 
+    it with other nodes
 - New simpler map and forEach function in ESQL.
 - New simpler macro interface.
 - New copy constructor and method allowing changes to be applied to the value and
   children of the copy.
 - EsqlPath added to type() and execute() methods to allow for searching for
-  ancestors in those methods"
+  ancestors in those methods.
+- Default map method uses DFS to force leaves of AST to be mapped before parents.
+- bfsMap method to map using BFS strategy.
+- All tests passing (except for comparison difference due to different 
+  dynamically-generated UUIDs).
+- Esql now raise an error when its value is of type ESQL. The value is a placeholder
+  for the value of the ESQL node in the AST. If it is also and ESQL, mapping 
+  functions does not follow through it during processing. Thus, such values are 
+  best stored as children of a tree node.
 
 ## [0.5.2] - 2021-08-19
 ### Refactored

@@ -10,10 +10,7 @@ import ma.vi.esql.syntax.query.Column;
 
 import java.sql.Date;
 import java.sql.Time;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static java.lang.Integer.MAX_VALUE;
@@ -330,8 +327,13 @@ public class Types {
         }
 
         @Override
+        public Set<String> aliases() {
+          return Collections.emptySet();
+        }
+
+        @Override
         public List<Column> columns() {
-          return null;
+          return Collections.emptyList();
         }
       };
 

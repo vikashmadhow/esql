@@ -28,11 +28,11 @@ public class Delete extends QueryUpdate {
                 Metadata      returnMetadata,
                 List<Column>  returnColumns) {
     super(context, "Delete",
-          of("deleteTableAlias",  new Esql<>(context, deleteTableAlias)),
-          of("tables",            from),
-          of("where",             where),
-          of("metadata",          returnMetadata),
-          of("columns",           new ColumnList(context, returnColumns)));
+          of("deleteTableAlias", new Esql<>(context, deleteTableAlias)),
+          of("tables",           from),
+          of("where",            where),
+          of("metadata",         returnMetadata),
+          of("columns",          new ColumnList(context, returnColumns)));
   }
 
   public Delete(Delete other) {

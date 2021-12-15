@@ -5,12 +5,10 @@
 package ma.vi.esql.syntax.query;
 
 import ma.vi.base.tuple.T2;
-import ma.vi.esql.database.SqlServer;
 import ma.vi.esql.semantic.type.Selection;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
-import ma.vi.esql.syntax.Restriction;
 
 import java.util.List;
 import java.util.Map;
@@ -28,10 +26,10 @@ public class With extends QueryUpdate {
   public With(Context context, boolean recursive, List<Cte> ctes, QueryUpdate query) {
     super(context, "With",
           T2.of("recursive", new Esql<>(context, recursive)),
-          T2.of("ctes",      new Esql<>(context, ctes)),
+          T2.of("ctes",      new Esql<>(context, "ctes", ctes)),
           T2.of("query",     query),
-          T2.of("columns",   new ColumnList(context, query.columns())),
           T2.of("tables",    query.tables()),
+          T2.of("columns",   new ColumnList(context, query.columns())),
           T2.of("metadata",  query.metadata()));
   }
 
@@ -60,7 +58,7 @@ public class With extends QueryUpdate {
 
   @Override
   public Selection type(EsqlPath path) {
-    return query().type(path);
+    return query().type(path.add(query()));
   }
 
   @Override
@@ -69,7 +67,7 @@ public class With extends QueryUpdate {
      * Ensure all CTE types are added to context-specific (local) type registry.
      */
     for (Cte cte: ctes()) {
-      cte.type(path);
+      cte.type(path.add(cte));
     }
 
     StringBuilder st = new StringBuilder("with ");
@@ -133,7 +131,7 @@ public class With extends QueryUpdate {
   }
 
   public List<Cte> ctes() {
-    return childValue("ctes");
+    return child("ctes").children();
   }
 
   public QueryUpdate query() {

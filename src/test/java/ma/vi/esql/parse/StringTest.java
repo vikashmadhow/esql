@@ -18,7 +18,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class StringTest {
   @Test
   void stringWithControlCharacters() {
-    Parser parser = new Parser(Databases.HSqlDb().structure());
+    Parser parser = new Parser(Databases.Postgresql().structure());
     StringLiteral expr = (StringLiteral)parser.parseExpression("'this is a \n\ttest\n...\tMX3\f\\c'");
     assertEquals("'this is a \n\ttest\n...\tMX3\f\\c'", expr.value);
     assertEquals("N'this is a \n\ttest\n...\tMX3\f\\c'", expr.translate(SQLSERVER));
@@ -61,7 +61,7 @@ public class StringTest {
         "   `\n" +
         "}";
     EsqlParser p = Parser.parser(input);
-    Structure structure = Databases.HSqlDb().structure();
+    Structure structure = Databases.Postgresql().structure();
     Metadata metadata = (Metadata)Parser.parse(structure, p.metadata());
     String value = metadata.evaluateAttribute("a");
     assertEquals(

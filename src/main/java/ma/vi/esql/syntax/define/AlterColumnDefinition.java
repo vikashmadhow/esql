@@ -20,7 +20,7 @@ import static ma.vi.esql.syntax.Translatable.Target.ESQL;
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public class AlterColumnDefinition extends Define<String> {
+public class AlterColumnDefinition extends Define {
   public AlterColumnDefinition(Context context,
                                String toName,
                                Type toType,
@@ -29,8 +29,8 @@ public class AlterColumnDefinition extends Define<String> {
                                Expression<?, String> setDefault,
                                boolean dropDefault,
                                Metadata metadata) {
-    super(context,
-          toName,
+    super(context, "AlterColumn",
+          T2.of("toName", new Esql<>(context, toName)),
           T2.of("toType", new Esql<>(context, toType)),
           T2.of("setNotNull", new Esql<>(context, setNotNull)),
           T2.of("dropNotNull", new Esql<>(context, dropNotNull)),
@@ -65,7 +65,7 @@ public class AlterColumnDefinition extends Define<String> {
   @Override
   protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
     return (toName() == null ? "" : toName() + ' ')
-         + (toType() == null ? "" : type(path).translate(target, path, parameters) + ' ')
+         + (toType() == null ? "" : type(path.add(this)).translate(target, path, parameters) + ' ')
          + (setNotNull() ? "null " : "")
          + (dropNotNull() ? "not null " : "")
          + (setDefault() != null ? "default " + setDefault().translate(target, path.add(setDefault()), parameters) + ' ' : "")
@@ -74,7 +74,7 @@ public class AlterColumnDefinition extends Define<String> {
   }
 
   public String toName() {
-    return value;
+    return childValue("toName");
   }
 
   public Type toType() {

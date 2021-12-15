@@ -25,9 +25,9 @@ import static ma.vi.esql.syntax.Translatable.Target.ESQL;
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public class DropTable extends Define<String> {
+public class DropTable extends Define {
   public DropTable(Context context, String name) {
-    super(context, name);
+    super(context, "DropTable", T2.of("name", new Esql<>(context, name)));
   }
 
   public DropTable(DropTable other) {
@@ -95,6 +95,6 @@ public class DropTable extends Define<String> {
   }
 
   public String name() {
-    return value;
+    return childValue("name");
   }
 }

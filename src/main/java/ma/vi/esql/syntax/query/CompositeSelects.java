@@ -5,13 +5,10 @@
 package ma.vi.esql.syntax.query;
 
 import ma.vi.base.tuple.T2;
-import ma.vi.esql.syntax.*;
-import ma.vi.esql.syntax.define.Attribute;
-import ma.vi.esql.syntax.define.Metadata;
-import ma.vi.esql.syntax.expression.Expression;
+import ma.vi.esql.syntax.Context;
+import ma.vi.esql.syntax.Esql;
+import ma.vi.esql.syntax.EsqlPath;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -23,7 +20,6 @@ import java.util.Map;
 public class CompositeSelects extends Select {
   public CompositeSelects(Context context, String operator, List<Select> selects) {
     super(context,
-          operator,
           null,
           selects.get(0).distinct(),
           selects.get(0).distinctOn(),
@@ -36,6 +32,7 @@ public class CompositeSelects extends Select {
           selects.get(0).orderBy(),
           selects.get(0).offset(),
           selects.get(0).limit(),
+          T2.of("operator", new Esql<>(context, operator)),
           T2.of("selects", new Esql<>(context, selects)));
 
 //    // count columns of all selects: they should have the same number
@@ -110,7 +107,7 @@ public class CompositeSelects extends Select {
       }
     }
     return new QueryTranslation(st.toString(), q.columns, q.columnToIndex,
-        q.resultAttributeIndices, q.resultAttributes);
+                                q.resultAttributeIndices, q.resultAttributes);
   }
 
 //  /**
@@ -161,12 +158,12 @@ public class CompositeSelects extends Select {
 //    }
 //  }
 
-  public List<Select> selects() {
-    return childValue("selects");
+  public String operator() {
+    return childValue("operator");
   }
 
-  public String operator() {
-    return value;
+  public List<Select> selects() {
+    return childValue("selects");
   }
 
 //  @Override

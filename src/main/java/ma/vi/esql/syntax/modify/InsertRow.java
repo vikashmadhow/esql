@@ -19,7 +19,7 @@ import static java.util.stream.Collectors.joining;
 
 public class InsertRow extends Expression<String, String> {
   public InsertRow(Context context, List<Expression<?, String>> values) {
-    super(context, "row", values);
+    super(context, "InsertRow", values);
   }
 
   public InsertRow(InsertRow other) {

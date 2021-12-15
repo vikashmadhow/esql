@@ -18,21 +18,21 @@ import java.util.List;
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public abstract class MultipleSubExpressions<V> extends Expression<V, String> {
-  public MultipleSubExpressions(Context context, V value, List<Expression<?, ?>> expressions) {
+public abstract class MultipleSubExpressions extends Expression<String, String> {
+  public MultipleSubExpressions(Context context, String value, List<Expression<?, ?>> expressions) {
     super(context, value, expressions);
   }
 
-  public MultipleSubExpressions(MultipleSubExpressions<V> other) {
+  public MultipleSubExpressions(MultipleSubExpressions other) {
     super(other);
   }
 
-  public MultipleSubExpressions(MultipleSubExpressions<V> other, V value, T2<String, ? extends Esql<?, ?>>... children) {
+  public MultipleSubExpressions(MultipleSubExpressions other, String value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }
 
   @Override
-  public abstract MultipleSubExpressions<V> copy();
+  public abstract MultipleSubExpressions copy();
 
   /**
    * Returns a shallow copy of this object replacing the value in the copy with
@@ -40,12 +40,12 @@ public abstract class MultipleSubExpressions<V> extends Expression<V, String> {
    * of the copy.
    */
   @Override
-  public abstract MultipleSubExpressions<V> copy(V value, T2<String, ? extends Esql<?, ?>>... children);
+  public abstract MultipleSubExpressions copy(String value, T2<String, ? extends Esql<?, ?>>... children);
 
   @Override
   public Type type(EsqlPath path) {
     for (Expression<?, ?> e: expressions()) {
-      Type type = e.type(path);
+      Type type = e.type(path.add(e));
       if (!type.equals(Types.NullType)) {
         return type;
       }

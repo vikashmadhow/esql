@@ -29,8 +29,8 @@ import static java.lang.System.Logger.Level.ERROR;
 import static java.sql.ResultSet.CONCUR_READ_ONLY;
 import static java.sql.ResultSet.TYPE_SCROLL_INSENSITIVE;
 import static java.util.Collections.emptyMap;
-import static java.util.stream.Collectors.toList;
 import static ma.vi.base.string.Strings.random;
+import static ma.vi.esql.syntax.expression.ColumnRef.qualify;
 
 /**
  * The parent of all query (select) and update (update, insert and delete)
@@ -38,10 +38,8 @@ import static ma.vi.base.string.Strings.random;
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public abstract class QueryUpdate extends MetadataContainer<String, QueryTranslation> implements Statement {
-  public QueryUpdate(Context context,
-                     String value,
-                     T2<String, ? extends Esql<?, ?>>... children) {
+public abstract class QueryUpdate extends MetadataContainer<QueryTranslation> implements Statement {
+  public QueryUpdate(Context context, String value, T2<String, ? extends Esql<?, ?>>... children) {
     super(context, value, children);
   }
 
@@ -71,7 +69,7 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
   public Selection type(EsqlPath path) {
     if (type == null) {
       TableExpr from = tables();
-      Relation fromType = from.type(path);
+      Relation fromType = from.type(path.add(from));
 
       boolean expandColumns = !grouped() && path.ancestor(Cte.class) == null;
 
@@ -119,10 +117,23 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
          * Add all relation-level metadata columns defined on the tables
          * being queried.
          */
-        for (Column column: fromType.columns(null, "/")) {
-          String alias = column.alias();
-          if (!columns.containsKey(alias)) {
-            columns.put(alias, column.copy());
+        Set<String> aliases = fromType.aliases();
+        if (!aliases.isEmpty()) {
+          for (String relAlias: aliases) {
+            for (Column column: fromType.columns(relAlias, "/").stream()
+                                        .map(c -> qualify(c, relAlias, true)).toList()) {
+              String alias = column.alias();
+              if (!columns.containsKey(alias)) {
+                columns.put(alias, column.copy());
+              }
+            }
+          }
+        } else {
+          for (Column column: fromType.columns(null, "/")) {
+            String alias = column.alias();
+            if (!columns.containsKey(alias)) {
+              columns.put(alias, column.copy());
+            }
           }
         }
 
@@ -157,9 +168,8 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
         }
       }
 
-//      columns(cols);
       type = new Selection(cols, from);
-      context.type(type);
+//      context.type(type);
     }
     return type;
   }
@@ -240,16 +250,14 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
     Map<String, Object> resultAttributes = new HashMap<>();
     List<T3<Integer, String, Type>> resultAttributeIndices = new ArrayList<>();
     int itemIndex = 0;
-    Selection selection = type(path);
+    Selection selection = type(path.add(this));
 
     /*
      * Output result metadata
      */
     if (!selectExpression) {
-      for (Column column: selection.columns()
-                                   .stream()
-                                   .filter(c -> c.alias().startsWith("/"))
-                                   .collect(toList())) {
+      for (Column column: selection.columns().stream()
+                                   .filter(c -> c.alias().startsWith("/")).toList()) {
         String colName = column.alias();
         String attrName = colName.substring(1);
 
@@ -263,7 +271,7 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
             query.append(", ");
           }
           appendExpression(query, attributeValue, target, path, qualifier, colName);
-          resultAttributeIndices.add(T3.of(itemIndex, attrName, attributeValue.type(path)));
+          resultAttributeIndices.add(T3.of(itemIndex, attrName, attributeValue.type(path.add(attributeValue))));
         }
       }
     }
@@ -272,10 +280,8 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
      * Output columns.
      */
     int columnIndex = 0;
-    for (Column column: selection.columns()
-                                 .stream()
-                                 .filter(c -> !c.alias().contains("/"))
-                                 .collect(toList())) {
+    for (Column column: selection.columns().stream()
+                                 .filter(c -> !c.alias().contains("/")).toList()) {
       itemIndex++;
       columnIndex++;
       if (itemIndex > 1) {
@@ -286,12 +292,12 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
       if (qualifier != null) {
         ColumnRef.qualify(expression, qualifier, true);
       }
-      query.append(column.translate(target, path.add(column)));
+      query.append(column.translate(target, path.add(column), ADDIIF));
       String colName = column.alias();
       columnToIndex.put(colName, columnIndex);
       columnMappings.put(colName, new ColumnMapping(itemIndex,
                                                     column,
-                                                    column.type(path),
+                                                    column.type(path.add(column)),
                                                     new ArrayList<>(),
                                                     new HashMap<>()));
     }
@@ -300,10 +306,9 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
      * Output columns metadata.
      */
     if (!selectExpression) {
-      for (Column col: selection.columns()
-                                .stream()
+      for (Column col: selection.columns().stream()
                                 .filter(c -> c.alias().charAt(0) != '/' && c.alias().indexOf('/', 1) != -1)
-                                .collect(toList())) {
+                                .toList()) {
         String alias = col.alias();
         int pos = alias.indexOf('/');
         String colName = alias.substring(0, pos);
@@ -322,7 +327,7 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
           itemIndex += 1;
           query.append(", ");
           appendExpression(query, attributeValue, target, path, qualifier, alias);
-          mapping.attributeIndices.add(T3.of(itemIndex, attrName, attributeValue.type(path)));
+          mapping.attributeIndices.add(T3.of(itemIndex, attrName, attributeValue.type(path.add(attributeValue))));
         }
       }
     }
@@ -345,7 +350,7 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
     if (qualifier != null) {
       ColumnRef.qualify(expression, qualifier, true);
     }
-    query.append(expression.translate(target, path.add(expression)));
+    query.append(expression.translate(target, path.add(expression), ADDIIF));
     if (alias != null) {
       query.append(" \"").append(alias).append('"');
     }
@@ -511,7 +516,7 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
   public Result execute(Database db, Connection con, EsqlPath path) {
     QueryTranslation translation = translate(db.target(), path);
     try {
-      Selection selection = type(path);
+      Selection selection = type(path.add(this));
       if (!selection.columns().isEmpty()) {
         ResultSet rs = con.createStatement(TYPE_SCROLL_INSENSITIVE, CONCUR_READ_ONLY)
                           .executeQuery(translation.statement);
@@ -814,4 +819,6 @@ public abstract class QueryUpdate extends MetadataContainer<String, QueryTransla
   private volatile Selection type;
 
   private static final System.Logger log = System.getLogger(QueryUpdate.class.getName());
+
+  private static final Map<String, Object> ADDIIF = Map.of("addIif", true);
 }

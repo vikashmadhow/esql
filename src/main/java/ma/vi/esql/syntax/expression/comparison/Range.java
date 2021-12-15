@@ -24,16 +24,17 @@ import static ma.vi.esql.translator.SqlServerTranslator.requireIif;
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public class Range extends Expression<Expression<?, String>, String> {
+public class Range extends Expression<String, String> {
   public Range(Context context,
                Expression<?, String> leftExpression,
                String leftCompare,
                Expression<?, String> compareExpression,
                String rightCompare,
                Expression<?, String> rightExpression) {
-    super(context, compareExpression,
+    super(context, "Range",
           T2.of("leftExpression", leftExpression),
           T2.of("leftCompare", new Esql<>(context, leftCompare)),
+          T2.of("compareExpression", compareExpression),
           T2.of("rightCompare", new Esql<>(context, rightCompare)),
           T2.of("rightExpression", rightExpression));
   }
@@ -42,7 +43,7 @@ public class Range extends Expression<Expression<?, String>, String> {
     super(other);
   }
 
-  public Range(Range other, Expression<?, String> value, T2<String, ? extends Esql<?, ?>>... children) {
+  public Range(Range other, String value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }
 
@@ -57,7 +58,7 @@ public class Range extends Expression<Expression<?, String>, String> {
    * of the copy.
    */
   @Override
-  public Range copy(Expression<?, String> value, T2<String, ? extends Esql<?, ?>>... children) {
+  public Range copy(String value, T2<String, ? extends Esql<?, ?>>... children) {
     return new Range(this, value, children);
   }
 
@@ -108,7 +109,7 @@ public class Range extends Expression<Expression<?, String>, String> {
   }
 
   public Expression<?, String> compareExpression() {
-    return value;
+    return child("compareExpression");
   }
 
   public String rightCompare() {

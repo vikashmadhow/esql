@@ -71,7 +71,7 @@ public class DeleteBuilder implements Builder<Delete> {
   }
 
   public DeleteBuilder join(TableExpr right, String onExpression) {
-    return from(new JoinTableExpr(context, from, null, right, parser.parseExpression(onExpression)));
+    return from(new JoinTableExpr(context, null, from, right, parser.parseExpression(onExpression)));
   }
 
   public DeleteBuilder leftJoin(String tableName, String alias, String onExpression) {
@@ -79,7 +79,7 @@ public class DeleteBuilder implements Builder<Delete> {
   }
 
   public DeleteBuilder leftJoin(TableExpr right, String onExpression) {
-    return from(new JoinTableExpr(context, from, "left", right, parser.parseExpression(onExpression)));
+    return from(new JoinTableExpr(context, "left", from, right, parser.parseExpression(onExpression)));
   }
 
   public DeleteBuilder rightJoin(String tableName, String alias, String onExpression) {
@@ -87,7 +87,7 @@ public class DeleteBuilder implements Builder<Delete> {
   }
 
   public DeleteBuilder rightJoin(TableExpr right, String onExpression) {
-    return from(new JoinTableExpr(context, from, "right", right, parser.parseExpression(onExpression)));
+    return from(new JoinTableExpr(context, "right", from, right, parser.parseExpression(onExpression)));
   }
 
   public DeleteBuilder fullJoin(String tableName, String alias, String onExpression) {
@@ -95,7 +95,7 @@ public class DeleteBuilder implements Builder<Delete> {
   }
 
   public DeleteBuilder fullJoin(TableExpr right, String onExpression) {
-    return from(new JoinTableExpr(context, from, "full", right, parser.parseExpression(onExpression)));
+    return from(new JoinTableExpr(context, "full", from, right, parser.parseExpression(onExpression)));
   }
 
   public DeleteBuilder where(String expression) {

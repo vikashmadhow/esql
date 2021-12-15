@@ -13,7 +13,9 @@ import ma.vi.esql.syntax.query.Column;
 import ma.vi.esql.syntax.query.TableExpr;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 import static java.util.stream.Collectors.toList;
 
@@ -47,6 +49,11 @@ public class Selection extends Relation {
   @Override
   public Selection copy() {
     return new Selection(this);
+  }
+
+  @Override
+  public Set<String> aliases() {
+    return Collections.emptySet();
   }
 
   @Override

@@ -27,7 +27,7 @@ public class ILike extends NegatableDoubleSubExpressions<String> {
                boolean not,
                Expression<?, String> expr1,
                Expression<?, String> expr2) {
-    super(context, "ilike", not, expr1, expr2);
+    super(context, "ILike", not, expr1, expr2);
   }
 
   public ILike(ILike other) {

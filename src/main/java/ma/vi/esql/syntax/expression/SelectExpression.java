@@ -13,6 +13,7 @@ import ma.vi.esql.syntax.query.Column;
 import ma.vi.esql.syntax.query.Order;
 import ma.vi.esql.syntax.query.Select;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -25,7 +26,7 @@ import static java.util.stream.Collectors.joining;
  */
 public class SelectExpression extends Expression<String, String> {
   public SelectExpression(Context context, Select select) {
-    super(context, "selectExpression", T2.of("select", select));
+    super(context, "SelectExpression", T2.of("select", select));
   }
 
   public SelectExpression(SelectExpression other) {
@@ -53,7 +54,7 @@ public class SelectExpression extends Expression<String, String> {
 
   @Override
   public Type type(EsqlPath path) {
-    return select().columns().get(0).type(path);
+    return select().columns().get(0).type(path.add(select().columns().get(0)));
   }
 
   @Override
@@ -96,7 +97,9 @@ public class SelectExpression extends Expression<String, String> {
       st.append(')');
       return st.toString();
     } else {
-      return '(' + select().translate(target, path.add(select()), parameters).statement + ')';
+      Map<String, Object> params = new HashMap<>(parameters);
+      params.remove("addIif");
+      return '(' + select().translate(target, path.add(select()), params).statement + ')';
     }
   }
 

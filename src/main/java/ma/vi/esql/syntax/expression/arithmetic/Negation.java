@@ -20,14 +20,14 @@ import java.util.Map;
  */
 public class Negation extends SingleSubExpression {
   public Negation(Context context, Expression negated) {
-    super(context, negated);
+    super(context, "Negation", negated);
   }
 
   public Negation(Negation other) {
     super(other);
   }
 
-  public Negation(Negation other, Expression<?, String> value, T2<String, ? extends Esql<?, ?>>... children) {
+  public Negation(Negation other, String value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }
 
@@ -42,7 +42,7 @@ public class Negation extends SingleSubExpression {
    * of the copy.
    */
   @Override
-  public Negation copy(Expression<?, String> value, T2<String, ? extends Esql<?, ?>>... children) {
+  public Negation copy(String value, T2<String, ? extends Esql<?, ?>>... children) {
     return new Negation(this, value, children);
   }
 

@@ -19,16 +19,18 @@ import java.util.Map;
  *
  * @author vikash.madhow@gmail.com
  */
-public class Order extends Esql<Expression<?, String>, String> {
+public class Order extends Esql<String, String> {
   public Order(Context context, Expression<?, String> expression, String dir) {
-    super(context, expression, T2.of("dir", new Esql<>(context, dir)));
+    super(context, "Order",
+          T2.of("expr", expression),
+          T2.of("dir", new Esql<>(context, dir)));
   }
 
   public Order(Order other) {
     super(other);
   }
 
-  public Order(Order other, Expression<?, String> value, T2<String, ? extends Esql<?, ?>>... children) {
+  public Order(Order other, String value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }
 
@@ -42,7 +44,7 @@ public class Order extends Esql<Expression<?, String>, String> {
    * the provided value and replacing the specified children in the children list
    * of the copy.
    */
-  public Order copy(Expression<?, String> value, T2<String, ? extends Esql<?, ?>>... children) {
+  public Order copy(String value, T2<String, ? extends Esql<?, ?>>... children) {
     return new Order(this, value, children);
   }
 
@@ -66,7 +68,7 @@ public class Order extends Esql<Expression<?, String>, String> {
   }
 
   public Expression<?, String> order() {
-    return value;
+    return child("expr");
   }
 
   public String dir() {

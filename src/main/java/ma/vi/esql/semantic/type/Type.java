@@ -188,7 +188,6 @@ public interface Type extends Symbol, Copy<Type>, Translatable<String> {
       StringBuilder st = new StringBuilder();
       if (q.a != null) {
         st.append('"').append(q.a).append("\".");
-
       } else if (target == HSQLDB) {
         st.append("\"PUBLIC\".");
 

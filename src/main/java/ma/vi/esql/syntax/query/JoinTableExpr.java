@@ -21,16 +21,15 @@ import java.util.Map;
  */
 public class JoinTableExpr extends AbstractJoinTableExpr {
   public JoinTableExpr(Context context,
-                       TableExpr left,
                        String joinType,
+                       TableExpr left,
                        TableExpr right,
                        Expression<?, String> on) {
     super(context,
           joinType,
           left,
           right,
-          T2.of("on", on),
-          T2.of("joinType", new Esql<>(context, joinType)));
+          T2.of("on", on));
   }
 
   public JoinTableExpr(JoinTableExpr other) {
@@ -62,10 +61,6 @@ public class JoinTableExpr extends AbstractJoinTableExpr {
          + (joinType() == null ? " join " : ' ' + joinType() + " join ")
          + right().translate(target, path.add(right()), parameters) + " on "
          + on().translate(target, path.add(on()), parameters);
-  }
-
-  public String joinType() {
-    return childValue("joinType");
   }
 
   public Expression<?, String> on() {

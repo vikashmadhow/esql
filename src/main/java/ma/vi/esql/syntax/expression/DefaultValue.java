@@ -20,7 +20,7 @@ import java.util.Map;
  */
 public class DefaultValue extends Expression<String, String> {
   public DefaultValue(Context context) {
-    super(context, "default");
+    super(context, "Default");
   }
 
   public DefaultValue(DefaultValue other) {

@@ -18,29 +18,29 @@ import java.util.List;
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public abstract class Define<V> extends Expression<V, String> implements Statement {
+public abstract class Define extends Expression<String, String> implements Statement {
   Define(Context context,
-         V value,
+         String value,
          T2<String, ? extends Esql<?, ?>>... children) {
     super(context, value, children);
   }
 
   Define(Context context,
-         V value,
+         String value,
          List<? extends Esql<?, ?>> children) {
     super(context, value, children);
   }
 
-  public Define(Define<V> other) {
+  public Define(Define other) {
     super(other);
   }
 
-  public Define(Define<V> other, V value, T2<String, ? extends Esql<?, ?>>... children) {
+  public Define(Define other, String value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }
 
   @Override
-  public abstract Define<V> copy();
+  public abstract Define copy();
 
   /**
    * Returns a shallow copy of this object replacing the value in the copy with
@@ -48,6 +48,6 @@ public abstract class Define<V> extends Expression<V, String> implements Stateme
    * of the copy.
    */
   @Override
-  public abstract Define<V> copy(V value, T2<String, ? extends Esql<?, ?>>... children);
+  public abstract Define copy(String value, T2<String, ? extends Esql<?, ?>>... children);
 }
 

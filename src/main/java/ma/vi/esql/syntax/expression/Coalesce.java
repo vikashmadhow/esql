@@ -21,9 +21,9 @@ import static ma.vi.esql.syntax.Translatable.Target.JSON;
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public class Coalesce extends MultipleSubExpressions<String> {
+public class Coalesce extends MultipleSubExpressions {
   public Coalesce(Context context, List<Expression<?, ?>> expressions) {
-    super(context, "coalesce", expressions);
+    super(context, "Coalesce", expressions);
   }
 
   public Coalesce(Coalesce other) {
@@ -78,9 +78,9 @@ public class Coalesce extends MultipleSubExpressions<String> {
 
       default -> {
         boolean sqlServerBool = target == Target.SQLSERVER
-                             && type(path) == Types.BoolType
+                             && type(path.add(this)) == Types.BoolType
                              && (path.ancestor("on") != null || path.ancestor("where") != null || path.ancestor("having") != null)
-                             && (path.ancestor(Coalesce.class) == null);
+                             && (path.ancestor(FunctionCall.class) == null);
         StringBuilder st = new StringBuilder();
         if (sqlServerBool) {
           st.append('(');

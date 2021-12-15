@@ -23,20 +23,24 @@ import java.util.Map;
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public class QuantifiedComparison extends Expression<Expression<?, String>, String> {
-  public QuantifiedComparison(Context context, Expression<?, String> expr, String compareOp,
-                              String quantifier, Select select) {
-    super(context, expr,
-        T2.of("compareOp", new Esql<>(context, compareOp)),
-        T2.of("quantifier", new Esql<>(context, quantifier)),
-        T2.of("select", select));
+public class QuantifiedComparison extends Expression<String, String> {
+  public QuantifiedComparison(Context               context,
+                              Expression<?, String> expr,
+                              String                compareOp,
+                              String                quantifier,
+                              Select                select) {
+    super(context, "QuantifiedComparison",
+          T2.of("expr", expr),
+          T2.of("compareOp", new Esql<>(context, compareOp)),
+          T2.of("quantifier", new Esql<>(context, quantifier)),
+          T2.of("select", select));
   }
 
   public QuantifiedComparison(QuantifiedComparison other) {
     super(other);
   }
 
-  public QuantifiedComparison(QuantifiedComparison other, Expression<?, String> value, T2<String, ? extends Esql<?, ?>>... children) {
+  public QuantifiedComparison(QuantifiedComparison other, String value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }
 
@@ -51,7 +55,7 @@ public class QuantifiedComparison extends Expression<Expression<?, String>, Stri
    * of the copy.
    */
   @Override
-  public QuantifiedComparison copy(Expression<?, String> value, T2<String, ? extends Esql<?, ?>>... children) {
+  public QuantifiedComparison copy(String value, T2<String, ? extends Esql<?, ?>>... children) {
     return new QuantifiedComparison(this, value, children);
   }
 
@@ -74,7 +78,7 @@ public class QuantifiedComparison extends Expression<Expression<?, String>, Stri
   }
 
   public Expression<?, String> expr() {
-    return value;
+    return childValue("expr");
   }
 
   public String compareOp() {

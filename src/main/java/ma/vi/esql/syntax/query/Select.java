@@ -26,7 +26,6 @@ import static ma.vi.base.tuple.T2.of;
  */
 public class Select extends QueryUpdate /* implements Macro */ {
   public Select(Context                     context,
-                String                      value,
                 Metadata                    metadata,
                 boolean                     distinct,
                 List<Expression<?, String>> distinctOn,
@@ -40,16 +39,15 @@ public class Select extends QueryUpdate /* implements Macro */ {
                 Expression<?, String>       offset,
                 Expression<?, String>       limit,
                 T2<String, ? extends Esql<?, ?>>... children) {
-    super(context,
-          value,
+    super(context, "Select",
           Stream.concat(
             Stream.of(
               of("distinct",    new Esql<>(context, distinct)),
-              of("distinctOn",  new Esql<>(context, "distinctOn", distinctOn)),
               of("explicit",    new Esql<>(context, explicit)),
-              of("metadata",    metadata),
-              of("columns",     renameColumns(context, columns)),
               of("tables",      from),
+              of("metadata",    metadata),
+              of("distinctOn",  new Esql<>(context, "distinctOn", distinctOn)),
+              of("columns",     renameColumns(context, columns)),
               of("where",       where),
               of("groupBy",     groupBy),
               of("having",      having),

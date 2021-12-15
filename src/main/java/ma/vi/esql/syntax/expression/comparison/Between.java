@@ -22,13 +22,14 @@ import static ma.vi.esql.syntax.Translatable.Target.JSON;
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public class Between extends Expression<Expression<?, ?>, String> {
+public class Between extends Expression<String, String> {
   public Between(Context context,
                  boolean not,
                  Expression<?, ?> compare,
                  Expression<?, ?> from,
                  Expression<?, ?> to) {
-    super(context, compare,
+    super(context, "Between",
+          T2.of("compare", compare),
           T2.of("not", new Esql<>(context, not)),
           T2.of("from", from),
           T2.of("to", to));
@@ -38,7 +39,7 @@ public class Between extends Expression<Expression<?, ?>, String> {
     super(other);
   }
 
-  public Between(Between other, Expression<?, ?> value, T2<String, ? extends Esql<?, ?>>... children) {
+  public Between(Between other, String value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }
 
@@ -53,7 +54,7 @@ public class Between extends Expression<Expression<?, ?>, String> {
    * of the copy.
    */
   @Override
-  public Between copy(Expression<?, ?> value, T2<String, ? extends Esql<?, ?>>... children) {
+  public Between copy(String value, T2<String, ? extends Esql<?, ?>>... children) {
     return new Between(this, value, children);
   }
 
@@ -97,7 +98,7 @@ public class Between extends Expression<Expression<?, ?>, String> {
   }
 
   public Expression<?, ?> compare() {
-    return value;
+    return child("compare");
   }
 
   public Expression<?, ?> from() {

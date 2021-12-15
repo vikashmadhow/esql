@@ -50,10 +50,16 @@ public class Join extends Relation {
   }
 
   @Override
+  public Set<String> aliases() {
+    Set<String> aliases = new HashSet<>(left.aliases());
+    aliases.addAll(right.aliases());
+    return aliases;
+  }
+
+  @Override
   public List<Column> columns() {
     if (columns == null) {
-      columns = new ArrayList<>();
-      columns.addAll(left.columns());
+      columns = new ArrayList<>(left.columns());
       columns.addAll(right.columns());
     }
     return columns;
@@ -67,7 +73,7 @@ public class Join extends Relation {
     Relation leftRel = alias == null ? left : left.forAlias(alias);
     if (leftRel != null) {
       cols.addAll(leftRel.columns(alias, prefix));
-      colNames.addAll(cols.stream().map(Column::alias).collect(toList()));
+      colNames.addAll(cols.stream().map(Column::alias).toList());
     }
 
     Relation rightRel = alias == null ? right : right.forAlias(alias);

@@ -9,6 +9,7 @@ import ma.vi.esql.syntax.query.Column;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 /**
  *
@@ -69,6 +70,8 @@ public abstract class Relation extends AbstractType {
   public boolean isAbstract() {
     return false;
   }
+
+  public abstract Set<String> aliases();
 
   public abstract List<Column> columns();
 

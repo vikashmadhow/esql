@@ -21,6 +21,10 @@ public class EsqlPath {
     return new EsqlPath(esql, this);
   }
 
+  public EsqlPath replaceHead(Esql<?, ?> esql) {
+    return new EsqlPath(esql, tail());
+  }
+
   public Esql<?, ?> head() {
     return head;
   }

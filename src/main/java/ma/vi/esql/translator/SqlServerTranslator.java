@@ -243,7 +243,6 @@ public class SqlServerTranslator extends AbstractTranslator {
 
         Select innerSelect = new Select(
             select.context,
-            select.value,
             select.metadata(),
             select.distinct(),
             select.distinctOn(),
@@ -259,7 +258,6 @@ public class SqlServerTranslator extends AbstractTranslator {
         );
         Select outerSelect = new Select(
             select.context,
-            select.value,
             select.metadata(),
             select.distinct(),
             select.distinctOn(),

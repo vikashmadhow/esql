@@ -29,9 +29,9 @@ import static ma.vi.esql.syntax.Translatable.Target.JSON;
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public class Case extends MultipleSubExpressions<String> {
+public class Case extends MultipleSubExpressions {
   public Case(Context context, List<Expression<?, ?>> expressions) {
-    super(context, "case", expressions);
+    super(context, "Case", expressions);
   }
 
   public Case(Case other) {

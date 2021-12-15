@@ -18,14 +18,14 @@ import java.util.Map;
  */
 public class GroupedExpression extends SingleSubExpression {
   public GroupedExpression(Context context, Expression<?, String> expr) {
-    super(context, expr);
+    super(context, "GroupedExpr", expr);
   }
 
   public GroupedExpression(GroupedExpression other) {
     super(other);
   }
 
-  public GroupedExpression(GroupedExpression other, Expression<?, String> value, T2<String, ? extends Esql<?, ?>>... children) {
+  public GroupedExpression(GroupedExpression other, String value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }
 
@@ -40,7 +40,7 @@ public class GroupedExpression extends SingleSubExpression {
    * of the copy.
    */
   @Override
-  public GroupedExpression copy(Expression<?, String> value, T2<String, ? extends Esql<?, ?>>... children) {
+  public GroupedExpression copy(String value, T2<String, ? extends Esql<?, ?>>... children) {
     return new GroupedExpression(this, value, children);
   }
 

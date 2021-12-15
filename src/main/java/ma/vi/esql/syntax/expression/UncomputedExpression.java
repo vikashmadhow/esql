@@ -21,14 +21,14 @@ import java.util.Map;
  */
 public class UncomputedExpression extends SingleSubExpression {
   public UncomputedExpression(Context context, Expression<?, String> expr) {
-    super(context, expr);
+    super(context, "UncomputedExpr", expr);
   }
 
   public UncomputedExpression(UncomputedExpression other) {
     super(other);
   }
 
-  public UncomputedExpression(UncomputedExpression other, Expression<?, String> value, T2<String, ? extends Esql<?, ?>>... children) {
+  public UncomputedExpression(UncomputedExpression other, String value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }
 
@@ -43,7 +43,7 @@ public class UncomputedExpression extends SingleSubExpression {
    * of the copy.
    */
   @Override
-  public UncomputedExpression copy(Expression<?, String> value, T2<String, ? extends Esql<?, ?>>... children) {
+  public UncomputedExpression copy(String value, T2<String, ? extends Esql<?, ?>>... children) {
     return new UncomputedExpression(this, value, children);
   }
 

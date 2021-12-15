@@ -17,16 +17,18 @@ import java.util.Map;
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public class Cast extends Expression<Type, String> {
+public class Cast extends Expression<String, String> {
   public Cast(Context context, Expression<?, ?> expr, Type toType) {
-    super(context, toType, T2.of("expr", expr));
+    super(context, "Cast",
+          T2.of("expr", expr),
+          T2.of("type", new Esql<>(context, toType)));
   }
 
   public Cast(Cast other) {
     super(other);
   }
 
-  public Cast(Cast other, Type value, T2<String, ? extends Esql<?, ?>>... children) {
+  public Cast(Cast other, String value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }
 
@@ -41,7 +43,7 @@ public class Cast extends Expression<Type, String> {
    * of the copy.
    */
   @Override
-  public Cast copy(Type value, T2<String, ? extends Esql<?, ?>>... children) {
+  public Cast copy(String value, T2<String, ? extends Esql<?, ?>>... children) {
     return new Cast(this, value, children);
   }
 
@@ -71,7 +73,7 @@ public class Cast extends Expression<Type, String> {
   }
 
   public Type toType() {
-    return value;
+    return childValue("type");
   }
 
   public Expression<?, String> expr() {

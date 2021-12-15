@@ -81,7 +81,7 @@ public class UpdateBuilder implements Builder<Update> {
   }
 
   public UpdateBuilder join(TableExpr right, String onExpression) {
-    return from(new JoinTableExpr(context, from, null, right, parser.parseExpression(onExpression)));
+    return from(new JoinTableExpr(context, null, from, right, parser.parseExpression(onExpression)));
   }
 
   public UpdateBuilder leftJoin(String tableName, String alias, String onExpression) {
@@ -89,7 +89,7 @@ public class UpdateBuilder implements Builder<Update> {
   }
 
   public UpdateBuilder leftJoin(TableExpr right, String onExpression) {
-    return from(new JoinTableExpr(context, from, "left", right, parser.parseExpression(onExpression)));
+    return from(new JoinTableExpr(context, "left", from, right, parser.parseExpression(onExpression)));
   }
 
   public UpdateBuilder rightJoin(String tableName, String alias, String onExpression) {
@@ -97,7 +97,7 @@ public class UpdateBuilder implements Builder<Update> {
   }
 
   public UpdateBuilder rightJoin(TableExpr right, String onExpression) {
-    return from(new JoinTableExpr(context, from, "right", right, parser.parseExpression(onExpression)));
+    return from(new JoinTableExpr(context, "right", from, right, parser.parseExpression(onExpression)));
   }
 
   public UpdateBuilder fullJoin(String tableName, String alias, String onExpression) {
@@ -105,7 +105,7 @@ public class UpdateBuilder implements Builder<Update> {
   }
 
   public UpdateBuilder fullJoin(TableExpr right, String onExpression) {
-    return from(new JoinTableExpr(context, from, "full", right, parser.parseExpression(onExpression)));
+    return from(new JoinTableExpr(context, "full", from, right, parser.parseExpression(onExpression)));
   }
 
   public UpdateBuilder where(String expression) {

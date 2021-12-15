@@ -28,8 +28,7 @@ public class Insert extends QueryUpdate {
                 Select          select,
                 Metadata        metadata,
                 List<Column>    returning) {
-    super(context,
-          "Insert",
+    super(context, "Insert",
           of("tables",        table),
 //          of("fields",        new Esql<>(context, "fields", fields.stream().map(f -> new Esql<>(context, f)).toList())),
           of("fields",        new Esql<>(context, fields)),

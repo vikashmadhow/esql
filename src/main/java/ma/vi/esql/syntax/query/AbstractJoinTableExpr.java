@@ -26,13 +26,13 @@ public abstract class AbstractJoinTableExpr extends TableExpr {
                                TableExpr left,
                                TableExpr right,
                                T2<String, ? extends Esql<?, ?>>... children) {
-    super(context,
-          joinType,
+    super(context, "Join",
           Stream.concat(
             Arrays.stream(
               new T2[]{
                 T2.of("left", left),
-                T2.of("right", right)
+                T2.of("right", right),
+                T2.of("joinType", new Esql<>(context, joinType))
               }),
             Arrays.stream(children)).toArray(T2[]::new));
   }
@@ -59,7 +59,7 @@ public abstract class AbstractJoinTableExpr extends TableExpr {
   @Override
   public Join type(EsqlPath path) {
     if (type == null) {
-      type = new Join(left().type(path), right().type(path));
+      type = new Join(left().type(path.add(left())), right().type(path.add(right())));
     }
     return type;
   }
@@ -68,6 +68,10 @@ public abstract class AbstractJoinTableExpr extends TableExpr {
   public TableExpr forAlias(String alias) {
     TableExpr table = left().forAlias(alias);
     return table != null ? table : right().forAlias(alias);
+  }
+
+  public String joinType() {
+    return childValue("joinType");
   }
 
   public TableExpr left() {

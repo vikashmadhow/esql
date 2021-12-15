@@ -18,6 +18,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -31,9 +32,10 @@ import static ma.vi.esql.syntax.Translatable.Target.*;
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public class AlterTable extends Define<String> {
+public class AlterTable extends Define {
   public AlterTable(Context context, String name, List<Alteration> alterations) {
-    super(context, name,
+    super(context, "AlterTable",
+          T2.of("name", new Esql<>(context, name)),
           T2.of("alterations", new Esql<>(context, "alterations", alterations)));
   }
 
@@ -188,11 +190,11 @@ public class AlterTable extends Define<String> {
                         " ALTER COLUMN \"" + column.alias() +
                         "\" RENAME TO \"" + def.toName() + '"');
               }
-              s.database.columnName(con, column.id(), def.toName());
-              relation.removeColumn(alterCol.columnName());
-              column = column.alias(def.toName());
-              relation.addColumn(column);
             }
+            s.database.columnName(con, column.id(), def.toName());
+            relation.removeColumn(alterCol.columnName());
+            column = column.alias(def.toName());
+            relation.addColumn(column);
           }
           if (def.toType() != null) {
             /*
@@ -210,17 +212,17 @@ public class AlterTable extends Define<String> {
                         " ALTER COLUMN \"" + column.alias() +
                         "\" " + def.toType().translate(db.target(), path.add(def)));
               }
-              s.database.columnType(con, column.id(), def.toType().translate(ESQL, path.add(def)));
-              column = column.type(def.toType());
-              relation.addOrReplaceColumn(column);
             }
+            s.database.columnType(con, column.id(), def.toType().translate(ESQL, path.add(def)));
+            column = column.type(def.toType());
+            relation.addOrReplaceColumn(column);
           }
 
           /*
            * drop default when a new default is specified
            */
           if (def.setDefault() != null
-           || (def.dropDefault() != null && def.dropDefault())) {
+          || (def.dropDefault() != null && def.dropDefault())) {
             /*
              * remove default on column.
              */
@@ -280,7 +282,7 @@ public class AlterTable extends Define<String> {
                 con.createStatement().executeUpdate(
                     "ALTER TABLE " + dbName +
                         " ALTER COLUMN \"" + column.alias() +
-                        "\" " + column.type(path).translate(db.target(), path.add(column)) + " NOT NULL");
+                        "\" " + column.type(path.add(column)).translate(db.target(), path.add(column)) + " NOT NULL");
               } else {
                 con.createStatement().executeUpdate(
                     "ALTER TABLE " + dbName +
@@ -300,7 +302,7 @@ public class AlterTable extends Define<String> {
                 con.createStatement().executeUpdate(
                     "ALTER TABLE " + dbName +
                         " ALTER COLUMN \"" + column.alias() +
-                        "\" " + column.type(path).translate(db.target(), path.add(column)) + " NULL");
+                        "\" " + column.type(path.add(column)).translate(db.target(), path.add(column)) + " NULL");
               } else {
                 con.createStatement().executeUpdate(
                     "ALTER TABLE " + dbName +
@@ -319,7 +321,10 @@ public class AlterTable extends Define<String> {
              * add field metadata, removing previous ones
              */
             s.database.columnMetadata(con, column.id(), def.metadata());
-            relation.addOrReplaceColumn(column.set("metadata", def.metadata()));
+            Map<String, Attribute> attrs = new LinkedHashMap<>(column.metadata().attributes());
+            attrs.putAll(def.metadata().attributes());
+            Metadata metadata = new Metadata(def.context, new ArrayList<>(attrs.values()));
+            relation.addOrReplaceColumn(column.set("metadata", metadata));
           }
         } else if (alteration instanceof DropColumn drop) {
           /*
@@ -378,7 +383,7 @@ public class AlterTable extends Define<String> {
   }
 
   public String name() {
-    return value;
+    return childValue("name");
   }
 
   public List<Alteration> alterations() {

@@ -26,7 +26,7 @@ public class Like extends NegatableDoubleSubExpressions<String> {
               boolean not,
               Expression<?, String> expr1,
               Expression<?, String> expr2) {
-    super(context, "like", not, expr1, expr2);
+    super(context, "Like", not, expr1, expr2);
   }
 
   public Like(Like other) {

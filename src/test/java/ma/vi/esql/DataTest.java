@@ -20,7 +20,7 @@ public class DataTest {
   static void setup() {
     databases = new Database[] {
         Databases.Postgresql(),
-//        Databases.SqlServer(),
+        Databases.SqlServer(),
 //        Databases.HSqlDb(),
 //        Databases.MariaDb(),
     };

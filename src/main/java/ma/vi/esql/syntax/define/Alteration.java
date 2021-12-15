@@ -13,9 +13,9 @@ import ma.vi.esql.syntax.Esql;
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public abstract class Alteration extends Define<String> {
+public abstract class Alteration extends Define {
   public Alteration(Context context, T2<String, ? extends Esql<?, ?>>... children) {
-    super(context, "alter", children);
+    super(context, "Alteration", children);
   }
 
   public Alteration(Alteration other) {

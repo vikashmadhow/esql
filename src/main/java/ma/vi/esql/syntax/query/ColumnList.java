@@ -15,8 +15,6 @@ import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.Macro;
 import ma.vi.esql.syntax.define.Attribute;
 import ma.vi.esql.syntax.expression.ColumnRef;
-import ma.vi.esql.syntax.expression.Expression;
-import ma.vi.esql.syntax.expression.SelectExpression;
 
 import java.util.*;
 
@@ -31,7 +29,7 @@ import static java.util.stream.Collectors.joining;
  */
 public class ColumnList extends Esql<String, String> implements Macro {
   public ColumnList(Context context, List<Column> columns) {
-    super(context, "columns", columns);
+    super(context, columns, true);
   }
 
   public ColumnList(ColumnList other) {
@@ -64,7 +62,7 @@ public class ColumnList extends Esql<String, String> implements Macro {
   public Esql<?, ?> expand(Esql<?, ?> esql, EsqlPath path) {
     QueryUpdate query = path.ancestor(QueryUpdate.class);
     TableExpr from = query.tables();
-    Relation fromType = from.type(path);
+    Relation fromType = from.type(path.add(from));
 
     boolean changed = false;
     Map<String, String> aliased = new HashMap<>();
@@ -132,41 +130,28 @@ public class ColumnList extends Esql<String, String> implements Macro {
             resolvedColumns.put(alias, col);
           }
         }
-      } else {
-//        column.expression().forEach((e, p) -> {
-//          if (e instanceof ColumnRef) {
+      }
+//      else {
+//        Expression<?, String> colExpr = column.expression();
+//        Expression<?, String> expr = (Expression<?, String>)colExpr.map((e, p) -> {
+//          if (e instanceof ColumnRef c) {
 //            SelectExpression selExpr = p.ancestor(SelectExpression.class);
 //            if (selExpr == null) {
-//              ColumnRef c = (ColumnRef)e;
 //              if (c.qualifier() == null) {
 //                Column col = fromType.column(c.name());
-//                c.replaceWith(col.expression());
+//                return col.expression();
 //              }
 //            }
 //          }
-//          return true;
-//        });
-
-        Expression<?, String> colExpr = column.expression();
-        Expression<?, String> expr = (Expression<?, String>)colExpr.map((e, p) -> {
-          if (e instanceof ColumnRef c) {
-            SelectExpression selExpr = p.ancestor(SelectExpression.class);
-            if (selExpr == null) {
-              if (c.qualifier() == null) {
-                Column col = fromType.column(c.name());
-                return col.expression();
-              }
-            }
-          }
-          return e;
-        }, null, path.add(colExpr));
-        if (expr != colExpr) {
-          changed = true;
-          resolvedColumns.put(column.alias(), column.expression(expr));
-        } else {
-          resolvedColumns.put(column.alias(), column);
-        }
-      }
+//          return e;
+//        }, null, path.add(colExpr));
+//        if (expr != colExpr) {
+//          changed = true;
+//          resolvedColumns.put(column.alias(), column.expression(expr));
+//        } else {
+//          resolvedColumns.put(column.alias(), column);
+//        }
+//      }
     }
     return changed ? new ColumnList(context, new ArrayList<>(resolvedColumns.values()))
                    : esql;

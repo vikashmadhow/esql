@@ -23,14 +23,14 @@ import static ma.vi.esql.syntax.Translatable.Target.JSON;
  */
 public class Not extends SingleSubExpression {
   public Not(Context context, Expression<?, String> expr) {
-    super(context, expr);
+    super(context, "Not", expr);
   }
 
   public Not(Not other) {
     super(other);
   }
 
-  public Not(Not other, Expression<?, String> value, T2<String, ? extends Esql<?, ?>>... children) {
+  public Not(Not other, String value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }
 
@@ -45,7 +45,7 @@ public class Not extends SingleSubExpression {
    * of the copy.
    */
   @Override
-  public Not copy(Expression<?, String> value, T2<String, ? extends Esql<?, ?>>... children) {
+  public Not copy(String value, T2<String, ? extends Esql<?, ?>>... children) {
     return new Not(this, value, children);
   }
 

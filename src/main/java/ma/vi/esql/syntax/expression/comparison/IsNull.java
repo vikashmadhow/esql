@@ -27,14 +27,14 @@ public class IsNull extends SingleSubExpression {
   public IsNull(Context context,
                 boolean not,
                 Expression<?, String> expr) {
-    super(context, expr, T2.of("not", new Esql<>(context, not)));
+    super(context, "IsNull", expr, T2.of("not", new Esql<>(context, not)));
   }
 
   public IsNull(IsNull other) {
     super(other);
   }
 
-  public IsNull(IsNull other, Expression<?, String> value, T2<String, ? extends Esql<?, ?>>... children) {
+  public IsNull(IsNull other, String value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }
 
@@ -49,7 +49,7 @@ public class IsNull extends SingleSubExpression {
    * of the copy.
    */
   @Override
-  public IsNull copy(Expression<?, String> value, T2<String, ? extends Esql<?, ?>>... children) {
+  public IsNull copy(String value, T2<String, ? extends Esql<?, ?>>... children) {
     return new IsNull(this, value, children);
   }
 

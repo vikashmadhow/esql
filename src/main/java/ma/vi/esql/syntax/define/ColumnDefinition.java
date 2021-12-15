@@ -11,8 +11,11 @@ import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.expression.Expression;
 
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
+import static ma.vi.esql.builder.Attributes.TYPE;
 import static ma.vi.esql.syntax.Translatable.Target.ESQL;
 import static ma.vi.esql.syntax.Translatable.Target.HSQLDB;
 
@@ -28,11 +31,12 @@ public class ColumnDefinition extends TableDefinition {
                           boolean notNull,
                           Expression<?, String> expression,
                           Metadata metadata) {
-    super(context, name,
+    super(context, "ColumnDef",
+          T2.of("name", new Esql<>(context, name)),
           T2.of("type", new Esql<>(context, type)),
           T2.of("notNull", new Esql<>(context, notNull)),
           T2.of("expression", expression),
-          T2.of("metadata",   metadata));
+          T2.of("metadata", addType(context, metadata, type)));
   }
 
   public ColumnDefinition(ColumnDefinition other) {
@@ -56,6 +60,17 @@ public class ColumnDefinition extends TableDefinition {
   @Override
   public ColumnDefinition copy(String value, T2<String, ? extends Esql<?, ?>>... children) {
     return new ColumnDefinition(this, value, children);
+  }
+
+  private static Metadata addType(Context context, Metadata metadata, Type type) {
+    Map<String, Attribute> attrs = new LinkedHashMap<>();
+    if (metadata != null) {
+      attrs.putAll(metadata.attributes());
+    }
+    if (type != null) {
+      attrs.put(TYPE, Attribute.from(context, TYPE, type.name()));
+    }
+    return new Metadata(context, new ArrayList<>(attrs.values()));
   }
 
   @Override
@@ -107,8 +122,16 @@ public class ColumnDefinition extends TableDefinition {
     return childValue("notNull");
   }
 
+  public ColumnDefinition expression(Expression<?, String> expression) {
+    return new ColumnDefinition(context, name(), type(), notNull(), expression, metadata());
+  }
+
   public Expression<?, String> expression() {
     return child("expression");
+  }
+
+  public ColumnDefinition metadata(Metadata metadata) {
+    return new ColumnDefinition(context, name(), type(), notNull(), expression(), metadata);
   }
 
   public Metadata metadata() {

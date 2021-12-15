@@ -266,3 +266,71 @@ insert into "_core"."columns"("_id", "_can_delete", "relation_id", "name", "deri
 values ('6b7a76e6-b97d-49b1-b24e-9a38a622f41b'::uuid, null, '23a9d6df-d3e4-4f8e-a540-06a9134bf83c'::uuid, '_id', false,
         'uuid', true, null,
         coalesce((select max("seq") "max" from "_core"."columns" "columns" where ("relation_id" = :relation)), 0) + 1)
+
+
+
+with "s"("id", "a", "b", "c") as (select "_id" "id", "a" "a", "b" "b", ("S"."a" + "S"."b") "c"
+                                  from "S" "S"
+                                  order by "a"
+                                  offset 0 rows)
+select iif("t"."a" > "t"."b", 1, 0)                                 "/tm2",
+       '(t.a > t.b)'                                                "/tm2/e",
+       N'T'                                                         "/name",
+       (select max("b") "__auto_col_ef7hl0m0zv" from "a.b"."T" "T") "/tm1",
+       '(from T:a.b.T select __auto_col_ef7hl0m0zv:max(b))'         "/tm1/e",
+       N'T test table'                                              "/description",
+       "t"."a"                                                      "a",
+       "t"."b"                                                      "b",
+       "s"."c"                                                      "c",
+       2                                                            "a/sequence",
+       iif("t"."b" > 5, 1, 0)                                       "a/m1",
+       '(t.b > 5)'                                                  "a/m1/e",
+       10                                                           "a/m2",
+       iif("t"."a" != 0, 1, 0)                                      "a/m3",
+       '(t.a != 0)'                                                 "a/m3/e",
+       '7dda3674-964c-4ba8-9915-ebac542c70d2'                       "a/id",
+       N'int'                                                       "a/type",
+       0                                                            "a/required",
+       3                                                            "b/sequence",
+       iif("t"."b" < 0, 1, 0)                                       "b/m1",
+       '(t.b < 0)'                                                  "b/m1/e",
+       'd777502a-e3b7-4fef-a091-9b5da949d44a'                       "b/id",
+       N'int'                                                       "b/type",
+       0                                                            "b/required"
+from "a.b"."T" "t"
+         join "s" "s" on ("t"."s_id" = "s"."id")
+order by "t"."a"
+
+
+
+with "s"("id", "a", "b", "c") as (select "_id" "id", "a" "a", "b" "b", ("S"."a" + "S"."b") "c"
+                                  from "DBO"."S" "S"
+                                  order by "a"
+                                  offset 0 rows)
+select N'T'                                                         "/name",
+       iif("t"."a" > "t"."b", 1, 0)                                 "/tm2",
+       '(t.a > t.b)'                                                "/tm2/e",
+       N'T test table'                                              "/description",
+       (select max("b") "__auto_col_978tlg1u7w" from "a.b"."T" "T") "/tm1",
+       '(from T:a.b.T select __auto_col_978tlg1u7w:max(b))'         "/tm1/e",
+       "t"."a"                                                      "a",
+       "t"."b"                                                      "b",
+       "s"."c"                                                      "c",
+       2                                                            "a/sequence",
+       iif("t"."b" > 5, 1, 0)                                       "a/m1",
+       '(t.b > 5)'                                                  "a/m1/e",
+       10                                                           "a/m2",
+       iif("t"."a" != 0, 1, 0)                                      "a/m3",
+       '(t.a != 0)'                                                 "a/m3/e",
+       '7dda3674-964c-4ba8-9915-ebac542c70d2'                       "a/id",
+       N'int'                                                       "a/type",
+       0                                                            "a/required",
+       3                                                            "b/sequence",
+       iif("t"."b" < 0, 1, 0)                                       "b/m1",
+       '(t.b < 0)'                                                  "b/m1/e",
+       'd777502a-e3b7-4fef-a091-9b5da949d44a'                       "b/id",
+       N'int'                                                       "b/type",
+       0                                                            "b/required"
+from "a.b"."T" "t"
+         join "DBO"."s" "s" on ("t"."s_id" = "s"."id")
+order by "t"."a"

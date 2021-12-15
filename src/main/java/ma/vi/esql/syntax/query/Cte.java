@@ -28,9 +28,11 @@ public class Cte extends QueryUpdate {
              String name,
              List<String> fields,
              QueryUpdate query) {
-    super(context, name,
+    super(context, "CTE",
           Stream.concat(
-            Stream.of(T2.of("fields", fields == null ? null : new Esql<>(context, fields))),
+            Stream.of(
+              T2.of("name", new Esql<>(context, name)),
+              T2.of("fields", fields == null ? null : new Esql<>(context, fields))),
             Stream.of(queryColumns(query, fields))).toArray(T2[]::new));
   }
 
@@ -57,7 +59,7 @@ public class Cte extends QueryUpdate {
     return new Cte(this, value, children);
   }
 
-  private static List<T2<String, Esql<?, ?>>> queryColumns(QueryUpdate query, List<String> fields) {
+  private static T2<String, Esql<?, ?>>[] queryColumns(QueryUpdate query, List<String> fields) {
     if (fields != null && !fields.isEmpty()) {
       /*
        * Set the alias of columns to the name of the corresponding field
@@ -91,11 +93,11 @@ public class Cte extends QueryUpdate {
         query = query.set("columns", new ColumnList(query.context, columns));;
       }
     }
-    return Arrays.asList(
+    return new T2[]{
         T2.of("query",    query),
         T2.of("tables",   query.tables()),
         T2.of("metadata", query.metadata()),
-        T2.of("columns",  query.columnList()));
+        T2.of("columns",  query.columnList())};
   }
 
   /**
@@ -106,7 +108,7 @@ public class Cte extends QueryUpdate {
   @Override
   public Selection type(EsqlPath path) {
     if (type == null) {
-      type = query().type(path);
+      type = query().type(path.add(query()));
       type.name(name());
 
       /*
@@ -123,7 +125,7 @@ public class Cte extends QueryUpdate {
         List<Column> typeFields = new ArrayList<>();
         for (int i = 0; i < fields.size(); i++) {
           Column col = typeCols.get(i);
-          Type type = col.type(path);
+          Type type = col.type(path.add(col));
           typeFields.add(col.type(type)
                             .expression(new ColumnRef(context, name(), fields.get(i)))
                             .alias(fields.get(i)));
@@ -168,7 +170,7 @@ public class Cte extends QueryUpdate {
 
   @Override
   public String name() {
-    return value;
+    return childValue("name");
   }
 
   public List<String> fields() {
@@ -179,5 +181,5 @@ public class Cte extends QueryUpdate {
     return child("query");
   }
 
-  private Selection type;
+  private transient Selection type;
 }

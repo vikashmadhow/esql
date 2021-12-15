@@ -48,8 +48,8 @@ abstract class ArithmeticOperator extends BinaryOperator {
 
   @Override
   public Type type(EsqlPath path) {
-    Type leftType = expr1().type(path);
-    Type rightType = expr2().type(path);
+    Type leftType = expr1().type(path.add(expr1()));
+    Type rightType = expr2().type(path.add(expr2()));
 
     if (leftType instanceof BaseType left
      && rightType instanceof BaseType right) {

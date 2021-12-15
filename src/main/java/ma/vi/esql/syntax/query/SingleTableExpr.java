@@ -24,9 +24,9 @@ public class SingleTableExpr extends AbstractAliasTableExpr {
   public SingleTableExpr(Context context,
                          String tableName,
                          String alias) {
-    super(context,
-          tableName,
-          alias == null ? Type.unqualifiedName(tableName) : alias);
+    super(context, "SingleTable",
+          alias == null ? Type.unqualifiedName(tableName) : alias,
+          T2.of("table", new Esql<>(context, tableName)));
   }
 
   public SingleTableExpr(SingleTableExpr other) {
@@ -73,15 +73,24 @@ public class SingleTableExpr extends AbstractAliasTableExpr {
         With with = path.ancestor(With.class);
         if (with != null) {
           for (Cte cte: with.ctes()) {
-            cte.type(path);
+            cte.type(path.add(cte));
           }
         }
         t = context.type(table);
         if (t == null) {
           throw new NotFoundException(table + " is not a known relation in this query");
         }
-        type = new AliasedRelation((Relation)t, alias());
+        if (t instanceof AliasedRelation ar) {
+          if (ar.alias.equals(alias())) {
+            type = ar;
+          } else {
+            type = new AliasedRelation(ar.relation, alias());
+          }
+        } else {
+          type = new AliasedRelation((Relation)t, alias());
+        }
       }
+      context.type(alias(), type);
     }
     return type;
   }
@@ -94,7 +103,10 @@ public class SingleTableExpr extends AbstractAliasTableExpr {
       return (alias == null ? "" : alias + ':') + (table == null ? "" : table);
     } else {
       String dbName;
-      if (table.indexOf('.') == -1 && context.type(table) instanceof Selection) {
+//      if (table.indexOf('.') == -1 && context.type(table) instanceof Selection) {
+      if (context.type(table) instanceof Selection
+       || (context.type(table) instanceof AliasedRelation ar
+        && ar.relation instanceof Selection)) {
         dbName = '"' + table + '"';
       } else {
         dbName = Type.dbTableName(table, target);
@@ -135,7 +147,7 @@ public class SingleTableExpr extends AbstractAliasTableExpr {
   }
 
   public String tableName() {
-    return value;
+    return childValue("table");
   }
 
   private transient volatile AliasedRelation type;

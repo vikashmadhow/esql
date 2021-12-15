@@ -26,10 +26,10 @@ public abstract class ConstraintDefinition extends TableDefinition {
                               String table,
                               List<String> columns,
                               T2<String, ? extends Esql<?, ?>>... children) {
-    super(context,
-          name,
+    super(context, "ConstraintDef",
           Stream.concat(
               Stream.of(
+                  T2.of("name", new Esql<>(context, name)),
                   T2.of("table", new Esql<>(context, table)),
                   T2.of("columns", new Esql<>(context, columns))),
               Stream.of(children)).toArray(T2[]::new));
@@ -60,11 +60,6 @@ public abstract class ConstraintDefinition extends TableDefinition {
    * definition are on the same relation as this constraint.
    */
   public abstract boolean sameAs(ConstraintDefinition def);
-
-  @Override
-  public String name() {
-    return value;
-  }
 
   public <T extends ConstraintDefinition> T table(String table) {
     return (T)set("table", new Esql<>(context, table));

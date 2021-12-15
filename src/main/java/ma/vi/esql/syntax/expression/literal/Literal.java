@@ -84,9 +84,9 @@ public abstract class Literal<V> extends Expression<V, String> {
       return new FloatingPointLiteral(context, value);
 
     } else if (type == Types.ByteType
-        || type == Types.ShortType
-        || type == Types.IntType
-        || type == Types.LongType) {
+            || type == Types.ShortType
+            || type == Types.IntType
+            || type == Types.LongType) {
       return new IntegerLiteral(context, Long.valueOf(value));
 
     } else if (type == Types.TimeType) {
@@ -98,8 +98,7 @@ public abstract class Literal<V> extends Expression<V, String> {
     } else if (type == Types.DateType) {
       return new DateLiteral(context, value);
 
-    } else if (type instanceof ArrayType) {
-      ArrayType arrayType = (ArrayType)type;
+    } else if (type instanceof ArrayType arrayType) {
       int pos = value.indexOf('[');
       String elements = value.substring(pos + 1, value.length() - 1);
       List<BaseLiteral<?>> array = new ArrayList<>();

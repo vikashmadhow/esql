@@ -10,7 +10,11 @@ import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.expression.Expression;
 
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.Map;
+
+import static ma.vi.esql.builder.Attributes.DERIVED;
 
 /**
  * The definition of a derived column in a create table statement.
@@ -22,7 +26,7 @@ public class DerivedColumnDefinition extends ColumnDefinition {
                                  String name,
                                  Expression<?, String> expression,
                                  Metadata metadata) {
-    super(context, name, null, false, expression, metadata);
+    super(context, name, null, false, expression, addDerived(context, metadata));
   }
 
   public DerivedColumnDefinition(DerivedColumnDefinition other) {
@@ -46,6 +50,25 @@ public class DerivedColumnDefinition extends ColumnDefinition {
   @Override
   public DerivedColumnDefinition copy(String value, T2<String, ? extends Esql<?, ?>>... children) {
     return new DerivedColumnDefinition(this, value, children);
+  }
+
+  private static Metadata addDerived(Context context, Metadata metadata) {
+    Map<String, Attribute> attrs = new LinkedHashMap<>();
+    if (metadata != null) {
+      attrs.putAll(metadata.attributes());
+    }
+    attrs.put(DERIVED, Attribute.from(context, DERIVED, true));
+    return new Metadata(context, new ArrayList<>(attrs.values()));
+  }
+
+  @Override
+  public DerivedColumnDefinition expression(Expression<?, String> expression) {
+    return new DerivedColumnDefinition(context, name(), expression, metadata());
+  }
+
+  @Override
+  public DerivedColumnDefinition metadata(Metadata metadata) {
+    return new DerivedColumnDefinition(context, name(), expression(), metadata);
   }
 
   @Override

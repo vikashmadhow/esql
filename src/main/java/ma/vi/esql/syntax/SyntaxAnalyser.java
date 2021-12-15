@@ -104,9 +104,7 @@ public class SyntaxAnalyser extends EsqlBaseListener {
 
   @Override
   public void exitExpressions(ExpressionsContext ctx) {
-    put(ctx, new Esql<>(context, ctx.expr().stream()
-                                    .map(e -> (Expression<?, ?>)get(e))
-                                    .collect(toList())));
+    put(ctx, new Esql<>(context, ctx.expr().stream().map(e -> (Expression<?, ?>)get(e)).toList()));
   }
 
 //  @Override
@@ -167,7 +165,6 @@ public class SyntaxAnalyser extends EsqlBaseListener {
       error(ctx,"No columns specified in Select");
     }
     put(ctx, new Select(context,
-                        "Select",
                         ctx.metadata() == null ? null : get(ctx.metadata()),
                         distinct != null && distinct.getText().startsWith("distinct"),
                         distinct != null && distinct.expressionList() != null ? value(distinct.expressionList()) : null,
@@ -193,7 +190,7 @@ public class SyntaxAnalyser extends EsqlBaseListener {
     put(ctx, new CompositeSelects(context, operator.equals("unionall") ? "union all" : operator,
                                   ctx.select().stream()
                                      .map(s -> (Select)get(s))
-                                     .collect(toList())));
+                                     .toList()));
   }
 
   @Override
@@ -209,7 +206,7 @@ public class SyntaxAnalyser extends EsqlBaseListener {
      */
     put(ctx, new Esql<>(context, ctx.column().stream()
                                     .map(this::get)
-                                    .collect(toList())));
+                                    .toList()));
   }
 
   @Override
@@ -266,11 +263,8 @@ public class SyntaxAnalyser extends EsqlBaseListener {
     /*
      * map list of names (identifiers) to a list of string
      */
-    put(ctx, new Esql<>(context,
-                        ctx.nameWithMetadata()
-                           .stream()
-                           .map(this::get)
-                           .collect(toList())));
+    put(ctx, new Esql<>(context,  ctx.nameWithMetadata().stream()
+                                     .map(this::get).toList()));
   }
 
   @Override
@@ -281,8 +275,8 @@ public class SyntaxAnalyser extends EsqlBaseListener {
   @Override
   public void exitJoinTableExpr(JoinTableExprContext ctx) {
     put(ctx, new JoinTableExpr(context,
-                               get(ctx.left),
                                ctx.JoinType() == null ? null : ctx.JoinType().getText(),
+                               get(ctx.left),
                                get(ctx.right),
                                get(ctx.expr())));
   }
@@ -296,7 +290,7 @@ public class SyntaxAnalyser extends EsqlBaseListener {
   public void exitOrderByList(OrderByListContext ctx) {
     put(ctx, new Esql<>(context, ctx.orderBy().stream()
                                     .map(c -> (Order)get(c))
-                                    .collect(toList())));
+                                    .toList()));
   }
 
   @Override
@@ -329,7 +323,7 @@ public class SyntaxAnalyser extends EsqlBaseListener {
   public void exitCteList(CteListContext ctx) {
     put(ctx, new Esql<>(context, ctx.cte().stream()
                                     .map(e -> (Cte)get(e))
-                                    .collect(toList())));
+                                    .toList()));
   }
 
   @Override
@@ -377,8 +371,8 @@ public class SyntaxAnalyser extends EsqlBaseListener {
      * rows becomes list of InsertRow where each row is a list of expressions
      */
     put(ctx, new Esql<>(context, ctx.row().stream()
-                                    .map(this::value)
-                                    .collect(toList())));
+                                    .map(this::get)
+                                    .toList()));
   }
 
   @Override
@@ -386,7 +380,7 @@ public class SyntaxAnalyser extends EsqlBaseListener {
     /*
      * a row is mapped to an InsertRow (a list of expression)
      */
-    put(ctx, new Esql<>(context, new InsertRow(context, value(ctx.expressionList()))));
+    put(ctx, new InsertRow(context, value(ctx.expressionList())));
   }
 
   @Override
@@ -425,7 +419,7 @@ public class SyntaxAnalyser extends EsqlBaseListener {
   public void exitSetList(SetListContext ctx) {
     put(ctx, new Metadata(context, ctx.set().stream()
                                       .map(a -> (Attribute)get(a))
-                                      .collect(toList())));
+                                      .toList()));
   }
 
   @Override
@@ -566,14 +560,14 @@ public class SyntaxAnalyser extends EsqlBaseListener {
   public void exitBaseLiteralList(BaseLiteralListContext ctx) {
     put(ctx, new Esql<>(context, ctx.baseLiteral().stream()
                                     .map(e -> (BaseLiteral<?>)get(e))
-                                    .collect(toList())));
+                                    .toList()));
   }
 
   @Override
   public void exitLiteralList(LiteralListContext ctx) {
     put(ctx, new Esql<>(context, ctx.literal().stream()
                                     .map(e -> (Literal<?>)get(e))
-                                    .collect(toList())));
+                                    .toList()));
   }
 
   // expressions
@@ -724,7 +718,6 @@ public class SyntaxAnalyser extends EsqlBaseListener {
   public void exitSelectExpression(SelectExpressionContext ctx) {
     DistinctContext distinct = ctx.distinct();
     Select s = new Select(context,
-                          "SelectExpression",
                           null,
                           distinct != null && distinct.getText().startsWith("distinct"),
                           distinct != null && distinct.expressionList() != null ? value(distinct.expressionList()) : null,
@@ -780,7 +773,7 @@ public class SyntaxAnalyser extends EsqlBaseListener {
   public void exitExpressionList(ExpressionListContext ctx) {
     put(ctx, new Esql<>(context, ctx.expr().stream()
                                     .map(e -> (Expression<?, ?>)get(e))
-                                    .collect(toList())));
+                                    .toList()));
   }
 
   @Override
@@ -947,8 +940,8 @@ public class SyntaxAnalyser extends EsqlBaseListener {
     }
     if (!optimised) {
       put(ctx, new Case(context, expressions.stream()
-                                    .map(e -> (Expression<?, String>)get(e))
-                                    .collect(toList())));
+                                            .map(e -> (Expression<?, String>)get(e))
+                                            .collect(toList())));
     }
   }
 
@@ -967,8 +960,7 @@ public class SyntaxAnalyser extends EsqlBaseListener {
     List<ConstraintDefinition> constraints =
         tableDefinitions.stream()
                         .filter(t -> t instanceof ConstraintDefinition)
-                        .map(t -> (ConstraintDefinition)t)
-                        .collect(toList());
+                        .map(t -> (ConstraintDefinition)t).toList();
 
     String tableName = value(ctx.qualifiedName());
     List<ConstraintDefinition> withAddedTable = new ArrayList<>();
@@ -979,8 +971,7 @@ public class SyntaxAnalyser extends EsqlBaseListener {
     List<Metadata> metadata =
         tableDefinitions.stream()
                         .filter(t -> t instanceof Metadata)
-                        .map(t -> (Metadata)t)
-                        .collect(toList());
+                        .map(t -> (Metadata)t).toList();
 
     List<Attribute> attributes = new ArrayList<>();
     for (Metadata m: metadata) {
@@ -998,11 +989,11 @@ public class SyntaxAnalyser extends EsqlBaseListener {
   public void exitTableDefinitions(TableDefinitionsContext ctx) {
     put(ctx, new Esql<>(context, ctx.tableDefinition().stream()
                                     .map(t -> (TableDefinition)get(
-                                        t.columnDefinition() != null ? t.columnDefinition() :
-                                        t.derivedColumnDefinition() != null ? t.derivedColumnDefinition() :
-                                        t.constraintDefinition() != null ? t.constraintDefinition()
-                                                                         : t.metadata()))
-                                    .collect(toList())));
+                                                t.columnDefinition()        != null ? t.columnDefinition() :
+                                                t.derivedColumnDefinition() != null ? t.derivedColumnDefinition() :
+                                                t.constraintDefinition()    != null ? t.constraintDefinition()
+                                                                                    : t.metadata()))
+                                    .toList()));
   }
 
   @Override
@@ -1057,7 +1048,7 @@ public class SyntaxAnalyser extends EsqlBaseListener {
   public void exitAlterations(AlterationsContext ctx) {
     put(ctx, new Esql<>(context, ctx.alteration().stream()
                                     .map(a -> (Alteration)get(a))
-                                    .collect(toList())));
+                                    .toList()));
   }
 
   @Override
@@ -1255,7 +1246,7 @@ public class SyntaxAnalyser extends EsqlBaseListener {
      */
     put(ctx, new Esql<>(context, ctx.Identifier().stream()
                                     .map(TerminalNode::getText)
-                                    .collect(toList())));
+                                    .toList()));
   }
 
   @Override
@@ -1277,7 +1268,7 @@ public class SyntaxAnalyser extends EsqlBaseListener {
   public void exitAttributeList(AttributeListContext ctx) {
     put(ctx, new Esql<>(context, ctx.attribute().stream()
                                     .map(e -> (Attribute)get(e))
-                                    .collect(toList())));
+                                    .toList()));
   }
 
   @Override

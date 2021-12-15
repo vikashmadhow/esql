@@ -17,11 +17,11 @@ import static java.util.stream.Collectors.joining;
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public abstract class TableDefinition extends Define<String> {
+public abstract class TableDefinition extends Define {
   public TableDefinition(Context context,
-                         String name,
+                         String value,
                          T2<String, ? extends Esql<?, ?>>... children) {
-    super(context, name, children);
+    super(context, value, children);
   }
 
   public TableDefinition(Context context,
@@ -50,7 +50,7 @@ public abstract class TableDefinition extends Define<String> {
   public abstract TableDefinition copy(String value, T2<String, ? extends Esql<?, ?>>... children);
 
   public String name() {
-    return value;
+    return childValue("name");
   }
 
   protected static String quotedColumnsList(List<String> columns) {

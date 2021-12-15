@@ -35,7 +35,8 @@ public class FunctionCall extends Expression<String, String> implements Macro {
                       boolean                     star,
                       List<Expression<?, String>> partitions,
                       List<Order>                 orderBy) {
-    super(context, functionName,
+    super(context, "Func:" + functionName,
+          of("function",   new Esql<>(context, functionName)),
           of("distinct",   new Esql<>(context, distinct)),
           of("distinctOn", new Esql<>(context, "distinctOn", distinctOn)),
           of("arguments",  new Esql<>(context, "arguments", arguments)),
@@ -75,7 +76,7 @@ public class FunctionCall extends Expression<String, String> implements Macro {
     if (function != null) {
       type = function.returnType;
       if (type.equals(Types.AsParameterType) && !arguments.isEmpty()) {
-        type = arguments.get(0).type(path);
+        type = arguments.get(0).type(path.add(arguments.get(0)));
       }
     }
     return type;
@@ -194,7 +195,7 @@ public class FunctionCall extends Expression<String, String> implements Macro {
   }
 
   public String functionName() {
-    return value;
+    return childValue("function");
   }
 
   public boolean distinct() {

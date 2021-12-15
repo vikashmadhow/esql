@@ -10,21 +10,29 @@ import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
 
+import java.util.stream.Stream;
+
 /**
  * Abstract parent of ESQL expressions taking exactly one argument.
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public abstract class SingleSubExpression extends Expression<Expression<?, String>, String> {
-  public SingleSubExpression(Context context, Expression<?, String> expr, T2<String, ? extends Esql<?, ?>>... children) {
-    super(context, expr, children);
+public abstract class SingleSubExpression extends Expression<String, String> {
+  public SingleSubExpression(Context context,
+                             String value,
+                             Expression<?, String> expr,
+                             T2<String, ? extends Esql<?, ?>>... children) {
+    super(context, value,
+          Stream.concat(
+              Stream.of(T2.of("expr", expr)),
+              Stream.of(children)).toArray(T2[]::new));
   }
 
   public SingleSubExpression(SingleSubExpression other) {
     super(other);
   }
 
-  public SingleSubExpression(SingleSubExpression other, Expression<?, String> value, T2<String, ? extends Esql<?, ?>>... children) {
+  public SingleSubExpression(SingleSubExpression other, String value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }
 
@@ -37,14 +45,14 @@ public abstract class SingleSubExpression extends Expression<Expression<?, Strin
    * of the copy.
    */
   @Override
-  public abstract SingleSubExpression copy(Expression<?, String> value, T2<String, ? extends Esql<?, ?>>... children);
+  public abstract SingleSubExpression copy(String value, T2<String, ? extends Esql<?, ?>>... children);
 
   @Override
   public Type type(EsqlPath path) {
-    return expr().type(path);
+    return expr().type(path.add(expr()));
   }
 
   public Expression<?, String> expr() {
-    return value;
+    return child("expr");
   }
 }

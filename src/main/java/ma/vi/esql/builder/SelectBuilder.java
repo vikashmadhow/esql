@@ -33,7 +33,6 @@ public class SelectBuilder implements Builder<Select> {
   @Override
   public Select build() {
     return new Select(context,
-                      "Select",
                       metadata.isEmpty() ? null : new Metadata(context, metadata),
                       distinct, distinctOn, explicit, columns, from, where,
                       groupBy.isEmpty() ? null : new GroupBy(context, groupBy, groupType),
@@ -109,7 +108,7 @@ public class SelectBuilder implements Builder<Select> {
   }
 
   public SelectBuilder join(TableExpr right, String onExpression) {
-    return from(new JoinTableExpr(context, from, null, right, parser.parseExpression(onExpression)));
+    return from(new JoinTableExpr(context, null, from, right, parser.parseExpression(onExpression)));
   }
 
   public SelectBuilder leftJoin(String tableName, String alias, String onExpression) {
@@ -117,7 +116,7 @@ public class SelectBuilder implements Builder<Select> {
   }
 
   public SelectBuilder leftJoin(TableExpr right, String onExpression) {
-    return from(new JoinTableExpr(context, from, "left", right, parser.parseExpression(onExpression)));
+    return from(new JoinTableExpr(context, "left", from, right, parser.parseExpression(onExpression)));
   }
 
   public SelectBuilder rightJoin(String tableName, String alias, String onExpression) {
@@ -125,7 +124,7 @@ public class SelectBuilder implements Builder<Select> {
   }
 
   public SelectBuilder rightJoin(TableExpr right, String onExpression) {
-    return from(new JoinTableExpr(context, from, "right", right, parser.parseExpression(onExpression)));
+    return from(new JoinTableExpr(context, "right", from, right, parser.parseExpression(onExpression)));
   }
 
   public SelectBuilder fullJoin(String tableName, String alias, String onExpression) {
@@ -133,7 +132,7 @@ public class SelectBuilder implements Builder<Select> {
   }
 
   public SelectBuilder fullJoin(TableExpr right, String onExpression) {
-    return from(new JoinTableExpr(context, from, "full", right, parser.parseExpression(onExpression)));
+    return from(new JoinTableExpr(context, "full", from, right, parser.parseExpression(onExpression)));
   }
 
   public SelectBuilder where(String expression) {

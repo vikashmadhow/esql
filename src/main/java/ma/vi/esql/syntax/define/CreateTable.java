@@ -13,6 +13,8 @@ import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.syntax.*;
 import ma.vi.esql.syntax.expression.ColumnRef;
 import ma.vi.esql.syntax.expression.Expression;
+import ma.vi.esql.syntax.expression.GroupedExpression;
+import ma.vi.esql.syntax.expression.literal.Literal;
 import ma.vi.esql.syntax.query.Column;
 import ma.vi.esql.syntax.query.Select;
 
@@ -20,12 +22,11 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
-import java.util.stream.Collectors;
+import java.util.function.Function;
 
 import static java.lang.System.Logger.Level.ERROR;
 import static java.util.Collections.singletonList;
-import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toSet;
+import static java.util.stream.Collectors.*;
 import static ma.vi.esql.builder.Attributes.DESCRIPTION;
 import static ma.vi.esql.builder.Attributes.NAME;
 import static ma.vi.esql.semantic.type.Type.dbTableName;
@@ -36,36 +37,19 @@ import static ma.vi.esql.syntax.Translatable.Target.*;
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public class CreateTable extends Define<String> {
+public class CreateTable extends Define {
   public CreateTable(Context                    context,
                      String                     name,
                      boolean                    dropUndefined,
                      List<ColumnDefinition>     columns,
                      List<ConstraintDefinition> constraints,
                      Metadata                   metadata) {
-    super(context, name,
+    super(context, "CreateTable",
+          T2.of("name", new Esql<>(context, name)),
           T2.of("dropUndefined", new Esql<>(context, dropUndefined)),
-          T2.of("columns",       new Esql<>(context, "columns", columns)),
+          T2.of("columns",       new Esql<>(context, "columns", expand(columns))),
           T2.of("constraints",   new Esql<>(context, "constraints", constraints)),
           T2.of("metadata",      metadata));
-
-    /*
-     * verify that there are no circular references in derived columns
-     */
-    Set<String> persistentCols = columns.stream()
-                                        .filter(c -> !(c instanceof DerivedColumnDefinition))
-                                        .map(ColumnDefinition::name)
-                                        .collect(Collectors.toSet());
-    Map<String, Expression<?, String>> derivedCols = columns.stream()
-                                                    .filter(c -> c instanceof DerivedColumnDefinition)
-                                                    .collect(Collectors.toMap(ColumnDefinition::name,
-                                                                              ColumnDefinition::expression));
-
-    for (ColumnDefinition column: columns) {
-      if (column instanceof DerivedColumnDefinition) {
-        circular(column.name(), column.expression(), persistentCols, derivedCols, new ArrayList<>());
-      }
-    }
   }
 
   public CreateTable(CreateTable other) {
@@ -91,34 +75,119 @@ public class CreateTable extends Define<String> {
     return new CreateTable(this, value, children);
   }
 
-  public static void circular(String column,
-                              Expression<?, String> expression,
-                              Set<String> persistentCols,
-                              Map<String, Expression<?, String>> derivedCols,
-                              List<String> circularPath) {
+  private static List<ColumnDefinition> expand(List<ColumnDefinition> cols) {
+//    /*
+//     * verify that there are no circular references in derived columns
+//     */
+//    Set<String> persistentCols = cols.stream()
+//                                     .filter(c -> !(c instanceof DerivedColumnDefinition))
+//                                     .map(ColumnDefinition::name)
+//                                     .collect(Collectors.toSet());
+//    Map<String, Expression<?, String>> derivedCols = cols.stream()
+//                                                         .filter(c -> c instanceof DerivedColumnDefinition)
+//                                                         .collect(toMap(ColumnDefinition::name,
+//                                                                        ColumnDefinition::expression));
+//
+//    for (ColumnDefinition column: cols) {
+//      if (column instanceof DerivedColumnDefinition) {
+//        circular(column.name(), column.expression(), persistentCols, derivedCols, new ArrayList<>());
+//      }
+//    }
+
+    Map<String, ColumnDefinition> columnsMap = cols.stream().collect(toMap(ColumnDefinition::name,
+                                                                           Function.identity()));
+    List<ColumnDefinition> columns = new ArrayList<>();
+    for (ColumnDefinition column: cols) {
+      /*
+       * Expand expressions of derived columns until they consist only of
+       * base columns. E.g., {a:a, b:a+5, c:a+b, d:c+b}
+       *      is expanded to {a:a, b:a+5, c:a+a+5, d:a+a+5+a+5}
+       */
+      if (column.expression() != null
+       && !(column.expression() instanceof Literal)) {
+        column = column.expression(expandDerived(column.expression(),
+                                                 columnsMap,
+                                                 column.name(),
+                                                 new HashSet<>()));
+      }
+      if (column.metadata() != null
+       && !column.metadata().attributes().isEmpty()) {
+        List<Attribute> attrs = new ArrayList<>();
+        for (Attribute attr: column.metadata().attributes().values()) {
+          attrs.add(attr.attributeValue(expandDerived(attr.attributeValue(),
+                                                      columnsMap,
+                                                      column.name() + '/' + attr.name(),
+                                                      new HashSet<>())));
+        }
+        column = column.metadata(new Metadata(column.context, attrs));
+      }
+      columns.add(column);
+    }
+    return columns;
+  }
+
+  private static Expression<?, String> expandDerived(Expression<?, String> derivedExpression,
+                                                     Map<String, ColumnDefinition> columns,
+                                                     String columnName,
+                                                     Set<String> seen) {
     try {
-      circularPath.add(column);
-      expression.forEach((esql, path) -> {
-                           if (esql instanceof ColumnRef ref) {
-                             String colName = ref.name();
-                             if (!persistentCols.contains(colName) && !derivedCols.containsKey(colName)) {
-                               throw new TranslationException("Unknown column " + colName
-                                                                  + " in derived expression " + expression);
-                             } else if (circularPath.contains(colName)) {
-                               circularPath.add(colName);
-                               throw new CircularReferenceException("A circular reference was detected in the expression "
-                                                                        + expression + " consisting of the column path " + circularPath);
-                             } else if (derivedCols.containsKey(colName)) {
-                               circular(colName, derivedCols.get(colName), persistentCols, derivedCols, circularPath);
-                             }
-                           }
-                           return true;
-                         },
-                         e -> !(e instanceof Select));
+      seen.add(columnName);
+      return (Expression<?, String>)derivedExpression.map((e, path) -> {
+        if (e instanceof ColumnRef) {
+          ColumnRef ref = (ColumnRef)e;
+          String colName = ref.name();
+          ColumnDefinition column = columns.get(colName);
+          if (column == null) {
+            throw new TranslationException("Unknown column " + colName
+                                         + " in derived expression " + derivedExpression);
+          } else if (seen.contains(colName)) {
+            Set<String> otherColumns = seen.stream()
+                                           .filter(c -> !c.equals(colName) && !c.contains("/"))
+                                           .collect(toSet());
+            throw new CircularReferenceException(
+                "A circular definition was detected in the expression "
+              + derivedExpression + " consisting of the column "
+              + colName + (otherColumns.isEmpty() ? "" : " and " + otherColumns));
+          } else if (column instanceof DerivedColumnDefinition) {
+            return new GroupedExpression(e.context, expandDerived(column.expression(), columns, colName, seen));
+          }
+        }
+        return e;
+      },
+      e -> !(e instanceof Select));
     } finally {
-      circularPath.remove(column);
+      seen.remove(columnName);
     }
   }
+
+//  public static void circular(String column,
+//                              Expression<?, String> expression,
+//                              Set<String> persistentCols,
+//                              Map<String, Expression<?, String>> derivedCols,
+//                              List<String> circularPath) {
+//    try {
+//      circularPath.add(column);
+//      expression.forEach((esql, path) -> {
+//        if (esql instanceof ColumnRef ref) {
+//          String colName = ref.name();
+//          if (!persistentCols.contains(colName) && !derivedCols.containsKey(colName)) {
+//            throw new TranslationException("Unknown column " + colName
+//                                         + " in derived expression " + expression);
+//          } else if (circularPath.contains(colName)) {
+//            circularPath.add(colName);
+//            throw new CircularReferenceException("A circular reference was detected in the expression "
+//                                               + expression + " consisting of the column path " + circularPath);
+//          } else if (derivedCols.containsKey(colName)) {
+//            circular(colName, derivedCols.get(colName), persistentCols, derivedCols, circularPath);
+//          }
+//        }
+//        return true;
+//      },
+//      e -> !(e instanceof Select));
+//    } finally {
+//      circularPath.remove(column);
+//    }
+//  }
 
   @Override
   protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
@@ -227,8 +296,8 @@ public class CreateTable extends Define<String> {
         AlterTable alter;
 
         if (metadata() != null
-            && metadata().attributes() != null
-            && !metadata().attributes().isEmpty()) {
+         && metadata().attributes() != null
+         && !metadata().attributes().isEmpty()) {
           /*
            * alter table metadata if specified
            */
@@ -255,30 +324,35 @@ public class CreateTable extends Define<String> {
             /*
              * alter existing field
              */
-            Type toType = !existingColumn.type(path).equals(column.type()) ? column.type() : null;
+            Type toType = !existingColumn.type(path.add(existingColumn)).equals(column.type()) ? column.type() : null;
 
             boolean setNotNull = column.notNull() != null
-                && column.notNull()
-                && !existingColumn.notNull();
+                              && column.notNull()
+                              && !existingColumn.notNull();
 
             boolean dropNotNull = (column.notNull() == null || !column.notNull())
-                && existingColumn.notNull();
+                               && existingColumn.notNull();
 
             Expression<?, String> setDefault = null;
-            if (column.expression() != null
+            if (!(column instanceof DerivedColumnDefinition)
+             &&  column.expression() != null
              && !column.expression().equals(existingColumn.defaultExpression())) {
               setDefault = column.expression();
             }
-            boolean dropDefault = column.expression() == null
+            boolean dropDefault = !(column instanceof DerivedColumnDefinition)
+                               &&  column.expression() == null
                                && existingColumn.defaultExpression() != null;
 
             Metadata metadata = column.metadata();
+            boolean changedMetadata = (metadata == null && existingColumn.metadata() != null)
+                                   || (metadata != null && !metadata.equals(existingColumn.metadata()));
+
             if (toType != null
                 || setNotNull
                 || dropNotNull
                 || setDefault != null
                 || dropDefault
-                || (metadata != null && metadata.attributes() != null && !metadata.attributes().isEmpty())) {
+                || changedMetadata) {
               alter = new AlterTable(context, tableName,
                                      singletonList(new AlterColumn(context, column.name(),
                                                                    new AlterColumnDefinition(context,
@@ -387,7 +461,7 @@ public class CreateTable extends Define<String> {
   }
 
   public String name() {
-    return value;
+    return childValue("name");
   }
 
   public Boolean dropUndefined() {

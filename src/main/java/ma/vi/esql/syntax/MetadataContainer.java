@@ -17,27 +17,27 @@ import java.util.List;
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public abstract class MetadataContainer<V, R> extends Expression<V, R> {
-  public MetadataContainer(Context context,
-                           V value,
-                           T2<String, ? extends Esql<?, ?>>... children) {
+public abstract class MetadataContainer<R> extends Expression<String, R> {
+  public MetadataContainer(Context context, String value, T2<String, ? extends Esql<?, ?>>... children) {
     super(context, value, children);
   }
 
-  public MetadataContainer(Context context, V value, List<Esql<?, ?>> children) {
-    super(context, value, children);
+  public MetadataContainer(Context context, List<Esql<?, ?>> children) {
+    super(context, "MetadataContainer", children);
   }
 
-  public MetadataContainer(MetadataContainer<V, R> other) {
+  public MetadataContainer(MetadataContainer<R> other) {
     super(other);
   }
 
-  public MetadataContainer(MetadataContainer<V, R> other, V value, T2<String, ? extends Esql<?, ?>>... children) {
+  public MetadataContainer(MetadataContainer<R> other,
+                           String value,
+                           T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }
 
   @Override
-  public abstract MetadataContainer<V, R> copy();
+  public abstract MetadataContainer<R> copy();
 
   /**
    * Returns a shallow copy of this object replacing the value in the copy with
@@ -45,7 +45,7 @@ public abstract class MetadataContainer<V, R> extends Expression<V, R> {
    * of the copy.
    */
   @Override
-  public abstract MetadataContainer<V, R> copy(V value, T2<String, ? extends Esql<?, ?>>... children);
+  public abstract MetadataContainer<R> copy(String value, T2<String, ? extends Esql<?, ?>>... children);
 
   /**
    * Metadata.
@@ -57,18 +57,11 @@ public abstract class MetadataContainer<V, R> extends Expression<V, R> {
   /**
    * Set metadata.
    */
-  public <T extends MetadataContainer> T metadata(Metadata metadata) {
+  public <T extends MetadataContainer<?>> T metadata(Metadata metadata) {
     return (T)set("metadata", metadata);
   }
 
   public Attribute attribute(String name) {
     return metadata() == null ? null : metadata().attribute(name);
   }
-
-  //  public void attribute(String name, Expression<?, String> value) {
-//    if (metadata() == null) {
-//      metadata(new Metadata(context, new ArrayList<>()));
-//    }
-//    metadata().attribute(name, value);
-//  }
 }

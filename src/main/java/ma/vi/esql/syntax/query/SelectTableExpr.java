@@ -59,7 +59,7 @@ public class SelectTableExpr extends AbstractAliasTableExpr {
 
   @Override
   public AliasedRelation type(EsqlPath path) {
-    if (type == null) {
+//    if (type == null) {
 //      Selection selectType = select().type(path);
 //      List<Column> cols = new ArrayList<>();
 //      for (Column c: selectType.columns()) {
@@ -69,10 +69,11 @@ public class SelectTableExpr extends AbstractAliasTableExpr {
 //      }
 //      type = new AliasedRelation(select().type(), alias());
 //      type = new AliasedRelation(new Selection(cols, this), alias());
-      type = new AliasedRelation(new Selection(select().type(path).columns().stream()
+      type = new AliasedRelation(new Selection(select().type(path.add(select())).columns().stream()
                                                        .map(c -> c.expression(new ColumnRef(c.context, null, c.alias())))
                                                        .toList() , this), alias());
-    }
+      context.type(alias(), type);
+//    }
     return type;
   }
 

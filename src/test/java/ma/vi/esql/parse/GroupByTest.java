@@ -17,7 +17,7 @@ import static org.junit.jupiter.api.DynamicTest.dynamicTest;
 
 public class GroupByTest extends DataTest {
   @TestFactory
-  Stream<DynamicTest> simpleGroupby() {
+  Stream<DynamicTest> simpleGroupBy() {
     return Stream.of(databases)
                  .map(db -> dynamicTest(db.target().toString(), () -> {
                    System.out.println(db.target());
@@ -62,7 +62,7 @@ public class GroupByTest extends DataTest {
   }
 
   @TestFactory
-  Stream<DynamicTest> cubeGroupby() {
+  Stream<DynamicTest> cubeGroupBy() {
     return Stream.of(databases)
                  .map(db -> dynamicTest(db.target().toString(), () -> {
                    System.out.println(db.target());
@@ -107,7 +107,7 @@ public class GroupByTest extends DataTest {
   }
 
   @TestFactory
-  Stream<DynamicTest> rollupGroupby() {
+  Stream<DynamicTest> rollupGroupBy() {
     return Stream.of(databases)
                  .map(db -> dynamicTest(db.target().toString(), () -> {
                    System.out.println(db.target());

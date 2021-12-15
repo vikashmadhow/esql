@@ -18,7 +18,9 @@ import java.util.Map;
  */
 public class NameWithMetadata extends TableDefinition {
   public NameWithMetadata(Context context, String name, Metadata metadata) {
-    super(context, name, T2.of("metadata", metadata));
+    super(context, "NameWithMetadata",
+          T2.of("name", new Esql<>(context, name)),
+          T2.of("metadata", metadata));
   }
 
   public NameWithMetadata(NameWithMetadata other) {

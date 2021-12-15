@@ -95,7 +95,7 @@ public class DynamicTableExpr extends AbstractAliasTableExpr {
         boolean hasAbstractTypes = false;
         List<Expression<?, String>> values = row.values();
         for (int j = 0; j < values.size(); j++) {
-          Type type = values.get(j).type(path);
+          Type type = values.get(j).type(path.add(values.get(j)));
           hasAbstractTypes |= columnTypes.get(j).isAbstract() && type.isAbstract();
           if (columnTypes.get(j).isAbstract()) {
             columnTypes.set(j, type);
@@ -128,6 +128,7 @@ public class DynamicTableExpr extends AbstractAliasTableExpr {
 //        }
 //      }
       type = new AliasedRelation(selection, alias());
+      context.type(alias(), type);
     }
     return type;
   }

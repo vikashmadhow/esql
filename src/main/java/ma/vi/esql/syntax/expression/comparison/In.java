@@ -22,12 +22,13 @@ import static java.util.stream.Collectors.joining;
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public class In extends Expression<Expression<?, ?>, String> {
+public class In extends Expression<String, String> {
   public In(Context context,
             Expression<?, ?> expr,
             boolean not,
             List<Expression<?, ?>> expressionList) {
-    super(context, expr,
+    super(context, "In",
+          T2.of("expr", expr),
           T2.of("not", new Esql<>(context, not)),
           T2.of("list", new Esql<>(context, null, expressionList)));
   }
@@ -36,7 +37,7 @@ public class In extends Expression<Expression<?, ?>, String> {
     super(other);
   }
 
-  public In(In other, Expression<?, ?> value, T2<String, ? extends Esql<?, ?>>... children) {
+  public In(In other, String value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }
 
@@ -51,7 +52,7 @@ public class In extends Expression<Expression<?, ?>, String> {
    * of the copy.
    */
   @Override
-  public In copy(Expression<?, ?> value, T2<String, ? extends Esql<?, ?>>... children) {
+  public In copy(String value, T2<String, ? extends Esql<?, ?>>... children) {
     return new In(this, value, children);
   }
 
@@ -84,7 +85,7 @@ public class In extends Expression<Expression<?, ?>, String> {
   }
 
   public Expression<?, ?> expr() {
-    return value;
+    return child("expr");
   }
 
   public Boolean not() {

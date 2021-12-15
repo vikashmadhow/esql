@@ -7,10 +7,11 @@ package ma.vi.esql.semantic.type;
 import ma.vi.esql.syntax.expression.Expression;
 import ma.vi.esql.syntax.query.Column;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
-import static java.util.stream.Collectors.toList;
 import static ma.vi.esql.syntax.expression.ColumnRef.qualify;
 
 /**
@@ -35,6 +36,11 @@ public class AliasedRelation extends Relation {
   }
 
   @Override
+  public Set<String> aliases() {
+    return Collections.singleton(alias);
+  }
+
+  @Override
   public Relation forAlias(String alias) {
     return this.alias.equals(alias) ? this : null;
   }
@@ -42,20 +48,18 @@ public class AliasedRelation extends Relation {
   @Override
   public List<Column> columns() {
     if (columns == null) {
-      columns = relation.columns()
-                        .stream()
+      columns = relation.columns().stream()
                         .map(c -> qualify(c.copy(), alias, true))
-                        .collect(toList());
+                        .toList();
     }
     return columns;
   }
 
   @Override
   public List<Column> columns(String relationAlias, String prefix) {
-    return relation.columns(relationAlias, prefix)
-                   .stream()
+    return relation.columns(relationAlias, prefix).stream()
                    .map(c -> qualify(c, alias, true))
-                   .collect(toList());
+                   .toList();
   }
 
   @Override

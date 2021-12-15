@@ -10,7 +10,10 @@ import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.define.Attribute;
 import ma.vi.esql.syntax.define.Metadata;
 import ma.vi.esql.syntax.expression.Expression;
-import ma.vi.esql.syntax.query.*;
+import ma.vi.esql.syntax.query.Column;
+import ma.vi.esql.syntax.query.ColumnList;
+import ma.vi.esql.syntax.query.QueryUpdate;
+import ma.vi.esql.syntax.query.TableExpr;
 
 import java.util.List;
 
@@ -29,14 +32,13 @@ public class Update extends QueryUpdate {
                 Expression<?, String> where,
                 Metadata      returnMetadata,
                 List<Column>  returnColumns) {
-    super(context,
-          "Update",
+    super(context, "Update",
           of("updateTableAlias", new Esql<>(context, updateTableAlias)),
-          of("set", set),
-          of("tables", from),
-          of("where", where),
-          of("metadata", returnMetadata),
-          of("columns", new ColumnList(context, returnColumns)));
+          of("set",              set),
+          of("tables",           from),
+          of("where",            where),
+          of("metadata",         returnMetadata),
+          of("columns",          new ColumnList(context, returnColumns)));
   }
 
   public Update(Update other) {
@@ -74,8 +76,11 @@ public class Update extends QueryUpdate {
     boolean first = true;
     st.append(" set ");
     for (Attribute set: sets.attributes().values()) {
-      if (first) { first = false;   }
-      else       { st.append(", "); }
+      if (first) {
+        first = false;
+      } else {
+        st.append(", ");
+      }
       String columnName = set.name();
       if (removeQualifier) {
         int pos = columnName.lastIndexOf('.');

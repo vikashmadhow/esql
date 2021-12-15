@@ -14,9 +14,9 @@ import java.util.Map;
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public class NoOp extends Esql<Void, Void> {
+public class NoOp extends Esql<String, Void> {
   public NoOp(Context context) {
-    super(context, null);
+    super(context, "NoOp");
   }
 
   public NoOp(Context context, List<? extends Esql<?, ?>> children) {
@@ -27,7 +27,7 @@ public class NoOp extends Esql<Void, Void> {
     super(other);
   }
 
-  public NoOp(NoOp other, Void value, T2<String, ? extends Esql<?, ?>>... children) {
+  public NoOp(NoOp other, String value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }
 
@@ -41,7 +41,7 @@ public class NoOp extends Esql<Void, Void> {
    * the provided value and replacing the specified children in the children list
    * of the copy.
    */
-  public NoOp copy(Void value, T2<String, ? extends Esql<?, ?>>... children) {
+  public NoOp copy(String value, T2<String, ? extends Esql<?, ?>>... children) {
     return new NoOp(this, value, children);
   }
 

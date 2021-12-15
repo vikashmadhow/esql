@@ -26,7 +26,9 @@ import static ma.vi.esql.translator.SqlServerTranslator.requireIif;
  */
 public class ColumnRef extends Expression<String, String> implements Macro {
   public ColumnRef(Context context, String qualifier, String name) {
-    super(context, name, T2.of("qualifier", new Esql<>(context, qualifier)));
+    super(context, "ColumnRef",
+          T2.of("qualifier", new Esql<>(context, qualifier)),
+          T2.of("name", new Esql<>(context, name)));
   }
 
   public ColumnRef(ColumnRef other) {
@@ -62,7 +64,7 @@ public class ColumnRef extends Expression<String, String> implements Macro {
          */
         Column column = ((Relation)context.type(qualifier())).findColumn(null, name());
         if (column != null) {
-          type = column.type(path);
+          type = column.type(path.add(column));
         }
       }
       if (type == null) {
@@ -80,7 +82,7 @@ public class ColumnRef extends Expression<String, String> implements Macro {
               type = Types.VoidType;
             }
           } else {
-            type = column.type(path);
+            type = column.type(path.add(column));
           }
         } else {
           Column column = path.ancestor(Column.class);
@@ -95,7 +97,7 @@ public class ColumnRef extends Expression<String, String> implements Macro {
              */
             Column col = rel.findColumn(null, name());
             if (col != null) {
-              type = col.type(path);
+              type = col.type(path.add(col));
             }
           }
         }
@@ -109,7 +111,7 @@ public class ColumnRef extends Expression<String, String> implements Macro {
           for (ColumnDefinition col: create.columns()) {
             if (col.name().equals(name())) {
               if (col instanceof DerivedColumnDefinition) {
-                type = col.expression().type(path);
+                type = col.expression().type(path.add(col.expression()));
               } else {
                 type = col.type();
               }
@@ -129,7 +131,7 @@ public class ColumnRef extends Expression<String, String> implements Macro {
             if (column == null) {
               throw new TranslationException("Could not find field " + name() + " in table " + alter.name());
             }
-            type = column.type(path);
+            type = column.type(path.add(column));
           }
         }
       }
@@ -141,19 +143,20 @@ public class ColumnRef extends Expression<String, String> implements Macro {
   }
 
   /**
-   * Find the column referred to by this column reference. Since selects
-   * may be nested, this method will move outside of the current select to
-   * find surrounding ones if the column cannot be successfully matched in
-   * the current selection context.
+   * Find the column referred to by this column reference. Since selects may be nested,
+   * this method will move outside of the current select to find surrounding ones if the
+   * column cannot be successfully matched in the current selection context.
    */
   private Column column(QueryUpdate qu, EsqlPath path) {
     Column column = null;
     while (column == null && qu != null) {
-      column = qu.tables().type(path).findColumn(qualifier(), name());
+      column = qu.tables().type(path.add(qu.tables())).findColumn(qualifier(), name());
       if (path == null) {
         qu = null;
       } else {
-        T2<QueryUpdate, EsqlPath> ancestor = path.tail().ancestorAndPath(QueryUpdate.class);
+        T2<QueryUpdate, EsqlPath> ancestor = path.tail() == null
+                                           ? null
+                                           : path.tail().ancestorAndPath(QueryUpdate.class);
         if (ancestor == null) {
           qu = null;
         } else {
@@ -172,7 +175,7 @@ public class ColumnRef extends Expression<String, String> implements Macro {
   public Esql<?, ?> expand(Esql<?, ?> esql, EsqlPath path)  {
     QueryUpdate stmt = path.ancestor(QueryUpdate.class);
     if (stmt != null) {
-      Relation rel = stmt.tables().type(path);
+      Relation rel = stmt.tables().type(path.add(stmt.tables()));
       if (qualifier() != null) {
         rel = rel.forAlias(qualifier());
       }
@@ -196,9 +199,9 @@ public class ColumnRef extends Expression<String, String> implements Macro {
                          EsqlPath path,
                          Map<String, Object> parameters) {
     boolean sqlServerBool = target == Target.SQLSERVER
-                         && type(path) == Types.BoolType
+                         && type(path.add(this)) == Types.BoolType
                          && !requireIif(path, parameters)
-                         && (path.ancestor(Coalesce.class) == null);
+                         && (path.ancestor(FunctionCall.class) == null);
     return switch (target) {
       case ESQL, JAVASCRIPT -> qualifiedName();
       case JSON             -> '"' + qualifiedName() + '"';
@@ -224,17 +227,15 @@ public class ColumnRef extends Expression<String, String> implements Macro {
   }
 
   public ColumnRef qualifier(String qualifier) {
-//    Esql<String, ?> v = (Esql<String, ?>)children.get("qualifier");
-//    v.value = qualifier;
     return set("qualifier", new Esql<>(context, qualifier));
   }
 
   public String name() {
-    return value;
+    return childValue("name");
   }
 
   public ColumnRef name(String name) {
-    return copy(name);
+    return set("name", new Esql<>(context, name));
   }
 
   public String qualifiedName() {

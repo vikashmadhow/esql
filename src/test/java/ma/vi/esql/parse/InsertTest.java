@@ -82,7 +82,7 @@ public class InsertTest extends DataTest {
                      assertTrue(rs.next());
                      assertEquals(rs.get("_id").value, id1);
 
-                     rs = con.exec("select _id, e?false from S where e?false");
+                     rs = con.exec("select _id, coalesce(e, false) from S where coalesce(e, false)=true");
                      assertTrue(rs.next());
                      assertEquals(rs.get("_id").value, id1);
 
