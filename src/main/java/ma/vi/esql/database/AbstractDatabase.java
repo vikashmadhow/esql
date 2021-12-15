@@ -1159,10 +1159,7 @@ public abstract class AbstractDatabase implements Database {
           Insert insertColAttr = p.parse(INSERT_COLUMN_ATTRIBUTE, "insert");
 
           for (Column column: table.columns()) {
-            Column c = addColumn(econ, table.id(), column, insertCol, insertColAttr);
-//            if (c != column) {
-//
-//            }
+            addColumn(econ, table.id(), column, insertCol, insertColAttr);
           }
 
           // add constraints

@@ -30,10 +30,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Make into Java 9 module.
 - Support for frame definition (rows and range) in window functions.
 - Support for 'within group' for ordering in string and array aggregate functions.
-- Support for bulk copy manager in postgresql
+- Support for bulk copy manager in postgresql.
 - Support for merge queries.
 
-## [Unreleased]
+## [0.6.0] - 2021-12-15
 ### Redesigned
 - ESQL node changed:
   - To be immutable, creating copies on mutating operations, with use of path 
