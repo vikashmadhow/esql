@@ -46,7 +46,7 @@ public class GroupedExpression extends SingleSubExpression {
 
   @Override
   protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
-    return '(' + expr().translate(target, path.add(expr()), parameters) + ')';
+    return "(" + String.valueOf(expr().translate(target, path.add(expr()), parameters)) + ")";
   }
 
   @Override

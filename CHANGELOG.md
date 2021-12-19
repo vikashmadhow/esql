@@ -1,4 +1,3 @@
-
 # Changelog
 All notable changes to this project will be documented in this file.
 
@@ -32,6 +31,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Support for 'within group' for ordering in string and array aggregate functions.
 - Support for bulk copy manager in postgresql.
 - Support for merge queries.
+
+## [Unreleased]
+### Added
+- JsonObjectLiteral and JsonArrayLiteral are now outputted as strings in queries.
+- hasAncestor method which can check if the an ESQL is a descendant of one of 
+  several ESQL classes in one call.
+- Selects are now treated as select-expressions (columns are not expanded) when
+  they appear in insert row values and as part of the column list of another query.
+
+### Changed
+- QueryTranslation is now a Java record.
 
 ## [0.6.1] - 2021-12-19
 ### Added
@@ -135,9 +145,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Testing of all base macro functions (bin, inmonth).
 
 ### Fixed
-- Corrected an error where column defaults were being dropped when altering a table
-  on execution of a `create table` statement, as they were erroneously found to be
-  missing.
+- Corrected an error where column defaults were being dropped when altering a 
+  table on execution of a `create table` statement, as they were erroneously found 
+  to be missing.
 - Do not throw NotfoundException in findColumn in AliasedRelation as this breaks
   aliased column search in SQL Server in complex queries where the referred column
   might be in an outer query.
@@ -224,9 +234,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improved error detection: use of reserved keywords in wrong parts and missing/wrong keyword.
 - Improved error detection: missing commas and semi-colons.
 - Improved error detection: missing closing bracket, square bracket, parenthesis.
-- Group by clause can now refer to columns by position (e.g group by 1, 2 will group by the 1st and 2nd column 
-  expressions in the query). This is simulated on SQL Server which does not directly
-  support this construct.
+- Group by clause can now refer to columns by position (e.g group by 1, 2 will
+  group by the 1st and 2nd column expressions in the query). This is simulated 
+  on SQL Server which does not directly support this construct.
 - Base testing of grouping (normal, cube, rollup).
 
 ### Fixed

@@ -98,8 +98,8 @@ public class EsqlTranslator extends AbstractTranslator {
       return new QueryTranslation(st.toString(), emptyList(), emptyMap(),
                                   emptyList(), emptyMap());
     } else {
-      return new QueryTranslation(st.toString(), q.columns, q.columnToIndex,
-                                  q.resultAttributeIndices, q.resultAttributes);
+      return new QueryTranslation(st.toString(), q.columns(), q.columnToIndex(),
+                                  q.resultAttributeIndices(), q.resultAttributes());
     }
   }
 
@@ -116,8 +116,8 @@ public class EsqlTranslator extends AbstractTranslator {
     if (delete.columns() != null) {
       st.append(" returning ");
       QueryTranslation q = delete.constructResult(st, target(), path,null, parameters);
-      return new QueryTranslation(st.toString(), q.columns, q.columnToIndex,
-                                  q.resultAttributeIndices, q.resultAttributes);
+      return new QueryTranslation(st.toString(), q.columns(), q.columnToIndex(),
+                                  q.resultAttributeIndices(), q.resultAttributes());
     } else {
       return new QueryTranslation(st.toString(), emptyList(), emptyMap(),
                                   emptyList(), emptyMap());
@@ -151,7 +151,7 @@ public class EsqlTranslator extends AbstractTranslator {
       st.append(" default values");
 
     } else {
-      st.append(' ').append(insert.select().translate(target(), path.add(insert.select()), Map.of("addAttributes", false)).statement);
+      st.append(' ').append(insert.select().translate(target(), path.add(insert.select()), Map.of("addAttributes", false)).statement());
     }
 
     QueryTranslation q = null;
@@ -163,8 +163,8 @@ public class EsqlTranslator extends AbstractTranslator {
     if (q == null) {
       return new QueryTranslation(st.toString(), emptyList(), emptyMap(), emptyList(), emptyMap());
     } else {
-      return new QueryTranslation(st.toString(), q.columns, q.columnToIndex,
-                                  q.resultAttributeIndices, q.resultAttributes);
+      return new QueryTranslation(st.toString(), q.columns(), q.columnToIndex(),
+                                  q.resultAttributeIndices(), q.resultAttributes());
     }
   }
 }

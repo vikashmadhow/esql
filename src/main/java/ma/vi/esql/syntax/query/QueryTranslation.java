@@ -19,42 +19,13 @@ import java.util.Map;
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public class QueryTranslation {
-  public QueryTranslation(String statement,
-                          List<ColumnMapping> columns,
-                          Map<String, Integer> columnToIndex,
-                          List<T3<Integer, String, Type>> resultAttributeIndices,
-                          Map<String, Object> resultAttributes) {
-    this.statement = statement;
-    this.columns = columns;
-    this.columnToIndex = columnToIndex;
-    this.resultAttributeIndices = resultAttributeIndices;
-    this.resultAttributes = resultAttributes;
-  }
-
+public record QueryTranslation(String                          statement,
+                               List<ColumnMapping>             columns,
+                               Map<String, Integer>            columnToIndex,
+                               List<T3<Integer, String, Type>> resultAttributeIndices,
+                               Map<String, Object>             resultAttributes) {
   @Override
   public String toString() {
     return statement;
   }
-
-  /**
-   * Fully translated statement that can be run on the target database.
-   */
-  public final String statement;
-
-  /**
-   * The columns in the result of the query as a mapping which includes
-   * the index of the value of the column in the resultset as well as
-   * the indices of the attribute values (and values of precomputed attributes).
-   */
-  public final List<ColumnMapping> columns;
-
-  /**
-   * Maps the name of columns to their index.
-   */
-  public final Map<String, Integer> columnToIndex;
-
-  public final List<T3<Integer, String, Type>> resultAttributeIndices;
-
-  public final Map<String, Object> resultAttributes;
 }

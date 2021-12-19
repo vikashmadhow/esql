@@ -101,13 +101,13 @@ public class CompositeSelects extends Select {
           "addAttributes", parameters.getOrDefault("addAttributes", true),
           "optimiseAttributesLoading", false);
       QueryTranslation trans = select.translate(target, path.add(select), params);
-      st.append(trans.statement);
+      st.append(trans.statement());
       if (q == null) {
         q = trans;
       }
     }
-    return new QueryTranslation(st.toString(), q.columns, q.columnToIndex,
-                                q.resultAttributeIndices, q.resultAttributes);
+    return new QueryTranslation(st.toString(), q.columns(), q.columnToIndex(),
+                                q.resultAttributeIndices(), q.resultAttributes());
   }
 
 //  /**

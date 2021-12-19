@@ -13,6 +13,7 @@ import ma.vi.esql.syntax.EsqlPath;
 
 import java.util.Map;
 import java.util.UUID;
+import java.util.regex.Pattern;
 
 /**
  * A UUID literal in ESQL.
@@ -60,4 +61,12 @@ public class UuidLiteral extends BaseLiteral<UUID> {
       default         -> '\'' + value.toString() + '\'';
     };
   }
+
+  public static final String HEX_DIGIT = "[a-fA-F0-9]";
+
+  public static final Pattern PATTERN = Pattern.compile(HEX_DIGIT + "{8}-" +
+                                                        HEX_DIGIT + "{4}-" +
+                                                        HEX_DIGIT + "{4}-" +
+                                                        HEX_DIGIT + "{4}-" +
+                                                        HEX_DIGIT + "{12}");
 }

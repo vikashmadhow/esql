@@ -75,10 +75,10 @@ public class PostgresqlTranslator extends AbstractTranslator {
       st.append(" limit ").append(select.limit().translate(target(), path.add(select.limit()), parameters));
     }
     return new QueryTranslation(st.toString(),
-                                q.columns,
-                                q.columnToIndex,
-                                q.resultAttributeIndices,
-                                q.resultAttributes);
+                                q.columns(),
+                                q.columnToIndex(),
+                                q.resultAttributeIndices(),
+                                q.resultAttributes());
   }
 
   @Override
@@ -100,8 +100,8 @@ public class PostgresqlTranslator extends AbstractTranslator {
         return new QueryTranslation(st.toString(), emptyList(), emptyMap(),
                                     emptyList(), emptyMap());
       } else {
-        return new QueryTranslation(st.toString(), q.columns, q.columnToIndex,
-                                    q.resultAttributeIndices, q.resultAttributes);
+        return new QueryTranslation(st.toString(), q.columns(), q.columnToIndex(),
+                                    q.resultAttributeIndices(), q.resultAttributes());
       }
     } else if (from instanceof AbstractJoinTableExpr) {
       /*
@@ -194,8 +194,8 @@ public class PostgresqlTranslator extends AbstractTranslator {
         return new QueryTranslation(st.toString(), emptyList(), emptyMap(),
                                     emptyList(), emptyMap());
       } else {
-        return new QueryTranslation(st.toString(), q.columns, q.columnToIndex,
-                                    q.resultAttributeIndices, q.resultAttributes);
+        return new QueryTranslation(st.toString(), q.columns(), q.columnToIndex(),
+                                    q.resultAttributeIndices(), q.resultAttributes());
       }
     } else {
       throw new TranslationException("Wrong table type to update: " + from);
@@ -279,8 +279,8 @@ public class PostgresqlTranslator extends AbstractTranslator {
     if (delete.columns() != null && !delete.columns().isEmpty()) {
       st.append(" returning ");
       QueryTranslation q = delete.constructResult(st, target(), path, null, parameters);
-      return new QueryTranslation(st.toString(), q.columns, q.columnToIndex,
-                                  q.resultAttributeIndices, q.resultAttributes);
+      return new QueryTranslation(st.toString(), q.columns(), q.columnToIndex(),
+                                  q.resultAttributeIndices(), q.resultAttributes());
     } else {
       return new QueryTranslation(st.toString(), emptyList(), emptyMap(),
                                   emptyList(), emptyMap());
@@ -371,7 +371,7 @@ public class PostgresqlTranslator extends AbstractTranslator {
     } else {
       st.append(' ').append(insert.select().translate(target(),
                                                       path.add(insert.select()),
-                                                      Map.of("addAttributes", false)).statement);
+                                                      Map.of("addAttributes", false)).statement());
     }
 
     QueryTranslation q = null;
@@ -383,8 +383,8 @@ public class PostgresqlTranslator extends AbstractTranslator {
     if (q == null) {
       return new QueryTranslation(st.toString(), emptyList(), emptyMap(), emptyList(), emptyMap());
     } else {
-      return new QueryTranslation(st.toString(), q.columns, q.columnToIndex,
-                                  q.resultAttributeIndices, q.resultAttributes);
+      return new QueryTranslation(st.toString(), q.columns(), q.columnToIndex(),
+                                  q.resultAttributeIndices(), q.resultAttributes());
     }
   }
 }

@@ -19,6 +19,7 @@ import ma.vi.esql.syntax.define.Metadata;
 import ma.vi.esql.syntax.expression.*;
 import ma.vi.esql.syntax.expression.literal.Literal;
 import ma.vi.esql.syntax.expression.logical.And;
+import ma.vi.esql.syntax.modify.InsertRow;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -230,11 +231,12 @@ public abstract class QueryUpdate extends MetadataContainer<QueryTranslation> im
     boolean optimiseAttributesLoading = (Boolean)parameters.getOrDefault("optimiseAttributesLoading", true);
 
     /*
-     * Do not expand column list of selects inside expressions as the
-     * whole expression is a single-value and expanding the column list
-     * will break the query or not be of any use.
+     * Do not expand column list of selects inside expressions as the whole
+     * expression is a single-value and expanding the column list will break the
+     * query or not be of any use. The same applies to when a select is used as
+     * an insert value, or part of a column list.
      */
-    boolean selectExpression = path.ancestor(SelectExpression.class) != null;
+    boolean selectExpression = path.hasAncestor(SelectExpression.class, InsertRow.class, Column.class);
 
     /*
      * If this query is part of another query, it is a subquery and its attributes
@@ -523,26 +525,26 @@ public abstract class QueryUpdate extends MetadataContainer<QueryTranslation> im
       Selection selection = type(path.add(this));
       if (!selection.columns().isEmpty()) {
         ResultSet rs = con.createStatement(TYPE_SCROLL_INSENSITIVE, CONCUR_READ_ONLY)
-                          .executeQuery(translation.statement);
+                          .executeQuery(translation.statement());
         return new Result(db.structure(), rs,
                           selection,
-                          translation.columns,
-                          translation.columnToIndex,
-                          translation.resultAttributeIndices,
-                          translation.resultAttributes);
+                          translation.columns(),
+                          translation.columnToIndex(),
+                          translation.resultAttributeIndices(),
+                          translation.resultAttributes());
       } else {
-        con.createStatement().executeUpdate(translation.statement);
+        con.createStatement().executeUpdate(translation.statement());
         return new Result(db.structure(), null,
                           selection,
-                          translation.columns,
-                          translation.columnToIndex,
-                          translation.resultAttributeIndices,
-                          translation.resultAttributes);
+                          translation.columns(),
+                          translation.columnToIndex(),
+                          translation.resultAttributeIndices(),
+                          translation.resultAttributes());
       }
     } catch (SQLException e) {
       log.log(ERROR, e.getMessage());
       log.log(ERROR, "Original query: " + this);
-      log.log(ERROR, "Translation: " + translation.statement);
+      log.log(ERROR, "Translation: " + translation.statement());
       throw new RuntimeException(e);
     }
   }

@@ -39,9 +39,18 @@ public class EsqlPath {
    * can be found.
    */
   public <T extends Esql<?, ?>> T ancestor(Class<T> cls) {
-    return cls.isAssignableFrom(head.getClass()) ? (T)head :
-           tail == null                          ? null    :
-           tail.ancestor(cls);
+    return cls.isAssignableFrom(head.getClass()) ? (T)head
+         : tail == null                          ? null
+         : tail.ancestor(cls);
+  }
+
+  public boolean hasAncestor(Class<?>... cls) {
+    for (Class<?> c: cls) {
+      if (c.isAssignableFrom(head.getClass())) {
+        return true;
+      }
+    }
+    return tail != null && tail.hasAncestor(cls);
   }
 
   /**

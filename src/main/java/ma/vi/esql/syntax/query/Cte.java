@@ -149,10 +149,10 @@ public class Cte extends QueryUpdate {
                   : fields().stream()
                             .map(f -> '"' + f + '"')
                             .collect(joining(", ", "(", ")")))
-             + " as (" + q.statement + ')';
+             + " as (" + q.statement() + ')';
 
-    return new QueryTranslation(s, q.columns, q.columnToIndex,
-                                q.resultAttributeIndices, q.resultAttributes);
+    return new QueryTranslation(s, q.columns(), q.columnToIndex(),
+                                q.resultAttributeIndices(), q.resultAttributes());
   }
 
 //  @Override

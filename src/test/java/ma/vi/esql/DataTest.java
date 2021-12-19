@@ -29,48 +29,56 @@ public class DataTest {
       System.out.println(db.target());
       Parser p = new Parser(db.structure());
       try (EsqlConnection con = db.esql(db.pooledConnection())) {
-        Program s = p.parse("create table S drop undefined(" +
-                                "  {" +
-                                "    name: 'S'," +
-                                "    description: 'S test table'," +
-                                "    tm1: from S select max(b)," +
-                                "    tm2: a > b" +
-                                "  }, " +
-                                "  _id uuid not null," +
-                                "  a int {" +
-                                "    m1: b > 5," +
-                                "    m2: 10," +
-                                "    m3: a != 0" +
-                                "  }," +
-                                "  b int {" +
-                                "    m1: b < 0" +
-                                "  }," +
-                                "  c=a+b {" +
-                                "    m1: a > 5," +
-                                "    m2: a + b," +
-                                "    m3: b > 5" +
-                                "  }," +
-                                "  d=b+c {" +
-                                "    m1: 10" +
-                                "  }," +
-                                "  e bool {" +
-                                "    m1: c" +
-                                "  }," +
-                                "  f=from S select max(a) {" +
-                                "    m1: from S select min(a)" +
-                                "  }," +
-                                "  g=from S select distinct c where d>5 {" +
-                                "    m1: from a.b.T select min(a)" +
-                                "  }," +
-                                "  h text[] {" +
-                                "    m1: 5" +
-                                "  }," +
-                                "  i string," +
-                                "  j int[], " +
-                                "  k interval, " +
-                                "  l int, " +
-                                "  primary key(_id)" +
-                                ")");
+        Program s = p.parse("""
+                              create table S drop undefined({
+                                name: 'S',
+                                description: 'S test table',
+                                tm1: from S select max(b),
+                                tm2: a > b,
+                                validate_unique: [['a', 'b', 'e']],
+                                dependents: {
+                                  links: {
+                                    type: 'a.b.T',
+                                    referred_by: 's_id',
+                                    label: 'S Links'
+                                  }
+                                }
+                              },
+                              _id uuid not null,
+                              a int {
+                                m1: b > 5,
+                                m2: 10,
+                                m3: a != 0
+                              },
+                              b int {
+                                m1: b < 0
+                              },
+                              c=a+b {
+                                m1: a > 5,
+                                m2: a + b,
+                                m3: b > 5
+                              },
+                              d=b+c {
+                                m1: 10
+                              },
+                              e bool {
+                                m1: c
+                              },
+                              f=from S select max(a) {
+                                m1: from S select min(a)
+                              },
+                              g=from S select distinct c where d>5 {
+                                m1: from a.b.T select min(a)
+                              },
+                              h text[] {
+                                m1: 5
+                              },
+                              i string,
+                              j int[],
+                              k interval,
+                              l int,
+                              primary key(_id)
+                            )""");
         con.exec(s);
 
         s = p.parse("create table a.b.T drop undefined(" +

@@ -99,7 +99,7 @@ public class SelectExpression extends Expression<String, String> {
     } else {
       Map<String, Object> params = new HashMap<>(parameters);
       params.remove("addIif");
-      return '(' + select().translate(target, path.add(select()), params).statement + ')';
+      return "(" + select().translate(target, path.add(select()), params).statement() + ")";
     }
   }
 

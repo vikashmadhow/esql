@@ -68,7 +68,7 @@ public class SelectTableExpr extends AbstractAliasTableExpr {
 
   @Override
   protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
-    return '(' + select().translate(target, path.add(select()), parameters).statement + ") \"" + alias() + '"';
+    return '(' + select().translate(target, path.add(select()), parameters).statement() + ") \"" + alias() + '"';
   }
 
   @Override

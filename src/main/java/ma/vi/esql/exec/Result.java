@@ -21,7 +21,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.regex.Pattern;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
@@ -264,11 +263,4 @@ public class Result implements AutoCloseable {
 
   private final Map<String, Object> resultAttributes;
 
-  public static final String HEX_DIGIT = "[a-fA-F0-9]";
-
-  public static final Pattern UUID_VALUE = Pattern.compile(HEX_DIGIT + "{8}-" +
-      HEX_DIGIT + "{4}-" +
-      HEX_DIGIT + "{4}-" +
-      HEX_DIGIT + "{4}-" +
-      HEX_DIGIT + "{12}");
 }

@@ -18,8 +18,7 @@ import java.util.*;
 import java.util.stream.Stream;
 
 import static ma.vi.esql.syntax.Parser.Rules.INSERT;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.DynamicTest.dynamicTest;
 
 public class InsertTest extends DataTest {
@@ -147,6 +146,53 @@ public class InsertTest extends DataTest {
                      rs.next(); assertEquals(rs.get("a").value, 6);
                      rs.next(); assertEquals(rs.get("a").value, 7);
                      rs.next(); assertEquals(rs.get("a").value, 7);
+                   }
+                 }));
+  }
+
+  @TestFactory
+  Stream<DynamicTest> insertWithSelectInValues() {
+    return Stream.of(databases)
+                 .map(db -> dynamicTest(db.target().toString(), () -> {
+                   System.out.println(db.target());
+                   Parser p = new Parser(db.structure());
+                   try (EsqlConnection con = db.esql(db.pooledConnection())) {
+                     con.exec("delete t from t:a.b.T");
+                     con.exec("delete s from s:S");
+                     con.exec(
+                         "insert into S(_id, a, b, e, h, j) values "
+                             + "(newid(), 1, 2, true, text['Four', 'Quatre'], int[1, 2, 3]),"
+                             + "(newid(), 6, 7, false, text['Nine', 'Neuf', 'X'], int[5, 6, 7, 8])");
+
+                     con.exec("""
+                              insert into a.b.T(_id, a, b, x, y, s_id)
+                              values(newid(), 1, 2, 3, 4,  (select _id from S where a=1)),
+                                    (newid(), 2, 2, 2, 2, (select _id from S where a=2)),
+                                    (newid(), 7, 8, 9, 10, (select _id from S where a=6))
+                              """);
+
+                     Result rs = con.exec("select _id from S order by a");
+                     rs.next(); UUID id1 = rs.value(1);
+                     rs.next(); UUID id2 = rs.value(1);
+
+                     rs = con.exec("select a, b, x, y, s_id from a.b.T order by a");
+                     rs.next(); assertEquals((Integer)rs.value(1), 1);
+                                assertEquals((Integer)rs.value(2), 2);
+                                assertEquals((Integer)rs.value(3), 3);
+                                assertEquals((Integer)rs.value(4), 4);
+                                assertEquals(rs.value(5), id1);
+
+                     rs.next(); assertEquals((Integer)rs.value(1), 2);
+                                assertEquals((Integer)rs.value(2), 2);
+                                assertEquals((Integer)rs.value(3), 2);
+                                assertEquals((Integer)rs.value(4), 2);
+                                assertNull(rs.value(5));
+
+                     rs.next(); assertEquals((Integer)rs.value(1), 7);
+                                assertEquals((Integer)rs.value(2), 8);
+                                assertEquals((Integer)rs.value(3), 9);
+                                assertEquals((Integer)rs.value(4), 10);
+                                assertEquals(rs.value(5), id2);
                    }
                  }));
   }

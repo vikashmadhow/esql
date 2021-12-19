@@ -79,13 +79,13 @@ public class With extends QueryUpdate {
     for (Cte cte: ctes()) {
       if (first) { first = false; }
       else       { st.append(", "); }
-      st.append(cte.translate(target, path.add(cte), parameters).statement);
+      st.append(cte.translate(target, path.add(cte), parameters).statement());
     }
 
     QueryTranslation q = query().translate(target, path.add(query()), parameters);
-    st.append(' ').append(q.statement);
-    return new QueryTranslation(st.toString(), q.columns, q.columnToIndex,
-                                q.resultAttributeIndices, q.resultAttributes);
+    st.append(' ').append(q.statement());
+    return new QueryTranslation(st.toString(), q.columns(), q.columnToIndex(),
+                                q.resultAttributeIndices(), q.resultAttributes());
   }
 
   @Override

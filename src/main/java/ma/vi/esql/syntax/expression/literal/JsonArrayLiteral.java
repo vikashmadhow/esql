@@ -61,10 +61,21 @@ public class JsonArrayLiteral extends Literal<List<Literal<?>>> {
   }
 
   @Override
-  protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
-    return items().stream()
-                  .map(e -> e.translate(target, path.add(e), parameters))
-                  .collect(joining(",", "[", "]"));
+  protected String trans(Target target,
+                         EsqlPath path,
+                         Map<String, Object> parameters) {
+    String t = items().stream()
+                      .map(e -> e.translate(target, path.add(e), parameters))
+                      .collect(joining(",", "[", "]"));
+    if (path.tail() != null && path.tail().hasAncestor(JsonArrayLiteral.class, JsonObjectLiteral.class)) {
+      return t;
+    } else {
+      return switch (target) {
+        case ESQL,
+            JAVASCRIPT -> t;
+        default -> '\'' + t.replace("'", "''") + '\'';
+      };
+    }
   }
 
   @Override

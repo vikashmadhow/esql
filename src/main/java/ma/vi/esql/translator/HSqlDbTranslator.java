@@ -70,10 +70,10 @@ public class HSqlDbTranslator extends AbstractTranslator {
       st.append(" limit ").append(select.limit().translate(target(), path.add(select.limit()), parameters));
     }
     return new QueryTranslation(st.toString(),
-                                q.columns,
-                                q.columnToIndex,
-                                q.resultAttributeIndices,
-                                q.resultAttributes);
+                                q.columns(),
+                                q.columnToIndex(),
+                                q.resultAttributeIndices(),
+                                q.resultAttributes());
   }
 
   @Override
@@ -260,7 +260,7 @@ public class HSqlDbTranslator extends AbstractTranslator {
       st.append(" default values");
 
     } else {
-      st.append(' ').append(insert.select().translate(target(), path.add(insert.select()), Map.of("addAttributes", false)).statement);
+      st.append(' ').append(insert.select().translate(target(), path.add(insert.select()), Map.of("addAttributes", false)).statement());
     }
 
     if (insert.columns() != null && !insert.columns().isEmpty()) {
