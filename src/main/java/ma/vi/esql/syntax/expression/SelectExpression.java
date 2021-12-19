@@ -74,8 +74,8 @@ public class SelectExpression extends Expression<String, String> {
       }
 
       Column col = sel.columns().get(0);
-      if (col.alias() != null) {
-        st.append(col.alias()).append(':');
+      if (col.name() != null) {
+        st.append(col.name()).append(':');
       }
       st.append(col.expression().translate(target, path.add(col.expression()), parameters));
 

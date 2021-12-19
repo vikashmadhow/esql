@@ -80,7 +80,7 @@ public abstract class QueryUpdate extends MetadataContainer<QueryTranslation> im
       Map<String, String> aliased = new HashMap<>();
       if (columns() != null) {
         for (Column column: columns()) {
-          String alias = column.alias();
+          String alias = column.name();
           if (expandColumns
            && column.expression() instanceof ColumnRef ref
            && alias.indexOf('/') == -1) {
@@ -88,10 +88,12 @@ public abstract class QueryUpdate extends MetadataContainer<QueryTranslation> im
             if (!refName.equals(alias)) {
               aliased.put(refName, alias);
             }
-            for (Column col: fromType.columns(ref.qualifier(), refName)) {
-              String colAlias = col.alias();
-              col = col.alias(alias + colAlias.substring(refName.length()));
-              columns.put(col.alias(), col);
+            for (T2<Relation, Column> col: fromType.columns(refName)) {
+              if (ref.qualifier() == null || ref.qualifier().equals(col.a.alias())) {
+                String colAlias = col.b.name();
+                Column c = col.b.name(alias + colAlias.substring(refName.length()));
+                columns.put(c.name(), c);
+              }
             }
           } else {
             columns.put(alias, column);
@@ -104,7 +106,7 @@ public abstract class QueryUpdate extends MetadataContainer<QueryTranslation> im
             if (column.metadata() != null && column.metadata().attributes() != null) {
               for (Attribute a: column.metadata().attributes().values()) {
                 for (Column c: BaseRelation.columnsForAttribute(a, alias + '/', aliased)) {
-                  columns.put(c.alias(), c);
+                  columns.put(c.name(), c);
                 }
               }
             }
@@ -119,20 +121,22 @@ public abstract class QueryUpdate extends MetadataContainer<QueryTranslation> im
          */
         Set<String> aliases = fromType.aliases();
         if (!aliases.isEmpty()) {
+          List<T2<Relation, Column>> relCols = fromType.columns("/");
           for (String relAlias: aliases) {
-            for (Column column: fromType.columns(relAlias, "/").stream()
-                                        .map(c -> qualify(c, relAlias, true)).toList()) {
-              String alias = column.alias();
+            for (Column column: relCols.stream()
+                                       .filter(r -> r.a.alias().equals(relAlias))
+                                       .map(r -> qualify(r.b, relAlias, true)).toList()) {
+              String alias = column.name();
               if (!columns.containsKey(alias)) {
                 columns.put(alias, column.copy());
               }
             }
           }
         } else {
-          for (Column column: fromType.columns(null, "/")) {
-            String alias = column.alias();
+          for (T2<Relation, Column> column: fromType.columns("/")) {
+            String alias = column.b.name();
             if (!columns.containsKey(alias)) {
-              columns.put(alias, column.copy());
+              columns.put(alias, column.b.copy());
             }
           }
         }
@@ -144,7 +148,7 @@ public abstract class QueryUpdate extends MetadataContainer<QueryTranslation> im
         if (metadata != null && metadata.attributes() != null) {
           for (Attribute a: metadata.attributes().values()) {
             for (Column column: BaseRelation.columnsForAttribute(a, "/", emptyMap())) {
-              String alias = column.alias();
+              String alias = column.name();
               if (!columns.containsKey(alias)) {
                 columns.put(alias, column.copy());
               }
@@ -253,15 +257,41 @@ public abstract class QueryUpdate extends MetadataContainer<QueryTranslation> im
     Selection selection = type(path.add(this));
 
     /*
+     * Output columns.
+     */
+    int columnIndex = 0;
+    for (T2<Relation, Column> c: selection.columns().stream()
+                                          .filter(c -> !c.b.name().contains("/")).toList()) {
+      itemIndex++;
+      columnIndex++;
+      if (itemIndex > 1) {
+        query.append(", ");
+      }
+      Column column = c.b.copy();
+      Expression<?, String> expression = column.expression();
+      if (qualifier != null) {
+        ColumnRef.qualify(expression, qualifier, true);
+      }
+      query.append(column.translate(target, path.add(column), ADDIIF));
+      String colName = column.name();
+      columnToIndex.put(colName, columnIndex);
+      columnMappings.put(colName, new ColumnMapping(itemIndex,
+                                                    column,
+                                                    column.type(path.add(column)),
+                                                    new ArrayList<>(),
+                                                    new HashMap<>()));
+    }
+
+    /*
      * Output result metadata
      */
     if (!selectExpression) {
-      for (Column column: selection.columns().stream()
-                                   .filter(c -> c.alias().startsWith("/")).toList()) {
-        String colName = column.alias();
+      for (T2<Relation, Column> column: selection.columns().stream()
+                                                 .filter(c -> c.b.name().startsWith("/")).toList()) {
+        String colName = column.b.name();
         String attrName = colName.substring(1);
 
-        Expression<?, String> attributeValue = column.expression();
+        Expression<?, String> attributeValue = column.b.expression();
         if (optimiseAttributesLoading && (attributeValue instanceof Literal
                                        || attributeValue instanceof UncomputedExpression)) {
           resultAttributes.put(attrName, attributeValue.value(target, path));
@@ -277,39 +307,13 @@ public abstract class QueryUpdate extends MetadataContainer<QueryTranslation> im
     }
 
     /*
-     * Output columns.
-     */
-    int columnIndex = 0;
-    for (Column column: selection.columns().stream()
-                                 .filter(c -> !c.alias().contains("/")).toList()) {
-      itemIndex++;
-      columnIndex++;
-      if (itemIndex > 1) {
-        query.append(", ");
-      }
-      column = column.copy();
-      Expression<?, String> expression = column.expression();
-      if (qualifier != null) {
-        ColumnRef.qualify(expression, qualifier, true);
-      }
-      query.append(column.translate(target, path.add(column), ADDIIF));
-      String colName = column.alias();
-      columnToIndex.put(colName, columnIndex);
-      columnMappings.put(colName, new ColumnMapping(itemIndex,
-                                                    column,
-                                                    column.type(path.add(column)),
-                                                    new ArrayList<>(),
-                                                    new HashMap<>()));
-    }
-
-    /*
      * Output columns metadata.
      */
     if (!selectExpression) {
-      for (Column col: selection.columns().stream()
-                                .filter(c -> c.alias().charAt(0) != '/' && c.alias().indexOf('/', 1) != -1)
-                                .toList()) {
-        String alias = col.alias();
+      for (T2<Relation, Column> col: selection.columns().stream()
+                                              .filter(c -> c.b.name().charAt(0) != '/' && c.b.name().indexOf('/', 1) != -1)
+                                              .toList()) {
+        String alias = col.b.name();
         int pos = alias.indexOf('/');
         String colName = alias.substring(0, pos);
         ColumnMapping mapping = columnMappings.get(colName);
@@ -319,7 +323,7 @@ public abstract class QueryUpdate extends MetadataContainer<QueryTranslation> im
         }
 
         String attrName = alias.substring(pos + 1);
-        Expression<?, String> attributeValue = col.expression();
+        Expression<?, String> attributeValue = col.b.expression();
         if (optimiseAttributesLoading && (attributeValue instanceof Literal
                                        || attributeValue instanceof UncomputedExpression)) {
           mapping.attributes.put(attrName, attributeValue.value(target, path));

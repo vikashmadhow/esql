@@ -49,8 +49,8 @@ public class CrossProductTableExpr extends AbstractJoinTableExpr {
   @Override
   protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
     return left().translate(target, path.add(left()), parameters)
-        + (target == ESQL ? " times " : " cross join ")
-        + right().translate(target, path.add(right()), parameters);
+         + (target == ESQL ? " times " : " cross join ")
+         + right().translate(target, path.add(right()), parameters);
   }
 
   @Override

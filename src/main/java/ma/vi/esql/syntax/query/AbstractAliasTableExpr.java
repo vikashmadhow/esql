@@ -51,9 +51,4 @@ public abstract class AbstractAliasTableExpr extends TableExpr {
   public String alias() {
     return childValue("alias");
   }
-
-  @Override
-  public TableExpr forAlias(String alias) {
-    return alias.equals(alias()) ? this : null;
-  }
 }

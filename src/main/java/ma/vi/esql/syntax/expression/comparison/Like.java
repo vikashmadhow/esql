@@ -72,6 +72,16 @@ public class Like extends NegatableDoubleSubExpressions<String> {
     }
   }
 
+  @Override
+  public void _toString(StringBuilder st, int level, int indent) {
+    expr1()._toString(st, level, indent);
+    if (not()) {
+      st.append(" not");
+    }
+    st.append(" like ");
+    expr2()._toString(st, level, indent);
+  }
+
   public boolean not() {
     return childValue("not");
   }

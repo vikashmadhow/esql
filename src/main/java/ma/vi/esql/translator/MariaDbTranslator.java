@@ -77,7 +77,7 @@ public class MariaDbTranslator extends AbstractTranslator {
 
     TableExpr from = update.tables();
     st.append(from.translate(target(), path.add(from), parameters));
-    Update.addSet(st, update.set(), target(), false);
+    Update.addSet(st, update.set(), target(), false, path);
 
     if (update.where() != null) {
       st.append(" where ").append(update.where().translate(target(), path.add(update.where()), parameters));

@@ -56,7 +56,7 @@ public class ColumnList extends Esql<String, String> implements Macro {
 
   /**
    * Expands star columns (*) to the individual columns of the referred table
-   * if it is not a parameter to a function.
+   * when it is part of the column list of a query.
    */
   @Override
   public Esql<?, ?> expand(Esql<?, ?> esql, EsqlPath path) {
@@ -71,16 +71,16 @@ public class ColumnList extends Esql<String, String> implements Macro {
       if (column instanceof StarColumn all) {
         changed = true;
         String qualifier = all.qualifier();
-        Relation rel = qualifier == null ? fromType : fromType.forAlias(qualifier);
-        for (Column relCol: rel.columns()) {
-          String alias = relCol.alias();
+        for (T2<Relation, Column> relCol: fromType.columns()) {
+          String alias = relCol.b.name();
           if (alias == null) {
             alias = Strings.makeUnique(resolvedColumns.keySet(), "col", false);
           }
           Column col;
+          Relation rel = relCol.a;
           if (rel instanceof BaseRelation
            || (rel instanceof AliasedRelation && ((AliasedRelation)rel).relation instanceof BaseRelation)) {
-            col = relCol.copy();
+            col = relCol.b.copy();
             if (qualifier != null) {
               ColumnRef.qualify(col.expression(), qualifier, true);
             }
@@ -92,7 +92,7 @@ public class ColumnList extends Esql<String, String> implements Macro {
           } else {
             col = new Column(context,
                              alias,
-                             new ColumnRef(context, qualifier, relCol.alias()),
+                             new ColumnRef(context, qualifier, relCol.b.name()),
                              null);
           }
 
@@ -104,8 +104,8 @@ public class ColumnList extends Esql<String, String> implements Macro {
             if (resolvedColumns.containsKey(alias)) {
               alias = Strings.makeUnique(resolvedColumns.keySet(), alias, false);
             }
-            if (relCol.alias() != null && !alias.equals(relCol.alias())) {
-              aliased.put(relCol.alias(), alias);
+            if (relCol.b.name() != null && !alias.equals(relCol.b.name())) {
+              aliased.put(relCol.b.name(), alias);
               col = col.copy(alias);
             }
             resolvedColumns.put(alias, col);
@@ -116,10 +116,12 @@ public class ColumnList extends Esql<String, String> implements Macro {
              */
             String columnName = alias.substring(0, pos);
             if (aliased.containsKey(columnName)) {
-              // replace column name with replacement if the column name was changed
+              /*
+               * replace column name with replacement if the column name was changed
+               */
               String aliasName = aliased.get(columnName);
               alias = aliasName + alias.substring(pos);
-              col.alias(alias);
+              col.name(alias);
             }
             resolvedColumns.put(alias, col);
 
@@ -131,27 +133,6 @@ public class ColumnList extends Esql<String, String> implements Macro {
           }
         }
       }
-//      else {
-//        Expression<?, String> colExpr = column.expression();
-//        Expression<?, String> expr = (Expression<?, String>)colExpr.map((e, p) -> {
-//          if (e instanceof ColumnRef c) {
-//            SelectExpression selExpr = p.ancestor(SelectExpression.class);
-//            if (selExpr == null) {
-//              if (c.qualifier() == null) {
-//                Column col = fromType.column(c.name());
-//                return col.expression();
-//              }
-//            }
-//          }
-//          return e;
-//        }, null, path.add(colExpr));
-//        if (expr != colExpr) {
-//          changed = true;
-//          resolvedColumns.put(column.alias(), column.expression(expr));
-//        } else {
-//          resolvedColumns.put(column.alias(), column);
-//        }
-//      }
     }
     return changed ? new ColumnList(context, new ArrayList<>(resolvedColumns.values()))
                    : esql;

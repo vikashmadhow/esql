@@ -22,7 +22,7 @@ import static java.util.stream.Collectors.toList;
  */
 public class Program extends Esql<String, List<?>> {
   public Program(Context context, List<Expression<?, ?>> expressions) {
-    super(context, "Program", expressions);
+    super(context, "Program", expressions, true);
   }
 
   public Program(Program other) {

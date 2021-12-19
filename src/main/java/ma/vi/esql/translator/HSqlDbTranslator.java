@@ -85,7 +85,7 @@ public class HSqlDbTranslator extends AbstractTranslator {
       throw new TranslationException(target() + " does not support multiple tables or joins in updates");
     }
     st.append(from.translate(target(), path.add(from), parameters));
-    Update.addSet(st, update.set(), target(), false);
+    Update.addSet(st, update.set(), target(), false, path);
 
     if (update.where() != null) {
       st.append(" where ").append(update.where().translate(target(), path.add(update.where()), parameters));

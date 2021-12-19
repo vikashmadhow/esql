@@ -30,13 +30,6 @@ public abstract class TableExpr extends Esql<String, String> {
     super(other, value, children);
   }
 
-  /**
-   * Returns the table expression with the specified alias in this
-   * table expression. This could be this table itself or a joined
-   * table or table expression, for instance.
-   */
-  public abstract TableExpr forAlias(String alias);
-
   @Override
   public abstract TableExpr copy();
 

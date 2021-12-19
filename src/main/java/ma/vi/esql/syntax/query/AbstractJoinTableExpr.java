@@ -59,15 +59,10 @@ public abstract class AbstractJoinTableExpr extends TableExpr {
   @Override
   public Join type(EsqlPath path) {
     if (type == null) {
-      type = new Join(left().type(path.add(left())), right().type(path.add(right())));
+      type = new Join(left().type(path.add(left())),
+                      right().type(path.add(right())));
     }
     return type;
-  }
-
-  @Override
-  public TableExpr forAlias(String alias) {
-    TableExpr table = left().forAlias(alias);
-    return table != null ? table : right().forAlias(alias);
   }
 
   public String joinType() {

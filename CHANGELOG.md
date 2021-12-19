@@ -33,6 +33,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Support for bulk copy manager in postgresql.
 - Support for merge queries.
 
+## [0.6.1] - 2021-12-19
+### Added
+- ColumnRef expansion finds and include the proper qualifier (based on the relation 
+  that the referred column is coming from) resulting in a single method for handling
+  this expansion and increased stability.
+- ColumnList expansion of * column has been improved.
+
+### Fixed
+- Parsing of default value expressions from SQL Server has been fixed to properly
+  convert prefixed strings (e.g. N'yy', E'xx') to equivalent ESQL expressions.
+- Type inference for recursive with and multi-level subqueries containing *.
+
+### Refactored
+- Column alias renamed to 'name'.
+- Type inference and column finding simplified by removing the need to explicitly
+  work with relation aliases. All aliasing is handled internally with the column
+  finding methods returns both the column found and the internal relation that they
+  belong to. E.g. looking for a column over a join will return both the column and
+  the deepest joined relation that the column belongs to.
+
 ## [0.6.0] - 2021-12-15
 ### Redesigned
 - ESQL node changed:

@@ -82,7 +82,7 @@ public class DynamicTableExpr extends AbstractAliasTableExpr {
 
       /*
        * Infer column types of the rows by looking at up to 100 rows probabilistically.
-       * Using a random sampling of rows ensure that we are not looking at any specific
+       * Using a random sampling of rows ensures that we are not looking at any specific
        * cluster (such as the top 100) and inferring only the type characteristics of
        * that cluster.
        */
@@ -122,11 +122,6 @@ public class DynamicTableExpr extends AbstractAliasTableExpr {
                                               ? new ArrayList<>(metadata().attributes().values())
                                               : null,
                                             relationColumns),this);
-//      if (metadata() != null) {
-//        for (Attribute attribute: metadata().attributes().values()) {
-//          selection.attribute(attribute.name(), attribute.attributeValue());
-//        }
-//      }
       type = new AliasedRelation(selection, alias());
       context.type(alias(), type);
     }

@@ -17,8 +17,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-import static java.util.stream.Collectors.toList;
-
 /**
  * A selection of columns from a relation (also known
  * as a projection in SQL and relational calculus).
@@ -26,13 +24,12 @@ import static java.util.stream.Collectors.toList;
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 public class Selection extends Relation {
-
   public Selection(List<Column> columns, TableExpr from) {
     super((from == null ? "" : from.toString() + '.') + "select_" + Strings.random());
     this.columns = columns;
     this.from = from;
     for (Column c: columns) {
-      this.columnsByAlias.put(c.alias(), c);
+      this.columnsByAlias.put(c.name(), c);
     }
   }
 
@@ -52,28 +49,36 @@ public class Selection extends Relation {
   }
 
   @Override
+  public String alias() {
+    return null;
+  }
+
+  @Override
   public Set<String> aliases() {
     return Collections.emptySet();
   }
 
   @Override
-  public List<Column> columns() {
-    return columns;
+  public List<T2<Relation, Column>> columns() {
+    return columns.stream().map(c -> T2.<Relation, Column>of(this, c)).toList();
   }
 
   @Override
-  public List<Column> columns(String relationAlias, String prefix) {
+  public List<T2<Relation, Column>> columns(String prefix) {
     List<T2<String, Column>> cols = columnsByAlias.getPrefixed(prefix);
     Context context = from().context;
     return cols.stream()
-               .map(t -> new Column(context, t.a,
-                                    new ColumnRef(context, null, t.a),
-                                    null))
-               .collect(toList());
+               .map(t -> new T2<Relation, Column>(this,
+                                                  new Column(context, t.a(),
+                                                  new ColumnRef(context, null, t.a()),
+                                                 null)))
+               .toList();
   }
 
-  public Column findColumn(String relationAlias, String name) {
-    return columnsByAlias.get(name);
+  @Override
+  public T2<Relation, Column> findColumn(ColumnRef ref) {
+    Column column = columnsByAlias.get(ref.name());
+    return column == null ? null : T2.of(this, column);
   }
 
   public TableExpr from() {

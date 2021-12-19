@@ -6,10 +6,14 @@ package ma.vi.esql.syntax.query;
 
 import ma.vi.base.lang.NotFoundException;
 import ma.vi.base.tuple.T2;
-import ma.vi.esql.semantic.type.*;
+import ma.vi.esql.semantic.type.AliasedRelation;
+import ma.vi.esql.semantic.type.Relation;
+import ma.vi.esql.semantic.type.Selection;
+import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
+import ma.vi.esql.syntax.TranslationException;
 
 import java.util.Map;
 
@@ -54,18 +58,10 @@ public class SingleTableExpr extends AbstractAliasTableExpr {
 
   @Override
   public AliasedRelation type(EsqlPath path) {
-//    if (type == null) {
-//      type = new AliasedRelation(relation(), alias());
-////      type = (BaseRelation)t;
-//    }
-//    return type;
-
     if (type == null) {
       String table = tableName();
       Type t = context.type(table);
-      if (t instanceof BaseRelation r) {
-        type = new AliasedRelation(r, alias());
-      } else {
+      if (t == null) {
         /*
          * for 'with' queries, ensure that CTEs have been added to local type registry
          * before throwing an exception
@@ -73,22 +69,27 @@ public class SingleTableExpr extends AbstractAliasTableExpr {
         With with = path.ancestor(With.class);
         if (with != null) {
           for (Cte cte: with.ctes()) {
-            cte.type(path.add(cte));
+            if (cte.name().equals(tableName())) {
+              cte.type(path.add(cte));
+            }
           }
         }
-        t = context.type(table);
-        if (t == null) {
-          throw new NotFoundException(table + " is not a known relation in this query");
-        }
-        if (t instanceof AliasedRelation ar) {
-          if (ar.alias.equals(alias())) {
-            type = ar;
-          } else {
-            type = new AliasedRelation(ar.relation, alias());
-          }
+      }
+      t = context.type(table);
+      if (t == null) {
+        throw new NotFoundException(table + " is not a known relation in this query");
+      }
+      if (!(t instanceof Relation)) {
+        throw new TranslationException(tableName() + " is not a Relation. It is a " + t);
+      }
+      if (t instanceof AliasedRelation ar) {
+        if (ar.alias.equals(alias())) {
+          type = ar;
         } else {
-          type = new AliasedRelation((Relation)t, alias());
+          type = new AliasedRelation(ar.relation, alias());
         }
+      } else {
+        type = new AliasedRelation((Relation)t, alias());
       }
       context.type(alias(), type);
     }
@@ -103,7 +104,6 @@ public class SingleTableExpr extends AbstractAliasTableExpr {
       return (alias == null ? "" : alias + ':') + (table == null ? "" : table);
     } else {
       String dbName;
-//      if (table.indexOf('.') == -1 && context.type(table) instanceof Selection) {
       if (context.type(table) instanceof Selection
        || (context.type(table) instanceof AliasedRelation ar
         && ar.relation instanceof Selection)) {

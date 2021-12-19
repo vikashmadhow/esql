@@ -255,7 +255,8 @@ public class Esql<V, R> implements Copy<Esql<V, R>>, Translatable<R> {
   }
 
   public <T> T childValue(String child) {
-    return (T)get(indexOf(child)).value;
+    Esql<?, ?> e = get(indexOf(child));
+    return e == null ? null : (T)get(indexOf(child)).value;
   }
 
   public <T extends Esql<?, ?>> T get(int child) {
@@ -287,14 +288,6 @@ public class Esql<V, R> implements Copy<Esql<V, R>>, Translatable<R> {
       return set(children.size(), child);
     }
   }
-
-//  public <T extends Esql<V, R>> T setOrAdd(String childName, Esql<?, ?> child) {
-//    if (has(childName)) {
-//      return set(indexOf(childName), child);
-//    } else {
-//      return set(children.size(), child);
-//    }
-//  }
 
   public <T extends Esql<V, R>> T set(int index, Esql<?, ?> child) {
     Esql<V, R> copy = copy();

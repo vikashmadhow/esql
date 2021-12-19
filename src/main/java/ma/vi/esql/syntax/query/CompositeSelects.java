@@ -33,7 +33,7 @@ public class CompositeSelects extends Select {
           selects.get(0).offset(),
           selects.get(0).limit(),
           T2.of("operator", new Esql<>(context, operator)),
-          T2.of("selects", new Esql<>(context, selects)));
+          T2.of("composedOf", new Esql<>(context, "ComposedOf", selects)));
 
 //    // count columns of all selects: they should have the same number
 //    int columnsCount = -1;
@@ -163,7 +163,7 @@ public class CompositeSelects extends Select {
   }
 
   public List<Select> selects() {
-    return childValue("selects");
+    return child("composedOf").children();
   }
 
 //  @Override

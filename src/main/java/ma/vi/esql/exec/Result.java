@@ -165,7 +165,7 @@ public class Result implements AutoCloseable {
       if (col.value instanceof BigDecimal) {
         col.value = ((BigDecimal)col.value).doubleValue();
       }
-      row.put(col.column.alias(), col);
+      row.put(col.column.name(), col);
     }
     return row;
   }

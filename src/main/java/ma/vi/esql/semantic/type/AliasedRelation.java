@@ -4,6 +4,8 @@
 
 package ma.vi.esql.semantic.type;
 
+import ma.vi.base.tuple.T2;
+import ma.vi.esql.syntax.expression.ColumnRef;
 import ma.vi.esql.syntax.expression.Expression;
 import ma.vi.esql.syntax.query.Column;
 
@@ -12,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static java.util.stream.Collectors.toList;
 import static ma.vi.esql.syntax.expression.ColumnRef.qualify;
 
 /**
@@ -36,38 +39,38 @@ public class AliasedRelation extends Relation {
   }
 
   @Override
+  public String alias() {
+    return alias;
+  }
+
+  @Override
   public Set<String> aliases() {
     return Collections.singleton(alias);
   }
 
   @Override
-  public Relation forAlias(String alias) {
-    return this.alias.equals(alias) ? this : null;
-  }
-
-  @Override
-  public List<Column> columns() {
+  public List<T2<Relation, Column>> columns() {
     if (columns == null) {
       columns = relation.columns().stream()
-                        .map(c -> qualify(c.copy(), alias, true))
-                        .toList();
+                        .map(c -> T2.of(c.a(), qualify(c.b().copy(), alias, true)))
+                        .collect(toList());
     }
     return columns;
   }
 
   @Override
-  public List<Column> columns(String relationAlias, String prefix) {
-    return relation.columns(relationAlias, prefix).stream()
-                   .map(c -> qualify(c, alias, true))
+  public List<T2<Relation, Column>> columns(String prefix) {
+    return relation.columns(prefix).stream()
+                   .map(t -> new T2<Relation, Column>(this, qualify(t.b(), alias, true)))
                    .toList();
   }
 
   @Override
-  public Column findColumn(String relationAlias, String name) {
-    if (relationAlias == null || relationAlias.equals(alias)) {
-      Column col = relation.findColumn(null, name);
+  public T2<Relation, Column> findColumn(ColumnRef ref) {
+    if (ref.qualifier() == null || ref.qualifier().equals(alias)) {
+      T2<Relation, Column> col = relation.findColumn(ref);
       if (col != null) {
-        col = qualify(col.copy(), alias, true);
+        col = T2.of(this, col.b());
       }
       return col;
     } else {
@@ -99,5 +102,5 @@ public class AliasedRelation extends Relation {
 
   public final String alias;
 
-  private transient volatile List<Column> columns;
+  private transient volatile List<T2<Relation, Column>> columns;
 }

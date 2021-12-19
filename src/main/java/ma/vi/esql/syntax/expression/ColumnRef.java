@@ -5,7 +5,10 @@
 package ma.vi.esql.syntax.expression;
 
 import ma.vi.base.tuple.T2;
-import ma.vi.esql.semantic.type.*;
+import ma.vi.esql.semantic.type.BaseRelation;
+import ma.vi.esql.semantic.type.Relation;
+import ma.vi.esql.semantic.type.Type;
+import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.*;
 import ma.vi.esql.syntax.define.AlterTable;
 import ma.vi.esql.syntax.define.ColumnDefinition;
@@ -54,35 +57,42 @@ public class ColumnRef extends Expression<String, String> implements Macro {
     return new ColumnRef(this, value, children);
   }
 
+  public static ColumnRef of(String qualifier, String name) {
+    return new ColumnRef(null, qualifier, name);
+  }
+
   @Override
   public Type type(EsqlPath path) {
     if (type == null) {
-      if (qualifier() != null && context.type(qualifier()) instanceof Relation) {
-        /*
-         * In a With query, the column could be part of a common-table-expression (CTE),
-         * in which case, the type of the latter would be in the local context.
-         */
-        Column column = ((Relation)context.type(qualifier())).findColumn(null, name());
-        if (column != null) {
-          type = column.type(path.add(column));
-        }
-      }
-      if (type == null) {
+//      if (qualifier() != null && context.type(qualifier()) instanceof Relation) {
+//        /*
+//         * In a With query, the column could be part of a common-table-expression (CTE),
+//         * in which case, the type of the latter would be in the local context.
+//         */
+//        T2<Relation, Column> column = ((Relation)context.type(qualifier())).findColumn(ColumnRef.of(null, name()));
+//        if (column != null) {
+//          type = column.b.type(path.add(column.b));
+//        }
+//      }
+//      if (type == null) {
         QueryUpdate qu = path.ancestor(QueryUpdate.class);
         if (qu != null) {
           /*
            * In a query check all levels as the column might refer to a table in
-           * an outer level, if it is in a subquery, e.g.
+           * an outer level if it is in a subquery.
            */
-          Column column = column(qu, path);
-          if (column.expression() instanceof ColumnRef) {
-            if (column.metadata() != null && column.metadata().attribute(TYPE) != null) {
-              type = Types.typeOf((String)column.metadata().evaluateAttribute(TYPE));
+          T2<Relation, Column> relCol = column(qu, path);
+          if (relCol != null) {
+            Column column = relCol.b;
+            if (column.expression() instanceof ColumnRef) {
+              if (column.metadata() != null && column.metadata().attribute(TYPE) != null) {
+                type = Types.typeOf((String)column.metadata().evaluateAttribute(TYPE));
+              } else {
+                type = Types.VoidType;
+              }
             } else {
-              type = Types.VoidType;
+              type = column.type(path.add(column));
             }
-          } else {
-            type = column.type(path.add(column));
           }
         } else {
           Column column = path.ancestor(Column.class);
@@ -95,13 +105,13 @@ public class ColumnRef extends Expression<String, String> implements Macro {
              * of base relations are loaded on startup and their type set to void
              * for derived columns).
              */
-            Column col = rel.findColumn(null, name());
+            Column col = rel.findColumn(name());
             if (col != null) {
               type = col.type(path.add(col));
             }
           }
         }
-      }
+//      }
       if (type == null) {
         /*
          * The column could be part of a create statement.
@@ -143,20 +153,42 @@ public class ColumnRef extends Expression<String, String> implements Macro {
   }
 
   /**
+   * Expand derived columns to their base expressions.
+   */
+  @Override
+  public Esql<?, ?> expand(Esql<?, ?> e, EsqlPath path)  {
+    T2<Relation, Column> col = column(path.ancestor(QueryUpdate.class), path);
+    if (col != null) {
+      Relation rel = col.a;
+      String alias = rel.alias();
+      Column column = col.b;
+      if (column.derived()) {
+        return new GroupedExpression(context, alias != null       ? qualify(column.expression(), alias, true)
+                                            : qualifier() != null ? qualify(column.expression(), qualifier(), true)
+                                            : column.expression());
+      }
+      return alias == null || alias.equals(qualifier())
+           ? e
+           : qualify(column.expression(), alias, true);
+    }
+    return e;
+  }
+
+  /**
    * Find the column referred to by this column reference. Since selects may be nested,
    * this method will move outside of the current select to find surrounding ones if the
    * column cannot be successfully matched in the current selection context.
    */
-  private Column column(QueryUpdate qu, EsqlPath path) {
-    Column column = null;
+  private T2<Relation, Column> column(QueryUpdate qu, EsqlPath path) {
+    T2<Relation, Column> column = null;
     while (column == null && qu != null) {
-      column = qu.tables().type(path.add(qu.tables())).findColumn(qualifier(), name());
-      if (path == null) {
-        qu = null;
-      } else {
+      column = qu.tables()
+                 .type(path.add(qu.tables()))
+                 .findColumn(this);
+      if (column == null) {
         T2<QueryUpdate, EsqlPath> ancestor = path.tail() == null
-                                           ? null
-                                           : path.tail().ancestorAndPath(QueryUpdate.class);
+            ? null
+            : path.tail().ancestorAndPath(QueryUpdate.class);
         if (ancestor == null) {
           qu = null;
         } else {
@@ -166,32 +198,6 @@ public class ColumnRef extends Expression<String, String> implements Macro {
       }
     }
     return column;
-  }
-
-  /**
-   * Expand derived columns to their base expressions.
-   */
-  @Override
-  public Esql<?, ?> expand(Esql<?, ?> esql, EsqlPath path)  {
-    QueryUpdate stmt = path.ancestor(QueryUpdate.class);
-    if (stmt != null) {
-      Relation rel = stmt.tables().type(path.add(stmt.tables()));
-      if (qualifier() != null) {
-        rel = rel.forAlias(qualifier());
-      }
-      if (rel instanceof BaseRelation
-      || (rel instanceof AliasedRelation && ((AliasedRelation)rel).relation instanceof BaseRelation)) {
-        Column column = rel.column(qualifier(), name());
-        if (column.derived()) {
-          Expression<?, String> expr = column.expression().copy();
-          if (qualifier() != null) {
-            qualify(expr, qualifier(), true);
-          }
-          return new GroupedExpression(context, expr);
-        }
-      }
-    }
-    return esql;
   }
 
   @Override
@@ -258,7 +264,7 @@ public class ColumnRef extends Expression<String, String> implements Macro {
       if (e instanceof ColumnRef ref) {
         SelectExpression selExpr = path.ancestor(SelectExpression.class);
         if (selExpr == null) {
-          if (ref.qualifier() == null || replaceExistingQualifier) {
+          if (ref.qualifier() == null || (replaceExistingQualifier && !ref.qualifier().equals(qualifier))) {
             return ref.qualifier(qualifier);
           }
         }
@@ -266,18 +272,6 @@ public class ColumnRef extends Expression<String, String> implements Macro {
       return e;
     });
   }
-
-//  private static void changeQualifierInColumnRef(ColumnRef ref,
-//                                                 String qualifier,
-//                                                 String suffix,
-//                                                 boolean replaceExistingQuantifier) {
-//    if (ref.qualifier() == null || replaceExistingQuantifier) {
-//      ref.qualifier(qualifier);
-//    }
-//    if (suffix != null) {
-//      ref.name(ref.name() + suffix);
-//    }
-//  }
 
   private transient volatile Type type;
 }

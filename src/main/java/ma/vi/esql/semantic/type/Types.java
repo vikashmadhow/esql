@@ -5,6 +5,7 @@
 package ma.vi.esql.semantic.type;
 
 import ma.vi.base.lang.NotFoundException;
+import ma.vi.base.tuple.T2;
 import ma.vi.esql.syntax.Translatable;
 import ma.vi.esql.syntax.query.Column;
 
@@ -332,8 +333,13 @@ public class Types {
         }
 
         @Override
-        public List<Column> columns() {
+        public List<T2<Relation, Column>> columns() {
           return Collections.emptyList();
+        }
+
+        @Override
+        public String alias() {
+          return null;
         }
       };
 

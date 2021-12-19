@@ -196,12 +196,12 @@ public class SqlServerTranslator extends AbstractTranslator {
             Expression<?, String> remapped = select.remapExpression(colExpr, addedInnerCols, innerCols, innerSelectAlias);
             outerCols.add(new Column(
                 select.context,
-                column.alias(),
+                column.name(),
                 remapped,
                 column.metadata()
             ));
           } else {
-            String alias = column.alias();
+            String alias = column.name();
             if (alias == null) {
               if (colExpr instanceof ColumnRef) {
                 alias = ((ColumnRef)colExpr).name();
@@ -219,7 +219,7 @@ public class SqlServerTranslator extends AbstractTranslator {
             ColumnRef outerCol = new ColumnRef(select.context, innerSelectAlias, alias);
             outerCols.add(new Column(
                 select.context,
-                column.alias(),
+                column.name(),
                 outerCol,
                 column.metadata()
             ));
@@ -331,7 +331,7 @@ public class SqlServerTranslator extends AbstractTranslator {
 
     TableExpr from = update.tables();
     st.append('"').append(update.updateTableAlias()).append('"');
-    Update.addSet(st, update.set(), target(), true);
+    Update.addSet(st, update.set(), target(), true, path);
 
     // output clause for SQL Server if specified
     QueryTranslation q = null;

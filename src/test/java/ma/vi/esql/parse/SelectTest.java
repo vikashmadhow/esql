@@ -45,7 +45,7 @@ public class SelectTest extends DataTest {
                                         .orderBy("s.a", "asc")
                                         .build(),
                                   select);
-                     con.exec(select);
+                     printResult(con.exec(select), 20);
                    }
                  }));
   }

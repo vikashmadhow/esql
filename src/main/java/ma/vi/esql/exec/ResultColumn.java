@@ -22,7 +22,7 @@ public class ResultColumn<T> {
 
   @Override
   public String toString() {
-    return column.alias() + '='
+    return column.name() + '='
         + (value == null ? "null" : value.getClass().isArray() ? Arrays.toString((Object[])value) : value)
         + (metadata != null ? ' ' + Maps.toString(metadata) : "");
   }

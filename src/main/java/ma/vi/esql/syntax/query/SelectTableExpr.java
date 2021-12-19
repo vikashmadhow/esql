@@ -12,8 +12,6 @@ import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.expression.ColumnRef;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -59,21 +57,12 @@ public class SelectTableExpr extends AbstractAliasTableExpr {
 
   @Override
   public AliasedRelation type(EsqlPath path) {
-//    if (type == null) {
-//      Selection selectType = select().type(path);
-//      List<Column> cols = new ArrayList<>();
-//      for (Column c: selectType.columns()) {
-//        Column col = new Column(c.context, c.alias(), new ColumnRef(c.context, null, c.alias()), null);
-//        col.parent = path.ancestor(QueryUpdate.class);
-//        cols.add(col);
-//      }
-//      type = new AliasedRelation(select().type(), alias());
-//      type = new AliasedRelation(new Selection(cols, this), alias());
+    if (type == null) {
       type = new AliasedRelation(new Selection(select().type(path.add(select())).columns().stream()
-                                                       .map(c -> c.expression(new ColumnRef(c.context, null, c.alias())))
+                                                       .map(c -> c.b.expression(new ColumnRef(c.b.context, null, c.b.name())))
                                                        .toList() , this), alias());
       context.type(alias(), type);
-//    }
+    }
     return type;
   }
 

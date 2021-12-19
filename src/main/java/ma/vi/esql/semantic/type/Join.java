@@ -5,7 +5,8 @@
 package ma.vi.esql.semantic.type;
 
 import ma.vi.base.lang.NotFoundException;
-import ma.vi.base.string.Strings;
+import ma.vi.base.tuple.T2;
+import ma.vi.esql.syntax.expression.ColumnRef;
 import ma.vi.esql.syntax.expression.Expression;
 import ma.vi.esql.syntax.query.Column;
 
@@ -15,8 +16,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-
-import static java.util.stream.Collectors.toList;
 
 /**
  * @author Vikash Madhow (vikash.madhow@gmail.com)
@@ -40,13 +39,8 @@ public class Join extends Relation {
   }
 
   @Override
-  public Relation forAlias(String alias) throws NotFoundException {
-    if (alias == null) {
-      return null;
-    } else {
-      Relation rel = left.forAlias(alias);
-      return rel != null ? rel : right.forAlias(alias);
-    }
+  public String alias() {
+    return null;
   }
 
   @Override
@@ -57,7 +51,7 @@ public class Join extends Relation {
   }
 
   @Override
-  public List<Column> columns() {
+  public List<T2<Relation, Column>> columns() {
     if (columns == null) {
       columns = new ArrayList<>(left.columns());
       columns.addAll(right.columns());
@@ -66,64 +60,24 @@ public class Join extends Relation {
   }
 
   @Override
-  public List<Column> columns(String alias, String prefix) {
-    List<Column> cols = new ArrayList<>();
-    Set<String> colNames = new HashSet<>();
-
-    Relation leftRel = alias == null ? left : left.forAlias(alias);
-    if (leftRel != null) {
-      cols.addAll(leftRel.columns(alias, prefix));
-      colNames.addAll(cols.stream().map(Column::alias).toList());
-    }
-
-    Relation rightRel = alias == null ? right : right.forAlias(alias);
-    if (rightRel != null) {
-      for (Column col: rightRel.columns(alias, prefix)) {
-        if (!colNames.contains(col.alias())) {
-          cols.add(col);
-          colNames.add(col.alias());
-        } else {
-          if (alias == null && !col.alias().startsWith("/")) {
-            /*
-             * Ambiguous column as existing in both left and right relations.
-             */
-            throw new AmbiguousColumnException("Ambiguous column " + col.alias() + " exists in both "
-                                                   + left.name() + " and " + right.name());
-
-          } else {
-            String newName = Strings.makeUnique(colNames, col.alias());
-            col.alias(newName);
-            cols.add(col);
-          }
-        }
-      }
-    }
+  public List<T2<Relation, Column>> columns(String prefix) {
+    List<T2<Relation, Column>> cols = new ArrayList<>(left.columns(prefix));
+    cols.addAll(right.columns(prefix));
     return cols;
   }
 
   @Override
-  public Column findColumn(String relationAlias, String name) throws NotFoundException, AmbiguousColumnException {
-    if (relationAlias == null) {
-      Column col = left.findColumn(relationAlias, name);
-      if (col == null) {
-        col = right.findColumn(relationAlias, name);
-      } else {
-        Column rightCol = right.findColumn(relationAlias, name);
-        if (rightCol != null) {
-          /*
-           * Ambiguous column as existing in both left and right relations.
-           */
-          throw new AmbiguousColumnException("Ambiguous column " + name + " exists in both "
-                                           + left.name() + " and " + right.name());
-        }
+  public T2<Relation, Column> findColumn(ColumnRef ref) throws NotFoundException, AmbiguousColumnException {
+    T2<Relation, Column> col = left.findColumn(ref);
+    if (col == null) {
+      return right.findColumn(ref);
+    } else {
+      T2<Relation, Column> rightCol = right.findColumn(ref);
+      if (rightCol != null) {
+        throw new AmbiguousColumnException("Ambiguous column " + ref + " exists in both "
+                                         + left.name() + " and " + right.name());
       }
       return col;
-    } else {
-      Relation rel = forAlias(relationAlias);
-      if (rel == null) {
-        return null;
-      }
-      return rel.findColumn(relationAlias, name);
     }
   }
 
@@ -153,5 +107,5 @@ public class Join extends Relation {
 
   private final Relation left;
   private final Relation right;
-  private transient volatile List<Column> columns;
+  private transient volatile List<T2<Relation, Column>> columns;
 }

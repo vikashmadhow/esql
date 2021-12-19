@@ -202,7 +202,7 @@ public class DataTest {
         System.out.println('+' + repeat(repeat('-', columnWidth) + '+', rs.columns()));
         System.out.print('|');
         for (int i = 0; i < rs.columns(); i++) {
-          System.out.print(rightPad(rs.column(i + 1).alias(), columnWidth) + '|');
+          System.out.print(rightPad(rs.column(i + 1).name(), columnWidth) + '|');
         }
         System.out.println();
         System.out.println('+' + repeat(repeat('-', columnWidth) + '+', rs.columns()));

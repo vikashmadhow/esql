@@ -9,6 +9,7 @@ import ma.vi.base.tuple.T2;
 import ma.vi.esql.database.Database;
 import ma.vi.esql.exec.Result;
 import ma.vi.esql.semantic.type.BaseRelation;
+import ma.vi.esql.semantic.type.Relation;
 import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.syntax.*;
 import ma.vi.esql.syntax.expression.ColumnRef;
@@ -311,8 +312,8 @@ public class CreateTable extends Define {
         Map<String, ColumnDefinition> columns = new HashMap<>();
         for (ColumnDefinition column: columns()) {
           columns.put(column.name(), column);
-          Column existingColumn = table.findColumn(null, column.name());
-          if (existingColumn == null) {
+          T2<Relation, Column> existing = table.findColumn(ColumnRef.of(null, column.name()));
+          if (existing == null) {
             /*
              * No existing field with that name: add
              */
@@ -324,6 +325,7 @@ public class CreateTable extends Define {
             /*
              * alter existing field
              */
+            Column existingColumn = existing.b();
             Type toType = !existingColumn.type(path.add(existingColumn)).equals(column.type()) ? column.type() : null;
 
             boolean setNotNull = column.notNull() != null
@@ -404,8 +406,8 @@ public class CreateTable extends Define {
           /*
            * drop excess fields
            */
-          for (Column column: new ArrayList<>(table.columns())) {
-            String columnName = column.alias();
+          for (T2<Relation, Column> column: new ArrayList<>(table.columns())) {
+            String columnName = column.b().name();
             if (columnName != null
                 && columnName.indexOf('/') == -1
                 && !columns.containsKey(columnName)) {

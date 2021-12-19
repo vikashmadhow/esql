@@ -9,9 +9,11 @@ import ma.vi.esql.database.Database;
 import ma.vi.esql.database.Structure;
 import ma.vi.esql.exec.Result;
 import ma.vi.esql.semantic.type.BaseRelation;
+import ma.vi.esql.semantic.type.Relation;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
+import ma.vi.esql.syntax.expression.ColumnRef;
 import ma.vi.esql.syntax.query.Column;
 
 import java.sql.Connection;
@@ -171,10 +173,11 @@ public class AlterTable extends Define {
             }
           }
         } else if (alteration instanceof AlterColumn alterCol) {
-          Column column = relation.column(alterCol.columnName());
-          if (column == null) {
+          T2<Relation, Column> c = relation.column(ColumnRef.of(null, alterCol.columnName()));
+          if (c == null) {
             throw new IllegalArgumentException("Relation " + name() + " does not contain column " + alterCol.columnName());
           }
+          Column column = c.b();
           AlterColumnDefinition def = alterCol.definition();
           if (def.toName() != null) {
             /*
@@ -183,17 +186,17 @@ public class AlterTable extends Define {
             if (!column.derived()) {
               if (db.target() == SQLSERVER) {
                 con.createStatement().executeUpdate(
-                    "sp_rename '" + dbName + ".\"" + column.alias() + "\"', '" + def.toName() + "', 'COLUMN'");
+                    "sp_rename '" + dbName + ".\"" + column.name() + "\"', '" + def.toName() + "', 'COLUMN'");
               } else {
                 con.createStatement().executeUpdate(
                     "ALTER TABLE " + dbName +
-                        " ALTER COLUMN \"" + column.alias() +
+                        " ALTER COLUMN \"" + column.name() +
                         "\" RENAME TO \"" + def.toName() + '"');
               }
             }
             s.database.columnName(con, column.id(), def.toName());
             relation.removeColumn(alterCol.columnName());
-            column = column.alias(def.toName());
+            column = column.name(def.toName());
             relation.addColumn(column);
           }
           if (def.toType() != null) {
@@ -204,12 +207,12 @@ public class AlterTable extends Define {
               if (db.target() == POSTGRESQL) {
                 con.createStatement().executeUpdate(
                     "ALTER TABLE " + dbName +
-                        " ALTER COLUMN \"" + column.alias() +
+                        " ALTER COLUMN \"" + column.name() +
                         "\" TYPE " + def.toType().translate(db.target(), path.add(def)));
               } else {
                 con.createStatement().executeUpdate(
                     "ALTER TABLE " + dbName +
-                        " ALTER COLUMN \"" + column.alias() +
+                        " ALTER COLUMN \"" + column.name() +
                         "\" " + def.toType().translate(db.target(), path.add(def)));
               }
             }
@@ -235,7 +238,7 @@ public class AlterTable extends Define {
                         "  JOIN sys.columns c ON d.parent_column_id=c.column_id " +
                         " WHERE d.parent_object_id=OBJECT_ID(N'" + dbName + "') " +
                         "   AND c.object_id=OBJECT_ID(N'" + dbName + "') " +
-                        "   AND c.name='" + column.alias() + "'")) {
+                        "   AND c.name='" + column.name() + "'")) {
                   if (rs.next()) {
                     String defaultConstraint = rs.getString(1);
                     con.createStatement().executeUpdate(
@@ -245,7 +248,7 @@ public class AlterTable extends Define {
               } else {
                 // drop default
                 con.createStatement().executeUpdate(
-                  "ALTER TABLE " + dbName + " ALTER COLUMN \"" + column.alias() + "\" DROP DEFAULT");
+                  "ALTER TABLE " + dbName + " ALTER COLUMN \"" + column.name() + "\" DROP DEFAULT");
               }
               s.database.defaultValue(con, column.id(), null);
               relation.addOrReplaceColumn(column.defaultExpression(null));
@@ -260,12 +263,12 @@ public class AlterTable extends Define {
                 con.createStatement().executeUpdate(
                     "ALTER TABLE " + dbName +
                         " ADD DEFAULT " + def.setDefault().translate(db.target(), path.add(def.setDefault())) +
-                        " FOR \"" + column.alias() + '"');
+                        " FOR \"" + column.name() + '"');
               } else {
                 // change the table name only
                 con.createStatement().executeUpdate(
                     "ALTER TABLE " + dbName +
-                        " ALTER COLUMN \"" + column.alias() +
+                        " ALTER COLUMN \"" + column.name() +
                         "\" SET DEFAULT " + def.setDefault().translate(db.target(), path.add(def.setDefault())));
               }
               s.database.defaultValue(con, column.id(), def.setDefault().translate(ESQL, path.add(def.setDefault())));
@@ -281,12 +284,12 @@ public class AlterTable extends Define {
               if (db.target() == SQLSERVER) {
                 con.createStatement().executeUpdate(
                     "ALTER TABLE " + dbName +
-                        " ALTER COLUMN \"" + column.alias() +
+                        " ALTER COLUMN \"" + column.name() +
                         "\" " + column.type(path.add(column)).translate(db.target(), path.add(column)) + " NOT NULL");
               } else {
                 con.createStatement().executeUpdate(
                     "ALTER TABLE " + dbName +
-                        " ALTER COLUMN \"" + column.alias() +
+                        " ALTER COLUMN \"" + column.name() +
                         "\" SET NOT NULL");
               }
               s.database.notNull(con, column.id(), (db.target() == SQLSERVER ? "1" : "true"));
@@ -301,12 +304,12 @@ public class AlterTable extends Define {
               if (db.target() == SQLSERVER) {
                 con.createStatement().executeUpdate(
                     "ALTER TABLE " + dbName +
-                        " ALTER COLUMN \"" + column.alias() +
+                        " ALTER COLUMN \"" + column.name() +
                         "\" " + column.type(path.add(column)).translate(db.target(), path.add(column)) + " NULL");
               } else {
                 con.createStatement().executeUpdate(
                     "ALTER TABLE " + dbName +
-                        " ALTER COLUMN \"" + column.alias() +
+                        " ALTER COLUMN \"" + column.name() +
                         "\" DROP NOT NULL");
               }
               s.database.notNull(con, column.id(), db.target() == SQLSERVER ? "0" : "false");
@@ -330,7 +333,8 @@ public class AlterTable extends Define {
           /*
            * Drop a column.
            */
-          Column column = relation.column(drop.columnName());
+          T2<Relation, Column> col = relation.column(ColumnRef.of(null, drop.columnName()));
+          Column column = col.b();
           if (column == null) {
             throw new IllegalArgumentException("Relation " + name() + " does not contain column " + drop.columnName());
           }
@@ -339,7 +343,7 @@ public class AlterTable extends Define {
           List<ConstraintDefinition> constraints = relation.constraints();
           if (!constraints.isEmpty()) {
             for (ConstraintDefinition c: new ArrayList<>(constraints)) {
-              if (c.columns().contains(column.alias())) {
+              if (c.columns().contains(column.name())) {
                 new AlterTable(context, relation.name(),
                                singletonList(new DropConstraint(context, c.name()))).execute(db, con, path);
               }

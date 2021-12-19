@@ -5,6 +5,8 @@
 package ma.vi.esql.semantic.type;
 
 import ma.vi.base.lang.NotFoundException;
+import ma.vi.base.tuple.T2;
+import ma.vi.esql.syntax.expression.ColumnRef;
 import ma.vi.esql.syntax.query.Column;
 
 import java.util.ArrayList;
@@ -57,10 +59,6 @@ public abstract class Relation extends AbstractType {
   @Override
   public abstract Relation copy();
 
-  public Relation forAlias(String alias) {
-    return alias == null ? this : null;
-  }
-
   @Override
   public Kind kind() {
     return Kind.COMPOSITE;
@@ -71,87 +69,64 @@ public abstract class Relation extends AbstractType {
     return false;
   }
 
+  public abstract String alias();
+
   public abstract Set<String> aliases();
 
-  public abstract List<Column> columns();
+  public abstract List<T2<Relation, Column>> columns();
 
-  public List<Column> columns(String name) {
-    return columns(null, name);
-  }
-
-  public List<Column> columns(String relationAlias, String prefix) {
-    Relation rel = this;
-    if (relationAlias != null) {
-      rel = forAlias(relationAlias);
-      if (rel == null) {
-        throw new NotFoundException("Relation with alias " + relationAlias + " could not be found");
-      }
-    }
-    List<Column> cols = new ArrayList<>();
-    for (Column c: rel.columns()) {
-      String alias = c.alias();
+  public List<T2<Relation, Column>> columns(String prefix) {
+    List<T2<Relation, Column>> cols = new ArrayList<>();
+    for (T2<Relation, Column> col: columns()) {
+      Column c = col.b();
+      String alias = c.name();
       if (alias != null
           && (alias.equals(prefix)
            || (alias.startsWith(prefix)
             && alias.length() > prefix.length()
             && alias.charAt(prefix.length()) == '/'))) {
-        cols.add(c);
+        cols.add(col);
       }
     }
     return cols;
   }
 
-  public boolean hasColumn(String name) {
-    return hasColumn(null, name);
+  public Column column(String column) throws NotFoundException, AmbiguousColumnException {
+    return column(ColumnRef.of(null, column)).b;
   }
 
-  public boolean hasColumn(String relationAlias, String name) {
-    return findColumn(relationAlias, name) != null;
-  }
-
-  public Column column(String name) throws NotFoundException, AmbiguousColumnException {
-    return column(null, name);
-  }
-
-  public Column column(String relationAlias, String name) throws NotFoundException {
-    Column col = findColumn(relationAlias, name);
+  public T2<Relation, Column> column(ColumnRef ref) throws NotFoundException, AmbiguousColumnException {
+    T2<Relation, Column> col = findColumn(ref);
     if (col == null) {
-      Relation rel = forAlias(relationAlias);
-      if (rel == null) {
-        throw new NotFoundException("Relation with alias " + relationAlias + " not found");
-      } else {
-        throw new NotFoundException("Column " + (relationAlias == null ? "" : relationAlias + '.') + name
-                                 + " could not be found in relation " + rel.name());
-      }
+      throw new NotFoundException("Column " + ref + " could not be found in relation " + this);
     }
     return col;
   }
 
-  public Column findColumn(String relationAlias, String name) {
-    Relation rel = this;
-    if (relationAlias != null) {
-      rel = forAlias(relationAlias);
-      if (rel == null) {
-        throw new NotFoundException("Relation with alias " + relationAlias + " could not be found");
-      }
-    }
-    Column col = null;
-    for (Column c: rel.columns()) {
-      if (c.alias() != null && c.alias().equals(name)) {
+  public Column findColumn(String name) {
+    T2<Relation, Column> c = findColumn(ColumnRef.of(null, name));
+    return c == null ? null : c.b;
+  }
+
+  public T2<Relation, Column> findColumn(ColumnRef ref) {
+    T2<Relation, Column> col = null;
+    for (T2<Relation, Column> relCol: columns()) {
+      Column c = relCol.b();
+      if (c.name() != null && c.name().equals(ref.name())) {
         if (col != null) {
-          throw new AmbiguousColumnException("Ambiguous column " + name);
+          throw new AmbiguousColumnException("Ambiguous column " + ref.name());
         }
-        col = c;
+        col = relCol;
       }
     }
-    return col;
+    return null;
   }
 
   @Override
   public String toString() {
     StringBuilder st = new StringBuilder(name()).append(" {\n");
-    for (Column c: columns()) {
-      c._toString(st, 2, 2);
+    for (T2<Relation, Column> c: columns()) {
+      c.b()._toString(st, 2, 2);
       st.append('\n');
     }
     st.append('}');

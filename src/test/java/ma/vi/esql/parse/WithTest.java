@@ -40,12 +40,15 @@ public class WithTest extends DataTest {
                                   + "(newid(), 1, 2, u'" + id1 + "'), "
                                   + "(newid(), 3, 4, u'" + id2 + "')");
 
-                     Result rs = con.exec(
-                         "with s(id, a, b, c) ("
-                       + "  select _id, a, b, c from S order by a"
-                       + ")"
-                       + "select t.a, t.b, s.c "
-                       + "  from t:a.b.T join s on t.s_id=s.id order by t.a");
+                     Result rs = con.exec("""
+                         with s(id, a, b, c) (
+                          select _id, a, b, c
+                            from S
+                           order by a
+                         )
+                         select t.a, t.b, s.c, x:s.b
+                           from t:a.b.T
+                           join s on t.s_id=s.id order by t.a""");
 
                      rs.next(); assertEquals(1, (Integer)rs.value("a"));
                                 assertEquals(2, (Integer)rs.value("b"));
@@ -96,13 +99,15 @@ public class WithTest extends DataTest {
                      con.exec(insert, of("id", randomUUID()), of("parent", c), of("name", "c_child3"));
                      con.exec(insert, of("id", randomUUID()), of("parent", c), of("name", "c_child4"));
 
-                     Result rs = con.exec(
-                         "with recursive r(id, parent, name) ("
-                       + "  select _id, parent_id, name from x.R where parent_id is null "
-                       + "  union all "
-                       + "  select xr._id, xr.parent_id, r.name || '/' || xr.name from xr:x.R join r on xr.parent_id=r.id"
-                       + ")"
-                       + "select * from r order by name");
+                     Result rs = con.exec("""             
+                       with recursive r(id, parent, name) (
+                         select _id, parent_id, name from x.R where parent_id is null
+                         union all
+                         select xr._id, xr.parent_id, r.name || '/' || xr.name from xr:x.R join r on xr.parent_id=r.id
+                       ),
+                       b (select * from t:(select * from r order by name))
+                       select * from b order by name
+                       """);
 
 //                     printResult(rs, 40);
 

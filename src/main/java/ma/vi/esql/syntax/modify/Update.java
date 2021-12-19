@@ -7,6 +7,7 @@ package ma.vi.esql.syntax.modify;
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
+import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.define.Attribute;
 import ma.vi.esql.syntax.define.Metadata;
 import ma.vi.esql.syntax.expression.Expression;
@@ -72,7 +73,8 @@ public class Update extends QueryUpdate {
   public static void addSet(StringBuilder st,
                             Metadata sets,
                             Target target,
-                            boolean removeQualifier) {
+                            boolean removeQualifier,
+                            EsqlPath path) {
     boolean first = true;
     st.append(" set ");
     for (Attribute set: sets.attributes().values()) {
@@ -89,7 +91,7 @@ public class Update extends QueryUpdate {
         }
       }
       st.append('"').append(columnName).append("\"=")
-        .append(set.attributeValue().translate(target));
+        .append(set.attributeValue().translate(target, path));
     }
   }
 

@@ -53,6 +53,18 @@ public abstract class MultipleSubExpressions extends Expression<String, String> 
     return Types.TopType;
   }
 
+  @Override
+  public void _toString(StringBuilder st, int level, int indent) {
+    st.append(value).append('(');
+    boolean first = true;
+    for (Esql<?, ?> child: children()) {
+      if (first) first = false;
+      else       st.append(", ");
+      child._toString(st, level, indent);
+    }
+    st.append(')');
+  }
+
   public List<Expression<?, String>> expressions() {
     return children();
   }

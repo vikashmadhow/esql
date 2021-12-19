@@ -34,7 +34,7 @@ import static ma.vi.esql.syntax.Translatable.Target.ESQL;
  */
 public class Column extends MetadataContainer<String> {
   public Column(Context context,
-                String alias,
+                String name,
                 Expression<?, String> expression,
                 Metadata metadata,
                 T2<String, ? extends Esql<?, ?>>... children) {
@@ -42,7 +42,7 @@ public class Column extends MetadataContainer<String> {
           Stream.concat(
             Stream.of(
               new T2[]{
-                T2.of("alias", new Esql<>(context, autoAlias(expression, alias))),
+                T2.of("name", new Esql<>(context, autoName(expression, name))),
                 T2.of("expression", expression),
                 T2.of("metadata", addId(metadata))
               }),
@@ -84,17 +84,17 @@ public class Column extends MetadataContainer<String> {
   }
 
   /**
-   * Compute a unique alias with referenced column name if provided alias is null.
+   * Compute a unique name with referenced column name if provided name is null.
    */
-  private static String autoAlias(Expression<?, String> expr, String alias) {
-    if (alias == null) {
+  private static String autoName(Expression<?, String> expr, String name) {
+    if (name == null) {
       if (expr instanceof ColumnRef) {
         return ((ColumnRef)expr).name();
       } else {
         return "__auto_col_" + Strings.random(10);
       }
     }
-    return alias;
+    return name;
   }
 
   public static Column fromDefinition(ColumnDefinition def, EsqlPath path) {
@@ -136,8 +136,8 @@ public class Column extends MetadataContainer<String> {
   protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
     if (target == ESQL) {
       StringBuilder st = new StringBuilder();
-      if (alias() != null) {
-        st.append(alias()).append(':');
+      if (name() != null) {
+        st.append(name()).append(':');
       }
       st.append(expression().translate(target, path.add(expression()), parameters));
       Metadata metadata = metadata();
@@ -156,8 +156,8 @@ public class Column extends MetadataContainer<String> {
 
     } else {
       StringBuilder st = new StringBuilder(expression().translate(target, path.add(expression()), parameters));
-      if (alias() != null) {
-        st.append(" \"").append(alias()).append('"');
+      if (name() != null) {
+        st.append(" \"").append(name()).append('"');
       }
       return st.toString();
     }
@@ -271,8 +271,8 @@ public class Column extends MetadataContainer<String> {
 
   @Override
   public void _toString(StringBuilder st, int level, int indent) {
-    if (alias() != null) {
-      st.append(alias()).append(':');
+    if (name() != null) {
+      st.append(name()).append(':');
     }
     st.append(expression());
     if (metadata() != null && !metadata().attributes().isEmpty()) {
@@ -280,8 +280,8 @@ public class Column extends MetadataContainer<String> {
     }
   }
 
-  public String alias() {
-    return childValue("alias");
+  public String name() {
+    return childValue("name");
   }
 
   public Expression<?, String> expression() {
@@ -292,7 +292,7 @@ public class Column extends MetadataContainer<String> {
     return set("expression", expression);
   }
 
-  public Column alias(String alias) {
-    return set("alias", new Esql<>(context, alias));
+  public Column name(String name) {
+    return set("name", new Esql<>(context, name));
   }
 }

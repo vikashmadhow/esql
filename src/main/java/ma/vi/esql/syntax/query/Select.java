@@ -87,7 +87,7 @@ public class Select extends QueryUpdate /* implements Macro */ {
     List<Column> renamed = new ArrayList<>();
     Set<String> names = new HashSet<>();
     for (Column column: columns) {
-      String alias = column.alias();
+      String alias = column.name();
       if (alias.startsWith("__auto_col")) {
         if (column.expression() instanceof FunctionCall) {
           alias = makeUnique(names, ((FunctionCall)column.expression()).functionName());

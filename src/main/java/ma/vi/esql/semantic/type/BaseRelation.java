@@ -27,7 +27,6 @@ import static java.util.stream.Collectors.toSet;
 import static ma.vi.base.string.Strings.makeUnique;
 import static ma.vi.base.string.Strings.random;
 import static ma.vi.esql.builder.Attributes.DERIVED;
-import static ma.vi.esql.syntax.expression.ColumnRef.qualify;
 
 /**
  * A relation is a composite type with a qualified name (i.e. with a schema name included).
@@ -52,45 +51,38 @@ public class BaseRelation extends Relation {
     if (constraints != null) {
       this.constraints.addAll(constraints);
     }
-//    this.columns = expandColumns(attributes, columns);
-//    this.columns = columns;
-//    this.columns = new ArrayList<>();
     Set<String> aliases = new HashSet<>();
 
     PathTrie<Column> aliasedColumns = new PathTrie<>();
     for (Column column: columns) {
-      aliasedColumns.put(column.alias(), column);
+      aliasedColumns.put(column.name(), column);
     }
     for (Column column: columns) {
       /*
        * Implicit aliasing of columns.
        */
-      if (column.alias() == null) {
+      if (column.name() == null) {
         Expression<?, String> expr = column.expression();
         if (expr instanceof ColumnRef) {
-          column = column.alias(((ColumnRef)expr).name());
+          column = column.name(((ColumnRef)expr).name());
         } else {
-          column = column.alias(makeUnique(aliases, "column"));
+          column = column.name(makeUnique(aliases, "column"));
         }
       }
-      aliases.add(column.alias());
+      aliases.add(column.name());
 
       /*
        * Expand expressions of derived columns until they consist only of
        * base columns. E.g., {a:a, b:a+5, c:a+b, d:c+b}
        *      is expanded to {a:a, b:a+5, c:a+a+5, d:a+a+5+a+5}
        */
-//      if (column.derived()
-//      && !(column.expression() instanceof Literal)
-//      && (!(column.expression() instanceof ColumnRef)
-//       || !((ColumnRef)column.expression()).name().equals(column.alias()))) {
       if (column.derived()
       && !(column.expression() instanceof Literal)
       && (!(column.expression() instanceof ColumnRef)
-       || !((ColumnRef)column.expression()).name().equals(column.alias()))) {
+       || !((ColumnRef)column.expression()).name().equals(column.name()))) {
         column = column.expression(expandDerived(column.expression(),
                                                  aliasedColumns,
-                                                 column.alias(),
+                                                 column.name(),
                                                  new HashSet<>()));
       }
       if (column.metadata() != null && !column.metadata().attributes().isEmpty()) {
@@ -98,13 +90,13 @@ public class BaseRelation extends Relation {
         for (Attribute attr: column.metadata().attributes().values()) {
           attrs.add(attr.attributeValue(expandDerived(attr.attributeValue(),
                                                       aliasedColumns,
-                                                      column.alias() + '/' + attr.name(),
+                                                      column.name() + '/' + attr.name(),
                                                       new HashSet<>())));
         }
         column = column.metadata(new Metadata(column.context, attrs));
       }
       this.columns.add(column);
-      this.columnsByAlias.put(column.alias(), column);
+      this.columnsByAlias.put(column.name(), column);
     }
 
     if (attributes != null) {
@@ -121,11 +113,8 @@ public class BaseRelation extends Relation {
     this.name = other.name;
     this.displayName = other.displayName;
     this.description = other.description;
-
-//    this.columns = new ArrayList<>();
     for (Column column: other.columns) {
-      Column col = column.copy();
-      this.columns.add(col);
+      this.columns.add(column.copy());
     }
     for (ConstraintDefinition c: other.constraints) {
       this.constraints.add(c.copy());
@@ -138,29 +127,37 @@ public class BaseRelation extends Relation {
   }
 
   @Override
+  public String alias() {
+    int pos = name.lastIndexOf('.');
+    return pos == -1 ? name : name.substring(pos + 1);
+  }
+
+  @Override
   public Set<String> aliases() {
     return emptySet();
   }
 
   @Override
-  public List<Column> columns() {
-    return columns;
+  public List<T2<Relation, Column>> columns() {
+    return columns.stream().map(c -> new T2<Relation, Column>(this, c)).toList();
   }
 
-  public Column findColumn(String relationAlias, String name) {
-    return columnsByAlias.get(name);
+  @Override
+  public T2<Relation, Column> findColumn(ColumnRef ref) {
+    Column column = columnsByAlias.get(ref.name());
+    return column == null ? null : T2.of(this, column);
   }
 
   public void addColumn(Column column) {
     for (Column c: expandColumn(column, aliasedColumns(columns))) {
       this.columns.add(c);
-      this.columnsByAlias.put(c.alias(), c);
+      this.columnsByAlias.put(c.name(), c);
     }
   }
 
   public void addOrReplaceColumn(Column column) {
-    String columnName = column.alias();
-    if (hasColumn(columnName)) {
+    String columnName = column.name();
+    if (columnsByAlias.get(columnName) != null) {
       removeColumn(columnName);
     }
     addColumn(column);
@@ -170,20 +167,19 @@ public class BaseRelation extends Relation {
     List<T2<String, Column>> cols = columnsByAlias.getPrefixed(columnName);
     columnsByAlias.deletePrefixed(columnName);
     Set<String> colNames = cols.stream().map(T2::a).collect(toSet());
-    return columns.removeIf(c -> colNames.contains(c.alias()));
+    return columns.removeIf(c -> colNames.contains(c.name()));
   }
 
   @Override
-  public List<Column> columns(String alias, String prefix) {
+  public List<T2<Relation, Column>> columns(String prefix) {
     List<T2<String, Column>> cols = columnsByAlias.getPrefixed(prefix);
     return cols.stream()
-               .map(t -> alias == null
-                       ? t.b().copy()
-                       : qualify(t.b().copy(), alias, true))
+               .map(t -> new T2<Relation, Column>(this, t.b().copy()))
                .toList();
   }
 
-  @Override public Expression<?, String> attribute(String name, Expression<?, String> value) {
+  @Override
+  public Expression<?, String> attribute(String name, Expression<?, String> value) {
     if (value != null) {
       value = expandDerived(value, columnsByAlias, name, new HashSet<>());
     }
@@ -280,21 +276,21 @@ public class BaseRelation extends Relation {
      * Implicit aliasing of columns.
      */
     Set<String> aliases = this.columns.stream()
-                                      .map(Column::alias)
+                                      .map(Column::name)
                                       .collect(toCollection(HashSet::new));
     for (Column column: this.columns) {
       column = column.set("relation", new Esql<>(context, this));
-      if (column.alias() == null) {
+      if (column.name() == null) {
         Expression<?, String> expr = column.expression();
         if (expr instanceof ColumnRef) {
-          column = column.alias(((ColumnRef)expr).name());
+          column = column.name(((ColumnRef)expr).name());
         } else {
-          column = column.alias(makeUnique(aliases, "column"));
+          column = column.name(makeUnique(aliases, "column"));
         }
       }
-      aliases.add(column.alias());
-      if (this.columnsByAlias.get(column.alias()) == null) {
-        this.columnsByAlias.put(column.alias(), column);
+      aliases.add(column.name());
+      if (this.columnsByAlias.get(column.name()) == null) {
+        this.columnsByAlias.put(column.name(), column);
       }
     }
   }
@@ -350,7 +346,7 @@ public class BaseRelation extends Relation {
   private static List<Column> expandColumn(Column column, Map<String, String> aliased) {
     List<Column> newCols = new ArrayList<>();
     newCols.add(column);
-    String colAlias = column.alias();
+    String colAlias = column.name();
     if (!colAlias.contains("/")) {
       if (column.metadata() != null) {
         Boolean derived = column.metadata().evaluateAttribute(DERIVED);
@@ -393,7 +389,7 @@ public class BaseRelation extends Relation {
       Expression<?, String> expr = col.expression();
       if (expr instanceof ColumnRef) {
         String name = ((ColumnRef)expr).name();
-        String alias = col.alias();
+        String alias = col.name();
         if (alias != null && !name.equals(alias)) {
           aliased.put(name, alias);
         }
@@ -460,60 +456,12 @@ public class BaseRelation extends Relation {
     return null;
   }
 
-//    public void dependency(Relation dependency) {
-//        if (dependencies == null) {
-//            dependencies = new HashSet<>();
-//        }
-//        dependencies.add(dependency);
+//  public void dependency(Relation dependency) {
+//    if (dependencies == null) {
+//      dependencies = new HashSet<>();
 //    }
-//
-//    public List<Column> columns() {
-//        return unmodifiableList(columns);
-//    }
-//
-//    /**
-//     * Some relations are aliased or formed by several aliased relations
-//     * joined together; such relations are specified in the table expressions
-//     * for queries and update statements. This method can be used to extract
-//     * a specific aliased relation from this relation if it has been formed
-//     * for such combinations of relations.
-//     */
-//    public Relation forAlias(String alias) {
-//        if (this instanceof AliasedRelation && ((AliasedRelation)this).alias.equals(alias)) {
-//            return this;
-//
-//        } else if (this instanceof Join) {
-//            Join join = (Join)this;
-//            for (Relation rel: join.relations) {
-//                Relation aliased = rel.forAlias(alias);
-//                if (aliased != null) {
-//                    return aliased;
-//                }
-//            }
-//        }
-//        return null;
-//    }
-//
-//    /**
-//     * Find the alias for the relation if this relation is  an aliased relation
-//     * for the provided one, or if this is a join which contains the provided
-//     * relation as a component.
-//     */
-//    public String aliasFor(Relation relation) {
-//        if (this instanceof AliasedRelation && ((AliasedRelation)this).relation.name().equals(relation.name())) {
-//            return ((AliasedRelation)this).alias;
-//
-//        } else if (this instanceof Join) {
-//            Join join = (Join)this;
-//            for (Relation rel: join.relations) {
-//                String alias = rel.aliasFor(relation);
-//                if (alias != null) {
-//                    return alias;
-//                }
-//            }
-//        }
-//        return null;
-//    }
+//    dependencies.add(dependency);
+//  }
 
   private static final class Node implements Comparable<Node> {
     private Node(Node previous,
@@ -524,7 +472,7 @@ public class BaseRelation extends Relation {
       this.reverse = reverse;
 
       this.cost = (previous != null ? previous.cost : 0)
-          + (reverse ? constraint.reverseCost() : constraint.forwardCost());
+                + (reverse ? constraint.reverseCost() : constraint.forwardCost());
     }
 
     @Override

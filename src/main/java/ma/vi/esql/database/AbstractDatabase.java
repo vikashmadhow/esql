@@ -28,6 +28,7 @@ import ma.vi.esql.translator.*;
 
 import java.sql.*;
 import java.util.*;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static java.lang.System.Logger.Level.INFO;
@@ -132,12 +133,17 @@ public abstract class AbstractDatabase implements Database {
                 attributes.add(new Attribute(context, TYPE, new StringLiteral(context, columnType)));
                 if (defaultValue != null) {
                   /*
-                   * Hack to ensure that all boolean value capitalisations
-                   * are mapped to the lowercase esql form. A proper solution
-                   * to this would require a parser for each target database
-                   * as the default expressions read from the information
-                   * schemas are expressed in those.
+                   * Hack to ensure that native database expressions are mapped
+                   * to ESQL form (A proper solution to this would require a parser
+                   * for each target database as the default expressions read from
+                   * the information schemas are expressed in those):
+                   * 1. that all boolean value capitalisations are mapped to the
+                   *    lowercase esql form.
+                   * 2. String prefixes such as N'' and E'' are removed (this is
+                   *    done using a regex which caters for most cases but will
+                   *    not catch all of them; for that a parser is required).
                    */
+                  defaultValue = defaultValue.trim();
                   if (defaultValue.equalsIgnoreCase("true")) {
                     defaultValue = "true";
                   } else if (defaultValue.equalsIgnoreCase("false")) {
@@ -146,6 +152,7 @@ public abstract class AbstractDatabase implements Database {
                   if (defaultValue.equalsIgnoreCase("null")) {
                     defaultValue = "null";
                   }
+                  defaultValue = STRING_PREFIX.matcher(defaultValue).replaceAll("$1");
                   attributes.add(new Attribute(context, EXPRESSION, parser.parseExpression(defaultValue)));
                 }
                 attributes.add(new Attribute(context, ID, new UuidLiteral(context, columnId)));
@@ -649,7 +656,7 @@ public abstract class AbstractDatabase implements Database {
                                       + "    and coalesce(derived_column, false)=false "
                                       + "    and name not in ("
                                       + rel.columns().stream()
-                                           .map(c -> "'" + c.alias() + "'")
+                                           .map(c -> "'" + c.b.name() + "'")
                                            .collect(joining(","))
                                       + ")"));
               }
@@ -752,9 +759,9 @@ public abstract class AbstractDatabase implements Database {
          * set to void by default).
          */
         for (BaseRelation rel: structure.relations().values()) {
-          for (Column column: rel.columns()) {
-            if (column.derived()) {
-              column.type(new EsqlPath(column));
+          for (T2<Relation, Column> column: rel.columns()) {
+            if (column.b.derived()) {
+              column.b.type(new EsqlPath(column.b));
             }
           }
         }
@@ -1158,8 +1165,8 @@ public abstract class AbstractDatabase implements Database {
           Insert insertCol = p.parse(INSERT_COLUMN, "insert");
           Insert insertColAttr = p.parse(INSERT_COLUMN_ATTRIBUTE, "insert");
 
-          for (Column column: table.columns()) {
-            addColumn(econ, table.id(), column, insertCol, insertColAttr);
+          for (T2<Relation, Column> column: table.columns()) {
+            addColumn(econ, table.id(), column.b, insertCol, insertColAttr);
           }
 
           // add constraints
@@ -1205,8 +1212,8 @@ public abstract class AbstractDatabase implements Database {
           econ.exec(p.parse("delete c from c:_core.columns where relation_id='" + tableId + "'"));
           Insert insertCol = p.parse(INSERT_COLUMN, "insert");
           Insert insertColAttr = p.parse(INSERT_COLUMN_ATTRIBUTE, "insert");
-          for (Column column: table.columns()) {
-            addColumn(econ, tableId, column, insertCol, insertColAttr);
+          for (T2<Relation, Column> column: table.columns()) {
+            addColumn(econ, tableId, column.b, insertCol, insertColAttr);
           }
 
           /*
@@ -1279,7 +1286,7 @@ public abstract class AbstractDatabase implements Database {
                            Column column,
                            Insert insertCol,
                            Insert insertColAttr) {
-    String columnName = column.alias();
+    String columnName = column.name();
     if (columnName.indexOf('/') == -1) {
       /*
        * Check if the CAN_DELETE attribute is set on this field and save
@@ -1295,7 +1302,7 @@ public abstract class AbstractDatabase implements Database {
         columnId = UUID.randomUUID();
         attributes.put(ID, Attribute.from(column.context, ID, columnId));
         column = new Column(column.context,
-                            column.alias(),
+                            column.name(),
                             column.expression(),
                             new Metadata(column.context, new ArrayList<>(attributes.values())));
       }
@@ -1303,7 +1310,7 @@ public abstract class AbstractDatabase implements Database {
                 Param.of("id",            columnId),
                 Param.of("canDelete",     canDelete),
                 Param.of("relation",      tableId),
-                Param.of("name",          column.alias()),
+                Param.of("name",          column.name()),
                 Param.of("derivedColumn", column.derived()),
                 Param.of("type",          column.type(new EsqlPath(column)).translate(ESQL)),
                 Param.of("nonNull",       column.notNull()),
@@ -1608,5 +1615,8 @@ public abstract class AbstractDatabase implements Database {
                                                            "SYSTEM_LOBS",
                                                            "MYSQL",
                                                            "PERFORMANCE_SCHEMA");
+
+  private static final Pattern STRING_PREFIX = Pattern.compile("\\b[A-Z]('[^']*')");
+
   private Map<String, Object> config;
 }

@@ -69,13 +69,10 @@ public class Concatenation extends MultipleSubExpressions {
         StringBuilder st = new StringBuilder();
         for (Expression<?, String> e: expressions()) {
           st.append(st.length() == 0 ? "" : " + ")
-//            .append("cast(")
             .append(e.translate(target, path.add(e), parameters));
-//            .append(" as nvarchar)");
         }
         return st.toString();
       }
-      // ESQL, POSTGRESQL
       default -> {
         StringBuilder st = new StringBuilder();
         for (Expression<?, String> e: expressions()) {
@@ -86,42 +83,4 @@ public class Concatenation extends MultipleSubExpressions {
       }
     }
   }
-
-//  @Override
-//  protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
-//    switch (target) {
-//      case POSTGRESQL:
-//      case ESQL:
-//        return expr1().translate(target, parameters) + " || " + expr2().translate(target, parameters);
-//
-////            case SQLSERVER:
-////                StringBuilder st = new StringBuilder();
-////                Type expr1Type = expr1().type(context.db);
-////                Type expr2Type = expr2().type(context.db);
-////
-////                if (expr1Type == context.db.types().StringType || expr1Type == context.db.types().TextType) {
-////                    st.append(expr1().translate(target) + " + " + expr2().translate(target));
-////                } else {
-////                    st.append("cast(")
-////                      .append(expr1().translate(target) + " + " + expr2().translate(target))
-////                      .append(" as nvarchar)");
-////                }
-////
-////                st.append(" + ");
-////
-////                if (expr2Type == context.db.types().StringType || expr2Type == context.db.types().TextType) {
-////                    st.append(expr2().translate(target) + " + " + expr2().translate(target));
-////                } else {
-////                    st.append("cast(")
-////                      .append(expr2().translate(target) + " + " + expr2().translate(target))
-////                      .append(" as nvarchar)");
-////                }
-////                return st.toString();
-//
-//      default:
-//        // Sql server, javascript
-//        String e = expr1().translate(target, parameters) + " + " + expr2().translate(target, parameters);
-//        return target == JSON ? '"' + escapeJsonString(e) + '"' : e;
-//    }
-//  }
 }
