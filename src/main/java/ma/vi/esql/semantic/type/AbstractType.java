@@ -4,9 +4,8 @@
 
 package ma.vi.esql.semantic.type;
 
-import ma.vi.esql.syntax.expression.Expression;
+import ma.vi.esql.syntax.define.Attribute;
 
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -26,13 +25,12 @@ public abstract class AbstractType implements Type {
   AbstractType(AbstractType other) {
     this.name = other.name;
     if (!other.attributesIsNull()) {
-      for (Map.Entry<String, Expression<?, String>> a: other.attributes().entrySet()) {
-        this.attribute(a.getKey(), a.getValue());
-      }
+      this.attributes = new ConcurrentHashMap<>(other.attributes());
     }
   }
 
-  public ConcurrentMap<String, Expression<?, String>> attributes() {
+  @Override
+  public ConcurrentMap<String, Attribute> attributes() {
     if (this.attributes == null) {
       this.attributes = new ConcurrentHashMap<>();
     }
@@ -75,5 +73,5 @@ public abstract class AbstractType implements Type {
    */
   protected String name;
 
-  private ConcurrentMap<String, Expression<?, String>> attributes;
+  private ConcurrentMap<String, Attribute> attributes;
 }

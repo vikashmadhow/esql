@@ -18,6 +18,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static ma.vi.base.lang.Errors.unchecked;
+import static ma.vi.esql.syntax.Macro.ONGOING_MACRO_EXPANSION;
 
 /**
  * The implementation of {@link EsqlConnection}.
@@ -156,7 +157,9 @@ public class EsqlConnectionImpl implements EsqlConnection {
   private static <T extends Esql<?, ?>> T expandMacros(T esql) {
     T expanded;
     int iteration = 0;
-    while ((expanded = (T)esql.map((e, p) -> e instanceof Macro m ? m.expand(e, p) : e)) != esql) {
+    while ((expanded = (T)esql.map((e, p) -> e instanceof Macro m
+                                           ? m.expand(e, p.add(ONGOING_MACRO_EXPANSION))
+                                           : e)) != esql) {
       esql = expanded;
       iteration++;
       if (iteration > 50) {

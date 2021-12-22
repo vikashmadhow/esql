@@ -766,9 +766,9 @@ public abstract class AbstractDatabase implements Database {
           }
         }
 
-        for (BaseRelation rel: structure.relations().values()) {
-          rel.expandColumns();
-        }
+//        for (BaseRelation rel: structure.relations().values()) {
+//          rel.expandColumns();
+//        }
 
         // Todo: parse expressions
         // Todo: load the view sources by interpreting the view definition
@@ -1153,11 +1153,11 @@ public abstract class AbstractDatabase implements Database {
 
           if (table.attributes() != null) {
             Insert insertRelAttr = p.parse(INSERT_TABLE_ATTRIBUTE, "insert");
-            for (Map.Entry<String, Expression<?, String>> a: table.attributes().entrySet()) {
+            for (Map.Entry<String, Attribute> a: table.attributes().entrySet()) {
               econ.exec(insertRelAttr,
                         Param.of("tableId", table.id()),
                         Param.of("name", a.getKey()),
-                        Param.of("value", a.getValue().translate(ESQL)));
+                        Param.of("value", a.getValue().attributeValue().translate(ESQL)));
             }
           }
 

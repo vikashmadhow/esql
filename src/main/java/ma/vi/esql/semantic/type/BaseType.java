@@ -35,9 +35,7 @@ public class BaseType extends AbstractType {
 
   @Override
   public BaseType copy() {
-    /*
-     * Base types are immutable, no need for copy.
-     */
+    /* Base types are immutable, no need for copy. */
     return this;
   }
 

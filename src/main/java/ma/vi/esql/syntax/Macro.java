@@ -30,4 +30,21 @@ public interface Macro {
    *         node itself, in which case no replacement is made.
    */
   Esql<?, ?> expand(Esql<?, ?> esql, EsqlPath path);
+
+  /**
+   * A tagging class set in the path when macro expansion is ongoing. Downstream
+   * processing can detect the presence or absence of an instance of this class
+   * in the current exploring path and modify their behaviour consequently.
+   */
+  final class OngoingMacroExpansion extends Esql<Void, Void> {
+    private OngoingMacroExpansion() {
+      super((Context)null);
+    }
+  }
+
+  /**
+   * The only instance of the {@link OngoingMacroExpansion} class that is placed
+   * in the exploring path to signify that macro expansion is ongoing.
+   */
+  OngoingMacroExpansion ONGOING_MACRO_EXPANSION = new OngoingMacroExpansion();
 }

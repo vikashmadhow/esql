@@ -6,8 +6,8 @@ package ma.vi.esql.semantic.type;
 
 import ma.vi.base.lang.NotFoundException;
 import ma.vi.base.tuple.T2;
+import ma.vi.esql.syntax.define.Attribute;
 import ma.vi.esql.syntax.expression.ColumnRef;
-import ma.vi.esql.syntax.expression.Expression;
 import ma.vi.esql.syntax.query.Column;
 
 import java.util.ArrayList;
@@ -82,8 +82,8 @@ public class Join extends Relation {
   }
 
   @Override
-  public ConcurrentMap<String, Expression<?, String>> attributes() {
-    ConcurrentMap<String, Expression<?, String>> attributes = new ConcurrentHashMap<>();
+  public ConcurrentMap<String, Attribute> attributes() {
+    ConcurrentMap<String, Attribute> attributes = new ConcurrentHashMap<>();
     attributes.putAll(left.attributes());
     attributes.putAll(right.attributes());
     attributes.putAll(super.attributes());
@@ -91,10 +91,10 @@ public class Join extends Relation {
   }
 
   @Override
-  public Expression<?, String> attribute(String name) {
-    return attributes().containsKey(name)       ? attributes().get(name)       :
-           right.attributes().containsKey(name) ? right.attributes().get(name) :
-           left.attributes().getOrDefault(name, null);
+  public Attribute attribute(String name) {
+    return attributes().containsKey(name)       ? attributes().get(name)
+         : right.attributes().containsKey(name) ? right.attributes().get(name)
+         : left.attributes().getOrDefault(name, null);
   }
 
   @Override

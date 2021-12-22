@@ -117,11 +117,15 @@ public class DynamicTableExpr extends AbstractAliasTableExpr {
         col = col.type(columnTypes.get(i));
         relationColumns.add(col);
       }
-      Selection selection = new Selection(BaseRelation.expandColumns(
-                                            metadata() != null
-                                              ? new ArrayList<>(metadata().attributes().values())
-                                              : null,
-                                            relationColumns),this);
+      Selection selection = new Selection(relationColumns,
+                                          metadata() != null
+                                            ? new ArrayList<>(metadata().attributes().values())
+                                            : null,this);
+//      Selection selection = new Selection(BaseRelation.expandColumns(
+//                                            metadata() != null
+//                                              ? new ArrayList<>(metadata().attributes().values())
+//                                              : null,
+//                                            relationColumns),this);
       type = new AliasedRelation(selection, alias());
       context.type(alias(), type);
     }

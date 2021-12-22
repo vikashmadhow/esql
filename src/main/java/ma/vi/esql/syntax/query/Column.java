@@ -42,7 +42,10 @@ public class Column extends MetadataContainer<String> {
           Stream.concat(
             Stream.of(
               new T2[]{
-                T2.of("name", new Esql<>(context, autoName(expression, name))),
+                T2.of("name", new Esql<>(context, name != null ? name
+                                                   : expression instanceof ColumnRef r ? r.name()
+                                                   : null)),
+//                T2.of("name", new Esql<>(context, autoName(expression, name))),
                 T2.of("expression", expression),
                 T2.of("metadata", addId(metadata))
               }),

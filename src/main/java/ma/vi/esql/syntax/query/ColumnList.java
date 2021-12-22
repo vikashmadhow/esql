@@ -4,7 +4,6 @@
 
 package ma.vi.esql.syntax.query;
 
-import ma.vi.base.string.Strings;
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.semantic.type.AliasedRelation;
 import ma.vi.esql.semantic.type.BaseRelation;
@@ -14,11 +13,14 @@ import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.Macro;
 import ma.vi.esql.syntax.define.Attribute;
+import ma.vi.esql.syntax.define.Metadata;
 import ma.vi.esql.syntax.expression.ColumnRef;
+import ma.vi.esql.syntax.expression.Expression;
 
 import java.util.*;
 
 import static java.util.stream.Collectors.joining;
+import static ma.vi.esql.syntax.expression.ColumnRef.qualify;
 
 /**
  * A list of attributes (name expression pairs) describing
@@ -56,7 +58,8 @@ public class ColumnList extends Esql<String, String> implements Macro {
 
   /**
    * Expands star columns (*) to the individual columns of the referred table
-   * when it is part of the column list of a query.
+   * when it is part of the column list of a query, set column names when not
+   * specified and disambiguate duplicate column names.
    */
   @Override
   public Esql<?, ?> expand(Esql<?, ?> esql, EsqlPath path) {
@@ -65,6 +68,8 @@ public class ColumnList extends Esql<String, String> implements Macro {
     Relation fromType = from.type(path.add(from));
 
     boolean changed = false;
+    int colIndex = 1;
+    Set<String> colNames = new HashSet<>();
     Map<String, String> aliased = new HashMap<>();
     Map<String, Column> resolvedColumns = new LinkedHashMap<>();
     for (Column column: columns()) {
@@ -72,70 +77,115 @@ public class ColumnList extends Esql<String, String> implements Macro {
         changed = true;
         String qualifier = all.qualifier();
         for (T2<Relation, Column> relCol: fromType.columns()) {
-          String alias = relCol.b.name();
-          if (alias == null) {
-            alias = Strings.makeUnique(resolvedColumns.keySet(), "col", false);
-          }
-          Column col;
-          Relation rel = relCol.a;
-          if (rel instanceof BaseRelation
-           || (rel instanceof AliasedRelation && ((AliasedRelation)rel).relation instanceof BaseRelation)) {
-            col = relCol.b.copy();
-            if (qualifier != null) {
-              ColumnRef.qualify(col.expression(), qualifier, true);
-            }
-            if (col.metadata() != null) {
-              for (Attribute attr: col.metadata().attributes().values()) {
-                ColumnRef.qualify(attr.attributeValue(), qualifier, true);
+          /*
+           * Ensure each column has a name, and it is unique in the column list.
+           */
+          Column col = relCol.b;
+          String colName = col.name();
+          if (colName == null) {
+            T2<String, Integer> newName = makeUnique("column", colNames, colIndex);
+            colName = newName.a;
+            colIndex = newName.b;
+
+          } else {
+            int pos = colName.indexOf('/');
+            if (pos == -1) {
+              /*
+               * Normal column (not metadata).
+               */
+              if (colNames.contains(colName)) {
+                T2<String, Integer> newName = makeUnique(colName, colNames, colIndex);
+                colName = newName.a;
+                colIndex = newName.b;
+                aliased.put(col.name(), colName);
+              }
+            } else if (pos > 0) {
+              /*
+               * Column metadata
+               */
+              String columnName = colName.substring(0, pos);
+              if (aliased.containsKey(columnName)) {
+                /*
+                 * replace column name with replacement if the column name was changed
+                 */
+                String aliasName = aliased.get(columnName);
+                colName = aliasName + colName.substring(pos);
               }
             }
-          } else {
-            col = new Column(context,
-                             alias,
-                             new ColumnRef(context, qualifier, relCol.b.name()),
-                             null);
           }
 
-          int pos = alias.indexOf('/');
-          if (pos == -1) {
+          if (!resolvedColumns.containsKey(colName)) {
             /*
-             * Normal column (not metadata).
+             * Qualify column expressions (needed for derived columns) and metadata
+             * expressions when selecting from base relations. For non-base relations,
+             * the selected expression is a column reference to the underlying column
+             * name.
              */
-            if (resolvedColumns.containsKey(alias)) {
-              alias = Strings.makeUnique(resolvedColumns.keySet(), alias, false);
+            Relation rel = relCol.a;
+            if (rel instanceof BaseRelation
+                || (rel instanceof AliasedRelation && ((AliasedRelation)rel).relation instanceof BaseRelation)) {
+              Expression<?, String> expr = col.expression();
+              if (qualifier != null) {
+                expr = qualify(expr, qualifier, true);
+              }
+              Metadata metadata = null;
+              if (col.metadata() != null) {
+                List<Attribute> attributes = new ArrayList<>();
+                for (Attribute attr: col.metadata().attributes().values()) {
+                  attributes.add(new Attribute(context, attr.name(), qualify(attr.attributeValue(), qualifier, true)));
+                }
+                metadata = new Metadata(context, attributes);
+              }
+              col = new Column(context, colName, expr, metadata);
+            } else {
+              col = new Column(context,
+                               colName,
+                               new ColumnRef(context, qualifier, col.name()),
+                               null);
             }
-            if (relCol.b.name() != null && !alias.equals(relCol.b.name())) {
-              aliased.put(relCol.b.name(), alias);
-              col = col.copy(alias);
-            }
-            resolvedColumns.put(alias, col);
 
-          } else if (pos > 0) {
             /*
-             * Column metadata
+             * For table metadata (starting with '/') not disambiguation is performed,
+             * only consider first encounter.
              */
-            String columnName = alias.substring(0, pos);
-            if (aliased.containsKey(columnName)) {
-              /*
-               * replace column name with replacement if the column name was changed
-               */
-              String aliasName = aliased.get(columnName);
-              alias = aliasName + alias.substring(pos);
-              col.name(alias);
-            }
-            resolvedColumns.put(alias, col);
-
-          } else if (!resolvedColumns.containsKey(alias)) {
-            /*
-             * table metadata first encounter (by elimination, pos==0 in this case)
-             */
-            resolvedColumns.put(alias, col);
+            resolvedColumns.put(colName, col);
+            colNames.add(colName);
           }
         }
+      } else if (column.name() == null) {
+        changed = true;
+        Expression<?, String> expr = column.expression();
+        String prefix = expr instanceof ColumnRef ref ? ref.name() : "column";
+        T2<String, Integer> newName = makeUnique(prefix, colNames, colIndex);
+        colIndex = newName.b;
+        Column col = column.name(newName.a);
+        resolvedColumns.put(col.name(), col);
+
+      } else {
+        String colName = column.name();
+        if (!colNames.contains(colName)) {
+          colNames.add(colName);
+        } else {
+          changed = true;
+          T2<String, Integer> newName = makeUnique(colName, colNames, colIndex);
+          colIndex = newName.b;
+          column = column.name(newName.a);
+        }
+        resolvedColumns.put(column.name(), column);
       }
     }
     return changed ? new ColumnList(context, new ArrayList<>(resolvedColumns.values()))
                    : esql;
+  }
+
+  private T2<String, Integer> makeUnique(String prefix, Set<String> names, int index) {
+    String name = prefix;
+    while (names.contains(name)) {
+      name = prefix + index;
+      index++;
+    }
+    names.add(name);
+    return T2.of(name, index);
   }
 
   @Override

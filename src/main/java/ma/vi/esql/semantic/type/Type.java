@@ -11,11 +11,11 @@ import ma.vi.esql.syntax.Copy;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.Translatable;
 import ma.vi.esql.syntax.define.Attribute;
-import ma.vi.esql.syntax.expression.Expression;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentMap;
 
 import static ma.vi.esql.syntax.Translatable.Target.*;
 
@@ -46,12 +46,10 @@ public interface Type extends Symbol, Copy<Type>, Translatable<String> {
   /**
    * Type attributes.
    */
-  ConcurrentMap<String, Expression<?, String>> attributes();
+  Map<String, Attribute> attributes();
 
   default List<Attribute> attributesList(Context context) {
-    return attributes().entrySet().stream()
-                       .map(e -> new Attribute(context, e.getKey(), e.getValue()))
-                       .toList();
+    return new ArrayList<>(attributes().values());
   }
 
   /**
@@ -78,18 +76,16 @@ public interface Type extends Symbol, Copy<Type>, Translatable<String> {
     return name();
   }
 
-  default Expression<?, String> attribute(String name, Expression<?, String> value) {
-    return attributes().put(name, value);
+  default Attribute attribute(Attribute attr) {
+    return attributes().put(attr.name(), attr);
   }
 
-  default Expression<?, String> attribute(String name) {
+  default Attribute attribute(String name) {
     return attributes().get(name);
   }
 
-  default void attributes(Map<String, Expression<?, String>> attributes) {
-    for (Map.Entry<String, Expression<?, String>> a: attributes.entrySet()) {
-      attribute(a.getKey(), a.getValue());
-    }
+  default void attributes(Collection<Attribute> attributes) {
+    for (Attribute a: attributes) attribute(a);
   }
 
   default void clearAttributes() {
@@ -127,7 +123,7 @@ public interface Type extends Symbol, Copy<Type>, Translatable<String> {
     }
 
     @Override
-    public ConcurrentMap<String, Expression<?, String>> attributes() {
+    public Map<String, Attribute> attributes() {
       return null;
     }
 
@@ -207,6 +203,7 @@ public interface Type extends Symbol, Copy<Type>, Translatable<String> {
    */
   static String esqlTableName(String schema, String table, Target target) {
     return schema.equalsIgnoreCase("public") || schema.equalsIgnoreCase("dbo")
-              ? table : schema + '.' + table;
+         ? table
+         : schema + '.' + table;
   }
 }

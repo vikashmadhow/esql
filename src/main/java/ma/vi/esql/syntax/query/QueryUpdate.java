@@ -29,9 +29,7 @@ import java.util.*;
 import static java.lang.System.Logger.Level.ERROR;
 import static java.sql.ResultSet.CONCUR_READ_ONLY;
 import static java.sql.ResultSet.TYPE_SCROLL_INSENSITIVE;
-import static java.util.Collections.emptyMap;
 import static ma.vi.base.string.Strings.random;
-import static ma.vi.esql.syntax.expression.ColumnRef.qualify;
 
 /**
  * The parent of all query (select) and update (update, insert and delete)
@@ -75,109 +73,327 @@ public abstract class QueryUpdate extends MetadataContainer<QueryTranslation> im
       boolean expandColumns = !grouped() && path.ancestor(Cte.class) == null;
 
       /*
+       * Type can be requested before macros in the ESQL has been expanded. In
+       * this state the column names may be null. This pre-typing phase is required
+       * to resolve columns in dynamically generated tables. When we detect that
+       * we are in this phase, we compute the best type that we can but we do not
+       * cache it as our best type at this point can still miss important information.
+       */
+//      boolean unexpanded = columns().stream().anyMatch(c -> c.name() == null);
+      boolean ongoingMacroExpansion = path.hasAncestor(Macro.OngoingMacroExpansion.class);
+
+      /*
        * Add selected columns and metadata
        */
+      int colIndex = 1;
       Map<String, Column> columns = new LinkedHashMap<>();
       Map<String, String> aliased = new HashMap<>();
       if (columns() != null) {
         for (Column column: columns()) {
-          String alias = column.name();
-          if (expandColumns
-           && column.expression() instanceof ColumnRef ref
-           && alias.indexOf('/') == -1) {
+          String colName = column.name();
+          if (column.expression() instanceof ColumnRef ref) {
             String refName = ref.name();
-            if (!refName.equals(alias)) {
-              aliased.put(refName, alias);
+            if (!refName.equals(colName)) {
+              aliased.put(refName, colName);
             }
-            for (T2<Relation, Column> col: fromType.columns(refName)) {
-              if (ref.qualifier() == null || ref.qualifier().equals(col.a.alias())) {
-                String colAlias = col.b.name();
-                Column c = col.b.name(alias + colAlias.substring(refName.length()));
-                columns.put(c.name(), c);
+            T2<Relation, Column> relCol = fromType.column(ref);
+            Column col = relCol.b;
+            String qualifier = relCol.a.alias() != null ? relCol.a.alias()
+                             : ref.qualifier()  != null ? ref.qualifier()
+                             : null;
+            if (qualifier != null) {
+              col = col.expression(ColumnRef.qualify(col.expression(), qualifier, true));
+            }
+            
+            if (colName == null) {
+              /*
+               * When we encounter a null column name in pre-typing phase, we
+               * set a temporary name to prevent subsequent NPE. This column
+               * name is only temporary and will be discarded on proper expansion.
+               */
+              colName = "__pre_column_" + (colIndex++) + "_" + random();
+              col = col.name(colName);
+            }
+
+            /*
+             * Override with explicit result metadata defined in select.
+             */
+            if (column.metadata() != null
+             && column.metadata().attributes() != null
+             && !column.metadata().attributes().isEmpty()) {
+
+              Map<String, Attribute> attributes = new LinkedHashMap<>();
+              Metadata metadata = col.metadata();
+              if (metadata != null && metadata.attributes() != null & !metadata.attributes().isEmpty()) {
+                attributes.putAll(metadata.attributes());
               }
+              attributes.putAll(column.metadata().attributes());
+              col = new Column(col.context,
+                               colName,
+                               col.expression(),
+                               new Metadata(col.context, new ArrayList<>(attributes.values())));
             }
+            columns.put(colName, col);
+
+//            for (T2<Relation, Column> col: fromType.(refName)) {
+//              if (ref.qualifier() == null || ref.qualifier().equals(col.a.alias())) {
+//                String colAlias = col.b.name();
+//                Column c = col.b.name(colName + colAlias.substring(refName.length()));
+//                columns.put(c.name(), c);
+//              }
+//            }
           } else {
-            columns.put(alias, column);
-          }
-
-          /*
-           * Override with explicit result metadata defined in select.
-           */
-          if (expandColumns) {
-            if (column.metadata() != null && column.metadata().attributes() != null) {
-              for (Attribute a: column.metadata().attributes().values()) {
-                for (Column c: BaseRelation.columnsForAttribute(a, alias + '/', aliased)) {
-                  columns.put(c.name(), c);
-                }
-              }
-            }
-          }
-        }
-      }
-
-      if (expandColumns && !modifying()) {
-        /*
-         * Add all relation-level metadata columns defined on the tables
-         * being queried.
-         */
-        Set<String> aliases = fromType.aliases();
-        if (!aliases.isEmpty()) {
-          List<T2<Relation, Column>> relCols = fromType.columns("/");
-          for (String relAlias: aliases) {
-            for (Column column: relCols.stream()
-                                       .filter(r -> r.a.alias().equals(relAlias))
-                                       .map(r -> qualify(r.b, relAlias, true)).toList()) {
-              String alias = column.name();
-              if (!columns.containsKey(alias)) {
-                columns.put(alias, column.copy());
-              }
-            }
-          }
-        } else {
-          for (T2<Relation, Column> column: fromType.columns("/")) {
-            String alias = column.b.name();
-            if (!columns.containsKey(alias)) {
-              columns.put(alias, column.b.copy());
-            }
-          }
-        }
-
-        /*
-         * Override with explicit result metadata defined in query.
-         */
-        Metadata metadata = metadata();
-        if (metadata != null && metadata.attributes() != null) {
-          for (Attribute a: metadata.attributes().values()) {
-            for (Column column: BaseRelation.columnsForAttribute(a, "/", emptyMap())) {
-              String alias = column.name();
-              if (!columns.containsKey(alias)) {
-                columns.put(alias, column.copy());
-              }
-            }
+            columns.put(colName, column);
           }
         }
       }
 
       /*
+       * Add all relation-level metadata columns defined on the tables
+       * being queried. Override with explicit result metadata defined in query.
+       */
+      Map<String, Attribute> relAtts = new LinkedHashMap<>();
+      if (fromType.attributes() != null) {
+        relAtts.putAll(fromType.attributes());
+      }
+      Metadata metadata = metadata();
+      if (metadata != null
+       && metadata.attributes() != null
+       && !metadata.attributes().isEmpty()) {
+        relAtts.putAll(metadata.attributes());
+//        for (Attribute a: metadata.attributes().values()) {
+//          for (Column column: BaseRelation.columnsForAttribute(a, "/", emptyMap())) {
+//            String alias = column.name();
+//            if (!columns.containsKey(alias)) {
+//              columns.put(alias, column.copy());
+//            }
+//          }
+//        }
+      }
+
+//      if (expandColumns && !modifying()) {
+//        /*
+//         * Add all relation-level metadata columns defined on the tables
+//         * being queried.
+//         */
+//        Set<String> aliases = fromType.aliases();
+//        if (!aliases.isEmpty()) {
+//          List<T2<Relation, Column>> relCols = fromType.columns("/");
+//          for (String relAlias: aliases) {
+//            for (Column column: relCols.stream()
+//                                       .filter(r -> r.a.alias().equals(relAlias))
+//                                       .map(r -> qualify(r.b, relAlias, true)).toList()) {
+//              String alias = column.name();
+//              if (!columns.containsKey(alias)) {
+//                columns.put(alias, column.copy());
+//              }
+//            }
+//          }
+//        } else {
+//          for (T2<Relation, Column> column: fromType.columns("/")) {
+//            String alias = column.b.name();
+//            if (!columns.containsKey(alias)) {
+//              columns.put(alias, column.b.copy());
+//            }
+//          }
+//        }
+//
+//        /*
+//         * Override with explicit result metadata defined in query.
+//         */
+//        Metadata metadata = metadata();
+//        if (metadata != null && metadata.attributes() != null) {
+//          for (Attribute a: metadata.attributes().values()) {
+//            for (Column column: BaseRelation.columnsForAttribute(a, "/", emptyMap())) {
+//              String alias = column.name();
+//              if (!columns.containsKey(alias)) {
+//                columns.put(alias, column.copy());
+//              }
+//            }
+//          }
+//        }
+//      }
+
+      /*
+       * Add uncomputed forms.
        * Replace column names with their aliases in uncomputed forms intended
        * to be run on client-side.
        */
-      List<Column> cols = new ArrayList<>(columns.values());
-      if (!aliased.isEmpty()) {
-        for (int i = 0; i < cols.size(); i++) {
-          Column c = cols.get(i);
-          if (c.expression() instanceof UncomputedExpression) {
-            c = c.set("expression", BaseRelation.rename(c.expression(), aliased));
-            cols.set(i, c);
+      List<Column> relCols = new ArrayList<>();
+      for (Map.Entry<String, Column> entry: columns.entrySet()) {
+        String colName = entry.getKey();
+        Column column = entry.getValue();
+
+        if (column.metadata() != null
+         && column.metadata().attributes() != null
+         && !column.metadata().attributes().isEmpty()) {
+          List<Attribute> atts = new ArrayList<>();
+          Map<String, Attribute> colAtts = column.metadata().attributes();
+          for (Map.Entry<String, Attribute> ae: colAtts.entrySet()) {
+            String attName = ae.getKey();
+            Attribute att = ae.getValue();
+            atts.add(att);
+
+            if (!(att.attributeValue() instanceof Literal)
+             && !attName.endsWith("/e")
+             && !colAtts.containsKey(attName + "/e")) {
+              UncomputedExpression expr = new UncomputedExpression(context, BaseRelation.rename(att.attributeValue(), aliased));
+              atts.add(new Attribute(att.context, attName + "/e", expr));
+            }
           }
+          relCols.add(new Column(column.context,
+                                 colName,
+                                 column.expression(),
+                                 new Metadata(column.context, atts)));
+        } else {
+          relCols.add(column);
+        }
+
+        if (expandColumns
+         && !(column.expression() instanceof ColumnRef)
+         && !colName.endsWith("/e")
+         && !columns.containsKey(colName + "/e")) {
+          UncomputedExpression expr = new UncomputedExpression(context, BaseRelation.rename(column.expression(), aliased));
+          relCols.add(new Column(column.context,
+                              colName + "/e",
+                              expr, null));
         }
       }
 
-      type = new Selection(cols, from);
+//      List<Column> cols = new ArrayList<>(columns.values());
+//      if (!aliased.isEmpty()) {
+//        for (int i = 0; i < cols.size(); i++) {
+//          Column c = cols.get(i);
+//          if (c.expression() instanceof UncomputedExpression) {
+//            c = c.set("expression", BaseRelation.rename(c.expression(), aliased));
+//            cols.set(i, c);
+//          }
+//        }
+//      }
+
+      Selection sel = new Selection(relCols, relAtts.values(), from);
+      if (ongoingMacroExpansion) {
+        return sel;
+      } else {
+        type = sel;
+      }
 //      context.type(type);
     }
     return type;
   }
+
+//  @Override
+//  public Selection type(EsqlPath path) {
+//    if (type == null) {
+//      TableExpr from = tables();
+//      Relation fromType = from.type(path.add(from));
+//
+//      boolean expandColumns = !grouped() && path.ancestor(Cte.class) == null;
+//
+//      /*
+//       * Add selected columns and metadata
+//       */
+//      Map<String, Column> columns = new LinkedHashMap<>();
+//      Map<String, String> aliased = new HashMap<>();
+//      if (columns() != null) {
+//        for (Column column: columns()) {
+//          String alias = column.name();
+//          if (expandColumns
+//           && column.expression() instanceof ColumnRef ref
+//           && alias.indexOf('/') == -1) {
+//            String refName = ref.name();
+//            if (!refName.equals(alias)) {
+//              aliased.put(refName, alias);
+//            }
+//            for (T2<Relation, Column> col: fromType.columns(refName)) {
+//              if (ref.qualifier() == null || ref.qualifier().equals(col.a.alias())) {
+//                String colAlias = col.b.name();
+//                Column c = col.b.name(alias + colAlias.substring(refName.length()));
+//                columns.put(c.name(), c);
+//              }
+//            }
+//          } else {
+//            columns.put(alias, column);
+//          }
+//
+//          /*
+//           * Override with explicit result metadata defined in select.
+//           */
+//          if (expandColumns) {
+//            if (column.metadata() != null && column.metadata().attributes() != null) {
+//              for (Attribute a: column.metadata().attributes().values()) {
+//                for (Column c: BaseRelation.columnsForAttribute(a, alias + '/', aliased)) {
+//                  columns.put(c.name(), c);
+//                }
+//              }
+//            }
+//          }
+//        }
+//      }
+//
+//      if (expandColumns && !modifying()) {
+//        /*
+//         * Add all relation-level metadata columns defined on the tables
+//         * being queried.
+//         */
+//        Set<String> aliases = fromType.aliases();
+//        if (!aliases.isEmpty()) {
+//          List<T2<Relation, Column>> relCols = fromType.columns("/");
+//          for (String relAlias: aliases) {
+//            for (Column column: relCols.stream()
+//                                       .filter(r -> r.a.alias().equals(relAlias))
+//                                       .map(r -> qualify(r.b, relAlias, true)).toList()) {
+//              String alias = column.name();
+//              if (!columns.containsKey(alias)) {
+//                columns.put(alias, column.copy());
+//              }
+//            }
+//          }
+//        } else {
+//          for (T2<Relation, Column> column: fromType.columns("/")) {
+//            String alias = column.b.name();
+//            if (!columns.containsKey(alias)) {
+//              columns.put(alias, column.b.copy());
+//            }
+//          }
+//        }
+//
+//        /*
+//         * Override with explicit result metadata defined in query.
+//         */
+//        Metadata metadata = metadata();
+//        if (metadata != null && metadata.attributes() != null) {
+//          for (Attribute a: metadata.attributes().values()) {
+//            for (Column column: BaseRelation.columnsForAttribute(a, "/", emptyMap())) {
+//              String alias = column.name();
+//              if (!columns.containsKey(alias)) {
+//                columns.put(alias, column.copy());
+//              }
+//            }
+//          }
+//        }
+//      }
+//
+//      /*
+//       * Replace column names with their aliases in uncomputed forms intended
+//       * to be run on client-side.
+//       */
+//      List<Column> cols = new ArrayList<>(columns.values());
+//      if (!aliased.isEmpty()) {
+//        for (int i = 0; i < cols.size(); i++) {
+//          Column c = cols.get(i);
+//          if (c.expression() instanceof UncomputedExpression) {
+//            c = c.set("expression", BaseRelation.rename(c.expression(), aliased));
+//            cols.set(i, c);
+//          }
+//        }
+//      }
+//
+//      type = new Selection(cols, from);
+////      context.type(type);
+//    }
+//    return type;
+//  }
 
   /**
    * @return Whether this is a grouping query or not. In grouping queries
@@ -233,8 +449,8 @@ public abstract class QueryUpdate extends MetadataContainer<QueryTranslation> im
     /*
      * Do not expand column list of selects inside expressions as the whole
      * expression is a single-value and expanding the column list will break the
-     * query or not be of any use. The same applies to when a select is used as
-     * an insert value, or part of a column list.
+     * query or not be of any use. The same applies to when select is used as an
+     *  insert value, or part of a column list.
      */
     boolean selectExpression = path.hasAncestor(SelectExpression.class, InsertRow.class, Column.class);
 

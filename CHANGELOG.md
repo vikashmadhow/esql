@@ -39,9 +39,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   several ESQL classes in one call.
 - Selects are now treated as select-expressions (columns are not expanded) when
   they appear in insert row values and as part of the column list of another query.
+- Random naming of columns when a name is not provided or to disambiguate duplicate
+  columns has been replaced with more friendly names in ColumnList expansion which
+  disambiguate column names using a index in the context of the other columns in
+  the list.
+- Automatic BaseRelation columns uses friendly names instead of random ones. 
 
 ### Changed
 - QueryTranslation is now a Java record.
+- Columns are not longer automatically expanded in base relations; this decreases
+  the number of synthetic columns with names containing '/' being added to the 
+  relations. The only synthetic columns added now are not uncomputed forms for
+  derived columns (e.g. c=a+b result in c/e=$(a+b) being added to the column list).
+- Attributes access interface in types and in metadata have been normalised.
+- Table type inference no longer add synthetic columns.
+- Macro expansion adds a tagging class in the expansion path to signal to downstream
+  processes that expansion is ongoing to allow for different behaviour during 
+  expansion.
+- Type inference is allowed during macro expansion but is restricted to a pre-typing
+  phase where a best-effort type is produced; since this type may not be correct,
+  it is not cached. The correct type is then produced after the macro expansion
+  when the type method is next called.
 
 ## [0.6.1] - 2021-12-19
 ### Added

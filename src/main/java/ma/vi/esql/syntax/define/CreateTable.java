@@ -287,7 +287,7 @@ public class CreateTable extends Define {
          */
         con.createStatement().executeUpdate(modified.translate(db.target(), path.add(modified)));
         db.structure().relation(table);
-        table.expandColumns();
+//        table.expandColumns();
         db.structure().database.addTable(con, table);
       } else {
         /*

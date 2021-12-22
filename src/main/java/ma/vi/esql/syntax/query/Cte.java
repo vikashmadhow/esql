@@ -125,7 +125,7 @@ public class Cte extends QueryUpdate {
                             .expression(new ColumnRef(context, name(), fields.get(i)))
                             .name(fields.get(i)));
         }
-        type = new Selection(typeFields, query().from());
+        type = new Selection(typeFields, type.attributesList(context), query().from());
       }
       context.type(name(), type);
     }

@@ -8,14 +8,12 @@ import ma.vi.base.string.Strings;
 import ma.vi.base.trie.PathTrie;
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.syntax.Context;
+import ma.vi.esql.syntax.define.Attribute;
 import ma.vi.esql.syntax.expression.ColumnRef;
 import ma.vi.esql.syntax.query.Column;
 import ma.vi.esql.syntax.query.TableExpr;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * A selection of columns from a relation (also known
@@ -24,12 +22,17 @@ import java.util.Set;
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 public class Selection extends Relation {
-  public Selection(List<Column> columns, TableExpr from) {
+  public Selection(List<Column> columns,
+                   Collection<Attribute> attributes,
+                   TableExpr from) {
     super((from == null ? "" : from.toString() + '.') + "select_" + Strings.random());
     this.columns = columns;
     this.from = from;
     for (Column c: columns) {
       this.columnsByAlias.put(c.name(), c);
+    }
+    if (attributes != null) {
+      attributes(attributes);
     }
   }
 

@@ -168,9 +168,10 @@ public class AlterTable extends Define {
             s.database.tableMetadata(con, relation.id(), metadata);
 
             relation.clearAttributes();
-            for (Attribute attr: metadata.attributes().values()) {
-              relation.attribute(attr.name(), attr.attributeValue());
-            }
+            relation.attributes(metadata.attributes().values());
+//            for (Attribute attr: metadata.attributes().values()) {
+//              relation.attribute(attr.name(), attr.attributeValue());
+//            }
           }
         } else if (alteration instanceof AlterColumn alterCol) {
           T2<Relation, Column> c = relation.column(ColumnRef.of(null, alterCol.columnName()));

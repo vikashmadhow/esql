@@ -5,14 +5,12 @@
 package ma.vi.esql.semantic.type;
 
 import ma.vi.base.tuple.T2;
+import ma.vi.esql.syntax.define.Attribute;
 import ma.vi.esql.syntax.expression.ColumnRef;
 import ma.vi.esql.syntax.expression.Expression;
 import ma.vi.esql.syntax.query.Column;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static java.util.stream.Collectors.toList;
 import static ma.vi.esql.syntax.expression.ColumnRef.qualify;
@@ -79,17 +77,17 @@ public class AliasedRelation extends Relation {
   }
 
   @Override
-  public Expression<?, String> attribute(String name, Expression<?, String> value) {
-    return relation.attribute(name, value);
+  public Attribute attribute(Attribute att) {
+    return relation.attribute(att);
   }
 
   @Override
-  public Expression<?, String> attribute(String name) {
+  public Attribute attribute(String name) {
     return relation.attribute(name);
   }
 
   @Override
-  public void attributes(Map<String, Expression<?, String>> attributes) {
+  public void attributes(Collection<Attribute> attributes) {
     relation.attributes(attributes);
   }
 

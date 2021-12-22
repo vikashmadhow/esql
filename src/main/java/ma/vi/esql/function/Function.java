@@ -45,9 +45,7 @@ public class Function extends AbstractType {
 
   @Override
   public Function copy() {
-    /*
-     * Functions are immutable, no need for copy.
-     */
+    /* Functions are immutable, no need for copy. */
     return this;
   }
 

@@ -47,7 +47,8 @@ public class Select extends QueryUpdate /* implements Macro */ {
               of("tables",      from),
               of("metadata",    metadata),
               of("distinctOn",  new Esql<>(context, "distinctOn", distinctOn)),
-              of("columns",     renameColumns(context, columns)),
+              of("columns",     new ColumnList(context, columns)),
+//              of("columns",     renameColumns(context, columns)),
               of("where",       where),
               of("groupBy",     groupBy),
               of("having",      having),
@@ -80,27 +81,27 @@ public class Select extends QueryUpdate /* implements Macro */ {
     return new Select(this, value, children);
   }
 
-  /*
-   * Rename column names to be unique without random characters.
-   */
-  private static ColumnList renameColumns(Context context, List<Column> columns) {
-    List<Column> renamed = new ArrayList<>();
-    Set<String> names = new HashSet<>();
-    for (Column column: columns) {
-      String alias = column.name();
-      if (alias.startsWith("__auto_col")) {
-        if (column.expression() instanceof FunctionCall) {
-          alias = makeUnique(names, ((FunctionCall)column.expression()).functionName());
-        } else {
-          alias = makeUnique(names, "column");
-        }
-      } else {
-        alias = makeUnique(names, alias);
-      }
-      renamed.add(column.copy(alias));
-    }
-    return new ColumnList(context, renamed);
-  }
+//  /*
+//   * Rename column names to be unique without random characters.
+//   */
+//  private static ColumnList renameColumns(Context context, List<Column> columns) {
+//    List<Column> renamed = new ArrayList<>();
+//    Set<String> names = new HashSet<>();
+//    for (Column column: columns) {
+//      String alias = column.name();
+//      if (alias.startsWith("__auto_col")) {
+//        if (column.expression() instanceof FunctionCall) {
+//          alias = makeUnique(names, ((FunctionCall)column.expression()).functionName());
+//        } else {
+//          alias = makeUnique(names, "column");
+//        }
+//      } else {
+//        alias = makeUnique(names, alias);
+//      }
+//      renamed.add(column.copy(alias));
+//    }
+//    return new ColumnList(context, renamed);
+//  }
 
   @Override
   public boolean modifying() {

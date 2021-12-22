@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Vikash Madhow
+ * Copyright (c) 2018-2021 Vikash Madhow
  */
 
 package ma.vi.esql.semantic.type;
@@ -8,7 +8,6 @@ import ma.vi.base.trie.PathTrie;
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.syntax.CircularReferenceException;
 import ma.vi.esql.syntax.Context;
-import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.TranslationException;
 import ma.vi.esql.syntax.define.*;
 import ma.vi.esql.syntax.expression.ColumnRef;
@@ -22,11 +21,8 @@ import ma.vi.esql.syntax.query.Select;
 import java.util.*;
 
 import static java.util.Collections.*;
-import static java.util.stream.Collectors.toCollection;
 import static java.util.stream.Collectors.toSet;
-import static ma.vi.base.string.Strings.makeUnique;
 import static ma.vi.base.string.Strings.random;
-import static ma.vi.esql.builder.Attributes.DERIVED;
 
 /**
  * A relation is a composite type with a qualified name (i.e. with a schema name included).
@@ -51,26 +47,26 @@ public class BaseRelation extends Relation {
     if (constraints != null) {
       this.constraints.addAll(constraints);
     }
-    Set<String> aliases = new HashSet<>();
 
+    /*
+     * Set default names of columns when not specified.
+     */
     PathTrie<Column> aliasedColumns = new PathTrie<>();
+    List<Column> renamedCols = new ArrayList<>();
     for (Column column: columns) {
-      aliasedColumns.put(column.name(), column);
-    }
-    for (Column column: columns) {
-      /*
-       * Implicit aliasing of columns.
-       */
-      if (column.name() == null) {
-        Expression<?, String> expr = column.expression();
-        if (expr instanceof ColumnRef) {
-          column = column.name(((ColumnRef)expr).name());
+      Column col = column;
+      if (col.name() == null) {
+        if (col.expression() instanceof ColumnRef ref) {
+          col = col.name(ref.name());
         } else {
-          column = column.name(makeUnique(aliases, "column"));
+          throw new TranslationException("The derived column " + col + " in the base relation " + name + " requires a name");
         }
       }
-      aliases.add(column.name());
+      aliasedColumns.put(col.name(), col);
+      renamedCols.add(col);
+    }
 
+    for (Column column: renamedCols) {
       /*
        * Expand expressions of derived columns until they consist only of
        * base columns. E.g., {a:a, b:a+5, c:a+b, d:c+b}
@@ -101,7 +97,7 @@ public class BaseRelation extends Relation {
 
     if (attributes != null) {
       for (Attribute a: attributes) {
-        attribute(a.name(), a.attributeValue());
+        attribute(a);
       }
     }
   }
@@ -149,10 +145,12 @@ public class BaseRelation extends Relation {
   }
 
   public void addColumn(Column column) {
-    for (Column c: expandColumn(column, aliasedColumns(columns))) {
-      this.columns.add(c);
-      this.columnsByAlias.put(c.name(), c);
-    }
+    this.columns.add(column);
+    this.columnsByAlias.put(column.name(), column);
+//    for (Column c: expandColumn(column, aliasedColumns(columns))) {
+//      this.columns.add(c);
+//      this.columnsByAlias.put(c.name(), c);
+//    }
   }
 
   public void addOrReplaceColumn(Column column) {
@@ -179,20 +177,22 @@ public class BaseRelation extends Relation {
   }
 
   @Override
-  public Expression<?, String> attribute(String name, Expression<?, String> value) {
-    if (value != null) {
-      value = expandDerived(value, columnsByAlias, name, new HashSet<>());
+  public Attribute attribute(Attribute att) {
+    Expression<?, String> expr = att.attributeValue();
+    String name = att.name();
+    if (expr != null) {
+      expr = expandDerived(expr, columnsByAlias, name, new HashSet<>());
     }
     removeColumn("/" + name);
-    for (Column col: columnsForAttribute(new Attribute(context, name, value), "/", emptyMap())) {
+    for (Column col: columnsForAttribute(new Attribute(context, name, expr), "/", emptyMap())) {
       addColumn(col);
     }
-    return attributes().put(name, value);
+    return attributes().put(name, att);
   }
 
   private Expression<?, String> expandDerived(Expression<?, String> derivedExpression,
-                                             String columnName,
-                                             Set<String> seen) {
+                                              String columnName,
+                                              Set<String> seen) {
     return expandDerived(derivedExpression, columnsByAlias, columnName, seen);
   }
 
@@ -266,116 +266,105 @@ public class BaseRelation extends Relation {
     return cols;
   }
 
-  public void expandColumns() {
-    List<Column> cols = expandColumns(attributes().entrySet().stream()
-                                                  .map(e -> new Attribute(e.getValue().context, e.getKey(), e.getValue()))
-                                                 .toList(), this.columns);
-    this.columns.clear();
-    this.columns.addAll(cols);
-    /*
-     * Implicit aliasing of columns.
-     */
-    Set<String> aliases = this.columns.stream()
-                                      .map(Column::name)
-                                      .collect(toCollection(HashSet::new));
-    for (Column column: this.columns) {
-      column = column.set("relation", new Esql<>(context, this));
-      if (column.name() == null) {
-        Expression<?, String> expr = column.expression();
-        if (expr instanceof ColumnRef) {
-          column = column.name(((ColumnRef)expr).name());
-        } else {
-          column = column.name(makeUnique(aliases, "column"));
-        }
-      }
-      aliases.add(column.name());
-      if (this.columnsByAlias.get(column.name()) == null) {
-        this.columnsByAlias.put(column.name(), column);
-      }
-    }
-  }
+//  public void expandColumns() {
+//    List<Column> cols = expandColumns(attributes().entrySet().stream()
+//                                                  .map(e -> new Attribute(e.getValue().context, e.getKey(), e.getValue()))
+//                                                  .toList(), this.columns);
+//    /*
+//     * Implicit naming of columns.
+//     */
+//    this.columns.clear();
+//    for (Column column: cols) {
+//      column = column.set("relation", new Esql<>(context, this));
+//      if (column.name() == null) {
+//        Expression<?, String> expr = column.expression();
+//        if (expr instanceof ColumnRef ref) {
+//          column = column.name(ref.name());
+//        } else {
+//          throw new TranslationException("The derived column " + column + " in the base relation " + name + " requires a name");
+//        }
+//      }
+//      this.columns.add(column);
+//      this.columnsByAlias.put(column.name(), column);
+//    }
+//  }
+//
+//  /**
+//   * Add relation and column metadata to the column list.
+//   * For example, `select a from S` becomes
+//   *     ```
+//   *     select /tm1:(max:max(S.b) from S:S),
+//   *            /tm1/e:$(max:max(S.b) from S:S),
+//   *            /tm2:(S.a>S.b),
+//   *            /tm2/e:$(S.a>S.b),
+//   *
+//   *            a:S.a,
+//   *            a/m1:(S.b>5),
+//   *            a/m2:(10),
+//   *            a/m3:(S.a!=0),
+//   *            a/m3/e:$(S.a!=0)
+//   *       from S:S
+//   *     ```
+//   */
+//  public static List<Column> expandColumns(List<Attribute> attributes,
+//                                           List<Column> columns) {
+//    List<Column> newCols = new ArrayList<>();
+//    Map<String, String> aliased = aliasedColumns(columns);
+//
+//    if (attributes != null) {
+//      for (Attribute attr: attributes) {
+//        newCols.addAll(columnsForAttribute(attr, "/", aliased));
+//      }
+//    }
+//
+//    for (Column column: columns) {
+//     newCols.addAll(expandColumn(column, aliased));
+//    }
+//    return newCols;
+//  }
 
-  /**
-   * Add relation and column metadata to the column list.
-   * For example, `select a from S` becomes
-   *     ```
-   *     select /tm1:(max:max(S.b) from S:S),
-   *            /tm1/e:$(max:max(S.b) from S:S),
-   *            /tm2:(S.a>S.b),
-   *            /tm2/e:$(S.a>S.b),
-   *
-   *            a:S.a,
-   *            a/m1:(S.b>5),
-   *            a/m2:(10),
-   *            a/m3:(S.a!=0),
-   *            a/m3/e:$(S.a!=0)
-   *       from S:S
-   *     ```
-   */
-  public static List<Column> expandColumns(List<Attribute> attributes,
-                                           List<Column> columns) {
-    List<Column> newCols = new ArrayList<>();
-    Map<String, String> aliased = aliasedColumns(columns);
-
-    if (attributes != null) {
-      for (Attribute attr: attributes) {
-        newCols.addAll(columnsForAttribute(attr, "/", aliased));
-      }
-    }
-
-    for (Column column: columns) {
-     newCols.addAll(expandColumn(column, aliased));
-    }
-    return newCols;
-  }
-
-  /**
-   * Add column metadata as columns to the query according to
-   * the various expansion rules detailed in the spec.
-   * E.g. a {m1:b, m2:c+5, m3:10} becomes:
-   *
-   * <pre>
-   *    a:a
-   *    a/m1:b,
-   *    a/m1/e:$(b),
-   *    a/m2:c+5,
-   *    a/m2/e:$(c+5),
-   *    a/m3:10
-   * </pre>
-   */
-  private static List<Column> expandColumn(Column column, Map<String, String> aliased) {
-    List<Column> newCols = new ArrayList<>();
-    newCols.add(column);
-    String colAlias = column.name();
-    if (!colAlias.contains("/")) {
-      if (column.metadata() != null) {
-        Boolean derived = column.metadata().evaluateAttribute(DERIVED);
-        if (derived != null && derived) {
-          newCols.add(new Column(column.context,
-                                 colAlias + "/e",
-                                 new UncomputedExpression(column.context,
-                                                          rename(column.expression(), aliased)),
-                                 null));
-        }
-        for (Attribute attr: column.metadata().attributes().values()) {
-          newCols.addAll(columnsForAttribute(attr, colAlias + '/', aliased));
-        }
-      }
-    }
-    return newCols;
-  }
+//  /**
+//   * Add column metadata as columns to the query according to
+//   * the various expansion rules detailed in the spec.
+//   * E.g. a {m1:b, m2:c+5, m3:10} becomes:
+//   *
+//   * <pre>
+//   *    a:a
+//   *    a/m1:b,
+//   *    a/m1/e:$(b),
+//   *    a/m2:c+5,
+//   *    a/m2/e:$(c+5),
+//   *    a/m3:10
+//   * </pre>
+//   */
+//  private static List<Column> expandColumn(Column column, Map<String, String> aliased) {
+//    List<Column> newCols = new ArrayList<>();
+//    newCols.add(column);
+//    String colAlias = column.name();
+//    if (!colAlias.contains("/")) {
+//      if (column.metadata() != null) {
+//        Boolean derived = column.metadata().evaluateAttribute(DERIVED);
+//        if (derived != null && derived) {
+//          newCols.add(new Column(column.context,
+//                                 colAlias + "/e",
+//                                 new UncomputedExpression(column.context,
+//                                                          rename(column.expression(), aliased)),
+//                                 null));
+//        }
+//        for (Attribute attr: column.metadata().attributes().values()) {
+//          newCols.addAll(columnsForAttribute(attr, colAlias + '/', aliased));
+//        }
+//      }
+//    }
+//    return newCols;
+//  }
 
   public static Expression<?, String> rename(Expression<?, String> expr,
                                              Map<String, String> aliased) {
-    return (Expression<?, String>)expr.map((e, path) -> {
-      if (e instanceof ColumnRef ref) {
-        String name = ref.name();
-        if (aliased.containsKey(name)) {
-          return ref.name(aliased.get(name));
-        }
-      }
-      return e;
-    });
+    return (Expression<?, String>)expr.map(
+              (e, p) -> e instanceof ColumnRef r && aliased.containsKey(r.name())
+                      ? r.name(aliased.get(r.name()))
+                      : e);
   }
 
   /**
