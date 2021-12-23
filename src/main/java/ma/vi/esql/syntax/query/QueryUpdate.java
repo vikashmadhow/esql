@@ -207,6 +207,37 @@ public abstract class QueryUpdate extends MetadataContainer<QueryTranslation> im
     return type;
   }
 
+  /**
+   * Returns the QueryUpdate ancestor in the path or, if not found, the Select
+   * inside a SelectExpression in the ancestor path, if found. Otherwise returns
+   * null. This utility method is useful to find the query-type of ancestor on
+   * the path, normalizing how both QueryUpdate and SelectExpression are treated.
+   */
+  public static QueryUpdate ancestor(EsqlPath path) {
+    QueryUpdate qu = path.ancestor(QueryUpdate.class);
+    if (qu == null) {
+      SelectExpression sel = path.ancestor(SelectExpression.class);
+      if (sel != null) {
+        qu = sel.select();
+      }
+    }
+    return qu;
+  }
+
+  /**
+   * Same as {@link #ancestor} but including the path.
+   */
+  public static T2<QueryUpdate, EsqlPath> ancestorAndPath(EsqlPath path) {
+    T2<QueryUpdate, EsqlPath> qu = path.ancestorAndPath(QueryUpdate.class);
+    if (qu == null) {
+      T2<SelectExpression, EsqlPath> sel = path.ancestorAndPath(SelectExpression.class);
+      if (sel != null) {
+        qu = T2.of(sel.a.select(), sel.b);
+      }
+    }
+    return qu;
+  }
+
 //  @Override
 //  public Selection type(EsqlPath path) {
 //    if (type == null) {

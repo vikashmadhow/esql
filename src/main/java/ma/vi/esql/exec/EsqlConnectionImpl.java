@@ -10,7 +10,6 @@ import ma.vi.esql.syntax.expression.Expression;
 import ma.vi.esql.syntax.expression.NamedParameter;
 import ma.vi.esql.syntax.expression.literal.Literal;
 import ma.vi.esql.syntax.expression.literal.NullLiteral;
-import ma.vi.esql.syntax.query.QueryUpdate;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -136,14 +135,14 @@ public class EsqlConnectionImpl implements EsqlConnection {
         return e;
       });
     }
-    if (st instanceof QueryUpdate) {
+//    if (st instanceof QueryUpdate) {
       /*
-       * Macro expansion for queries only (for ddl, macro expansion would expand
+       * OBSOLETE: Macro expansion for queries only (for ddl, macro expansion would expand
        * expressions without any contextual information such as the current query
        * which is needed for some cases - e.g., when computing derived expressions)
        */
       st = expandMacros(st);
-    }
+//    }
     /*
      * Transform ESQL through registered transformers prior to execution.
      */

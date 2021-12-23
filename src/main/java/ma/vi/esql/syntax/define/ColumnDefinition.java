@@ -126,6 +126,10 @@ public class ColumnDefinition extends TableDefinition {
     return new ColumnDefinition(context, name(), type(), notNull(), expression, metadata());
   }
 
+  public ColumnDefinition type(Type type) {
+    return new ColumnDefinition(context, name(), type, notNull(), expression(), metadata());
+  }
+
   public Expression<?, String> expression() {
     return child("expression");
   }

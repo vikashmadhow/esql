@@ -33,6 +33,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Support for merge queries.
 
 ## [Unreleased]
+### Added
+- Types of derived columns are computed now in CreateTable statements.
+- Macros are now expanded for all ESQL statement, not just QueryUpdates.
+- ColumnRef are now properly qualified also in SelectExpression. 
+
 ### Changed
 - Remove 'replaceExistingQualifier' parameter from the 'qualify' method as it is
   normally always true. Qualifier is replaced automatically in column references

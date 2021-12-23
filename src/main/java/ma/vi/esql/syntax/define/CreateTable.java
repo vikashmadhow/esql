@@ -46,7 +46,7 @@ public class CreateTable extends Define {
                      List<ConstraintDefinition> constraints,
                      Metadata                   metadata) {
     super(context, "CreateTable",
-          T2.of("name", new Esql<>(context, name)),
+          T2.of("name",          new Esql<>(context, name)),
           T2.of("dropUndefined", new Esql<>(context, dropUndefined)),
           T2.of("columns",       new Esql<>(context, "columns", expand(columns))),
           T2.of("constraints",   new Esql<>(context, "constraints", constraints)),
@@ -67,6 +67,23 @@ public class CreateTable extends Define {
   }
 
   /**
+   * This constructs a CreateTable node to carry only the column information
+   * which is used to find the type of derived columns in the statement. The type
+   * inference in ColumnDef looks for the columns of CreateTable to infer the
+   * type of derived columns and this is done in the super-constructor call of
+   * this object (from the static {@link #expand(List)} method). Since the
+   * CreateTable is not available at that point, a temporary proxy for it containing
+   * only the columns is created and used for the type inference purpose.
+   *
+   * @param columns The columns of the Create Table statement.
+   */
+  private CreateTable(List<ColumnDefinition> columns) {
+    super((Context)null,
+          "Temp CreateTable For Type Inference Of Derived Cols",
+          T2.of("columns", new Esql<>(null, "columns", columns)));
+  }
+
+  /**
    * Returns a shallow copy of this object replacing the value in the copy with
    * the provided value and replacing the specified children in the children list
    * of the copy.
@@ -77,32 +94,20 @@ public class CreateTable extends Define {
   }
 
   private static List<ColumnDefinition> expand(List<ColumnDefinition> cols) {
-//    /*
-//     * verify that there are no circular references in derived columns
-//     */
-//    Set<String> persistentCols = cols.stream()
-//                                     .filter(c -> !(c instanceof DerivedColumnDefinition))
-//                                     .map(ColumnDefinition::name)
-//                                     .collect(Collectors.toSet());
-//    Map<String, Expression<?, String>> derivedCols = cols.stream()
-//                                                         .filter(c -> c instanceof DerivedColumnDefinition)
-//                                                         .collect(toMap(ColumnDefinition::name,
-//                                                                        ColumnDefinition::expression));
-//
-//    for (ColumnDefinition column: cols) {
-//      if (column instanceof DerivedColumnDefinition) {
-//        circular(column.name(), column.expression(), persistentCols, derivedCols, new ArrayList<>());
-//      }
-//    }
-
-    Map<String, ColumnDefinition> columnsMap = cols.stream().collect(toMap(ColumnDefinition::name,
-                                                                           Function.identity()));
+    Map<String, ColumnDefinition> columnsMap = cols.stream()
+                                                   .collect(toMap(ColumnDefinition::name,
+                                                                  Function.identity(),
+                                                                  (c1, c2) -> c1,
+                                                                  LinkedHashMap::new));
+    boolean hasDerived = false;
     List<ColumnDefinition> columns = new ArrayList<>();
     for (ColumnDefinition column: cols) {
+      hasDerived |= column instanceof DerivedColumnDefinition;
+
       /*
        * Expand expressions of derived columns until they consist only of
        * base columns. E.g., {a:a, b:a+5, c:a+b, d:c+b}
-       *      is expanded to {a:a, b:a+5, c:a+a+5, d:a+a+5+a+5}
+       *      is expanded to {a:a, b:a+5, c:a+(a+5), d:(a+(a+5))+(a+5)}
        */
       if (column.expression() != null
        && !(column.expression() instanceof Literal)) {
@@ -124,7 +129,26 @@ public class CreateTable extends Define {
       }
       columns.add(column);
     }
-    return columns;
+
+    if (hasDerived) {
+      List<ColumnDefinition> typedCols = new ArrayList<>();
+      EsqlPath typeProxy = new EsqlPath(new CreateTable(columns));
+      for (ColumnDefinition column: columns) {
+        if (column instanceof DerivedColumnDefinition derived) {
+          if (derived.type() == null) {
+            Type type = derived.expression().type(typeProxy.add(derived.expression()));
+            typedCols.add(derived.type(type));
+          } else {
+            typedCols.add(derived);
+          }
+        } else {
+          typedCols.add(column);
+        }
+      }
+      return typedCols;
+    } else {
+      return columns;
+    }
   }
 
   private static Expression<?, String> expandDerived(Expression<?, String> derivedExpression,

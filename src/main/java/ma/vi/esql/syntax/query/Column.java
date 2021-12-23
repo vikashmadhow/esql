@@ -104,9 +104,9 @@ public class Column extends MetadataContainer<String> {
     boolean derived = def instanceof DerivedColumnDefinition;
     DerivedColumnDefinition derivedDef = derived ? (DerivedColumnDefinition)def : null;
 
-    Type columnType = null;
-    if (!derived) {
-      columnType = def.type();
+    Type columnType = def.type();
+    if (columnType == null) {
+      columnType = Types.UnknownType;
     }
     Boolean notNull = def.notNull();
     Expression<?, String> defaultExpr = def.expression();
@@ -122,13 +122,11 @@ public class Column extends MetadataContainer<String> {
     } else if (defaultExpr != null) {
       attributes.put(EXPRESSION, new Attribute(def.context, EXPRESSION, defaultExpr));
     }
-    attributes.put(TYPE, Attribute.from(def.context, TYPE,
-                                        derived ? "'" + derivedDef.expression().type(path.add(derivedDef.expression())).translate(ESQL, path.add(derivedDef.expression())) + "'" // Types.VoidType.translate(ESQL)
-                                                : "'" + columnType.translate(ESQL, path) + "'"));
+
+    attributes.put(TYPE, Attribute.from(def.context, TYPE, "'" + columnType.translate(ESQL, path) + "'"));
     if (notNull) {
       attributes.put(REQUIRED, Attribute.from(def.context, REQUIRED, true));
     }
-
     return new Column(def.context,
                       def.name(),
                       derived ? derivedDef.expression() : new ColumnRef(def.context, null, def.name()),
@@ -219,10 +217,11 @@ public class Column extends MetadataContainer<String> {
         type = expression().type(path.add(expression()));
       }
       return type;
-    } else if (derived() || !(expression() instanceof ColumnRef)) {
-      return expression().type(path.add(expression()));
+//    } else if (derived() || !(expression() instanceof ColumnRef)) {
+//      return expression().type(path.add(expression()));
     } else {
-      return Types.UnknownType;
+      return expression().type(path.add(expression()));
+//      return Types.UnknownType;
     }
   }
 

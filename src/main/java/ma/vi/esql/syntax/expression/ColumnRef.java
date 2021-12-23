@@ -64,7 +64,7 @@ public class ColumnRef extends Expression<String, String> implements Macro {
   @Override
   public Type type(EsqlPath path) {
     if (type == null) {
-      QueryUpdate qu = path.ancestor(QueryUpdate.class);
+      QueryUpdate qu = QueryUpdate.ancestor(path);
       if (qu != null) {
         /*
          * In a query check all levels as the column might refer to a table in
@@ -145,7 +145,8 @@ public class ColumnRef extends Expression<String, String> implements Macro {
    */
   @Override
   public Esql<?, ?> expand(Esql<?, ?> e, EsqlPath path)  {
-    T2<Relation, Column> col = column(path.ancestor(QueryUpdate.class), path);
+    QueryUpdate qu = QueryUpdate.ancestor(path);
+    T2<Relation, Column> col = column(qu, path);
     if (col != null) {
       Relation rel = col.a;
       String alias = rel.alias();
@@ -175,8 +176,8 @@ public class ColumnRef extends Expression<String, String> implements Macro {
                  .findColumn(this);
       if (column == null) {
         T2<QueryUpdate, EsqlPath> ancestor = path.tail() == null
-            ? null
-            : path.tail().ancestorAndPath(QueryUpdate.class);
+                                           ? null
+                                           : QueryUpdate.ancestorAndPath(path.tail());
         if (ancestor == null) {
           qu = null;
         } else {

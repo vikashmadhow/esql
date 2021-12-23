@@ -5,6 +5,7 @@
 package ma.vi.esql.syntax.define;
 
 import ma.vi.base.tuple.T2;
+import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
@@ -26,7 +27,15 @@ public class DerivedColumnDefinition extends ColumnDefinition {
                                  String name,
                                  Expression<?, String> expression,
                                  Metadata metadata) {
-    super(context, name, null, false, expression, addDerived(context, metadata));
+    this(context, name, null, expression, addDerived(context, metadata));
+  }
+
+  private DerivedColumnDefinition(Context context,
+                                  String name,
+                                  Type type,
+                                  Expression<?, String> expression,
+                                  Metadata metadata) {
+    super(context, name, type, false, expression, addDerived(context, metadata));
   }
 
   public DerivedColumnDefinition(DerivedColumnDefinition other) {
@@ -69,6 +78,11 @@ public class DerivedColumnDefinition extends ColumnDefinition {
   @Override
   public DerivedColumnDefinition metadata(Metadata metadata) {
     return new DerivedColumnDefinition(context, name(), expression(), metadata);
+  }
+
+  @Override
+  public DerivedColumnDefinition type(Type type) {
+    return new DerivedColumnDefinition(context, name(), type, expression(), metadata());
   }
 
   @Override
