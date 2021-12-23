@@ -64,8 +64,8 @@ public class Types {
    * any type previously mapped to that name. Returns the
    * previously mapped type, if any.
    */
-  public static Type customType(String name, Type type) {
-    return customTypes.put(name, type);
+  public static void customType(String name, Type type) {
+    customTypes.put(name, type);
   }
 
   /**
@@ -296,30 +296,42 @@ public class Types {
 
   // Generic numeric types
   ///////////////////////////////////
+
+  /**
+   * Super type of all number types (integral and non-integral)
+   */
   public static final Type NumberType =
       new BaseType("number", 1, false,
                    Map.of(POSTGRESQL, "double precision",
                           HSQLDB, "double",
                           MARIADB, "double",
                           MYSQL, "double",
-                          SQLSERVER, "float"));       // Super type of all number types (integral and non-integral)
+                          SQLSERVER, "float"));
 
+  /**
+   * Super type of integral number types (byte, short, int and long)
+   */
   public static final Type IntegralType =
       new BaseType("integral", 1, false,
-                   Map.of(ALL, "bigint"));     // Super type of integral number types (byte, short, int and long)
+                   Map.of(ALL, "bigint"));
 
+  /**
+   * Super type of non-integral (float and double) number types
+   */
   public static final Type FractionalType =
       new BaseType("fractional", 1, false,
                    Map.of(POSTGRESQL, "double precision",
                           HSQLDB, "double",
                           MARIADB, "double",
                           MYSQL, "double",
-                          SQLSERVER, "float"));   // Super type of non-integral (float and double) number types
+                          SQLSERVER, "float"));
 
   // Generic and special types
   ///////////////////////////////////
 
-  // The theoretical ancestor type of all Relations
+  /**
+   * The theoretical ancestor type of all Relations
+   */
   public static final Type Relation =
       new Relation("__rel__") {
         @Override
@@ -343,7 +355,9 @@ public class Types {
         }
       };
 
-  // The theoretical type of the null value (the bottom type)
+  /**
+   * The theoretical type of the null value (the bottom type)
+   */
   public static final Type NullType =
       new BaseType("null", 1, false,
                    Map.of(ALL, "null")) {
@@ -353,7 +367,9 @@ public class Types {
     }
   };
 
-  // Type of expressions returning nothing
+  /**
+   * Type of expressions returning nothing
+   */
   public static final Type VoidType =
       new BaseType("void", 0, false,
                    Map.of(ALL, "void")) {
@@ -363,7 +379,9 @@ public class Types {
     }
   };
 
-  // Abstract ancestral type of all types
+  /**
+   * Abstract ancestral type of all types
+   */
   public static final Type TopType =
       new BaseType("top", 1, false,
                    Map.of(ALL, "top")) {
@@ -373,10 +391,11 @@ public class Types {
     }
   };
 
-  // A special type for functions whose return types are the
-  // same as their first parameter. This type is used for
-  // aggregate function such as max and sum, whose return type
-  // varies based on what they are called upon.
+  /**
+   * A special type for functions whose return types are the same as their first
+   * parameter. This type is used for aggregate function such as max and sum,
+   * whose return type varies based on what they are called upon.
+   */
   public static final Type AsParameterType =
       new BaseType("___", 0, false,
                    Map.of(ALL, "___")) {
@@ -407,12 +426,16 @@ public class Types {
     esqlTypes.put("json",       JsonType);
     esqlTypes.put(UNKNOWN_TYPE, JsonType);
 
-    // abstract numeric types
+    /*
+     * abstract numeric types
+     */
     esqlTypes.put("number",     NumberType);
     esqlTypes.put("integral",   IntegralType);
     esqlTypes.put("fractional", FractionalType);
 
-    // abstract and special types for edge-cases and completing the base type system
+    /*
+     * abstract and special types for edge-cases and completing the base type system
+     */
     esqlTypes.put("top",  TopType);
     esqlTypes.put("null", NullType);
     esqlTypes.put("void", VoidType);

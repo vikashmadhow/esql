@@ -33,6 +33,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Support for merge queries.
 
 ## [Unreleased]
+### Changed
+- Remove 'replaceExistingQualifier' parameter from the 'qualify' method as it is
+  normally always true. Qualifier is replaced automatically in column references
+  in non-select-expression or those in select-expression without a qualifier.
+
+## [0.6.3] - 2021-12-22
 ### Added
 - JsonObjectLiteral and JsonArrayLiteral are now outputted as strings in queries.
 - hasAncestor method which can check if the an ESQL is a descendant of one of 

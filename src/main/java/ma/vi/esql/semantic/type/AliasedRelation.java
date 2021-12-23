@@ -7,10 +7,12 @@ package ma.vi.esql.semantic.type;
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.syntax.define.Attribute;
 import ma.vi.esql.syntax.expression.ColumnRef;
-import ma.vi.esql.syntax.expression.Expression;
 import ma.vi.esql.syntax.query.Column;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 
 import static java.util.stream.Collectors.toList;
 import static ma.vi.esql.syntax.expression.ColumnRef.qualify;
@@ -50,7 +52,7 @@ public class AliasedRelation extends Relation {
   public List<T2<Relation, Column>> columns() {
     if (columns == null) {
       columns = relation.columns().stream()
-                        .map(c -> T2.of(c.a(), qualify(c.b().copy(), alias, true)))
+                        .map(c -> T2.of(c.a(), qualify(c.b().copy(), alias)))
                         .collect(toList());
     }
     return columns;
@@ -59,7 +61,7 @@ public class AliasedRelation extends Relation {
   @Override
   public List<T2<Relation, Column>> columns(String prefix) {
     return relation.columns(prefix).stream()
-                   .map(t -> new T2<Relation, Column>(this, qualify(t.b(), alias, true)))
+                   .map(t -> new T2<Relation, Column>(this, qualify(t.b(), alias)))
                    .toList();
   }
 

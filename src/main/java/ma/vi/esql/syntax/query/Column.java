@@ -183,10 +183,6 @@ public class Column extends MetadataContainer<String> {
   }
 
   public Column notNull(boolean notNull) {
-//    if (metadata() == null) {
-//      metadata(new Metadata(context, new ArrayList<>()));
-//    }
-//    metadata().attribute(REQUIRED, new BooleanLiteral(context, notNull));
     return setMetadata(REQUIRED, new BooleanLiteral(context, notNull));
   }
 
@@ -211,45 +207,16 @@ public class Column extends MetadataContainer<String> {
     return setMetadata(EXPRESSION, expr);
   }
 
-//  @Override
-//  public void attribute(String name, Expression<?, String> value) {
-//    if (metadata() == null) {
-//      metadata(new Metadata(context, new ArrayList<>()));
-//    }
-//    if (value != null && parent != null && parent.value instanceof BaseRelation) {
-//      value = ((BaseRelation)parent.value).expandDerived(value,name, new HashSet<>());
-//    }
-//    metadata().attribute(name, value);
-//  }
-
   @Override
   public Type type(EsqlPath path) {
     if (metadata() != null && metadata().attribute(TYPE) != null) {
       Type type = Types.typeOf((String)metadata().evaluateAttribute(TYPE));
       if (type == Types.VoidType && derived()) {
         /*
-         * Derived type are set to void on load. Their actual types can
-         * be determined at this point.
+         * Derived type are set to void on load. Their actual types can be
+         * determined at this point.
          */
         type = expression().type(path.add(expression()));
-//        if (type != Types.VoidType) {
-//          type(type);
-
-          /*
-           * Transfer the type information to base table if possible.
-           */
-//          QueryUpdate query = ancestor(QueryUpdate.class);
-//          if (query != null && query.tables() instanceof SingleTableExpr) {
-//            SingleTableExpr table = (SingleTableExpr)query.tables();
-//            if (context.structure.relationExists(table.tableName())) {
-//              BaseRelation rel = context.structure.relation(table.tableName());
-//              if (rel.findColumn(null, alias()) != null) {
-//                Column column = rel.column(null, alias());
-//                column.type(type);
-//              }
-//            }
-//          }
-//        }
       }
       return type;
     } else if (derived() || !(expression() instanceof ColumnRef)) {

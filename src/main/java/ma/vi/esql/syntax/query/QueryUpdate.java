@@ -70,8 +70,6 @@ public abstract class QueryUpdate extends MetadataContainer<QueryTranslation> im
       TableExpr from = tables();
       Relation fromType = from.type(path.add(from));
 
-      boolean expandColumns = !grouped() && path.ancestor(Cte.class) == null;
-
       /*
        * Type can be requested before macros in the ESQL has been expanded. In
        * this state the column names may be null. This pre-typing phase is required
@@ -79,8 +77,8 @@ public abstract class QueryUpdate extends MetadataContainer<QueryTranslation> im
        * we are in this phase, we compute the best type that we can but we do not
        * cache it as our best type at this point can still miss important information.
        */
-//      boolean unexpanded = columns().stream().anyMatch(c -> c.name() == null);
       boolean ongoingMacroExpansion = path.hasAncestor(Macro.OngoingMacroExpansion.class);
+      boolean expandColumns = !grouped() && path.ancestor(Cte.class) == null;
 
       /*
        * Add selected columns and metadata
@@ -102,7 +100,7 @@ public abstract class QueryUpdate extends MetadataContainer<QueryTranslation> im
                              : ref.qualifier()  != null ? ref.qualifier()
                              : null;
             if (qualifier != null) {
-              col = col.expression(ColumnRef.qualify(col.expression(), qualifier, true));
+              col = col.expression(ColumnRef.qualify(col.expression(), qualifier));
             }
             
             if (colName == null) {
@@ -134,14 +132,6 @@ public abstract class QueryUpdate extends MetadataContainer<QueryTranslation> im
                                new Metadata(col.context, new ArrayList<>(attributes.values())));
             }
             columns.put(colName, col);
-
-//            for (T2<Relation, Column> col: fromType.(refName)) {
-//              if (ref.qualifier() == null || ref.qualifier().equals(col.a.alias())) {
-//                String colAlias = col.b.name();
-//                Column c = col.b.name(colName + colAlias.substring(refName.length()));
-//                columns.put(c.name(), c);
-//              }
-//            }
           } else {
             columns.put(colName, column);
           }
@@ -161,63 +151,10 @@ public abstract class QueryUpdate extends MetadataContainer<QueryTranslation> im
        && metadata.attributes() != null
        && !metadata.attributes().isEmpty()) {
         relAtts.putAll(metadata.attributes());
-//        for (Attribute a: metadata.attributes().values()) {
-//          for (Column column: BaseRelation.columnsForAttribute(a, "/", emptyMap())) {
-//            String alias = column.name();
-//            if (!columns.containsKey(alias)) {
-//              columns.put(alias, column.copy());
-//            }
-//          }
-//        }
       }
 
-//      if (expandColumns && !modifying()) {
-//        /*
-//         * Add all relation-level metadata columns defined on the tables
-//         * being queried.
-//         */
-//        Set<String> aliases = fromType.aliases();
-//        if (!aliases.isEmpty()) {
-//          List<T2<Relation, Column>> relCols = fromType.columns("/");
-//          for (String relAlias: aliases) {
-//            for (Column column: relCols.stream()
-//                                       .filter(r -> r.a.alias().equals(relAlias))
-//                                       .map(r -> qualify(r.b, relAlias, true)).toList()) {
-//              String alias = column.name();
-//              if (!columns.containsKey(alias)) {
-//                columns.put(alias, column.copy());
-//              }
-//            }
-//          }
-//        } else {
-//          for (T2<Relation, Column> column: fromType.columns("/")) {
-//            String alias = column.b.name();
-//            if (!columns.containsKey(alias)) {
-//              columns.put(alias, column.b.copy());
-//            }
-//          }
-//        }
-//
-//        /*
-//         * Override with explicit result metadata defined in query.
-//         */
-//        Metadata metadata = metadata();
-//        if (metadata != null && metadata.attributes() != null) {
-//          for (Attribute a: metadata.attributes().values()) {
-//            for (Column column: BaseRelation.columnsForAttribute(a, "/", emptyMap())) {
-//              String alias = column.name();
-//              if (!columns.containsKey(alias)) {
-//                columns.put(alias, column.copy());
-//              }
-//            }
-//          }
-//        }
-//      }
-
       /*
-       * Add uncomputed forms.
-       * Replace column names with their aliases in uncomputed forms intended
-       * to be run on client-side.
+       * Add uncomputed forms for derived columns and attribute expressions.
        */
       List<Column> relCols = new ArrayList<>();
       for (Map.Entry<String, Column> entry: columns.entrySet()) {
@@ -260,24 +197,12 @@ public abstract class QueryUpdate extends MetadataContainer<QueryTranslation> im
         }
       }
 
-//      List<Column> cols = new ArrayList<>(columns.values());
-//      if (!aliased.isEmpty()) {
-//        for (int i = 0; i < cols.size(); i++) {
-//          Column c = cols.get(i);
-//          if (c.expression() instanceof UncomputedExpression) {
-//            c = c.set("expression", BaseRelation.rename(c.expression(), aliased));
-//            cols.set(i, c);
-//          }
-//        }
-//      }
-
       Selection sel = new Selection(relCols, relAtts.values(), from);
       if (ongoingMacroExpansion) {
         return sel;
       } else {
         type = sel;
       }
-//      context.type(type);
     }
     return type;
   }
@@ -450,7 +375,7 @@ public abstract class QueryUpdate extends MetadataContainer<QueryTranslation> im
      * Do not expand column list of selects inside expressions as the whole
      * expression is a single-value and expanding the column list will break the
      * query or not be of any use. The same applies to when select is used as an
-     *  insert value, or part of a column list.
+     * insert value, or part of a column list.
      */
     boolean selectExpression = path.hasAncestor(SelectExpression.class, InsertRow.class, Column.class);
 
@@ -488,7 +413,7 @@ public abstract class QueryUpdate extends MetadataContainer<QueryTranslation> im
       Column column = c.b.copy();
       Expression<?, String> expression = column.expression();
       if (qualifier != null) {
-        ColumnRef.qualify(expression, qualifier, true);
+        ColumnRef.qualify(expression, qualifier);
       }
       query.append(column.translate(target, path.add(column), ADDIIF));
       String colName = column.name();
@@ -570,7 +495,7 @@ public abstract class QueryUpdate extends MetadataContainer<QueryTranslation> im
                                   String qualifier,
                                   String alias) {
     if (qualifier != null) {
-      ColumnRef.qualify(expression, qualifier, true);
+      ColumnRef.qualify(expression, qualifier);
     }
     query.append(expression.translate(target, path.add(expression), ADDIIF));
     if (alias != null) {
@@ -603,48 +528,6 @@ public abstract class QueryUpdate extends MetadataContainer<QueryTranslation> im
   public ColumnList columnList() {
     return child("columns");
   }
-
-//  public void columns(List<Column> columns) {
-//    child("columns", new Esql<>(context, columns));
-//    type = null;
-//  }
-
-//  public void columnsAsEsql(Esql<List<Column>, ?> columns) {
-//    child("columns", columns);
-//    type = null;
-//  }
-
-//  public void columns(T3<String, String, List<Attr>>... columns) {
-//    List<Column> cols = new ArrayList<>();
-//    Parser parser = new Parser(context.structure);
-//    for (var column: columns) {
-//      cols.add(new Column(
-//          context,
-//          column.b,
-//          parser.parseExpression(column.a),
-//          column.c == null
-//            ? null
-//            : new Metadata(context,
-//                           column.c.stream()
-//                                 .map(a -> new Attribute(context,
-//                                                         a.name,
-//                                                         parser.parseExpression(a.expr)))
-//                                 .collect(toList()))));
-//    }
-//    columns(cols);
-//  }
-
-//  public void columns(String... columns) {
-//    Parser parser = new Parser(context.structure);
-//    List<Column> cols = new ArrayList<>();
-//    for (var column: columns) {
-//      cols.add(new Column(context,
-//                          null,
-//                          parser.parseExpression(column),
-//                          null));
-//    }
-//    columns(cols);
-//  }
 
   /**
    * Returns the table expression for selection or updates.

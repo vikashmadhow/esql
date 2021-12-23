@@ -359,18 +359,26 @@ public class BaseRelation extends Relation {
 //    return newCols;
 //  }
 
+  /**
+   * Change the name of all column references in the expression using the supplied
+   * name mapping. I.e., if 'a' is mapped to 'b' in mapping, all column references
+   * to 'a' in expression are changed to b.
+   *
+   * @param expr The expression containing the column references to rename.
+   * @param mapping The name mappings.
+   * @return The expression with the renamed column references.
+   */
   public static Expression<?, String> rename(Expression<?, String> expr,
-                                             Map<String, String> aliased) {
+                                             Map<String, String> mapping) {
     return (Expression<?, String>)expr.map(
-              (e, p) -> e instanceof ColumnRef r && aliased.containsKey(r.name())
-                      ? r.name(aliased.get(r.name()))
+              (e, p) -> e instanceof ColumnRef r && mapping.containsKey(r.name())
+                      ? r.name(mapping.get(r.name()))
                       : e);
   }
 
   /**
-   * Returns column names which have been aliased to a
-   * different name. This is used to rename the reference
-   * to those column names in expressions.
+   * Returns column names which have been aliased to a different name. This is
+   * used to rename the reference to those column names in expressions.
    */
   private static Map<String, String> aliasedColumns(List<Column> columns) {
     Map<String, String> aliased = new HashMap<>();

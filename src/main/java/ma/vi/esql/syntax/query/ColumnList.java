@@ -83,7 +83,7 @@ public class ColumnList extends Esql<String, String> implements Macro {
           Column col = relCol.b;
           String colName = col.name();
           if (colName == null) {
-            T2<String, Integer> newName = makeUnique("column", colNames, colIndex);
+            T2<String, Integer> newName = makeUnique("column", colNames, colIndex, true);
             colName = newName.a;
             colIndex = newName.b;
 
@@ -94,7 +94,7 @@ public class ColumnList extends Esql<String, String> implements Macro {
                * Normal column (not metadata).
                */
               if (colNames.contains(colName)) {
-                T2<String, Integer> newName = makeUnique(colName, colNames, colIndex);
+                T2<String, Integer> newName = makeUnique(colName, colNames, colIndex, false);
                 colName = newName.a;
                 colIndex = newName.b;
                 aliased.put(col.name(), colName);
@@ -126,13 +126,13 @@ public class ColumnList extends Esql<String, String> implements Macro {
                 || (rel instanceof AliasedRelation && ((AliasedRelation)rel).relation instanceof BaseRelation)) {
               Expression<?, String> expr = col.expression();
               if (qualifier != null) {
-                expr = qualify(expr, qualifier, true);
+                expr = qualify(expr, qualifier);
               }
               Metadata metadata = null;
               if (col.metadata() != null) {
                 List<Attribute> attributes = new ArrayList<>();
                 for (Attribute attr: col.metadata().attributes().values()) {
-                  attributes.add(new Attribute(context, attr.name(), qualify(attr.attributeValue(), qualifier, true)));
+                  attributes.add(new Attribute(context, attr.name(), qualify(attr.attributeValue(), qualifier)));
                 }
                 metadata = new Metadata(context, attributes);
               }
@@ -156,7 +156,7 @@ public class ColumnList extends Esql<String, String> implements Macro {
         changed = true;
         Expression<?, String> expr = column.expression();
         String prefix = expr instanceof ColumnRef ref ? ref.name() : "column";
-        T2<String, Integer> newName = makeUnique(prefix, colNames, colIndex);
+        T2<String, Integer> newName = makeUnique(prefix, colNames, colIndex, !(expr instanceof ColumnRef));
         colIndex = newName.b;
         Column col = column.name(newName.a);
         resolvedColumns.put(col.name(), col);
@@ -167,7 +167,7 @@ public class ColumnList extends Esql<String, String> implements Macro {
           colNames.add(colName);
         } else {
           changed = true;
-          T2<String, Integer> newName = makeUnique(colName, colNames, colIndex);
+          T2<String, Integer> newName = makeUnique(colName, colNames, colIndex, false);
           colIndex = newName.b;
           column = column.name(newName.a);
         }
@@ -178,8 +178,8 @@ public class ColumnList extends Esql<String, String> implements Macro {
                    : esql;
   }
 
-  private T2<String, Integer> makeUnique(String prefix, Set<String> names, int index) {
-    String name = prefix;
+  private T2<String, Integer> makeUnique(String prefix, Set<String> names, int index, boolean firstNameWithIndex) {
+    String name = prefix + (firstNameWithIndex ? String.valueOf(index++) : "");
     while (names.contains(name)) {
       name = prefix + index;
       index++;
