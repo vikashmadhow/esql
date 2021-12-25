@@ -57,12 +57,6 @@ public class PrimaryKeyConstraint extends ConstraintDefinition {
 
   public boolean sameAs(ConstraintDefinition def) {
     if (def instanceof PrimaryKeyConstraint c) {
-      //      return c.columns()
-//              .stream()
-//              .map(String::trim)
-//              .collect(toSet()).equals(columns().stream()
-//                                                .map(String::trim)
-//                                                .collect(toSet()));
       return new HashSet<>(columns()).equals(new HashSet<>(c.columns()));
     }
     return false;

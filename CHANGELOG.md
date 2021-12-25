@@ -31,12 +31,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Support for 'within group' for ordering in string and array aggregate functions.
 - Support for bulk copy manager in postgresql.
 - Support for merge queries.
+- Configure extensions (e.g. specify lookup schema) through parameters. 
 
-## [Unreleased]
+## [0.6.4] - 2021-12-25
 ### Added
-- Types of derived columns are computed now in CreateTable statements.
-- Macros are now expanded for all ESQL statement, not just QueryUpdates.
-- ColumnRef are now properly qualified also in SelectExpression. 
+- Types of derived columns are now inferred in CreateTable statements.
+- Macros are now expanded for all ESQL statement, not just QueryUpdates. Since 
+  the expansion can be invalid in some contexts (such as expansion of a select
+  expression referring to a table in the CreateTable statement creating that table)
+  care must be taken in the macro to detect the correct context when expanding.
+- ColumnRef are now properly qualified in SelectExpression.
+- New method 'exists' added to TableExpr which returns true if all the tables
+  referred to in the table expression exists. This is useful to prevent errors
+  during macro expansion when tables referred to by some statement have not been
+  created yet. With this check, the macro expansion can skip over parts which are
+  missing at that point.
+
+### Fixed
+- Bool support in SQL Server suing IIF has been fixed for select expressions in
+  column list (IIF is used in column list while not used in places where boolean
+  expressions are expected - e.g. the where clause. Select expressions in column
+  list conflicts with that as it is in a column list, thus requires an IIF, but 
+  also, it has certain parts, where using an IIF is an error). This can be resolved
+  by carefully setting a parameter at different points in the translation to 
+  control the output of the IIF.
 
 ### Changed
 - Remove 'replaceExistingQualifier' parameter from the 'qualify' method as it is
@@ -46,8 +64,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.6.3] - 2021-12-22
 ### Added
 - JsonObjectLiteral and JsonArrayLiteral are now outputted as strings in queries.
-- hasAncestor method which can check if the an ESQL is a descendant of one of 
-  several ESQL classes in one call.
+- 'hasAncestor' method which can check if an ESQL is a descendant of one of several 
+  ESQL classes in one call.
 - Selects are now treated as select-expressions (columns are not expanded) when
   they appear in insert row values and as part of the column list of another query.
 - Random naming of columns when a name is not provided or to disambiguate duplicate

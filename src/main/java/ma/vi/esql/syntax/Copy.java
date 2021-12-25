@@ -11,8 +11,4 @@ package ma.vi.esql.syntax;
  */
 public interface Copy<T> {
   T copy();
-
-//  boolean copying();
-//
-//  void copying(boolean copying);
 }

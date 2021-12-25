@@ -18,6 +18,7 @@ import java.util.Set;
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 public class Expression<V, R> extends Esql<V, R> {
+  @SafeVarargs
   public Expression(Context context,
                     V value,
                     T2<String, ? extends Esql<?, ?>>... children) {
@@ -34,6 +35,7 @@ public class Expression<V, R> extends Esql<V, R> {
     super(other);
   }
 
+  @SafeVarargs
   public Expression(Expression<V, R> other, V value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }

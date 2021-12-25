@@ -4,7 +4,7 @@
 
 package ma.vi.esql.syntax;
 
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -44,7 +44,7 @@ public interface Translatable<T> {
   T translate(Target target);
 
   default T translate(Target target, EsqlPath path) {
-    return translate(target, path, Collections.emptyMap());
+    return translate(target, path, new HashMap<>());
   }
 
   /**
@@ -65,6 +65,6 @@ public interface Translatable<T> {
    * while its value will remove it.
    */
   default Object value(Target target, EsqlPath path) {
-    return translate(target, path, Collections.emptyMap());
+    return translate(target, path, new HashMap<>());
   }
 }

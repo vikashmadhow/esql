@@ -77,6 +77,7 @@ public class SqlServerTranslator extends AbstractTranslator {
       // add output clause
       StringBuilder columns = new StringBuilder();
       QueryTranslation q = select.constructResult(columns, target(), path, null, parameters);
+      parameters.put("addIif", false);
 
       st.append(columns);
       st.append(", ").append("row_number() over (partition by ");
@@ -280,6 +281,8 @@ public class SqlServerTranslator extends AbstractTranslator {
         }
         // add output clause
         QueryTranslation q = select.constructResult(st, target(), path, null, parameters);
+        parameters.put("addIif", false);
+
         if (select.tables() != null) {
           st.append(" from ").append(select.tables().translate(target(), path.add(select.tables()), parameters));
         }
@@ -338,6 +341,7 @@ public class SqlServerTranslator extends AbstractTranslator {
     if (update.columns() != null && !update.columns().isEmpty()) {
       st.append(" output ");
       q = update.constructResult(st, target(), path, "inserted", parameters);
+      parameters.put("addIif", false);
     }
     st.append(" from ").append(from.translate(target(), path.add(from), parameters));
 
@@ -362,6 +366,7 @@ public class SqlServerTranslator extends AbstractTranslator {
     if (delete.columns() != null && !delete.columns().isEmpty()) {
       st.append(" output ");
       q = delete.constructResult(st, target(), path, "deleted", parameters);
+      parameters.put("addIif", false);
     }
     st.append(" from ").append(from.translate(target(), path.add(from), parameters));
 
@@ -399,6 +404,7 @@ public class SqlServerTranslator extends AbstractTranslator {
     if (insert.columns() != null && !insert.columns().isEmpty()) {
       st.append(" output ");
       q = insert.constructResult(st, target(), path, "inserted", parameters);
+      parameters.put("addIif", false);
     }
 
     List<InsertRow> rows = insert.rows();
@@ -411,9 +417,11 @@ public class SqlServerTranslator extends AbstractTranslator {
       st.append(" default values");
 
     } else {
+      Map<String, Object> params = new HashMap<>();
+      params.put("addAttributes", false);
       st.append(' ').append(insert.select().translate(target(),
                                                       path.add(insert.select()),
-                                                      Map.of("addAttributes", false)).statement());
+                                                      params).statement());
     }
 
     if (q == null) {

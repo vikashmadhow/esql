@@ -57,6 +57,11 @@ public abstract class AbstractJoinTableExpr extends TableExpr {
   public abstract AbstractJoinTableExpr copy(String value, T2<String, ? extends Esql<?, ?>>... children);
 
   @Override
+  public boolean exists() {
+    return left().exists() && right().exists();
+  }
+
+  @Override
   public Join type(EsqlPath path) {
     if (type == null) {
       type = new Join(left().type(path.add(left())),

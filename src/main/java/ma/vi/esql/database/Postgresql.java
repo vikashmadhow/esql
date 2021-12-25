@@ -54,54 +54,53 @@ public class Postgresql extends AbstractDatabase {
       c.createStatement().executeUpdate("CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\" SCHEMA pg_catalog");
 
       // function for getting type (_core.type_name(type_id))
-      c.createStatement().executeUpdate(
-          "CREATE OR REPLACE FUNCTION \"" + CORE_SCHEMA + "\".type_name(typeid oid) RETURNS TEXT AS $$ \n" +
-              "DECLARE\n" +
-              "    typename    text;\n" +
-              "    namespace   text;\n" +
-              "    elementtype int;\n" +
-              "    isarray     bool = false;\n" +
-              "BEGIN\n" +
-              "    SELECT t.typname,\n" +
-              "           n.nspname,\n" +
-              "           t.typelem INTO typename, namespace, elementtype\n" +
-              "    FROM   pg_catalog.pg_type t\n" +
-              "    JOIN   pg_catalog.pg_namespace n ON t.typnamespace=n.oid\n" +
-              "    WHERE  t.oid=typeid;\n" +
-              "\n" +
-              "    IF elementtype != 0 THEN\n" +
-              "        SELECT t.typname,\n" +
-              "               n.nspname,\n" +
-              "               t.typelem INTO typename, namespace, elementtype\n" +
-              "        FROM   pg_catalog.pg_type t\n" +
-              "        JOIN   pg_catalog.pg_namespace n ON t.typnamespace=n.oid\n" +
-              "        WHERE  t.oid=elementtype;\n" +
-              "        isarray = true;\n" +
-              "    END IF;\n" +
-              "\n" +
-              "    RETURN CASE WHEN namespace IN ('pg_catalog', 'public') THEN typename\n" +
-              "                ELSE '\"' || namespace || '\".\"' || typename || '\"'\n" +
-              "           END ||\n" +
-              "           CASE WHEN isarray THEN '[]' ELSE '' END;\n" +
-              "END;\n" +
-              "$$ LANGUAGE plpgsql");
+      c.createStatement().executeUpdate("""
+                CREATE OR REPLACE FUNCTION "_core".type_name(typeid oid) RETURNS TEXT AS $$\s
+                DECLARE
+                    typename    text;
+                    namespace   text;
+                    elementtype int;
+                    isarray     bool = false;
+                BEGIN
+                    SELECT t.typname,
+                           n.nspname,
+                           t.typelem INTO typename, namespace, elementtype
+                    FROM   pg_catalog.pg_type t
+                    JOIN   pg_catalog.pg_namespace n ON t.typnamespace=n.oid
+                    WHERE  t.oid=typeid;
+                
+                    IF elementtype != 0 THEN
+                        SELECT t.typname,
+                               n.nspname,
+                               t.typelem INTO typename, namespace, elementtype
+                        FROM   pg_catalog.pg_type t
+                        JOIN   pg_catalog.pg_namespace n ON t.typnamespace=n.oid
+                        WHERE  t.oid=elementtype;
+                        isarray = true;
+                    END IF;
+                
+                    RETURN CASE WHEN namespace IN ('pg_catalog', 'public') THEN typename
+                                ELSE '"' || namespace || '"."' || typename || '"'
+                           END ||
+                           CASE WHEN isarray THEN '[]' ELSE '' END;
+                END;
+                $$ LANGUAGE plpgsql""");
 
-       c.createStatement().executeUpdate(
-          "create or replace function _core.range(val double precision, variadic intervals bigint[]) returns text as $$\n" +
-              "  with range(lb, ub, label) as (\n" +
-              "    select intervals[i], intervals[i + 1],\n" +
-              "           case i when 0                         then '01. Less than ' || intervals[1]\n" +
-              "                  when array_upper(intervals, 1) then lpad((array_upper(intervals, 1) + 1)::text, 2, '0') || '. ' || intervals[i] || ' or more'\n" +
-              "                  else                                lpad((i + 1)::text, 2, '0') || '. ' || intervals[i] || ' to ' || (intervals[i+1]-1)\n" +
-              "           end\n" +
-              "    from generate_series(0, array_upper(intervals, 1)) t(i)\n" +
-              "  )\n" +
-              "  select label\n" +
-              "    from range\n" +
-              "   where val >= coalesce(lb, -2000000000)\n" +
-              "     and val <  coalesce(ub,  2000000000)\n" +
-              "$$ language sql immutable strict;\n"
-      );
+       c.createStatement().executeUpdate("""
+               create or replace function _core.range(val double precision, variadic intervals bigint[]) returns text as $$
+                 with range(lb, ub, label) as (
+                   select intervals[i], intervals[i + 1],
+                          case i when 0                         then '01. Less than ' || intervals[1]
+                                 when array_upper(intervals, 1) then lpad((array_upper(intervals, 1) + 1)::text, 2, '0') || '. ' || intervals[i] || ' or more'
+                                 else                                lpad((i + 1)::text, 2, '0') || '. ' || intervals[i] || ' to ' || (intervals[i+1]-1)
+                          end
+                   from generate_series(0, array_upper(intervals, 1)) t(i)
+                 )
+                 select label
+                   from range
+                  where val >= coalesce(lb, -2000000000)
+                    and val <  coalesce(ub,  2000000000)
+               $$ language sql immutable strict;""");
     } catch (SQLException e) {
       throw unchecked(e);
     }

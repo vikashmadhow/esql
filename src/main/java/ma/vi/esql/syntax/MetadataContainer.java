@@ -18,6 +18,7 @@ import java.util.List;
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 public abstract class MetadataContainer<R> extends Expression<String, R> {
+  @SafeVarargs
   public MetadataContainer(Context context, String value, T2<String, ? extends Esql<?, ?>>... children) {
     super(context, value, children);
   }
@@ -30,6 +31,7 @@ public abstract class MetadataContainer<R> extends Expression<String, R> {
     super(other);
   }
 
+  @SafeVarargs
   public MetadataContainer(MetadataContainer<R> other,
                            String value,
                            T2<String, ? extends Esql<?, ?>>... children) {

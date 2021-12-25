@@ -100,10 +100,11 @@ public class EsqlConnectionImpl implements EsqlConnection {
 
   private Result exec(Expression<?, ?> expression, Param... params) {
     Expression<?, ?> st = expression;
+
+    /*
+     * Substitute parameters into statement.
+     */
     if (params.length > 0) {
-      /*
-       * Substitute parameters into statement.
-       */
       final Map<String, Param> parameters = new HashMap<>();
       for (Param p: params) {
         parameters.put(p.a, p);
@@ -135,14 +136,12 @@ public class EsqlConnectionImpl implements EsqlConnection {
         return e;
       });
     }
-//    if (st instanceof QueryUpdate) {
-      /*
-       * OBSOLETE: Macro expansion for queries only (for ddl, macro expansion would expand
-       * expressions without any contextual information such as the current query
-       * which is needed for some cases - e.g., when computing derived expressions)
-       */
-      st = expandMacros(st);
-//    }
+
+    /*
+     * Expand macros in statement.
+     */
+    st = expandMacros(st);
+
     /*
      * Transform ESQL through registered transformers prior to execution.
      */

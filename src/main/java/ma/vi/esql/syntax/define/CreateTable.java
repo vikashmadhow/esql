@@ -15,6 +15,7 @@ import ma.vi.esql.syntax.*;
 import ma.vi.esql.syntax.expression.ColumnRef;
 import ma.vi.esql.syntax.expression.Expression;
 import ma.vi.esql.syntax.expression.GroupedExpression;
+import ma.vi.esql.syntax.expression.SelectExpression;
 import ma.vi.esql.syntax.expression.literal.Literal;
 import ma.vi.esql.syntax.query.Column;
 import ma.vi.esql.syntax.query.Select;
@@ -135,7 +136,7 @@ public class CreateTable extends Define {
       EsqlPath typeProxy = new EsqlPath(new CreateTable(columns));
       for (ColumnDefinition column: columns) {
         if (column instanceof DerivedColumnDefinition derived) {
-          if (derived.type() == null) {
+          if (derived.type() == null && !(derived.expression() instanceof SelectExpression)) {
             Type type = derived.expression().type(typeProxy.add(derived.expression()));
             typedCols.add(derived.type(type));
           } else {
@@ -184,35 +185,6 @@ public class CreateTable extends Define {
       seen.remove(columnName);
     }
   }
-
-//  public static void circular(String column,
-//                              Expression<?, String> expression,
-//                              Set<String> persistentCols,
-//                              Map<String, Expression<?, String>> derivedCols,
-//                              List<String> circularPath) {
-//    try {
-//      circularPath.add(column);
-//      expression.forEach((esql, path) -> {
-//        if (esql instanceof ColumnRef ref) {
-//          String colName = ref.name();
-//          if (!persistentCols.contains(colName) && !derivedCols.containsKey(colName)) {
-//            throw new TranslationException("Unknown column " + colName
-//                                         + " in derived expression " + expression);
-//          } else if (circularPath.contains(colName)) {
-//            circularPath.add(colName);
-//            throw new CircularReferenceException("A circular reference was detected in the expression "
-//                                               + expression + " consisting of the column path " + circularPath);
-//          } else if (derivedCols.containsKey(colName)) {
-//            circular(colName, derivedCols.get(colName), persistentCols, derivedCols, circularPath);
-//          }
-//        }
-//        return true;
-//      },
-//      e -> !(e instanceof Select));
-//    } finally {
-//      circularPath.remove(column);
-//    }
-//  }
 
   @Override
   protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {

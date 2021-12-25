@@ -6,7 +6,6 @@ package ma.vi.esql.syntax.query;
 
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.semantic.type.AliasedRelation;
-import ma.vi.esql.semantic.type.BaseRelation;
 import ma.vi.esql.semantic.type.Selection;
 import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.syntax.Context;
@@ -73,6 +72,11 @@ public class DynamicTableExpr extends AbstractAliasTableExpr {
   }
 
   @Override
+  public boolean exists() {
+    return true;
+  }
+
+  @Override
   public AliasedRelation type(EsqlPath path) {
     if (type == null) {
       List<Type> columnTypes = new ArrayList<>();
@@ -121,11 +125,6 @@ public class DynamicTableExpr extends AbstractAliasTableExpr {
                                           metadata() != null
                                             ? new ArrayList<>(metadata().attributes().values())
                                             : null,this);
-//      Selection selection = new Selection(BaseRelation.expandColumns(
-//                                            metadata() != null
-//                                              ? new ArrayList<>(metadata().attributes().values())
-//                                              : null,
-//                                            relationColumns),this);
       type = new AliasedRelation(selection, alias());
       context.type(alias(), type);
     }

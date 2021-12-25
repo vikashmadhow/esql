@@ -22,45 +22,46 @@ public class CreateTest extends DataTest {
                    System.out.println(db.target());
                    Parser p = new Parser(db.structure());
                    try (EsqlConnection con = db.esql(db.pooledConnection())) {
-                     Program s = p.parse("create table A drop undefined(" +
-                                             "  {" +
-                                             "    name: 'A'," +
-                                             "    description: 'A test table'," +
-                                             "    tm1: from A select max(b)," +
-                                             "    tm2: a > b" +
-                                             "  }, " +
-                                             "  _id uuid not null," +
-                                             "  a int {" +
-                                             "    m1: b > 5," +
-                                             "    m2: 10," +
-                                             "    m3: a != 0" +
-                                             "  }," +
-                                             "  b int {" +
-                                             "    m1: b < 0" +
-                                             "  }," +
-                                             "  c=a+b {" +
-                                             "    m1: a > 5," +
-                                             "    m2: a + b," +
-                                             "    m3: b > 5" +
-                                             "  }," +
-                                             "  d=b+c {" +
-                                             "    m1: 10" +
-                                             "  }," +
-                                             "  e int {" +
-                                             "    m1: c" +
-                                             "  }," +
-                                             "  f=from A select max(a) {" +
-                                             "    m1: from A select min(a)" +
-                                             "  }," +
-                                             "  g=from A select distinct c where d>5) {" +
-                                             "    m1: from a.b.B select min(a)" +
-                                             "  }," +
-                                             "  h text {" +
-                                             "    m1: 5" +
-                                             "  }," +
-                                             "  i string," +
-                                             "  primary key(_id)" +
-                                             ")");
+                     Program s = p.parse("""
+                                           create table A drop undefined(
+                                             {
+                                               name: 'A',
+                                               description: 'A test table',
+                                               tm1: from A select max(b),
+                                               tm2: a > b
+                                             },
+                                             _id uuid not null,
+                                             a int {
+                                               m1: b > 5,
+                                               m2: 10,
+                                               m3: a != 0
+                                             },
+                                             b int {
+                                               m1: b < 0
+                                             },
+                                             c=a+b {
+                                               m1: a > 5,
+                                               m2: a + b,
+                                               m3: b > 5
+                                             },
+                                             d=b+c {
+                                               m1: 10
+                                             },
+                                             e int {
+                                               m1: c
+                                             },
+                                             f=from A select max(a) {
+                                               m1: from A select min(a)
+                                             },
+                                             g=from A select distinct c where d>5) {
+                                               m1: from a.b.B select min(a)
+                                             },
+                                             h text {
+                                               m1: 5
+                                             },
+                                             i string,
+                                             primary key(_id)
+                                           )""");
                      System.out.println(s);
                      con.exec(s);
                    }

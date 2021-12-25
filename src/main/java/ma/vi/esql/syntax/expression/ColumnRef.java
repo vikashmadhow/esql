@@ -170,7 +170,7 @@ public class ColumnRef extends Expression<String, String> implements Macro {
    */
   private T2<Relation, Column> column(QueryUpdate qu, EsqlPath path) {
     T2<Relation, Column> column = null;
-    while (column == null && qu != null) {
+    while (column == null && qu != null && qu.tables().exists()) {
       column = qu.tables()
                  .type(path.add(qu.tables()))
                  .findColumn(this);

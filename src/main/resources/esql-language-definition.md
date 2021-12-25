@@ -29,7 +29,7 @@ curly braces ({}) with each attribute consisting of a name-expression pair. Meta
 can be attached to a table and to its columns. For instance this is a `create table`
 statement which defines metadata attributes on both the table and its columns:
 
-```sql
+```esql
 create table com.example.S(
   {
     # table metadata (applied to all queries on this table)
@@ -77,7 +77,7 @@ When a table is queried, its metadata and those on its queried columns are added
 to the query and can be overridden by metadata provided directly in the query. For
 example:
 
-```sql
+```esql
 select { a_gt_b: a != b },
        a,
        c { m3: b > 1500 }
@@ -86,7 +86,7 @@ select { a_gt_b: a != b },
 ```
 
 will be conceptually expanded to:
-```sql
+```esql
 select { 
          max_a: (max(a) from com.example.S),  # from definition of the table
          a_gt_b: a != b                       # override the default attribute with the same name on the table

@@ -25,14 +25,6 @@ import static java.util.stream.Collectors.joining;
 public class Metadata extends TableDefinition {
   public Metadata(Context context, List<Attribute> attributes) {
     super(context, "Metadata", attributes);
-//    Map<String, Attribute> attributeMap = new HashMap<>();
-//    for (Attribute attr: attributes) {
-//      if (attr != null) {
-//        attr.parent = this;
-//        attributeMap.put(attr.name(), attr);
-//      }
-//    }
-//    childValue("attributes", attributeMap);
   }
 
   public Metadata(Metadata other) {

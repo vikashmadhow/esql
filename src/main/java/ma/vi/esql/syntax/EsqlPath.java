@@ -53,6 +53,24 @@ public class EsqlPath {
     return tail != null && tail.hasAncestor(cls);
   }
 
+  public <T extends Esql<?, ?>> T closestAncestor(Class<?>... cls) {
+    for (Class<?> c: cls) {
+      if (c.isAssignableFrom(head.getClass())) {
+        return (T)head;
+      }
+    }
+    return tail == null ? null : tail.closestAncestor(cls);
+  }
+
+  public <T extends Esql<?, ?>> T2<T, EsqlPath> closestAncestorAndPath(Class<?>... cls) {
+    for (Class<?> c: cls) {
+      if (c.isAssignableFrom(head.getClass())) {
+        return T2.of((T)head, this);
+      }
+    }
+    return tail == null ? null : tail.closestAncestorAndPath(cls);
+  }
+
   /**
    * Returns this instance or its first ancestor, going up from the current parent,
    * which is an instance of the specified class. Returns null if no such instance
@@ -94,6 +112,11 @@ public class EsqlPath {
     return null;
   }
 
+  /**
+   * Returns the distance of the ancestor from the head of the path, if found.
+   * Otherwise returns -1.
+   * @param cls The class of ancestor to find
+   */
   public int ancestorDistance(Class<? extends Esql<?, ?>> cls) {
     int distance = 0;
     EsqlPath path = this;
@@ -104,7 +127,7 @@ public class EsqlPath {
       distance++;
       path = path.tail;
     }
-    return MAX_VALUE;
+    return -1;
   }
 
   public int ancestorDistance(String name) {

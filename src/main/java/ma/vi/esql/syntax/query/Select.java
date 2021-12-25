@@ -14,7 +14,9 @@ import ma.vi.esql.syntax.expression.ColumnRef;
 import ma.vi.esql.syntax.expression.Expression;
 import ma.vi.esql.syntax.expression.FunctionCall;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Stream;
 
 import static ma.vi.base.tuple.T2.of;
@@ -25,6 +27,7 @@ import static ma.vi.base.tuple.T2.of;
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 public class Select extends QueryUpdate /* implements Macro */ {
+  @SafeVarargs
   public Select(Context                     context,
                 Metadata                    metadata,
                 boolean                     distinct,
@@ -48,7 +51,6 @@ public class Select extends QueryUpdate /* implements Macro */ {
               of("metadata",    metadata),
               of("distinctOn",  new Esql<>(context, "distinctOn", distinctOn)),
               of("columns",     new ColumnList(context, columns)),
-//              of("columns",     renameColumns(context, columns)),
               of("where",       where),
               of("groupBy",     groupBy),
               of("having",      having),
@@ -81,144 +83,17 @@ public class Select extends QueryUpdate /* implements Macro */ {
     return new Select(this, value, children);
   }
 
-//  /*
-//   * Rename column names to be unique without random characters.
-//   */
-//  private static ColumnList renameColumns(Context context, List<Column> columns) {
-//    List<Column> renamed = new ArrayList<>();
-//    Set<String> names = new HashSet<>();
-//    for (Column column: columns) {
-//      String alias = column.name();
-//      if (alias.startsWith("__auto_col")) {
-//        if (column.expression() instanceof FunctionCall) {
-//          alias = makeUnique(names, ((FunctionCall)column.expression()).functionName());
-//        } else {
-//          alias = makeUnique(names, "column");
-//        }
-//      } else {
-//        alias = makeUnique(names, alias);
-//      }
-//      renamed.add(column.copy(alias));
-//    }
-//    return new ColumnList(context, renamed);
-//  }
-
   @Override
   public boolean modifying() {
     return false;
   }
-
-  private static String makeUnique(Set<String> names, String alias) {
-    int unique = 1;
-    String name = alias;
-    while (names.contains(name)) {
-      name = alias + "_" + (unique++);
-    }
-    names.add(name);
-    return name;
-  }
-
-//  @Override
-//  public Esql<?, ?> expand(Esql<?, ?> esql, EsqlPath path) {
-//    /*
-//     * Expand star columns (*) to the individual columns they refer to
-//     */
-//    TableExpr from = tables();
-//    Relation fromType = from.type(path);
-//
-//    boolean expanded = false;
-//    Map<String, String> aliased = new HashMap<>();
-//    Map<String, Column> resolvedColumns = new LinkedHashMap<>();
-//    for (Column column: columns()) {
-//      if (column instanceof StarColumn all) {
-//        expanded = true;
-//        String qualifier = all.qualifier();
-//        Relation rel = qualifier == null ? fromType : fromType.forAlias(qualifier);
-//        for (Column relCol: rel.columns()) {
-//          String alias = relCol.alias();
-//          if (alias == null) {
-//            alias = Strings.makeUnique(resolvedColumns.keySet(), "col", false);
-//          }
-//          Column col;
-//          if (rel instanceof BaseRelation
-//           || (rel instanceof AliasedRelation && ((AliasedRelation)rel).relation instanceof BaseRelation)) {
-//            col = relCol.copy();
-//            if (qualifier != null) {
-//              ColumnRef.qualify(col.expression(), qualifier, null, true);
-//            }
-//            if (col.metadata() != null) {
-//              for (Attribute attr: col.metadata().attributes().values()) {
-//                ColumnRef.qualify(attr.attributeValue(), qualifier, null, true);
-//              }
-//            }
-//          } else {
-//            col = new Column(context,
-//                             alias,
-//                             new ColumnRef(context, qualifier, relCol.alias()),
-//                             null);
-//          }
-//
-//          int pos = alias.indexOf('/');
-//          if (pos == -1) {
-//            /*
-//             * Normal column (not metadata).
-//             */
-//            if (resolvedColumns.containsKey(alias)) {
-//              alias = Strings.makeUnique(resolvedColumns.keySet(), alias, false);
-//            }
-//            if (relCol.alias() != null && !alias.equals(relCol.alias())) {
-//              aliased.put(relCol.alias(), alias);
-//              col.alias(alias);
-//            }
-//            resolvedColumns.put(alias, col);
-//
-//          } else if (pos > 0) {
-//            /*
-//             * Column metadata
-//             */
-//            String columnName = alias.substring(0, pos);
-//            if (aliased.containsKey(columnName)) {
-//              // replace column name with replacement if the column name was changed
-//              String aliasName = aliased.get(columnName);
-//              alias = aliasName + alias.substring(pos);
-//              col.alias(alias);
-//            }
-//            resolvedColumns.put(alias, col);
-//
-//          } else if (!resolvedColumns.containsKey(alias)) {
-//            /*
-//             * table metadata first encounter (by elimination, pos==0 in this case)
-//             */
-//            resolvedColumns.put(alias, col);
-//          }
-//        }
-//      } else {
-//        column.expression().forEach((e, p) -> {
-//          if (e instanceof ColumnRef) {
-//            SelectExpression selExpr = p.ancestor(SelectExpression.class);
-//            if (selExpr == null) {
-//              ColumnRef c = (ColumnRef)e;
-//              if (c.qualifier() == null) {
-//                Column col = fromType.column(c.name());
-//                c.replaceWith(col.expression());
-//              }
-//            }
-//          }
-//          return true;
-//        });
-//        resolvedColumns.put(column.alias(), column);
-//      }
-//    }
-//    columns(new ArrayList<>(resolvedColumns.values()));
-//    return expanded;
-//  }
 
   @Override protected boolean grouped() {
     if (groupBy() != null) {
       return true;
     } else if (columns().size() == 1) {
       /*
-       * A select is also grouped if its single column is an aggregate function
+       * A 'select' is also grouped if its single column is an aggregate function
        * such as count or max.
        */
       Column col = columns().get(0);
@@ -278,28 +153,13 @@ public class Select extends QueryUpdate /* implements Macro */ {
     return childValue("distinct");
   }
 
-//  public Select distinct(Boolean distinct) {
-//    childValue("distinct", distinct);
-//    return this;
-//  }
-
   public List<Expression<?, String>> distinctOn() {
     return child("distinctOn").children();
   }
 
-//  public Select distinctOn(List<Expression<?, String>> on) {
-//    childrenList("distinctOn", on);
-//    return this;
-//  }
-
   public Boolean explicit() {
     return childValue("explicit");
   }
-
-//  public Select explicit(Boolean explicit) {
-//    childValue("explicit", explicit);
-//    return this;
-//  }
 
   public GroupBy groupBy() {
     return child("groupBy");
@@ -313,35 +173,15 @@ public class Select extends QueryUpdate /* implements Macro */ {
     return child("having");
   }
 
-//  public Select having(Expression<?, String> having) {
-//    child("having", having);
-//    return this;
-//  }
-
   public List<Order> orderBy() {
     return child("orderBy") == null ? null : child("orderBy").children();
   }
-
-//  public Select orderBy(List<Order> orderBy) {
-//    childrenList("orderBy", orderBy);
-//    return this;
-//  }
 
   public Expression<?, String> offset() {
     return child("offset");
   }
 
-//  public Select offset(Expression<?, String> offset) {
-//    child("offset", offset);
-//    return this;
-//  }
-
   public Expression<?, String> limit() {
     return child("limit");
   }
-
-//  public Select limit(Expression<?, String> limit) {
-//    child("limit", limit);
-//    return this;
-//  }
 }

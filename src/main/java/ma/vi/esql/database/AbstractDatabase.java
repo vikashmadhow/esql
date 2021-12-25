@@ -272,23 +272,23 @@ public abstract class AbstractDatabase implements Database {
               // targetRelation.dependency(relation);
               targetRelation.dependentConstraint((ForeignKeyConstraint)c);
             }
-
-            //            // link referenced field to constraint
-            //            // if the field is dropped, so should the constraint
-            //            if (columns != null && !columns.isEmpty()) {
-            //              for (Field f: columns) {
-            //                f.dependentConstraint(c);
-            //              }
-            //            }
-            //
-            //            // link referring table for foreign keys to field;
-            //            // if this field is dropped, so should the referring table.
-            //            //      E.g., r1[a] -> r2[b]: r1 is the dependent relation for field b
-            //            if (targetColumns != null && !targetColumns.isEmpty()) {
-            //              for (Field f: targetColumns) {
-            //                f.dependentForeignKey(relation);
-            //              }
-            //            }
+//
+//            // link referenced field to constraint
+//            // if the field is dropped, so should the constraint
+//            if (columns != null && !columns.isEmpty()) {
+//              for (Field f: columns) {
+//                f.dependentConstraint(c);
+//              }
+//            }
+//
+//            // link referring table for foreign keys to field;
+//            // if this field is dropped, so should the referring table.
+//            //      E.g., r1[a] -> r2[b]: r1 is the dependent relation for field b
+//            if (targetColumns != null && !targetColumns.isEmpty()) {
+//              for (Field f: targetColumns) {
+//                f.dependentForeignKey(relation);
+//              }
+//            }
 
           }
         }

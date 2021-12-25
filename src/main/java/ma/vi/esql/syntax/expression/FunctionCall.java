@@ -202,19 +202,9 @@ public class FunctionCall extends Expression<String, String> implements Macro {
     return childValue("distinct");
   }
 
-//  public FunctionCall distinct(boolean distinct) {
-//    childValue("distinct", distinct);
-//    return this;
-//  }
-
   public List<Expression<?, String>> distinctOn() {
     return child("distinctOn").children();
   }
-
-//  public FunctionCall distinctOn(List<Expression<?, String>> on) {
-//    childrenList("distinctOn", on);
-//    return this;
-//  }
 
   public List<Expression<?, ?>> arguments() {
     return child("arguments").children();

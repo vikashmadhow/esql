@@ -855,52 +855,6 @@ public class SyntaxAnalyser extends EsqlBaseListener {
   @Override
   public void exitNullCheckExpr(NullCheckExprContext ctx) {
     put(ctx, new IsNull(context, ctx.Not() != null, get(ctx.expr())));
-   }
-
-//  @Override
-//  public void exitCoalesceExpr(CoalesceExprContext ctx) {
-//    createCoalesce(ctx, ctx.expr());
-//  }
-
-//  @Override
-//  public void exitSimpleCoalesceExpr(SimpleCoalesceExprContext ctx) {
-//    createCoalesce(ctx, ctx.simpleExpr());
-//  }
-
-  private void createCoalesce(ParserRuleContext ctx,
-                              List<? extends ParserRuleContext> expressions) {
-    boolean optimised = false;
-    if (expressions.size() == 2) {
-      /*
-       * Chained coalesced statements are broken in 2-parts corresponding to
-       * (expr '?' expr). If the first expr is a coalesce expression, we can
-       * optimise the whole coalesce function by combining it into a single one.
-       *
-       * Thus (coalesce ? e3) where coalesce is (e1 ? e2) is combined into
-       * (e1 ? e2 ? e3)
-       */
-      Expression<?, String> first = get(expressions.get(0));
-      Expression<?, String> second = get(expressions.get(1));
-      if (first instanceof Coalesce) {
-        Coalesce coalesce = (Coalesce)first;
-        List<Expression<?, ?>> coalesceExprs = new ArrayList<>(coalesce.expressions());
-        coalesceExprs.add(second);
-        put(ctx, new Coalesce(context, coalesceExprs));
-        optimised = true;
-
-      } else if (second instanceof Coalesce) {
-        Coalesce coalesce = (Coalesce)second;
-        List<Expression<?, ?>> coalesceExprs = new ArrayList<>(coalesce.expressions());
-        coalesceExprs.add(0, first);
-        put(ctx, new Coalesce(context, coalesceExprs));
-        optimised = true;
-      }
-    }
-    if (!optimised) {
-      put(ctx, new Coalesce(context, expressions.stream()
-                                                .map(e -> (Expression<?, String>)get(e))
-                                                .collect(toList())));
-    }
   }
 
   @Override

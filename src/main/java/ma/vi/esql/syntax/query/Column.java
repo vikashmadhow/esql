@@ -33,6 +33,7 @@ import static ma.vi.esql.syntax.Translatable.Target.ESQL;
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 public class Column extends MetadataContainer<String> {
+  @SafeVarargs
   public Column(Context context,
                 String name,
                 Expression<?, String> expression,
@@ -45,7 +46,6 @@ public class Column extends MetadataContainer<String> {
                 T2.of("name", new Esql<>(context, name != null ? name
                                                    : expression instanceof ColumnRef r ? r.name()
                                                    : null)),
-//                T2.of("name", new Esql<>(context, autoName(expression, name))),
                 T2.of("expression", expression),
                 T2.of("metadata", addId(metadata))
               }),
@@ -217,11 +217,8 @@ public class Column extends MetadataContainer<String> {
         type = expression().type(path.add(expression()));
       }
       return type;
-//    } else if (derived() || !(expression() instanceof ColumnRef)) {
-//      return expression().type(path.add(expression()));
     } else {
       return expression().type(path.add(expression()));
-//      return Types.UnknownType;
     }
   }
 
@@ -243,7 +240,7 @@ public class Column extends MetadataContainer<String> {
     if (name() != null) {
       st.append(name()).append(':');
     }
-    st.append(expression());
+    expression()._toString(st, level + 1, indent);
     if (metadata() != null && !metadata().attributes().isEmpty()) {
       metadata()._toString(st, level, indent);
     }

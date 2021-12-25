@@ -16,18 +16,12 @@ import static ma.vi.esql.database.Database.*;
 public class Databases {
   public static HSqlDb HSqlDb() {
     if (hSqlDb == null) {
-//      hSqlDb = new HSqlDb(Map.of(
-//          "database.name", "mem:test",
-//          "database.user.name", "SA",
-//          "database.user.password", ""), true, true);
       String userHome = System.getProperty("user.home");
       hSqlDb = new HSqlDb(Map.of(
-//          "database.name", "file:temp/test",
           CONFIG_DB_NAME, "file:" + userHome + "/testdb/data",
           CONFIG_DB_USER, "SA",
           CONFIG_DB_PASSWORD, "",
           CONFIG_DB_CREATE_CORE_TABLES, true));
-//      createTestTables(hSqlDb);
     }
     return hSqlDb;
   }

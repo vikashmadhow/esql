@@ -38,6 +38,7 @@ import static ma.vi.base.string.Strings.random;
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 public abstract class QueryUpdate extends MetadataContainer<QueryTranslation> implements Statement {
+  @SafeVarargs
   public QueryUpdate(Context context, String value, T2<String, ? extends Esql<?, ?>>... children) {
     super(context, value, children);
   }
@@ -214,142 +215,31 @@ public abstract class QueryUpdate extends MetadataContainer<QueryTranslation> im
    * the path, normalizing how both QueryUpdate and SelectExpression are treated.
    */
   public static QueryUpdate ancestor(EsqlPath path) {
-    QueryUpdate qu = path.ancestor(QueryUpdate.class);
-    if (qu == null) {
-      SelectExpression sel = path.ancestor(SelectExpression.class);
-      if (sel != null) {
-        qu = sel.select();
-      }
+    Esql<?, ?> closest = path.closestAncestor(QueryUpdate.class, SelectExpression.class);
+    if (closest instanceof QueryUpdate q) {
+      return q;
+    } else if (closest instanceof SelectExpression s) {
+      return s.select();
+    } else {
+      return null;
     }
-    return qu;
   }
 
   /**
    * Same as {@link #ancestor} but including the path.
    */
   public static T2<QueryUpdate, EsqlPath> ancestorAndPath(EsqlPath path) {
-    T2<QueryUpdate, EsqlPath> qu = path.ancestorAndPath(QueryUpdate.class);
-    if (qu == null) {
-      T2<SelectExpression, EsqlPath> sel = path.ancestorAndPath(SelectExpression.class);
-      if (sel != null) {
-        qu = T2.of(sel.a.select(), sel.b);
-      }
+    T2<Esql<?, ?>, EsqlPath> closest = path.closestAncestorAndPath(QueryUpdate.class, SelectExpression.class);
+    if (closest == null) {
+      return null;
+    } else if (closest.a instanceof QueryUpdate q) {
+      return T2.of(q, closest.b);
+    } else if (closest.a instanceof SelectExpression s) {
+      return T2.of(s.select(), closest.b);
+    } else {
+      return null;
     }
-    return qu;
   }
-
-//  @Override
-//  public Selection type(EsqlPath path) {
-//    if (type == null) {
-//      TableExpr from = tables();
-//      Relation fromType = from.type(path.add(from));
-//
-//      boolean expandColumns = !grouped() && path.ancestor(Cte.class) == null;
-//
-//      /*
-//       * Add selected columns and metadata
-//       */
-//      Map<String, Column> columns = new LinkedHashMap<>();
-//      Map<String, String> aliased = new HashMap<>();
-//      if (columns() != null) {
-//        for (Column column: columns()) {
-//          String alias = column.name();
-//          if (expandColumns
-//           && column.expression() instanceof ColumnRef ref
-//           && alias.indexOf('/') == -1) {
-//            String refName = ref.name();
-//            if (!refName.equals(alias)) {
-//              aliased.put(refName, alias);
-//            }
-//            for (T2<Relation, Column> col: fromType.columns(refName)) {
-//              if (ref.qualifier() == null || ref.qualifier().equals(col.a.alias())) {
-//                String colAlias = col.b.name();
-//                Column c = col.b.name(alias + colAlias.substring(refName.length()));
-//                columns.put(c.name(), c);
-//              }
-//            }
-//          } else {
-//            columns.put(alias, column);
-//          }
-//
-//          /*
-//           * Override with explicit result metadata defined in select.
-//           */
-//          if (expandColumns) {
-//            if (column.metadata() != null && column.metadata().attributes() != null) {
-//              for (Attribute a: column.metadata().attributes().values()) {
-//                for (Column c: BaseRelation.columnsForAttribute(a, alias + '/', aliased)) {
-//                  columns.put(c.name(), c);
-//                }
-//              }
-//            }
-//          }
-//        }
-//      }
-//
-//      if (expandColumns && !modifying()) {
-//        /*
-//         * Add all relation-level metadata columns defined on the tables
-//         * being queried.
-//         */
-//        Set<String> aliases = fromType.aliases();
-//        if (!aliases.isEmpty()) {
-//          List<T2<Relation, Column>> relCols = fromType.columns("/");
-//          for (String relAlias: aliases) {
-//            for (Column column: relCols.stream()
-//                                       .filter(r -> r.a.alias().equals(relAlias))
-//                                       .map(r -> qualify(r.b, relAlias, true)).toList()) {
-//              String alias = column.name();
-//              if (!columns.containsKey(alias)) {
-//                columns.put(alias, column.copy());
-//              }
-//            }
-//          }
-//        } else {
-//          for (T2<Relation, Column> column: fromType.columns("/")) {
-//            String alias = column.b.name();
-//            if (!columns.containsKey(alias)) {
-//              columns.put(alias, column.b.copy());
-//            }
-//          }
-//        }
-//
-//        /*
-//         * Override with explicit result metadata defined in query.
-//         */
-//        Metadata metadata = metadata();
-//        if (metadata != null && metadata.attributes() != null) {
-//          for (Attribute a: metadata.attributes().values()) {
-//            for (Column column: BaseRelation.columnsForAttribute(a, "/", emptyMap())) {
-//              String alias = column.name();
-//              if (!columns.containsKey(alias)) {
-//                columns.put(alias, column.copy());
-//              }
-//            }
-//          }
-//        }
-//      }
-//
-//      /*
-//       * Replace column names with their aliases in uncomputed forms intended
-//       * to be run on client-side.
-//       */
-//      List<Column> cols = new ArrayList<>(columns.values());
-//      if (!aliased.isEmpty()) {
-//        for (int i = 0; i < cols.size(); i++) {
-//          Column c = cols.get(i);
-//          if (c.expression() instanceof UncomputedExpression) {
-//            c = c.set("expression", BaseRelation.rename(c.expression(), aliased));
-//            cols.set(i, c);
-//          }
-//        }
-//      }
-//
-//      type = new Selection(cols, from);
-////      context.type(type);
-//    }
-//    return type;
-//  }
 
   /**
    * @return Whether this is a grouping query or not. In grouping queries
@@ -956,5 +846,5 @@ public abstract class QueryUpdate extends MetadataContainer<QueryTranslation> im
 
   private static final System.Logger log = System.getLogger(QueryUpdate.class.getName());
 
-  private static final Map<String, Object> ADDIIF = Map.of("addIif", true);
+  private static final Map<String, Object> ADDIIF = new HashMap<>(Map.of("addIif", true));
 }

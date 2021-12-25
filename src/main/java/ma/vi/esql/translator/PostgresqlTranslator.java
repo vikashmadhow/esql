@@ -1,7 +1,6 @@
 package ma.vi.esql.translator;
 
 import ma.vi.base.tuple.T1;
-import ma.vi.base.tuple.T2;
 import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.Translatable;
@@ -220,9 +219,6 @@ public class PostgresqlTranslator extends AbstractTranslator {
        * to the `using` clause of the delete; any join condition removed when
        * extracting the single update table must be moved to the `where` clause.
        */
-//      T2<AbstractJoinTableExpr, SingleTableExpr> deleteTable =
-//          removeSingleTable((AbstractJoinTableExpr)from,
-//                            delete.deleteTableAlias());
 
       T1<AbstractJoinTableExpr> deleteJoin = new T1<>();
       T1<SingleTableExpr> deleteTable = new T1<>();
@@ -286,61 +282,6 @@ public class PostgresqlTranslator extends AbstractTranslator {
                                   emptyList(), emptyMap());
     }
   }
-
-
-//  /**
-//   * For postgresql updates, the table to be updated must be specified after the
-//   * `update` keyword and not repeated in the from table expression (unless for
-//   * a self-join). Since ESQL allows a single table expression containing the
-//   * whole join together with the table to update, the latter must be extracted.
-//   * This method finds the table to update (using its alias supplied in the
-//   * update statement), removes it from the whole table expression and returns
-//   * it, together with the parent join it belongs to. The parent join is used to
-//   * extract any condition set on the join and put it in the `where` clause.
-//   *
-//   * @param join The join to search for single update table.
-//   * @param singleTableAlias The alias of the single table being searched.
-//   * @return The single table to update together with the parent join it belongs
-//   *         to. The parent join is used to extract any condition set on the
-//   *         join and put it in the `where` clause of the query.
-//   */
-//  private static T2<AbstractJoinTableExpr, SingleTableExpr> removeSingleTable(AbstractJoinTableExpr join,
-//                                                                              String singleTableAlias) {
-//    if (join.left() instanceof SingleTableExpr table
-//     && singleTableAlias.equals(((SingleTableExpr)join.left()).alias())) {
-//      /*
-//       *        J                    J
-//       *      /  \    remove x     /  \
-//       *     J    z  ---------->  y    z
-//       *    / \
-//       *   x  y
-//       */
-//      join.replaceWith(join.right());
-//      return T2.of(join, table);
-//
-//    } else if (join.right() instanceof SingleTableExpr table
-//            && singleTableAlias.equals(((SingleTableExpr)join.right()).alias())) {
-//      /*
-//       *        J                     J
-//       *      /  \   remove y       /  \
-//       *     J    z ---------->    x    z
-//       *    / \
-//       *   x  y
-//       */
-//
-//      join.replaceWith(join.left());
-//      return T2.of(join, table);
-//
-//    } else if (join.left() instanceof AbstractJoinTableExpr) {
-//      return removeSingleTable((AbstractJoinTableExpr)join.left(), singleTableAlias);
-//
-//    } else if (join.right() instanceof AbstractJoinTableExpr) {
-//      return removeSingleTable((AbstractJoinTableExpr)join.right(), singleTableAlias);
-//
-//    } else {
-//      return null;
-//    }
-//  }
 
   @Override
   protected QueryTranslation translate(Insert insert, EsqlPath path, Map<String, Object> parameters) {

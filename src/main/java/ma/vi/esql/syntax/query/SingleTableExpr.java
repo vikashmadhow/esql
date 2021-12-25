@@ -57,6 +57,11 @@ public class SingleTableExpr extends AbstractAliasTableExpr {
   }
 
   @Override
+  public boolean exists() {
+    return context.type(tableName()) != null;
+  }
+
+  @Override
   public AliasedRelation type(EsqlPath path) {
     if (type == null) {
       String table = tableName();

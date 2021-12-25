@@ -35,6 +35,7 @@ public abstract class Literal<V> extends Expression<V, String> {
     super(context, value);
   }
 
+  @SafeVarargs
   public Literal(Context context,
                  V value,
                  T2<String, ? extends Esql<?, ?>>... children) {
@@ -51,6 +52,7 @@ public abstract class Literal<V> extends Expression<V, String> {
     super(other);
   }
 
+  @SafeVarargs
   public Literal(Literal<V> other, V value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }
@@ -202,22 +204,4 @@ public abstract class Literal<V> extends Expression<V, String> {
     }
     throw new TranslationException("Cannot make a literal of " + value + " (" + value.getClass() + ')');
   }
-
-//    /**
-//     * Creates an expression of the value if the expression starts with '('
-//     * and ends with ')'; otherwise parse the value as a literal.
-//     */
-//    public static Expression<?, String> makeExpression(Context context, Object value) {
-//        if (value instanceof String
-//                && ((String)value).startsWith("(")
-//                && ((String)value).endsWith(")")) {
-//            /*
-//             * Parse as expression
-//             */
-//            return context.db.parseExpression((String)value);
-//
-//        } else {
-//            return makeLiteral(context, value);
-//        }
-//    }
 }

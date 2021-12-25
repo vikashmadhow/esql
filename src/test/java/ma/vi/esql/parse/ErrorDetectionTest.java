@@ -18,11 +18,12 @@ public class ErrorDetectionTest {
     TestDatabase db = Databases.TestDatabase();
     Parser parser = new Parser(db.structure());
     assertThrows(SyntaxException.class, () ->
-                 parser.parse("create table A(\n" +
-                              "  _id uuid, \n" +
-                              "  name str, \n" +
-                              "  age int\n" +
-                              ")"));
+                 parser.parse("""
+                                  create table A(
+                                    _id uuid,\s
+                                    name str,\s
+                                    age int
+                                  )"""));
   }
 
   @Test
@@ -30,11 +31,12 @@ public class ErrorDetectionTest {
     TestDatabase db = Databases.TestDatabase();
     Parser parser = new Parser(db.structure());
     assertThrows(SyntaxException.class, () ->
-                 parser.parse("create table A(\n" +
-                              "  _id uuid[][], \n" +
-                              "  name str[], \n" +
-                              "  age int\n" +
-                              ")"));
+                 parser.parse("""
+                                  create table A(
+                                    _id uuid[][],\s
+                                    name str[],\s
+                                    age int
+                                  )"""));
   }
 
   @Test

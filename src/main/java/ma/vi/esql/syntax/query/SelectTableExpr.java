@@ -56,6 +56,11 @@ public class SelectTableExpr extends AbstractAliasTableExpr {
   }
 
   @Override
+  public boolean exists() {
+    return select().tables().exists();
+  }
+
+  @Override
   public AliasedRelation type(EsqlPath path) {
     if (type == null) {
       Selection selection = select().type(path.add(select()));

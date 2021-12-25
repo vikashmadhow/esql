@@ -16,6 +16,7 @@ import ma.vi.esql.syntax.EsqlPath;
  * @author vikash.madhow@gmail.com
  */
 public abstract class TableExpr extends Esql<String, String> {
+  @SafeVarargs
   public TableExpr(Context context,
                    String value,
                    T2<String, ? extends Esql<?, ?>>... children) {
@@ -26,6 +27,7 @@ public abstract class TableExpr extends Esql<String, String> {
     super(other);
   }
 
+  @SafeVarargs
   public TableExpr(TableExpr other, String value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }
@@ -40,6 +42,11 @@ public abstract class TableExpr extends Esql<String, String> {
    */
   @Override
   public abstract TableExpr copy(String value, T2<String, ? extends Esql<?, ?>>... children);
+
+  /**
+   * Returns true if the table(s) in this table expression exists.
+   */
+  public abstract boolean exists();
 
   @Override
   public abstract Relation type(EsqlPath path);

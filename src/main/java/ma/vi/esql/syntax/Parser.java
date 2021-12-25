@@ -66,15 +66,6 @@ public class Parser {
     ParseTreeWalker walker = new ParseTreeWalker();
     walker.walk(analyser, startFrom);
 
-    /*
-     * Compute the type of all elements in the program (depth-first post-order).
-     * During the typing operation, the esql may be changed (expanded or contracted,
-     * for example).
-     */
-//    esql.forEach(e -> {
-//      e.type();
-//      return true;
-//    });
     return analyser.lastRecognised;
   }
 

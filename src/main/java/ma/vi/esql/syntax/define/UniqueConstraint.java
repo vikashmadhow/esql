@@ -57,17 +57,6 @@ public class UniqueConstraint extends ConstraintDefinition {
 
   public boolean sameAs(ConstraintDefinition def) {
     if (def instanceof UniqueConstraint c) {
-      //      /*
-//       * Trim to work around an error (which I found only in HSQLDB for now)
-//       * where the names are padded with some spaces.
-//       */
-//      // taken care of by array reading for HsqlDb
-//      return c.columns()
-//              .stream()
-//              .map(String::trim)
-//              .collect(toSet()).equals(columns().stream()
-//                                                .map(String::trim)
-//                                                .collect(toSet()));
       return new HashSet<>(columns()).equals(new HashSet<>(c.columns()));
     }
     return false;

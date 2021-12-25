@@ -65,7 +65,7 @@ public class ColumnList extends Esql<String, String> implements Macro {
   public Esql<?, ?> expand(Esql<?, ?> esql, EsqlPath path) {
     QueryUpdate query = path.ancestor(QueryUpdate.class);
     TableExpr from = query.tables();
-    Relation fromType = from.type(path.add(from));
+    Relation fromType = null;
 
     boolean changed = false;
     int colIndex = 1;
@@ -76,6 +76,9 @@ public class ColumnList extends Esql<String, String> implements Macro {
       if (column instanceof StarColumn all) {
         changed = true;
         String qualifier = all.qualifier();
+        if (fromType == null) {
+          fromType = from.type(path.add(from));
+        }
         for (T2<Relation, Column> relCol: fromType.columns()) {
           /*
            * Ensure each column has a name, and it is unique in the column list.
@@ -178,7 +181,25 @@ public class ColumnList extends Esql<String, String> implements Macro {
                    : esql;
   }
 
-  private T2<String, Integer> makeUnique(String prefix, Set<String> names, int index, boolean firstNameWithIndex) {
+  /**
+   * Produces a unique name within the set of names by repeatedly incrementing an
+   * index and adding to the prefix. Returns the unique name and the index to use
+   * (which the index used in the current returned name + 1).
+   *
+   * @param prefix Name prefix.
+   * @param names Set of names to test unicity against. The new name is added to
+   *              this set.
+   * @param index The index to start adding to the prefix.
+   * @param firstNameWithIndex When this is true the first unique name is produced
+   *                           by adding the index to the prefix. When it is false,
+   *                           the first unique name to test is just the prefix.
+   * @return The pair of unique name produced and the next index to use for
+   *         producing unique names using this method.
+   */
+  public static T2<String, Integer> makeUnique(String prefix,
+                                               Set<String> names,
+                                               int index,
+                                               boolean firstNameWithIndex) {
     String name = prefix + (firstNameWithIndex ? String.valueOf(index++) : "");
     while (names.contains(name)) {
       name = prefix + index;

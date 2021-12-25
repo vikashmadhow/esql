@@ -9,6 +9,7 @@ import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -97,9 +98,9 @@ public class CompositeSelects extends Select {
       } else {
         st.append(' ').append(operator()).append(' ');
       }
-      Map<String, Object> params = Map.of(
-          "addAttributes", parameters.getOrDefault("addAttributes", true),
-          "optimiseAttributesLoading", false);
+      Map<String, Object> params = new HashMap<>();
+      params.put("addAttributes", parameters.getOrDefault("addAttributes", true));
+      params.put("optimiseAttributesLoading", false);
       QueryTranslation trans = select.translate(target, path.add(select), params);
       st.append(trans.statement());
       if (q == null) {

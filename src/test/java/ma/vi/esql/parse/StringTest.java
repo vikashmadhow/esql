@@ -29,74 +29,78 @@ public class StringTest {
   @Test
   void multiLineStrings() {
     String input =
-        "{\n" +
-        "a: `function sum(x, y) {\n" +
-        "      x *= x's;\n" +
-        "      y += x;\n" +
-        "      if (x > y) {\n" +
-        "        return y;\n" +
-        "      } else {\n" +
-        "        return x - y;\n" +
-        "      }\n" +
-        "    }`,\n" +
-        "b: `function sum(x, y) {\n" +
-        "      x *= x''s;\n" +
-        "  y += x;\n" +
-        "     if (x > y) {\n" +
-        "        return y;\n" +
-        "      } else {\n" +
-        "        return x - y;\n" +
-        "      }\n" +
-        "    }`,\n" +
-        "c: `\n" +
-        "   function sum(x, y) {\n" +
-        "     x *= x''s;\n" +
-        "     y += x;\n" +
-        "     if (x > y) {\n" +
-        "       return y;\n" +
-        "     } else {\n" +
-        "       return x - y;\n" +
-        "     }\n" +
-        "   }\n" +
-        "   `\n" +
-        "}";
+        """
+            {
+            a: `function sum(x, y) {
+                  x *= x's;
+                  y += x;
+                  if (x > y) {
+                    return y;
+                  } else {
+                    return x - y;
+                  }
+                }`,
+            b: `function sum(x, y) {
+                  x *= x''s;
+              y += x;
+                 if (x > y) {
+                    return y;
+                  } else {
+                    return x - y;
+                  }
+                }`,
+            c: `
+               function sum(x, y) {
+                 x *= x''s;
+                 y += x;
+                 if (x > y) {
+                   return y;
+                 } else {
+                   return x - y;
+                 }
+               }
+               `
+            }""";
     EsqlParser p = Parser.parser(input);
     Structure structure = Databases.Postgresql().structure();
     Metadata metadata = (Metadata)Parser.parse(structure, p.metadata());
     String value = metadata.evaluateAttribute("a");
     assertEquals(
-    "function sum(x, y) {\n" +
-            "  x *= x''s;\n" +
-            "  y += x;\n" +
-            "  if (x > y) {\n" +
-            "    return y;\n" +
-            "  } else {\n" +
-            "    return x - y;\n" +
-            "  }\n" +
-            "}", value);
+        """
+            function sum(x, y) {
+              x *= x''s;
+              y += x;
+              if (x > y) {
+                return y;
+              } else {
+                return x - y;
+              }
+            }""", value);
 
     value = metadata.evaluateAttribute("b");
     assertEquals(
-    "function sum(x, y) {\n" +
-            "  x *= x''''s;\n" +
-            "y += x;\n" +
-            " if (x > y) {\n" +
-            "    return y;\n" +
-            "  } else {\n" +
-            "    return x - y;\n" +
-            "  }\n" +
-            "}", value);
+        """
+            function sum(x, y) {
+              x *= x''''s;
+            y += x;
+             if (x > y) {
+                return y;
+              } else {
+                return x - y;
+              }
+            }""", value);
 
     value = metadata.evaluateAttribute("c");
     assertEquals(
-        "function sum(x, y) {\n" +
-            "  x *= x''''s;\n" +
-            "  y += x;\n" +
-            "  if (x > y) {\n" +
-            "    return y;\n" +
-            "  } else {\n" +
-            "    return x - y;\n" +
-            "  }\n" +
-            "}", value);
+        """
+            function sum(x, y) {
+              x *= x''''s;
+              y += x;
+              if (x > y) {
+                return y;
+              } else {
+                return x - y;
+              }
+            }""", value);
   }
 }
