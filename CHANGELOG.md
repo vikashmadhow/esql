@@ -5,6 +5,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Planned]
+### To add
 - General-purpose language:
   - Variable definitions and assignments
   - Symbol table and scoping rules
@@ -12,10 +13,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Conditional statements  
   - Iteration and loops 
   - Functions
-- Testing of all normal functions.
-- Testing of translation of grouping by complex expressions (subqueries) in SQL Server.
-- Testing of translation of distinct over multiple columns in SQL Server.
-- Testing of window functions.
 - Array operations.
 - JSON operations.
 - Support for creating and using sequences.
@@ -23,15 +20,51 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Support for creating and using views (including materialised views).
 - Complete documentation of ESQL grammar.
 - Document purpose and usage.
-- Performance testing.
 - Result transformers and encoders.
 - Support for Oracle database.
 - Make into Java 9 module.
-- Support for frame definition (rows and range) in window functions.
 - Support for 'within group' for ordering in string and array aggregate functions.
 - Support for bulk copy manager in postgresql.
 - Support for merge queries.
-- Configure extensions (e.g. specify lookup schema) through parameters. 
+- Configure extensions (e.g. specify lookup schema) through parameters.
+
+### To test
+- Testing of all normal functions.
+- Testing of translation of grouping by complex expressions (subqueries) in SQL
+  Server.
+- Testing of translation of distinct over multiple columns in SQL Server.
+- Testing of window functions.
+- Testing of query translation and mapping of attributes (special columns such as
+  `a/m1` to attributes of their respective columns).
+- Performance testing.
+
+### To fix
+- fix ancestorDistance which does not seem to work on ESQLPath. Currently this 
+  function is not used anywhere, thus this is low-priority.
+
+## [0.6.5] - 2022-01-04
+### Added
+- Add explicit date part add functions (that do not use the general interval add  
+  function) as those can be much faster for SQL Server (using underlying `dateadd` 
+  function instead of the custom _core.add_interval function).
+- Months ceiling (`monthsceil`) function which returns the number of months between 
+  2 dates, adding one month for any remaining days in the period, analogous to 
+  computing the ceiling of a fractional number.
+- Support for frame definition (rows and range) in window functions.
+- `AsPromotedNumericParameterType` is a special return type for functions returning
+  a value that is the promoted numeric type of their first parameter. For instance, 
+  the `sum` aggregate function has a dynamic promoted return type based on its 
+  parameter: if its parameter is integer, its return type is long, while if its 
+  parameter is single-precision floating-point, its return type is double-precision  
+  floating-point.
+- Optimize `case` to `iif` when there is a single condition on SQL Server.
+- `Selection` type can now carry an alias reducing the need for `AliasedRelation`
+  which is now used only as the type of `SingleTableExpr`.
+
+### Changed
+- Code cleanup: add @SafeVargs for safe parameterised variable arguments, use Java 
+  records where possible, use instanceof patterns, eliminate unnecessary toString(),
+  use text blocks for some multi-line strings, clean certain javadocs.
 
 ## [0.6.4] - 2021-12-25
 ### Added
@@ -48,7 +81,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   missing at that point.
 
 ### Fixed
-- Bool support in SQL Server suing IIF has been fixed for select expressions in
+- Bool support in SQL Server using IIF has been fixed for select expressions in
   column list (IIF is used in column list while not used in places where boolean
   expressions are expected - e.g. the where clause. Select expressions in column
   list conflicts with that as it is in a column list, thus requires an IIF, but 
@@ -137,7 +170,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Refactored
 - Package restructure: 
   - split expression package into subpackages by type of expressions; 
-  - split function package into subpackages by type of data that the functions operate upon; 
+  - split function package into subpackages by type of data that the functions 
+    operate upon; 
   - type package moved to semantic package; 
   - QueryUpdate class moved to ma.vi.esql.syntax.query package
   
@@ -185,7 +219,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the database which resulted in an error. Derived columns only need to be removed
   from the `_core.columns` table.
 - Do not throw NotfoundException in findColumn in Join as this breaks column search 
-  in SQL Server in complex queries where the referred column might be in an outer query.
+  in SQL Server in complex queries where the referred column might be in an outer 
+  query.
 
 ## [0.4.2] - 2021-04-12
 ### Added
@@ -243,7 +278,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Simplified function registration in Structure.  
   
 ### Fixed
-- Self-translation of cross-joins to ESQL uses proper form (`times` instead of `cross join`).
+- Self-translation of cross-joins to ESQL uses proper form (`times` instead of 
+  `cross join`).
 - Corrected order of `rtrim` and `ltrim` function which were reversed during
   registration in the constructor of `Structure`.
 
@@ -294,8 +330,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.3.2] - 2021-02-16
 ### Added
-- ESQL transformers (prior to execution, to inject specific behaviour by rewriting ESQL).
-- Improved detection of general syntax errors, and missing (or wrong) `from` clause in selects. 
+- ESQL transformers (prior to execution, to inject specific behaviour by rewriting 
+  ESQL).
+- Improved detection of general syntax errors, and missing (or wrong) `from` 
+  clause in selects. 
 
 ## [0.3.1] - 2021-02-14
 ### Added

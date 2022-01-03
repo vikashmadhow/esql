@@ -58,6 +58,7 @@ public class CreateTable extends Define {
     super(other);
   }
 
+  @SafeVarargs
   public CreateTable(CreateTable other, String value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }
@@ -159,8 +160,7 @@ public class CreateTable extends Define {
     try {
       seen.add(columnName);
       return (Expression<?, String>)derivedExpression.map((e, path) -> {
-        if (e instanceof ColumnRef) {
-          ColumnRef ref = (ColumnRef)e;
+        if (e instanceof ColumnRef ref) {
           String colName = ref.name();
           ColumnDefinition column = columns.get(colName);
           if (column == null) {
@@ -283,7 +283,7 @@ public class CreateTable extends Define {
          */
         con.createStatement().executeUpdate(modified.translate(db.target(), path.add(modified)));
         db.structure().relation(table);
-//        table.expandColumns();
+        table.expandColumns();
         db.structure().database.addTable(con, table);
       } else {
         /*

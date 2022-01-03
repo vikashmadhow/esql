@@ -34,6 +34,7 @@ public class ILike extends NegatableDoubleSubExpressions<String> {
     super(other);
   }
 
+  @SafeVarargs
   public ILike(ILike other, String value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }

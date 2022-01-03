@@ -29,6 +29,7 @@ public class Inequality extends ComparisonOperator {
     super(other);
   }
 
+  @SafeVarargs
   public Inequality(Inequality other, String value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }

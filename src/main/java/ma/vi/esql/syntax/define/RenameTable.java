@@ -28,6 +28,7 @@ public class RenameTable extends Alteration {
     super(other);
   }
 
+  @SafeVarargs
   public RenameTable(RenameTable other, String value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }

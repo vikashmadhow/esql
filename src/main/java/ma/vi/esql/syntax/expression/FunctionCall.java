@@ -34,7 +34,8 @@ public class FunctionCall extends Expression<String, String> implements Macro {
                       List<Expression<?, ?>>      arguments,
                       boolean                     star,
                       List<Expression<?, String>> partitions,
-                      List<Order>                 orderBy) {
+                      List<Order>                 orderBy,
+                      WindowFrame                 frame) {
     super(context, "Func:" + functionName,
           of("function",   new Esql<>(context, functionName)),
           of("distinct",   new Esql<>(context, distinct)),
@@ -42,13 +43,15 @@ public class FunctionCall extends Expression<String, String> implements Macro {
           of("arguments",  new Esql<>(context, "arguments", arguments)),
           of("star",       new Esql<>(context, star)),
           of("partitions", new Esql<>(context, "partitions", partitions)),
-          of("orderBy",    new Esql<>(context, "orderBy", orderBy)));
+          of("orderBy",    new Esql<>(context, "orderBy", orderBy)),
+          of("frame",      frame));
   }
 
   public FunctionCall(FunctionCall other) {
     super(other);
   }
 
+  @SafeVarargs
   public FunctionCall(FunctionCall other, String value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }
@@ -77,6 +80,9 @@ public class FunctionCall extends Expression<String, String> implements Macro {
       type = function.returnType;
       if (type.equals(Types.AsParameterType) && !arguments.isEmpty()) {
         type = arguments.get(0).type(path.add(arguments.get(0)));
+
+      } else if (type.equals(Types.AsPromotedNumericParameterType) && !arguments.isEmpty()) {
+        type = arguments.get(0).type(path.add(arguments.get(0))).promote();
       }
     }
     return type;
@@ -101,37 +107,38 @@ public class FunctionCall extends Expression<String, String> implements Macro {
     if (function == null) {
       function = s.UnknownFunction;
     }
-    String translation = function.translate(this, target, path);
+    StringBuilder translation = new StringBuilder(function.translate(this, target, path));
 
     /*
      * add window suffix
      */
     List<Expression<?, String>> partitions = partitions();
     List<Order> orderBy = orderBy();
-    if ((partitions != null && !partitions.isEmpty()) ||
-        (orderBy != null && !orderBy.isEmpty())) {
+    if ((partitions != null && !partitions.isEmpty())
+     || (orderBy != null && !orderBy.isEmpty())) {
       boolean overAdded = false;
       if (partitions != null && !partitions.isEmpty()) {
-        translation += " over (partition by " +
-            partitions.stream()
-                      .map(p -> p.translate(target, path.add(p), parameters))
-                      .collect(joining(", "));
+        translation.append(" over (partition by ")
+                   .append(partitions.stream()
+                                     .map(p -> p.translate(target, path.add(p), parameters))
+                                     .collect(joining(", ")));
         overAdded = true;
       }
       if (orderBy != null && !orderBy.isEmpty()) {
-        if (overAdded) {
-          translation += ' ';
-        } else {
-          translation += " over (";
-        }
-        translation += "order by " +
-            orderBy.stream()
-                   .map(o -> o.translate(target, path.add(o), parameters))
-                   .collect(joining(", "));
+        translation.append(overAdded ? " " : " over (")
+                   .append("order by ")
+                   .append(orderBy.stream()
+                                  .map(o -> o.translate(target, path.add(o), parameters))
+                                  .collect(joining(", ")));
       }
-      translation += ')';
+      WindowFrame frame = frame();
+      if (frame != null) {
+        translation.append(' ');
+        translation.append(frame.translate(target, path.add(frame), parameters));
+      }
+      translation.append(')');
     }
-    return translation;
+    return translation.toString();
   }
 
   @Override
@@ -220,5 +227,9 @@ public class FunctionCall extends Expression<String, String> implements Macro {
 
   public List<Order> orderBy() {
     return child("orderBy").children();
+  }
+
+  public WindowFrame frame() {
+    return child("frame");
   }
 }

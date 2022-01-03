@@ -65,7 +65,7 @@ public class CreateTableBuilder implements Builder<CreateTable> {
                      : parser.parseExpression(defaultExpression),
                              new Metadata(context,
                 Stream.of(metadata)
-                      .map(a -> new Attribute(context, a.name, parser.parseExpression(a.expr)))
+                      .map(a -> new Attribute(context, a.name(), parser.parseExpression(a.expr())))
                       .collect(toList()))));
     return this;
   }
@@ -76,7 +76,7 @@ public class CreateTableBuilder implements Builder<CreateTable> {
         new DerivedColumnDefinition(context, name, parser.parseExpression(expression),
             new Metadata(context,
                 Stream.of(metadata)
-                      .map(a -> new Attribute(context, a.name, parser.parseExpression(a.expr)))
+                      .map(a -> new Attribute(context, a.name(), parser.parseExpression(a.expr())))
                       .collect(toList()))));
     return this;
   }
@@ -171,8 +171,8 @@ public class CreateTableBuilder implements Builder<CreateTable> {
 
   private String name;
   private boolean dropUndefined = false;
-  private List<ColumnDefinition> columns = new ArrayList<>();
-  private List<ConstraintDefinition> constraints = new ArrayList<>();
-  private List<Attribute> metadata = new ArrayList<>();
+  private final List<ColumnDefinition> columns = new ArrayList<>();
+  private final List<ConstraintDefinition> constraints = new ArrayList<>();
+  private final List<Attribute> metadata = new ArrayList<>();
   private final Context context;
 }

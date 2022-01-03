@@ -28,6 +28,7 @@ public class NullLiteral extends Literal<String> {
     super(other);
   }
 
+  @SafeVarargs
   public NullLiteral(NullLiteral other, String value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }

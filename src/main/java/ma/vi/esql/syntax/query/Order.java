@@ -30,6 +30,7 @@ public class Order extends Esql<String, String> {
     super(other);
   }
 
+  @SafeVarargs
   public Order(Order other, String value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }

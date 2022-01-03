@@ -27,6 +27,7 @@ public class NameWithMetadata extends TableDefinition {
     super(other);
   }
 
+  @SafeVarargs
   public NameWithMetadata(NameWithMetadata other, String value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }

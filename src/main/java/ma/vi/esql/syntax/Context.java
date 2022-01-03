@@ -34,7 +34,6 @@ public class Context {
     } else if (structure != null && structure.relationExists(name)) {
       return structure.relation(name);
     } else {
-//      return Types.typeOf(name);
       return Types.findTypeOf(name);
     }
   }

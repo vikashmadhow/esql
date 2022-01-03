@@ -29,6 +29,7 @@ public class UuidLiteral extends BaseLiteral<UUID> {
     super(other);
   }
 
+  @SafeVarargs
   public UuidLiteral(UuidLiteral other, UUID value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }

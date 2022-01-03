@@ -33,6 +33,7 @@ public class JsonObjectLiteral extends Literal<List<Attribute>> {
     super(other);
   }
 
+  @SafeVarargs
   public JsonObjectLiteral(JsonObjectLiteral other, List<Attribute> value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }

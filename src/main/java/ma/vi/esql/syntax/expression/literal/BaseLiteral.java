@@ -22,6 +22,7 @@ public abstract class BaseLiteral<V> extends Literal<V> {
     super(context, value);
   }
 
+  @SafeVarargs
   public BaseLiteral(Context context,
                      V value,
                      T2<String, ? extends Esql<?, ?>>... children) {
@@ -38,6 +39,7 @@ public abstract class BaseLiteral<V> extends Literal<V> {
     super(other);
   }
 
+  @SafeVarargs
   public BaseLiteral(BaseLiteral<V> other, V value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }

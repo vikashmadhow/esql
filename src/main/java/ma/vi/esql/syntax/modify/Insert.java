@@ -30,7 +30,6 @@ public class Insert extends QueryUpdate {
                 List<Column>    returning) {
     super(context, "Insert",
           of("tables",        table),
-//          of("fields",        new Esql<>(context, "fields", fields.stream().map(f -> new Esql<>(context, f)).toList())),
           of("fields",        new Esql<>(context, fields)),
           of("rows",          new Esql<>(context, "rows", rows)),
           of("defaultValues", new Esql<>(context, defaultValues)),
@@ -43,6 +42,7 @@ public class Insert extends QueryUpdate {
     super(other);
   }
 
+  @SafeVarargs
   public Insert(Insert other, String value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }

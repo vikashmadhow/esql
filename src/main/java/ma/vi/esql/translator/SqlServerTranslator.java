@@ -50,9 +50,9 @@ public class SqlServerTranslator extends AbstractTranslator {
         if (expr.descendent(Select.class) != null) {
           hasComplexGroups = true;
         }
-        if (expr instanceof IntegerLiteral){
+        if (expr instanceof IntegerLiteral i){
           groupExpressionsChanged = true;
-          int colPos = (((IntegerLiteral)expr).value).intValue();
+          int colPos = i.value.intValue();
           if (select.columns().size() < colPos) {
             throw new TranslationException("Group " + colPos + " does not exist in the columns list of the query");
           } else {
@@ -77,7 +77,6 @@ public class SqlServerTranslator extends AbstractTranslator {
       // add output clause
       StringBuilder columns = new StringBuilder();
       QueryTranslation q = select.constructResult(columns, target(), path, null, parameters);
-      parameters.put("addIif", false);
 
       st.append(columns);
       st.append(", ").append("row_number() over (partition by ");
@@ -95,6 +94,7 @@ public class SqlServerTranslator extends AbstractTranslator {
       }
       st.append(") ").append(rank);
 
+      parameters.put("addIif", false);
       if (select.tables() != null) {
         st.append(" from ").append(select.tables().translate(target(), path.add(select.tables()), parameters));
       }
@@ -102,11 +102,14 @@ public class SqlServerTranslator extends AbstractTranslator {
         st.append(" where ").append(select.where().translate(target(), path.add(select.where()), parameters));
       }
       if (select.groupBy() != null) {
+        parameters.put("addIif", true);
         st.append(select.groupBy().translate(target(), path.add(select.groupBy()), parameters));
       }
       if (select.having() != null) {
+        parameters.put("addIif", false);
         st.append(" having ").append(select.having().translate(target(), path.add(select.having()), parameters));
       }
+      parameters.put("addIif", true);
       if (select.orderBy() != null && !select.orderBy().isEmpty()) {
         st.append(" order by ")
           .append(select.orderBy().stream()
@@ -134,7 +137,7 @@ public class SqlServerTranslator extends AbstractTranslator {
           .append(" rows only");
       }
       String query = "select " + subquery + ".*"
-          + "  from (" + st.toString() + ") " + subquery
+          + "  from (" + st + ") " + subquery
           + " where " + subquery + "." + rank + "=1";
 //      if (offset() == null && limit() == null && orderBy() != null && !orderBy().isEmpty()) {
 //        query += " order by "
@@ -290,12 +293,15 @@ public class SqlServerTranslator extends AbstractTranslator {
           st.append(" where ").append(select.where().translate(target(), path.add(select.where()), parameters));
         }
         if (select.groupBy() != null) {
+          parameters.put("addIif", true);
           st.append(select.groupBy().translate(target(), path.add(select.groupBy()), parameters));
         }
         if (select.having() != null) {
+          parameters.put("addIif", false);
           st.append(" having ").append(select.having().translate(target(), path.add(select.having()), parameters));
         }
         if (select.orderBy() != null && !select.orderBy().isEmpty()) {
+          parameters.put("addIif", true);
           st.append(" order by ")
             .append(select.orderBy().stream()
                           .map(e -> e.translate(target(), path.add(e), parameters))
@@ -457,4 +463,20 @@ public class SqlServerTranslator extends AbstractTranslator {
       return reqIf < noIf;
     }
   }
+
+  /**
+   * A translation parameter set to instruction downstream translation node to
+   * use an IIF for boolean expression (e.g. where a boolean expression appear
+   * in a place where SQL Server does not support boolean expressions such as in
+   * a column list).
+   */
+  public static final Map<String, Object> ADD_IIF = Map.of("addIif", true);
+
+  /**
+   * A translation parameter set to instruction downstream translation node to
+   * not use an IIF for boolean values (e.g. where a boolean expression appear
+   * in a place where SQL Server supports boolean expressions such as the where
+   * clause).
+   */
+  public static final Map<String, Object> DONT_ADD_IIF = Map.of("addIif", false);
 }

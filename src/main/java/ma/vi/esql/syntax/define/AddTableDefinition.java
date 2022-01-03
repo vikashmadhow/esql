@@ -25,6 +25,7 @@ public class AddTableDefinition extends Alteration {
     super(other);
   }
 
+  @SafeVarargs
   public AddTableDefinition(AddTableDefinition other, String value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }

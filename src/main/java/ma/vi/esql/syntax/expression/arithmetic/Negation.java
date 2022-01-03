@@ -19,7 +19,7 @@ import java.util.Map;
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 public class Negation extends SingleSubExpression {
-  public Negation(Context context, Expression negated) {
+  public Negation(Context context, Expression<?, String> negated) {
     super(context, "Negation", negated);
   }
 
@@ -27,6 +27,7 @@ public class Negation extends SingleSubExpression {
     super(other);
   }
 
+  @SafeVarargs
   public Negation(Negation other, String value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }

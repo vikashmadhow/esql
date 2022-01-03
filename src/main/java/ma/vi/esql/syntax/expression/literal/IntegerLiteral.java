@@ -27,6 +27,7 @@ public class IntegerLiteral extends BaseLiteral<Long> {
     super(other);
   }
 
+  @SafeVarargs
   public IntegerLiteral(IntegerLiteral other, Long value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }

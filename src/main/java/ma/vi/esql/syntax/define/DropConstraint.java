@@ -25,6 +25,7 @@ public class DropConstraint extends Alteration {
     super(other);
   }
 
+  @SafeVarargs
   public DropConstraint(DropConstraint other, String value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }

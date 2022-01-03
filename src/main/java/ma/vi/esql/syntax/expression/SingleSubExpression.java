@@ -18,6 +18,7 @@ import java.util.stream.Stream;
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 public abstract class SingleSubExpression extends Expression<String, String> {
+  @SafeVarargs
   public SingleSubExpression(Context context,
                              String value,
                              Expression<?, String> expr,
@@ -32,6 +33,7 @@ public abstract class SingleSubExpression extends Expression<String, String> {
     super(other);
   }
 
+  @SafeVarargs
   public SingleSubExpression(SingleSubExpression other, String value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }

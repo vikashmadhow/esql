@@ -875,7 +875,11 @@ selectExpression
  * optional order list.
  */
 window
-    : 'over' '(' partition? ('order' 'by' orderByList)? ')'
+    : 'over' '('
+        partition?
+        ('order' 'by' orderByList)?
+        frame?
+      ')'
     ;
 
 /**
@@ -884,6 +888,30 @@ window
  */
 partition
     : 'partition' 'by' expressionList
+    ;
+
+frame
+    : frameType=('rows' | 'range') 'between' preceding 'and' following
+    ;
+
+preceding
+    : unbounded 'preceding'
+    | current 'row'
+    | IntegerLiteral 'preceding'
+    ;
+
+following
+    : unbounded 'following'
+    | current 'row'
+    | IntegerLiteral 'following'
+    ;
+
+unbounded
+    : 'unbounded'
+    ;
+
+current
+    : 'current'
     ;
 
 /**

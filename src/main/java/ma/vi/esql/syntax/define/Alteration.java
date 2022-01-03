@@ -14,6 +14,7 @@ import ma.vi.esql.syntax.Esql;
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 public abstract class Alteration extends Define {
+  @SafeVarargs
   public Alteration(Context context, T2<String, ? extends Esql<?, ?>>... children) {
     super(context, "Alteration", children);
   }
@@ -22,6 +23,7 @@ public abstract class Alteration extends Define {
     super(other);
   }
 
+  @SafeVarargs
   public Alteration(Alteration other, String value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }

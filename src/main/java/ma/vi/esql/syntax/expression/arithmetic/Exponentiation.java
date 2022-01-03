@@ -30,6 +30,7 @@ public class Exponentiation extends ArithmeticOperator {
     super(other);
   }
 
+  @SafeVarargs
   public Exponentiation(Exponentiation other, String value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }

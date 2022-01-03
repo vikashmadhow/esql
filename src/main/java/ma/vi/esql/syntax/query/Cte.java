@@ -40,6 +40,7 @@ public class Cte extends QueryUpdate {
     super(other);
   }
 
+  @SafeVarargs
   public Cte(Cte other, String value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }
@@ -125,7 +126,7 @@ public class Cte extends QueryUpdate {
                             .expression(new ColumnRef(context, name(), fields.get(i)))
                             .name(fields.get(i)));
         }
-        type = new Selection(typeFields, type.attributesList(context), query().from());
+        type = new Selection(typeFields, type.attributesList(), query().from(), name());
       }
       context.type(name(), type);
     }
@@ -145,14 +146,16 @@ public class Cte extends QueryUpdate {
     QueryTranslation q = query().translate(target, path, parameters);
     String s = '"' + name() + '"'
              + (fields() == null
-                  ? ""
-                  : fields().stream()
-                            .map(f -> '"' + f + '"')
-                            .collect(joining(", ", "(", ")")))
+                ? ""
+                : fields().stream()
+                          .map(f -> '"' + f + '"')
+                          .collect(joining(", ", "(", ")")))
              + " as (" + q.statement() + ')';
-
-    return new QueryTranslation(s, q.columns(), q.columnToIndex(),
-                                q.resultAttributeIndices(), q.resultAttributes());
+    return new QueryTranslation(s,
+                                q.columns(),
+                                q.columnToIndex(),
+                                q.resultAttributeIndices(),
+                                q.resultAttributes());
   }
 
 //  @Override

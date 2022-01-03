@@ -145,10 +145,12 @@ public class Esql<V, R> implements Copy<Esql<V, R>>, Translatable<R> {
     this.children.addAll(other.children);
   }
 
+  @SafeVarargs
   public Esql(Esql<V, R> other, T2<String, ? extends Esql<?, ?>>... children) {
     this(other, null, children);
   }
 
+  @SafeVarargs
   public Esql(Esql<V, R> other, V value, T2<String, ? extends Esql<?, ?>>... children) {
     if (value instanceof Esql<?,?>) {
       throw new EsqlException(VALUE_OF_TYPE_ESQL_ERROR);

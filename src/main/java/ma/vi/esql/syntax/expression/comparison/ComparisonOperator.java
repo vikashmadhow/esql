@@ -35,6 +35,7 @@ public class ComparisonOperator extends BinaryOperator {
     super(other);
   }
 
+  @SafeVarargs
   public ComparisonOperator(ComparisonOperator other, String value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }

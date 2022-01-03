@@ -49,6 +49,7 @@ public class ForeignKeyConstraint extends ConstraintDefinition {
     super(other);
   }
 
+  @SafeVarargs
   public ForeignKeyConstraint(ForeignKeyConstraint other, String value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }

@@ -34,6 +34,7 @@ public class DropTable extends Define {
     super(other);
   }
 
+  @SafeVarargs
   public DropTable(DropTable other, String value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }

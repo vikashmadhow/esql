@@ -29,6 +29,7 @@ public class Concatenation extends MultipleSubExpressions {
     super(other);
   }
 
+  @SafeVarargs
   public Concatenation(Concatenation other, String value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }
@@ -59,7 +60,7 @@ public class Concatenation extends MultipleSubExpressions {
             .append(e.translate(target, path.add(e), parameters))
             .append(" || '')");
         }
-        String translation = "(" + st.toString() + ")";
+        String translation = "(" + st + ")";
         if (target == JSON) {
           translation = '"' + escapeJsonString(translation) + '"';
         }

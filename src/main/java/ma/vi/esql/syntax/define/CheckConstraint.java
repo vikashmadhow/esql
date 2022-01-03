@@ -39,6 +39,7 @@ public class CheckConstraint extends ConstraintDefinition {
     super(other);
   }
 
+  @SafeVarargs
   public CheckConstraint(CheckConstraint other, String value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }

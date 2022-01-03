@@ -19,6 +19,7 @@ import java.util.List;
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 public abstract class Define extends Expression<String, String> implements Statement {
+  @SafeVarargs
   Define(Context context,
          String value,
          T2<String, ? extends Esql<?, ?>>... children) {
@@ -35,6 +36,7 @@ public abstract class Define extends Expression<String, String> implements State
     super(other);
   }
 
+  @SafeVarargs
   public Define(Define other, String value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }

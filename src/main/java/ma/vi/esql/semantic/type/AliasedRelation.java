@@ -52,7 +52,7 @@ public class AliasedRelation extends Relation {
   public List<T2<Relation, Column>> columns() {
     if (columns == null) {
       columns = relation.columns().stream()
-                        .map(c -> T2.of(c.a(), qualify(c.b().copy(), alias)))
+                        .map(c -> T2.of(c.a(), qualify(c.b(), alias)))
                         .collect(toList());
     }
     return columns;

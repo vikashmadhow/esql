@@ -28,6 +28,7 @@ public class Cast extends Expression<String, String> {
     super(other);
   }
 
+  @SafeVarargs
   public Cast(Cast other, String value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }

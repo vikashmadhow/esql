@@ -2,7 +2,7 @@
  * Copyright (c) 2020 Vikash Madhow
  */
 
-package ma.vi.esql.parse;
+package ma.vi.esql.query;
 
 import ma.vi.esql.DataTest;
 import ma.vi.esql.exec.EsqlConnection;
@@ -50,12 +50,16 @@ public class WithTest extends DataTest {
                            from t:a.b.T
                            join s on t.s_id=s.id order by t.a""");
 
+//                     printResult(rs, 20);
+
                      rs.next(); assertEquals(1, (Integer)rs.value("a"));
                                 assertEquals(2, (Integer)rs.value("b"));
                                 assertEquals(3, (Integer)rs.value("c"));
+                                assertEquals(2, (Integer)rs.value("x"));
                      rs.next(); assertEquals(3, (Integer)rs.value("a"));
                                 assertEquals(4, (Integer)rs.value("b"));
                                 assertEquals(13, (Integer)rs.value("c"));
+                                assertEquals(7, (Integer)rs.value("x"));
                    }
                  }));
   }

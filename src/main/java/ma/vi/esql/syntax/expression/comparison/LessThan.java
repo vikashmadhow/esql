@@ -25,6 +25,7 @@ public class LessThan extends ComparisonOperator {
     super(other);
   }
 
+  @SafeVarargs
   public LessThan(LessThan other, String value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }

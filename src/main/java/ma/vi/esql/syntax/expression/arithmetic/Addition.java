@@ -25,6 +25,7 @@ public class Addition extends ArithmeticOperator {
     super(other);
   }
 
+  @SafeVarargs
   public Addition(Addition other, String value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }

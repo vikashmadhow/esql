@@ -33,6 +33,7 @@ public class JsonArrayLiteral extends Literal<List<Literal<?>>> {
     super(other);
   }
 
+  @SafeVarargs
   public JsonArrayLiteral(JsonArrayLiteral other, List<Literal<?>> value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }

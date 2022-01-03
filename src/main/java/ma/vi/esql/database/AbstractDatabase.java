@@ -766,9 +766,9 @@ public abstract class AbstractDatabase implements Database {
           }
         }
 
-//        for (BaseRelation rel: structure.relations().values()) {
-//          rel.expandColumns();
-//        }
+        for (BaseRelation rel: structure.relations().values()) {
+          rel.expandColumns();
+        }
 
         // Todo: parse expressions
         // Todo: load the view sources by interpreting the view definition
@@ -982,7 +982,7 @@ public abstract class AbstractDatabase implements Database {
   protected void loadConstraints(Context context,
                                  Structure structure,
                                  Parser parser,
-                                 Result rs) throws SQLException {
+                                 Result rs) {
     /*
      * Load constraints.
      */
@@ -1203,7 +1203,7 @@ public abstract class AbstractDatabase implements Database {
 
           clearTableMetadata(con, tableId);
           if (table.attributes() != null) {
-            tableMetadata(con, tableId, new Metadata(table.context, table.attributesList(table.context)));
+            tableMetadata(con, tableId, new Metadata(table.context, table.attributesList()));
           }
 
           /*

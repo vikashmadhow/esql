@@ -25,6 +25,7 @@ public class GroupedExpression extends SingleSubExpression {
     super(other);
   }
 
+  @SafeVarargs
   public GroupedExpression(GroupedExpression other, String value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }

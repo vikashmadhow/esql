@@ -34,6 +34,7 @@ public class BaseArrayLiteral extends Literal<Type> {
     super(other);
   }
 
+  @SafeVarargs
   public BaseArrayLiteral(BaseArrayLiteral other, Type value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }

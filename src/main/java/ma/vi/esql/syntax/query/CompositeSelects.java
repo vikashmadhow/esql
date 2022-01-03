@@ -68,6 +68,7 @@ public class CompositeSelects extends Select {
     super(other);
   }
 
+  @SafeVarargs
   public CompositeSelects(CompositeSelects other, String value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }

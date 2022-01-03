@@ -1078,6 +1078,56 @@ public interface EsqlListener extends ParseTreeListener {
 	 */
 	void exitPartition(EsqlParser.PartitionContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link EsqlParser#frame}.
+	 * @param ctx the parse tree
+	 */
+	void enterFrame(EsqlParser.FrameContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link EsqlParser#frame}.
+	 * @param ctx the parse tree
+	 */
+	void exitFrame(EsqlParser.FrameContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link EsqlParser#preceding}.
+	 * @param ctx the parse tree
+	 */
+	void enterPreceding(EsqlParser.PrecedingContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link EsqlParser#preceding}.
+	 * @param ctx the parse tree
+	 */
+	void exitPreceding(EsqlParser.PrecedingContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link EsqlParser#following}.
+	 * @param ctx the parse tree
+	 */
+	void enterFollowing(EsqlParser.FollowingContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link EsqlParser#following}.
+	 * @param ctx the parse tree
+	 */
+	void exitFollowing(EsqlParser.FollowingContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link EsqlParser#unbounded}.
+	 * @param ctx the parse tree
+	 */
+	void enterUnbounded(EsqlParser.UnboundedContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link EsqlParser#unbounded}.
+	 * @param ctx the parse tree
+	 */
+	void exitUnbounded(EsqlParser.UnboundedContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link EsqlParser#current}.
+	 * @param ctx the parse tree
+	 */
+	void enterCurrent(EsqlParser.CurrentContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link EsqlParser#current}.
+	 * @param ctx the parse tree
+	 */
+	void exitCurrent(EsqlParser.CurrentContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link EsqlParser#compare}.
 	 * @param ctx the parse tree
 	 */

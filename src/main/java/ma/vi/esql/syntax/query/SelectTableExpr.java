@@ -10,6 +10,7 @@ import ma.vi.esql.semantic.type.Selection;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
+import ma.vi.esql.syntax.Macro;
 import ma.vi.esql.syntax.expression.ColumnRef;
 
 import java.util.Map;
@@ -36,6 +37,7 @@ public class SelectTableExpr extends AbstractAliasTableExpr {
     super(other);
   }
 
+  @SafeVarargs
   public SelectTableExpr(SelectTableExpr other, String value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }
@@ -61,16 +63,21 @@ public class SelectTableExpr extends AbstractAliasTableExpr {
   }
 
   @Override
-  public AliasedRelation type(EsqlPath path) {
+  public Selection type(EsqlPath path) {
     if (type == null) {
-      Selection selection = select().type(path.add(select()));
-      type = new AliasedRelation(new Selection(selection.columns().stream()
-                                                        .map(c -> c.b.expression(new ColumnRef(c.b.context,
-                                                                                               null,
-                                                                                               c.b.name())))
-                                                        .toList(),
-                                               selection.attributesList(context),
-                                               this), alias());
+      Selection sel = select().type(path.add(select()));
+      Selection t = new Selection(sel.columns().stream()
+                                           .map(c -> c.b.expression(new ColumnRef(c.b.context, alias(), c.b.name())))
+                                           .toList(),
+                                  sel.attributesList(),
+                                  this, alias());
+
+      if (path.hasAncestor(Macro.OngoingMacroExpansion.class)) {
+        context.type(alias(), t);
+        return t;
+      } else {
+        type = t;
+      }
       context.type(alias(), type);
     }
     return type;
@@ -101,5 +108,5 @@ public class SelectTableExpr extends AbstractAliasTableExpr {
     return childValue("alias");
   }
 
-  private transient volatile AliasedRelation type;
+  private transient volatile Selection type;
 }

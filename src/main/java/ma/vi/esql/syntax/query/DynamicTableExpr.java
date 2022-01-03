@@ -5,12 +5,12 @@
 package ma.vi.esql.syntax.query;
 
 import ma.vi.base.tuple.T2;
-import ma.vi.esql.semantic.type.AliasedRelation;
 import ma.vi.esql.semantic.type.Selection;
 import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
+import ma.vi.esql.syntax.Macro;
 import ma.vi.esql.syntax.define.Metadata;
 import ma.vi.esql.syntax.define.NameWithMetadata;
 import ma.vi.esql.syntax.expression.ColumnRef;
@@ -52,6 +52,7 @@ public class DynamicTableExpr extends AbstractAliasTableExpr {
     super(other);
   }
 
+  @SafeVarargs
   public DynamicTableExpr(DynamicTableExpr other, String value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }
@@ -77,7 +78,7 @@ public class DynamicTableExpr extends AbstractAliasTableExpr {
   }
 
   @Override
-  public AliasedRelation type(EsqlPath path) {
+  public Selection type(EsqlPath path) {
     if (type == null) {
       List<Type> columnTypes = new ArrayList<>();
       for (NameWithMetadata ignored: columns()) {
@@ -123,9 +124,14 @@ public class DynamicTableExpr extends AbstractAliasTableExpr {
       }
       Selection selection = new Selection(relationColumns,
                                           metadata() != null
-                                            ? new ArrayList<>(metadata().attributes().values())
-                                            : null,this);
-      type = new AliasedRelation(selection, alias());
+                                          ? new ArrayList<>(metadata().attributes().values())
+                                          : null, this, alias());
+      if (path.hasAncestor(Macro.OngoingMacroExpansion.class)) {
+        context.type(alias(), selection);
+        return selection;
+      } else {
+        type = selection;
+      }
       context.type(alias(), type);
     }
     return type;
@@ -178,5 +184,5 @@ public class DynamicTableExpr extends AbstractAliasTableExpr {
     return childValue("metadata");
   }
 
-  private transient volatile AliasedRelation type;
+  private transient volatile Selection type;
 }

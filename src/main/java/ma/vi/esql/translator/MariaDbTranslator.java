@@ -95,8 +95,7 @@ public class MariaDbTranslator extends AbstractTranslator {
     QueryTranslation q = null;
 
     TableExpr from = delete.tables();
-    if (from instanceof SingleTableExpr) {
-      SingleTableExpr deleteTable = (SingleTableExpr)from;
+    if (from instanceof SingleTableExpr deleteTable) {
       st.append(" from ").append(Type.dbTableName(deleteTable.tableName(), target()));
 
     } else if (from instanceof AbstractJoinTableExpr) {

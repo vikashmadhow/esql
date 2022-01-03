@@ -91,7 +91,7 @@ public class Structure {
                           singletonList(new FunctionParameter("count", TopType)),
                           true, null));
 
-    function(new Function("sum", AsParameterType,
+    function(new Function("sum", AsPromotedNumericParameterType,
                           singletonList(new FunctionParameter("sum", NumberType)),
                           true, null));
 
@@ -351,26 +351,26 @@ public class Structure {
                                  new FunctionParameter("d", IntType)),
                           false,
                           Map.of(POSTGRESQL, "make_date",
-                                 SQLSERVER, "datefromparts",
+                                 SQLSERVER,  "datefromparts",
                                  JAVASCRIPT, "_moment")));
 
     function(new NewDateTime());
 
     function(new NewTime());
 
-    function(new DatePart("year", Year));
-    function(new DatePart("quarter", Quarter));
-    function(new DatePart("semester", Semester));
-    function(new DatePart("month", Month));
-    function(new DatePart("day", Day));
+    function(new DatePart("year",      Year));
+    function(new DatePart("quarter",   Quarter));
+    function(new DatePart("semester",  Semester));
+    function(new DatePart("month",     Month));
+    function(new DatePart("day",       Day));
     function(new DatePart("dayofweek", DayOfWeek));
     function(new DatePart("dayofyear", DayOfYear));
-    function(new DatePart("week", Week));
-    function(new DatePart("hour", Hour));
-    function(new DatePart("minute", Minute));
-    function(new DatePart("second", Second));
-    function(new DatePart("milli", Millisecond));
-    function(new DatePart("micro", Microsecond));
+    function(new DatePart("week",      Week));
+    function(new DatePart("hour",      Hour));
+    function(new DatePart("minute",    Minute));
+    function(new DatePart("second",    Second));
+    function(new DatePart("milli",     Millisecond));
+    function(new DatePart("micro",     Microsecond));
 
     function(new AgeInYears());
 
@@ -378,23 +378,35 @@ public class Structure {
     function(new EndOfMonth());
     function(new InMonth());
 
+    function(new AddYears());
+    function(new AddMonths());
+    function(new AddWeeks());
+    function(new AddDays());
+    function(new AddHours());
+    function(new AddMinutes());
+    function(new AddSeconds());
+    function(new AddMilliSeconds());
+    function(new AddMicroSeconds());
+
     // Functions to compute difference between dates in years, months, days, etc, (datediff in sql server)
-    function(new DateDiff("years", Year));
-    function(new DateDiff("months", Month));
-    function(new DateDiff("days", Day));
-    function(new DateDiff("weeks", Week));
-    function(new DateDiff("hours", Hour));
+    function(new DateDiff("years",   Year));
+    function(new DateDiff("months",  Month));
+    function(new DateDiff("days",    Day));
+    function(new DateDiff("weeks",   Week));
+    function(new DateDiff("hours",   Hour));
     function(new DateDiff("minutes", Minute));
     function(new DateDiff("seconds", Second));
-    function(new DateDiff("millis", Millisecond));
-    function(new DateDiff("micros", Microsecond));
+    function(new DateDiff("millis",  Millisecond));
+    function(new DateDiff("micros",  Microsecond));
+
+    function(new MonthsCeiling());
 
     // @todo all window functions
     ////////////////////////////////
     function(new Function("rownumber",
                           LongType, emptyList(), false,
                           Map.of(POSTGRESQL, "row_number",
-                                 SQLSERVER, "row_number")));
+                                 SQLSERVER,  "row_number")));
 
     // Range binning
     ///////////////////////////////////
@@ -460,7 +472,7 @@ public class Structure {
   }
 
   public synchronized void sequence(Sequence sequence) {
-    sequences.put(sequence.name, sequence);
+    sequences.put(sequence.name(), sequence);
   }
 
   public final Database database;

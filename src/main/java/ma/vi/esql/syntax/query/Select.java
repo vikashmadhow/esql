@@ -64,6 +64,7 @@ public class Select extends QueryUpdate /* implements Macro */ {
     super(other);
   }
 
+  @SafeVarargs
   public Select(Select other, String value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }

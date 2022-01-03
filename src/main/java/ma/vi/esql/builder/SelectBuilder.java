@@ -72,7 +72,7 @@ public class SelectBuilder implements Builder<Select> {
                    ? null
                    : new Metadata(context,
                                   Stream.of(metadata)
-                                        .map(a -> new Attribute(context, a.name, parser.parseExpression(a.expr)))
+                                        .map(a -> new Attribute(context, a.name(), parser.parseExpression(a.expr())))
                                         .collect(toList()))));
     return this;
   }

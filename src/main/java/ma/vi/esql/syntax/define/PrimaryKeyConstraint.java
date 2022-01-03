@@ -36,6 +36,7 @@ public class PrimaryKeyConstraint extends ConstraintDefinition {
     super(other);
   }
 
+  @SafeVarargs
   public PrimaryKeyConstraint(PrimaryKeyConstraint other, String value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }

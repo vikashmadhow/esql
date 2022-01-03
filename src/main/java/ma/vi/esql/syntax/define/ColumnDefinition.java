@@ -43,6 +43,7 @@ public class ColumnDefinition extends TableDefinition {
     super(other);
   }
 
+  @SafeVarargs
   public ColumnDefinition(ColumnDefinition other, String value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }

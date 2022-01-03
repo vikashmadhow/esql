@@ -29,6 +29,7 @@ public class StarColumn extends Column {
     super(other);
   }
 
+  @SafeVarargs
   public StarColumn(StarColumn other, String value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }

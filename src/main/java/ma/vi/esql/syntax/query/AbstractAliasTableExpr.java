@@ -18,6 +18,7 @@ import java.util.stream.Stream;
  * @author vikash.madhow@gmail.com
  */
 public abstract class AbstractAliasTableExpr extends TableExpr {
+  @SafeVarargs
   public AbstractAliasTableExpr(Context context,
                                 String value,
                                 String alias,
@@ -33,6 +34,7 @@ public abstract class AbstractAliasTableExpr extends TableExpr {
     super(other);
   }
 
+  @SafeVarargs
   public AbstractAliasTableExpr(AbstractAliasTableExpr other, String value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }

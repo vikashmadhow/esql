@@ -34,6 +34,7 @@ public class DateLiteral extends BaseLiteral<String> {
     super(other);
   }
 
+  @SafeVarargs
   public DateLiteral(DateLiteral other, String value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }

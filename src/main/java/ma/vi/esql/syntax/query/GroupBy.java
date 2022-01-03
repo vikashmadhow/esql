@@ -24,7 +24,7 @@ import static java.util.stream.Collectors.joining;
 public class GroupBy extends Esql<String, String> {
 
   public enum Type {
-    Simple, Rollup, Cube;
+    Simple, Rollup, Cube
   }
 
   public GroupBy(Context context,
@@ -39,6 +39,7 @@ public class GroupBy extends Esql<String, String> {
     super(other);
   }
 
+  @SafeVarargs
   public GroupBy(GroupBy other, String value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }

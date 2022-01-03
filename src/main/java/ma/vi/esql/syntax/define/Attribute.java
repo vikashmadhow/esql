@@ -33,6 +33,7 @@ public class Attribute extends Esql<String, String> {
     super(other);
   }
 
+  @SafeVarargs
   public Attribute(Attribute other, String value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }

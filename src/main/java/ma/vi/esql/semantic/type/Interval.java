@@ -27,9 +27,10 @@ public class Interval {
     for (String part: value.toUpperCase().split(",")) {
       part = part.trim();
       char indicator = part.charAt(part.length() - 1);
+      int intervalPart = parseInt(part.substring(0, part.length() - 1));
       switch (indicator) {
         case 'Y':
-          years = parseInt(part.substring(0, part.length() - 1));
+          years = intervalPart;
           break;
 
         case 'N':
@@ -37,26 +38,26 @@ public class Interval {
           break;
 
         case 'W':
-          weeks = parseInt(part.substring(0, part.length() - 1));
+          weeks = intervalPart;
           break;
 
         case 'D':
-          days = parseInt(part.substring(0, part.length() - 1));
+          days = intervalPart;
           break;
 
         case 'H':
-          hours = parseInt(part.substring(0, part.length() - 1));
+          hours = intervalPart;
           break;
 
         case 'M':
-          minutes = parseInt(part.substring(0, part.length() - 1));
+          minutes = intervalPart;
           break;
 
         case 'S':
-          if (part.substring(part.length() - 2).equals("MS")) {
+          if (part.endsWith("MS")) {
             milliseconds = parseInt(part.substring(0, part.length() - 2));
           } else {
-            seconds = parseInt(part.substring(0, part.length() - 1));
+            seconds = intervalPart;
           }
           break;
 
@@ -102,14 +103,14 @@ public class Interval {
   @Override
   public String toString() {
     StringBuilder st = new StringBuilder();
-    st.append((years == 0 ? "" : years + "y"))
-      .append((months == 0 ? "" : (st.length() == 0 ? "" : ",") + months + "mon"))
-      .append((weeks == 0 ? "" : (st.length() == 0 ? "" : ",") + weeks + "w"))
-      .append((days == 0 ? "" : (st.length() == 0 ? "" : ",") + days + "d"))
-      .append((hours == 0 ? "" : (st.length() == 0 ? "" : ",") + hours + "h"))
-      .append((minutes == 0 ? "" : (st.length() == 0 ? "" : ",") + minutes + "m"))
-      .append((seconds == 0 ? "" : (st.length() == 0 ? "" : ",") + seconds + "s"))
-      .append((milliseconds == 0 ? "" : (st.length() == 0 ? "" : ",") + milliseconds + "ms"));
+    st.append((years == 0         ? "" : years + "y"))
+      .append((months == 0        ? "" : (st.length() == 0 ? "" : ",") + months       + "mon"))
+      .append((weeks == 0         ? "" : (st.length() == 0 ? "" : ",") + weeks        + "w"))
+      .append((days == 0          ? "" : (st.length() == 0 ? "" : ",") + days         + "d"))
+      .append((hours == 0         ? "" : (st.length() == 0 ? "" : ",") + hours        + "h"))
+      .append((minutes == 0       ? "" : (st.length() == 0 ? "" : ",") + minutes      + "m"))
+      .append((seconds == 0       ? "" : (st.length() == 0 ? "" : ",") + seconds      + "s"))
+      .append((milliseconds == 0  ? "" : (st.length() == 0 ? "" : ",") + milliseconds + "ms"));
     return st.toString();
   }
 

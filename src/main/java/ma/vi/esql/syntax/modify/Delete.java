@@ -39,6 +39,7 @@ public class Delete extends QueryUpdate {
     super(other);
   }
 
+  @SafeVarargs
   public Delete(Delete other, String value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }

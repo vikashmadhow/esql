@@ -21,6 +21,7 @@ import static ma.vi.base.lang.Errors.checkArgument;
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 public abstract class ConstraintDefinition extends TableDefinition {
+  @SafeVarargs
   public ConstraintDefinition(Context context,
                               String name,
                               String table,
@@ -39,6 +40,7 @@ public abstract class ConstraintDefinition extends TableDefinition {
     super(other);
   }
 
+  @SafeVarargs
   public ConstraintDefinition(ConstraintDefinition other, String value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }
@@ -73,6 +75,7 @@ public abstract class ConstraintDefinition extends TableDefinition {
     return childValue("columns");
   }
 
+  @SafeVarargs
   protected static String defaultConstraintName(String prefix, List<String>... columns) {
     return (prefix != null ? prefix : "")
           + Stream.of(columns)

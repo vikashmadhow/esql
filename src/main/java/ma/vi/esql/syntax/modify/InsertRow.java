@@ -5,8 +5,6 @@
 package ma.vi.esql.syntax.modify;
 
 import ma.vi.base.tuple.T2;
-import ma.vi.esql.semantic.type.Type;
-import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
@@ -26,6 +24,7 @@ public class InsertRow extends Expression<String, String> {
     super(other);
   }
 
+  @SafeVarargs
   public InsertRow(InsertRow other, String value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }

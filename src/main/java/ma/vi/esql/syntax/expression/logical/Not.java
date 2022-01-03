@@ -30,6 +30,7 @@ public class Not extends SingleSubExpression {
     super(other);
   }
 
+  @SafeVarargs
   public Not(Not other, String value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }

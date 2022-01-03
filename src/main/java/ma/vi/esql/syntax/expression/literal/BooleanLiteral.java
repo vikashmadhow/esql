@@ -29,6 +29,7 @@ public class BooleanLiteral extends BaseLiteral<Boolean> {
     super(other);
   }
 
+  @SafeVarargs
   public BooleanLiteral(BooleanLiteral other, Boolean value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }

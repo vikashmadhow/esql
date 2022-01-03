@@ -25,6 +25,7 @@ public class Division extends ArithmeticOperator {
     super(other);
   }
 
+  @SafeVarargs
   public Division(Division other, String value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }

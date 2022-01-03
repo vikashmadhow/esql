@@ -31,6 +31,7 @@ public class FloatingPointLiteral extends BaseLiteral<String> {
     super(other);
   }
 
+  @SafeVarargs
   public FloatingPointLiteral(FloatingPointLiteral other, String value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }

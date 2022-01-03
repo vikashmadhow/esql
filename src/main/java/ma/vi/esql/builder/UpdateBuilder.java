@@ -130,7 +130,7 @@ public class UpdateBuilder implements Builder<Update> {
                    ? null
                    : new Metadata(context,
                                   Stream.of(metadata)
-                                        .map(a -> new Attribute(context, a.name, parser.parseExpression(a.expr)))
+                                        .map(a -> new Attribute(context, a.name(), parser.parseExpression(a.expr())))
                                         .collect(toList()))));
     return this;
   }

@@ -32,6 +32,7 @@ public class And extends ComparisonOperator {
     super(other);
   }
 
+  @SafeVarargs
   public And(And other, String value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }

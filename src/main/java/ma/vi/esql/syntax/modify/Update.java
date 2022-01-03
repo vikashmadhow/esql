@@ -46,6 +46,7 @@ public class Update extends QueryUpdate {
     super(other);
   }
 
+  @SafeVarargs
   public Update(Update other, String value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }

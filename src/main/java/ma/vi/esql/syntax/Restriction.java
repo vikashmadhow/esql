@@ -32,19 +32,14 @@ public class Restriction {
     this.operations = operations;
   }
 
-  public static class By {
-    public By(Relation table, String column) {
-      this.table = table;
-      this.column = column;
-    }
-
+  public record By(Relation table, String column) {
     @Override
     public boolean equals(Object o) {
       if (this == o) return true;
       if (o == null || getClass() != o.getClass()) return false;
       By by = (By)o;
-      return Objects.equals(table, by.table) &&
-             Objects.equals(column, by.column);
+      return Objects.equals(table, by.table)
+          && Objects.equals(column, by.column);
     }
 
     @Override
@@ -56,9 +51,6 @@ public class Restriction {
     public String toString() {
       return table + (column == null ? "" : ":" + column);
     }
-
-    public final Relation table;
-    public final String column;
   }
 
   public final Set<By> by;

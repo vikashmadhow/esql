@@ -8,6 +8,7 @@ import ma.vi.base.lang.Errors;
 import ma.vi.base.lang.NotFoundException;
 import ma.vi.base.string.Strings;
 import ma.vi.base.tuple.T3;
+import ma.vi.base.util.Numbers;
 import ma.vi.esql.database.DataException;
 import ma.vi.esql.database.Structure;
 import ma.vi.esql.semantic.type.*;
@@ -32,13 +33,13 @@ import static java.util.Collections.emptyMap;
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 public class Result implements AutoCloseable {
-  public Result(Structure structure,
-                ResultSet rs,
-                Relation type,
-                List<ColumnMapping> columns,
-                Map<String, Integer> columnNameToIndex,
+  public Result(Structure                       structure,
+                ResultSet                       rs,
+                Relation                        type,
+                List<ColumnMapping>             columns,
+                Map<String, Integer>            columnNameToIndex,
                 List<T3<Integer, String, Type>> resultAttributeIndices,
-                Map<String, Object> resultAttributes) {
+                Map<String, Object>             resultAttributes) {
     this.structure = structure;
     this.rs = rs;
     this.type = type;
@@ -102,14 +103,14 @@ public class Result implements AutoCloseable {
       if (mapping == null) {
         throw new NotFoundException("Invalid column index: " + column);
       }
-      T value = convert(rs.getObject(mapping.valueIndex), mapping.valueIndex, mapping.valueType);
+      T value = convert(rs.getObject(mapping.valueIndex()), mapping.valueIndex(), mapping.valueType());
 
-      Map<String, Object> metadata = new HashMap<>(mapping.attributes);
-      for (int i = 0; i < mapping.attributeIndices.size(); i++) {
-        T3<Integer, String, Type> attr = mapping.attributeIndices.get(i);
+      Map<String, Object> metadata = new HashMap<>(mapping.attributes());
+      for (int i = 0; i < mapping.attributeIndices().size(); i++) {
+        T3<Integer, String, Type> attr = mapping.attributeIndices().get(i);
         metadata.put(attr.b, convert(rs.getObject(attr.a), attr.a, attr.c));
       }
-      return new ResultColumn<>(value, mapping.column, metadata);
+      return new ResultColumn<>(value, mapping.column(), metadata);
 
     } catch (SQLException sqle) {
       throw Errors.unchecked(sqle);
@@ -131,7 +132,7 @@ public class Result implements AutoCloseable {
   }
 
   public Column column(int column) {
-    return columns.get(column - 1).column;
+    return columns.get(column - 1).column();
   }
 
   public Column column(String field) {
@@ -175,16 +176,15 @@ public class Result implements AutoCloseable {
     } else {
       if (valueType == Types.BoolType && v instanceof Number) {
         /*
-         * conversion of numeric to boolean for SQL Server
+         * Numeric to boolean conversion for SQL Server.
          */
         v = ((Number)v).intValue() == 1 ? Boolean.TRUE : Boolean.FALSE;
 
       } else if (valueType == Types.IntervalType) {
         /*
-         * interval support
+         * Interval support.
          */
-        if (v instanceof PGInterval) {
-          PGInterval i = (PGInterval)v;
+        if (v instanceof PGInterval i) {
           final int microseconds = (int)(i.getSeconds() * 1000000.0);
           final int milliseconds = (microseconds + ((microseconds < 0) ? -500 : 500)) / 1000;
           v = new Interval(i.getYears(), i.getMonths(), 0, i.getDays(),
@@ -197,16 +197,15 @@ public class Result implements AutoCloseable {
         }
       } else if (valueType == Types.UuidType && v instanceof String) {
         /*
-         * normalization of UUID type to Java UUID. Postgresql produces UUID
-         * but SQL server returns only a string
+         * Normalization of UUID type to Java UUID. Postgresql produces UUID but
+         * SQL server returns only a string.
          */
         v = UUID.fromString((String)v);
 
-      } else if (valueType instanceof ArrayType) {
+      } else if (valueType instanceof ArrayType arrayType) {
         /*
-         * array support
+         * Array support.
          */
-        ArrayType arrayType = (ArrayType)valueType;
         v = structure.database.getArray(rs, fieldIndex, Types.classOf(arrayType.componentType.name()));
 
       } else if (v instanceof String && Strings.isUUID((String)v)) {
@@ -214,6 +213,16 @@ public class Result implements AutoCloseable {
          * UUID as a string. Normalize to prevent matching errors.
          */
         v = UUID.fromString((String)v);
+
+      } else if (v instanceof Number n) {
+        /*
+         * Numeric normalization.
+         */
+        Class<?> targetClass = Types.classOf(valueType.name());
+        if (Number.class.isAssignableFrom(targetClass)
+         && !n.getClass().equals(targetClass)) {
+          v = Numbers.convert(n, targetClass);
+        }
       }
       return (T)v;
     }
@@ -228,7 +237,9 @@ public class Result implements AutoCloseable {
       for (T3<Integer, String, Type> attr: resultAttributeIndices) {
         Object v = rs.getObject(attr.a);
         if (attr.c == Types.BoolType && v instanceof Number) {
-          // conversion of numeric to boolean for SQL Server
+          /*
+           * Conversion of numeric to boolean for SQL Server.
+           */
           v = ((Number)v).intValue() == 1 ? Boolean.TRUE : Boolean.FALSE;
         }
         attributes.put(attr.b, v);
@@ -262,5 +273,4 @@ public class Result implements AutoCloseable {
   private final List<T3<Integer, String, Type>> resultAttributeIndices;
 
   private final Map<String, Object> resultAttributes;
-
 }

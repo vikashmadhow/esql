@@ -1,4 +1,4 @@
-package ma.vi.esql.parse;
+package ma.vi.esql.query;
 
 import ma.vi.esql.DataTest;
 import ma.vi.esql.Databases;

@@ -27,6 +27,7 @@ public abstract class MultipleSubExpressions extends Expression<String, String> 
     super(other);
   }
 
+  @SafeVarargs
   public MultipleSubExpressions(MultipleSubExpressions other, String value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }

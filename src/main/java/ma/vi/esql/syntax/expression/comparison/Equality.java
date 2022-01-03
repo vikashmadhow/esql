@@ -29,6 +29,7 @@ public class Equality extends ComparisonOperator {
     super(other);
   }
 
+  @SafeVarargs
   public Equality(Equality other, String value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }

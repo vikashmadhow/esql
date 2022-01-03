@@ -77,7 +77,7 @@ public class InMonth extends Function implements Macro {
                 new FunctionCall(ctx, "month",
                                  false, null,
                                  funcArgs, false,
-                                 null, null),
+                                 null, null, null),
                 month
             ),
             new Equality(
@@ -85,7 +85,7 @@ public class InMonth extends Function implements Macro {
                 new FunctionCall(ctx, "year",
                                  false, null,
                                  funcArgs, false,
-                                 null, null),
+                                 null, null, null),
                 year
             )
         )

@@ -333,8 +333,6 @@ public class SyntaxAnalyser extends EsqlBaseListener {
                      get(ctx.queryUpdate())));
   }
 
-  // @todo Window operations
-
   // modification queries (insert, delete, update)
   ////////////////////////////////////////////////////////////////
 
@@ -597,15 +595,13 @@ public class SyntaxAnalyser extends EsqlBaseListener {
        */
       Expression<?, String> first = get(expressions.get(0));
       Expression<?, String> second = get(expressions.get(1));
-      if (first instanceof Concatenation) {
-        Concatenation concat = (Concatenation)first;
+      if (first instanceof Concatenation concat) {
         List<Expression<?, ?>> concatExprs = new ArrayList<>(concat.expressions());
         concatExprs.add(second);
         put(ctx, new Concatenation(context, concatExprs));
         optimised = true;
 
-      } if (second instanceof Concatenation) {
-        Concatenation concat = (Concatenation)second;
+      } if (second instanceof Concatenation concat) {
         List<Expression<?, ?>> concatExprs = new ArrayList<>(concat.expressions());
         concatExprs.add(0, first);
         put(ctx, new Concatenation(context, concatExprs));
@@ -758,15 +754,39 @@ public class SyntaxAnalyser extends EsqlBaseListener {
                                        ParserRuleContext qualifiedName,
                                        ParserRuleContext expressionList,
                                        Token star) {
-    put(ctx,
-        new FunctionCall(context,
-                         value(qualifiedName),
-                         distinct != null && distinct.getText().startsWith("distinct"),
-                         distinct != null && distinct.expressionList() != null ? value(distinct.expressionList()) : null,
-                         value(expressionList),
-                         star != null,
-                         window != null ? value(window.partition() != null ? window.partition().expressionList() : null) : null,
-                         window != null ? value(window.orderByList()) : null));
+    put(ctx, new FunctionCall(context,
+                              value(qualifiedName),
+                              distinct != null && distinct.getText().startsWith("distinct"),
+                              distinct != null && distinct.expressionList() != null ? value(distinct.expressionList()) : null,
+                              value(expressionList),
+                              star != null,
+                              window != null ? value(window.partition() != null ? window.partition().expressionList() : null) : null,
+                              window != null ? value(window.orderByList()) : null,
+                              frame(window)));
+  }
+
+  private WindowFrame frame(WindowContext window) {
+    if (window != null) {
+      FrameContext frame = window.frame();
+      if (frame != null) {
+        PrecedingContext preceding = frame.preceding();
+        FollowingContext following = frame.following();
+        return new WindowFrame(
+            context,
+            frame.frameType.getText(),
+            new FrameBound(context,
+                preceding.unbounded() != null,
+                preceding.current() != null,
+                preceding.IntegerLiteral() == null ? null : Integer.parseInt(preceding.IntegerLiteral().getText())),
+            new FrameBound(context,
+                following.unbounded() != null,
+                following.current() != null,
+                following.IntegerLiteral() == null ? null : Integer.parseInt(following.IntegerLiteral().getText()))
+
+        );
+      }
+    }
+    return null;
   }
 
   @Override
@@ -882,8 +902,7 @@ public class SyntaxAnalyser extends EsqlBaseListener {
        * is combined into (e1 -> e2 : e3 -> e4 : e5)
        */
       Esql<?, ?> last = get(expressions.get(2));
-      if (last instanceof Case) {
-        Case lastCase = (Case)last;
+      if (last instanceof Case lastCase) {
         List<Expression<?, ?>> caseExprs = new ArrayList<>();
         caseExprs.add(get(expressions.get(0)));
         caseExprs.add(get(expressions.get(1)));

@@ -33,6 +33,7 @@ public class Like extends NegatableDoubleSubExpressions<String> {
     super(other);
   }
 
+  @SafeVarargs
   public Like(Like other, String value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }

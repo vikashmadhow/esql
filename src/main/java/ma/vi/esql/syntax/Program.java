@@ -29,6 +29,7 @@ public class Program extends Esql<String, List<?>> {
     super(other);
   }
 
+  @SafeVarargs
   public Program(Program other, String value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }

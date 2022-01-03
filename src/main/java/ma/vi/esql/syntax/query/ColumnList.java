@@ -16,10 +16,12 @@ import ma.vi.esql.syntax.define.Attribute;
 import ma.vi.esql.syntax.define.Metadata;
 import ma.vi.esql.syntax.expression.ColumnRef;
 import ma.vi.esql.syntax.expression.Expression;
+import ma.vi.esql.syntax.expression.SelectExpression;
 
 import java.util.*;
 
 import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toSet;
 import static ma.vi.esql.syntax.expression.ColumnRef.qualify;
 
 /**
@@ -38,6 +40,7 @@ public class ColumnList extends Esql<String, String> implements Macro {
     super(other);
   }
 
+  @SafeVarargs
   public ColumnList(ColumnList other, String value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }
@@ -69,7 +72,9 @@ public class ColumnList extends Esql<String, String> implements Macro {
 
     boolean changed = false;
     int colIndex = 1;
-    Set<String> colNames = new HashSet<>();
+
+    Set<String> existingColNames = columns().stream().map(Column::name).collect(toSet());
+    Set<String> resolvedColNames = new HashSet<>();
     Map<String, String> aliased = new HashMap<>();
     Map<String, Column> resolvedColumns = new LinkedHashMap<>();
     for (Column column: columns()) {
@@ -86,7 +91,7 @@ public class ColumnList extends Esql<String, String> implements Macro {
           Column col = relCol.b;
           String colName = col.name();
           if (colName == null) {
-            T2<String, Integer> newName = makeUnique("column", colNames, colIndex, true);
+            T2<String, Integer> newName = makeUnique("column", resolvedColNames, colIndex, true);
             colName = newName.a;
             colIndex = newName.b;
 
@@ -96,8 +101,8 @@ public class ColumnList extends Esql<String, String> implements Macro {
               /*
                * Normal column (not metadata).
                */
-              if (colNames.contains(colName)) {
-                T2<String, Integer> newName = makeUnique(colName, colNames, colIndex, false);
+              if (resolvedColNames.contains(colName)) {
+                T2<String, Integer> newName = makeUnique(colName, resolvedColNames, colIndex, false);
                 colName = newName.a;
                 colIndex = newName.b;
                 aliased.put(col.name(), colName);
@@ -126,10 +131,12 @@ public class ColumnList extends Esql<String, String> implements Macro {
              */
             Relation rel = relCol.a;
             if (rel instanceof BaseRelation
-                || (rel instanceof AliasedRelation && ((AliasedRelation)rel).relation instanceof BaseRelation)) {
+            || (rel instanceof AliasedRelation ar && ar.relation instanceof BaseRelation)) {
               Expression<?, String> expr = col.expression();
               if (qualifier != null) {
                 expr = qualify(expr, qualifier);
+              } else if (rel.alias() != null) {
+                expr = qualify(expr, rel.alias());
               }
               Metadata metadata = null;
               if (col.metadata() != null) {
@@ -143,7 +150,7 @@ public class ColumnList extends Esql<String, String> implements Macro {
             } else {
               col = new Column(context,
                                colName,
-                               new ColumnRef(context, qualifier, col.name()),
+                               new ColumnRef(context, qualifier != null ? qualifier : rel.alias(), col.name()),
                                null);
             }
 
@@ -152,29 +159,56 @@ public class ColumnList extends Esql<String, String> implements Macro {
              * only consider first encounter.
              */
             resolvedColumns.put(colName, col);
-            colNames.add(colName);
+            resolvedColNames.add(colName);
           }
         }
-      } else if (column.name() == null) {
-        changed = true;
-        Expression<?, String> expr = column.expression();
-        String prefix = expr instanceof ColumnRef ref ? ref.name() : "column";
-        T2<String, Integer> newName = makeUnique(prefix, colNames, colIndex, !(expr instanceof ColumnRef));
-        colIndex = newName.b;
-        Column col = column.name(newName.a);
-        resolvedColumns.put(col.name(), col);
-
       } else {
-        String colName = column.name();
-        if (!colNames.contains(colName)) {
-          colNames.add(colName);
-        } else {
+        if (column.name() == null) {
           changed = true;
-          T2<String, Integer> newName = makeUnique(colName, colNames, colIndex, false);
+          Expression<?, String> expr = column.expression();
+          String prefix = expr instanceof ColumnRef ref ? ref.name() : "column";
+          T2<String, Integer> newName = makeUnique(prefix, resolvedColNames, colIndex, !(expr instanceof ColumnRef));
           colIndex = newName.b;
           column = column.name(newName.a);
+
+        } else {
+          String colName = column.name();
+          if (!resolvedColNames.contains(colName)) {
+            resolvedColNames.add(colName);
+          } else {
+            changed = true;
+            T2<String, Integer> newName = makeUnique(colName, resolvedColNames, colIndex, false);
+            colIndex = newName.b;
+            column = column.name(newName.a);
+          }
         }
         resolvedColumns.put(column.name(), column);
+
+        boolean expandColumns = !path.hasAncestor(SelectExpression.class);
+        if (expandColumns) {
+          Cte cte = path.ancestor(Cte.class);
+          if (cte != null && cte.fields() != null && !cte.fields().isEmpty()) {
+            expandColumns = false;
+          }
+        }
+        if (expandColumns) {
+          ColumnRef ref = ColumnRef.from(column.expression());
+          if (ref != null && !ref.name().contains("/")) {
+            if (fromType == null) {
+              fromType = from.type(path.add(from));
+            }
+            for (T2<Relation, Column> relCol: fromType.columns(ref.name())) {
+              Relation rel = relCol.a;
+              if (Objects.equals(rel.alias(), ref.qualifier())) {
+                Column col = relCol.b;
+                if (!col.name().equals(column.name()) && !existingColNames.contains(col.name())) {
+                  changed = true;
+                  resolvedColumns.put(col.name(), col);
+                }
+              }
+            }
+          }
+        }
       }
     }
     return changed ? new ColumnList(context, new ArrayList<>(resolvedColumns.values()))

@@ -38,6 +38,7 @@ public class ColumnRef extends Expression<String, String> implements Macro {
     super(other);
   }
 
+  @SafeVarargs
   public ColumnRef(ColumnRef other, String value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }
@@ -70,7 +71,7 @@ public class ColumnRef extends Expression<String, String> implements Macro {
          * In a query check all levels as the column might refer to a table in
          * an outer level if it is in a subquery.
          */
-        T2<Relation, Column> relCol = column(qu, path);
+        T2<Relation, Column> relCol = column(qu, this, path);
         if (relCol != null) {
           Column column = relCol.b;
           if (column.expression() instanceof ColumnRef) {
@@ -146,19 +147,19 @@ public class ColumnRef extends Expression<String, String> implements Macro {
   @Override
   public Esql<?, ?> expand(Esql<?, ?> e, EsqlPath path)  {
     QueryUpdate qu = QueryUpdate.ancestor(path);
-    T2<Relation, Column> col = column(qu, path);
+    T2<Relation, Column> col = column(qu, this, path);
     if (col != null) {
       Relation rel = col.a;
       String alias = rel.alias();
       Column column = col.b;
       if (column.derived()) {
-        return new GroupedExpression(context, alias != null       ? qualify(column.expression(), alias)
-                                            : qualifier() != null ? qualify(column.expression(), qualifier())
-                                            : column.expression());
+        GroupedExpression expr = new GroupedExpression(
+            context, alias != null       ? qualify(column.expression(), alias)
+                   : qualifier() != null ? qualify(column.expression(), qualifier())
+                   : column.expression());
+        return new ExpandedDerivedColumnRef(context, alias != null ? alias : qualifier(), name(), expr);
       }
-      return alias == null || alias.equals(qualifier())
-           ? e
-           : qualify(column.expression(), alias);
+      return alias == null || alias.equals(qualifier()) ? e : qualify(e, alias);
     }
     return e;
   }
@@ -168,12 +169,14 @@ public class ColumnRef extends Expression<String, String> implements Macro {
    * this method will move outside of the current select to find surrounding ones if the
    * column cannot be successfully matched in the current selection context.
    */
-  private T2<Relation, Column> column(QueryUpdate qu, EsqlPath path) {
+  public static T2<Relation, Column> column(QueryUpdate qu,
+                                            ColumnRef ref,
+                                            EsqlPath path) {
     T2<Relation, Column> column = null;
     while (column == null && qu != null && qu.tables().exists()) {
       column = qu.tables()
                  .type(path.add(qu.tables()))
-                 .findColumn(this);
+                 .findColumn(ref);
       if (column == null) {
         T2<QueryUpdate, EsqlPath> ancestor = path.tail() == null
                                            ? null
@@ -187,6 +190,12 @@ public class ColumnRef extends Expression<String, String> implements Macro {
       }
     }
     return column;
+  }
+
+  public static ColumnRef from(Expression<?, String> expr) {
+    return expr instanceof ColumnRef r ? r
+         : expr instanceof ExpandedDerivedColumnRef r ? ColumnRef.of(r.qualifier(), r.name())
+         : null;
   }
 
   @Override

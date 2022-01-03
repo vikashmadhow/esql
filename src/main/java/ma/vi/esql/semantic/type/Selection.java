@@ -7,7 +7,6 @@ package ma.vi.esql.semantic.type;
 import ma.vi.base.string.Strings;
 import ma.vi.base.trie.PathTrie;
 import ma.vi.base.tuple.T2;
-import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.define.Attribute;
 import ma.vi.esql.syntax.expression.ColumnRef;
 import ma.vi.esql.syntax.query.Column;
@@ -24,7 +23,8 @@ import java.util.*;
 public class Selection extends Relation {
   public Selection(List<Column> columns,
                    Collection<Attribute> attributes,
-                   TableExpr from) {
+                   TableExpr from,
+                   String alias) {
     super((from == null ? "" : from.toString() + '.') + "select_" + Strings.random());
     this.columns = columns;
     this.from = from;
@@ -34,6 +34,7 @@ public class Selection extends Relation {
     if (attributes != null) {
       attributes(attributes);
     }
+    this.alias = alias;
   }
 
   public Selection(Selection other) {
@@ -44,6 +45,7 @@ public class Selection extends Relation {
       this.columns.add(col);
     }
     this.from = other.from == null ? null : other.from.copy();
+    this.alias = other.alias;
   }
 
   @Override
@@ -53,7 +55,7 @@ public class Selection extends Relation {
 
   @Override
   public String alias() {
-    return null;
+    return alias;
   }
 
   @Override
@@ -69,12 +71,8 @@ public class Selection extends Relation {
   @Override
   public List<T2<Relation, Column>> columns(String prefix) {
     List<T2<String, Column>> cols = columnsByAlias.getPrefixed(prefix);
-    Context context = from().context;
     return cols.stream()
-               .map(t -> new T2<Relation, Column>(this,
-                                                  new Column(context, t.a(),
-                                                  new ColumnRef(context, null, t.a()),
-                                                 null)))
+               .map(t -> new T2<Relation, Column>(this, t.b))
                .toList();
   }
 
@@ -96,4 +94,6 @@ public class Selection extends Relation {
   private final PathTrie<Column> columnsByAlias = new PathTrie<>();
 
   private final TableExpr from;
+
+  private final String alias;
 }

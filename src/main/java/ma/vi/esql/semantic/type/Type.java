@@ -48,7 +48,7 @@ public interface Type extends Symbol, Copy<Type>, Translatable<String> {
    */
   Map<String, Attribute> attributes();
 
-  default List<Attribute> attributesList(Context context) {
+  default List<Attribute> attributesList() {
     return new ArrayList<>(attributes().values());
   }
 
@@ -65,6 +65,16 @@ public interface Type extends Symbol, Copy<Type>, Translatable<String> {
    * Date, etc.
    */
   boolean isAbstract();
+
+  /**
+   * Returns the promotion of this type. A promoted type is another type representing
+   * a superset of the values of the original type. For example, the 'long' type
+   * is the promotion of the 'int' type as it can represent all int values as well
+   * as longer bit-size values. By default, the promotion of a type is itself.
+   */
+  default Type promote() {
+    return this;
+  }
 
   @Override
   default String translate(Target target) {

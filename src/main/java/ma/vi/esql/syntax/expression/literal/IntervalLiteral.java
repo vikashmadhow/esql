@@ -32,6 +32,7 @@ public class IntervalLiteral extends BaseLiteral<String> {
     super(other);
   }
 
+  @SafeVarargs
   public IntervalLiteral(IntervalLiteral other, String value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }

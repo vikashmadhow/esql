@@ -28,6 +28,7 @@ public class UncomputedExpression extends SingleSubExpression {
     super(other);
   }
 
+  @SafeVarargs
   public UncomputedExpression(UncomputedExpression other, String value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }

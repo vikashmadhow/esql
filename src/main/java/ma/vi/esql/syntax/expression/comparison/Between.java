@@ -39,6 +39,7 @@ public class Between extends Expression<String, String> {
     super(other);
   }
 
+  @SafeVarargs
   public Between(Between other, String value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }

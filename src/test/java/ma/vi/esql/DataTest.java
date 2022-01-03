@@ -73,7 +73,7 @@ public class DataTest {
                               h text[] {
                                 m1: 5
                               },
-                              i string,
+                              i string default 'Aie',
                               j int[],
                               k interval,
                               l int,

@@ -10,10 +10,7 @@ import ma.vi.esql.semantic.type.AliasedRelation;
 import ma.vi.esql.semantic.type.Relation;
 import ma.vi.esql.semantic.type.Selection;
 import ma.vi.esql.semantic.type.Type;
-import ma.vi.esql.syntax.Context;
-import ma.vi.esql.syntax.Esql;
-import ma.vi.esql.syntax.EsqlPath;
-import ma.vi.esql.syntax.TranslationException;
+import ma.vi.esql.syntax.*;
 
 import java.util.Map;
 
@@ -37,6 +34,7 @@ public class SingleTableExpr extends AbstractAliasTableExpr {
     super(other);
   }
 
+  @SafeVarargs
   public SingleTableExpr(SingleTableExpr other, String value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }
@@ -88,13 +86,17 @@ public class SingleTableExpr extends AbstractAliasTableExpr {
         throw new TranslationException(tableName() + " is not a Relation. It is a " + t);
       }
       if (t instanceof AliasedRelation ar) {
-        if (ar.alias.equals(alias())) {
-          type = ar;
-        } else {
-          type = new AliasedRelation(ar.relation, alias());
+        if (!ar.alias.equals(alias())) {
+          t = new AliasedRelation(ar.relation, alias());
         }
       } else {
-        type = new AliasedRelation((Relation)t, alias());
+        t = new AliasedRelation((Relation)t, alias());
+      }
+      if (path.hasAncestor(Macro.OngoingMacroExpansion.class)) {
+        context.type(alias(), t);
+        return (AliasedRelation)t;
+      } else {
+        type = (AliasedRelation)t;
       }
       context.type(alias(), type);
     }

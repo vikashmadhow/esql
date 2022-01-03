@@ -32,6 +32,7 @@ public abstract class NegatableDoubleSubExpressions<V> extends Expression<V, Str
     super(other);
   }
 
+  @SafeVarargs
   public NegatableDoubleSubExpressions(NegatableDoubleSubExpressions<V> other, V value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }

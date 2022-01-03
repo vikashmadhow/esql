@@ -37,6 +37,7 @@ public class With extends QueryUpdate {
     super(other);
   }
 
+  @SafeVarargs
   public With(With other, String value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }

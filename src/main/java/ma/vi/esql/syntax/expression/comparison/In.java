@@ -37,6 +37,7 @@ public class In extends Expression<String, String> {
     super(other);
   }
 
+  @SafeVarargs
   public In(In other, String value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }

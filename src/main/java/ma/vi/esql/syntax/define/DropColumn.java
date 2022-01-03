@@ -25,6 +25,7 @@ public class DropColumn extends Alteration {
     super(other);
   }
 
+  @SafeVarargs
   public DropColumn(DropColumn other, String value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }

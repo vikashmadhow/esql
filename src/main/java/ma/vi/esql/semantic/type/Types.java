@@ -164,47 +164,90 @@ public class Types {
    * The unknown type is used when an ESQL type-equivalent is not known for a
    * database type.
    */
-  public static final String UNKNOWN_TYPE = "__unknown__";
+  public static final String UNKNOWN_TYPE = "___unknown";
+
+  /**
+   * A basetype whose isAbstract() method returns true. This is the class of
+   * special types such as NullType and TopType.
+   */
+  private static final class SpecialBaseType extends BaseType {
+    public SpecialBaseType(String name, int size, boolean integral, Map<Target, String> translations) {
+      super(name, size, integral, translations);
+    }
+
+    @Override
+    public boolean isAbstract() {
+      return true;
+    }
+  }
+
+  /**
+   * An integral type can be promoted to a long type.
+   */
+  private static final class IntegralType extends BaseType {
+    public IntegralType(String name, int size, boolean integral, Map<Target, String> translations) {
+      super(name, size, integral, translations);
+    }
+
+    @Override
+    public Type promote() {
+      return LongType;
+    }
+  }
+
+  /**
+   * A fractional type can be promoted to a double-precision floating type.
+   */
+  private static final class FractionalType extends BaseType {
+    public FractionalType(String name, int size, boolean integral, Map<Target, String> translations) {
+      super(name, size, integral, translations);
+    }
+
+    @Override
+    public Type promote() {
+      return DoubleType;
+    }
+  }
 
   public static final Type ByteType =
-      new BaseType("byte", 1, true,
-                   Map.of(ALL, "tinyint"));
+      new IntegralType("byte", 1, true,
+                       Map.of(ALL, "tinyint"));
 
   public static final Type ShortType =
-      new BaseType("short", 2, true,
+      new IntegralType("short", 2, true,
                    Map.of(ALL, "smallint"));
 
   public static final Type IntType =
-      new BaseType("int", 4, true,
-          Map.of(POSTGRESQL, "integer",
-                 HSQLDB, "integer",
-                 MARIADB, "int",
-                 MYSQL, "int",
-                 SQLSERVER, "int"));
+      new IntegralType("int", 4, true,
+                       Map.of(POSTGRESQL, "integer",
+                              HSQLDB, "integer",
+                              MARIADB, "int",
+                              MYSQL, "int",
+                              SQLSERVER, "int "));
 
   public static final Type LongType =
-      new BaseType("long", 8, true,
-                   Map.of(ALL, "bigint"));
+      new IntegralType("long", 8, true,
+                       Map.of(ALL, "bigint"));
 
   public static final Type FloatType =
-      new BaseType("float", 4, false,
-                   Map.of(ALL, "real"));
+      new FractionalType("float", 4, false,
+                         Map.of(ALL, "real"));
 
   public static final Type DoubleType =
-      new BaseType("double", 8, false,
-                   Map.of(POSTGRESQL, "double precision",
-                          HSQLDB, "double",
-                          MARIADB, "double",
-                          MYSQL, "double",
-                          SQLSERVER, "float"));
+      new FractionalType("double", 8, false,
+                         Map.of(POSTGRESQL, "double precision",
+                                HSQLDB, "double",
+                                MARIADB, "double",
+                                MYSQL, "double",
+                                SQLSERVER, "float"));
 
   public static final Type MoneyType =
-      new BaseType("money", 8, false,
-          Map.of(POSTGRESQL, "money",
-                 HSQLDB, "double",
-                 MARIADB, "double",
-                 MYSQL, "double",
-                 SQLSERVER, "money"));
+      new FractionalType("money", 8, false,
+                         Map.of(POSTGRESQL, "money",
+                                HSQLDB, "double",
+                                MARIADB, "double",
+                                MYSQL, "double",
+                                SQLSERVER, "money"));
 
   public static final Type BoolType =
       new BaseType("bool", 1, false,
@@ -287,12 +330,8 @@ public class Types {
                           SQLSERVER, "varchar(max)"));
 
   public static final Type UnknownType =
-      new BaseType(UNKNOWN_TYPE, MAX_VALUE, false,
-                   Map.of(POSTGRESQL, "_",
-                          HSQLDB, "_",
-                          MARIADB, "_",
-                          MYSQL, "_",
-                          SQLSERVER, "_"));
+      new SpecialBaseType(UNKNOWN_TYPE, MAX_VALUE, false,
+                          Map.of(ALL, UNKNOWN_TYPE));
 
   // Generic numeric types
   ///////////////////////////////////
@@ -312,19 +351,19 @@ public class Types {
    * Super type of integral number types (byte, short, int and long)
    */
   public static final Type IntegralType =
-      new BaseType("integral", 1, false,
-                   Map.of(ALL, "bigint"));
+      new IntegralType("integral", 1, false,
+                       Map.of(ALL, "bigint"));
 
   /**
    * Super type of non-integral (float and double) number types
    */
   public static final Type FractionalType =
-      new BaseType("fractional", 1, false,
-                   Map.of(POSTGRESQL, "double precision",
-                          HSQLDB, "double",
-                          MARIADB, "double",
-                          MYSQL, "double",
-                          SQLSERVER, "float"));
+      new FractionalType("fractional", 1, false,
+                         Map.of(POSTGRESQL, "double precision",
+                                HSQLDB, "double",
+                                MARIADB, "double",
+                                MYSQL, "double",
+                                SQLSERVER, "float"));
 
   // Generic and special types
   ///////////////////////////////////
@@ -359,37 +398,22 @@ public class Types {
    * The theoretical type of the null value (the bottom type)
    */
   public static final Type NullType =
-      new BaseType("null", 1, false,
-                   Map.of(ALL, "null")) {
-    @Override
-    public boolean isAbstract() {
-      return true;
-    }
-  };
+      new SpecialBaseType("null", 1, false,
+                          Map.of(ALL, "null"));
 
   /**
    * Type of expressions returning nothing
    */
   public static final Type VoidType =
-      new BaseType("void", 0, false,
-                   Map.of(ALL, "void")) {
-    @Override
-    public boolean isAbstract() {
-      return true;
-    }
-  };
+      new SpecialBaseType("void", 0, false,
+                          Map.of(ALL, "void"));
 
   /**
    * Abstract ancestral type of all types
    */
   public static final Type TopType =
-      new BaseType("top", 1, false,
-                   Map.of(ALL, "top")) {
-    @Override
-    public boolean isAbstract() {
-      return true;
-    }
-  };
+      new SpecialBaseType("top", 1, false,
+                          Map.of(ALL, "top"));
 
   /**
    * A special type for functions whose return types are the same as their first
@@ -397,13 +421,17 @@ public class Types {
    * whose return type varies based on what they are called upon.
    */
   public static final Type AsParameterType =
-      new BaseType("___", 0, false,
-                   Map.of(ALL, "___")) {
-    @Override
-    public boolean isAbstract() {
-      return true;
-    }
-  };
+      new SpecialBaseType("___as_param", 0, false,
+                          Map.of(ALL, "___as_param"));
+
+  /**
+   * A special type for functions whose return types are the same as their first
+   * parameter. This type is used for aggregate function such as max and sum,
+   * whose return type varies based on what they are called upon.
+   */
+  public static final Type AsPromotedNumericParameterType =
+      new SpecialBaseType("___as_promoted_numeric_param", 0, false,
+                          Map.of(ALL, "___as_promoted_numeric_param"));
 
   static {
     esqlTypes.put("byte",       ByteType);
@@ -456,6 +484,7 @@ public class Types {
     baseTypeMapping.put("datetime", java.util.Date.class);
     baseTypeMapping.put("interval", Interval.class);
     baseTypeMapping.put("uuid",     UUID.class);
+    baseTypeMapping.put("void",     Void.class);
 
     javaTypeMapping.put(byte.class,           "byte");
     javaTypeMapping.put(Byte.class,           "byte");
@@ -479,6 +508,8 @@ public class Types {
     javaTypeMapping.put(java.util.Date.class, "datetime");
     javaTypeMapping.put(Interval.class,       "interval");
     javaTypeMapping.put(UUID.class,           "uuid");
+    javaTypeMapping.put(Void.class,           "void");
+    javaTypeMapping.put(void.class,           "void");
 
     postgresqlTypeMapping.put("tinyint",          "byte");
     postgresqlTypeMapping.put("smallint",         "short");

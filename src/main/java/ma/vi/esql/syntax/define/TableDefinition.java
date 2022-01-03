@@ -18,6 +18,7 @@ import static java.util.stream.Collectors.joining;
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 public abstract class TableDefinition extends Define {
+  @SafeVarargs
   public TableDefinition(Context context,
                          String value,
                          T2<String, ? extends Esql<?, ?>>... children) {
@@ -34,6 +35,7 @@ public abstract class TableDefinition extends Define {
     super(other);
   }
 
+  @SafeVarargs
   public TableDefinition(TableDefinition other, String value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }

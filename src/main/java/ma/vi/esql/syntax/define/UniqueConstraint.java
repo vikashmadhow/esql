@@ -36,6 +36,7 @@ public class UniqueConstraint extends ConstraintDefinition {
     super(other);
   }
 
+  @SafeVarargs
   public UniqueConstraint(UniqueConstraint other, String value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }

@@ -45,6 +45,7 @@ public class AlterTable extends Define {
     super(other);
   }
 
+  @SafeVarargs
   public AlterTable(AlterTable other, String value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }

@@ -25,6 +25,7 @@ public class DropMetadata extends Alteration {
     super(other);
   }
 
+  @SafeVarargs
   public DropMetadata(DropMetadata other, String value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }

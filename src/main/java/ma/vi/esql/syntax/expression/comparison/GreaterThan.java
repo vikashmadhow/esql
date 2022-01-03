@@ -25,6 +25,7 @@ public class GreaterThan extends ComparisonOperator {
     super(other);
   }
 
+  @SafeVarargs
   public GreaterThan(GreaterThan other, String value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }

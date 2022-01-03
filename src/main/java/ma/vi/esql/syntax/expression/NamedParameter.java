@@ -26,6 +26,7 @@ public class NamedParameter extends Expression<String, String> {
     super(other);
   }
 
+  @SafeVarargs
   public NamedParameter(NamedParameter other, String value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }

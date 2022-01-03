@@ -29,6 +29,7 @@ public class NamedArgument extends Expression<String, String> {
     super(other);
   }
 
+  @SafeVarargs
   public NamedArgument(NamedArgument other, String value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }

@@ -27,6 +27,7 @@ public class NoOp extends Esql<String, Void> {
     super(other);
   }
 
+  @SafeVarargs
   public NoOp(NoOp other, String value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }

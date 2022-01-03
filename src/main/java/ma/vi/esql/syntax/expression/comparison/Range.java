@@ -43,6 +43,7 @@ public class Range extends Expression<String, String> {
     super(other);
   }
 
+  @SafeVarargs
   public Range(Range other, String value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }

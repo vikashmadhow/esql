@@ -9,13 +9,10 @@ import ma.vi.base.tuple.T3;
 import ma.vi.esql.database.Database;
 import ma.vi.esql.exec.ColumnMapping;
 import ma.vi.esql.exec.Result;
-import ma.vi.esql.semantic.type.BaseRelation;
 import ma.vi.esql.semantic.type.Relation;
 import ma.vi.esql.semantic.type.Selection;
 import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.syntax.*;
-import ma.vi.esql.syntax.define.Attribute;
-import ma.vi.esql.syntax.define.Metadata;
 import ma.vi.esql.syntax.expression.*;
 import ma.vi.esql.syntax.expression.literal.Literal;
 import ma.vi.esql.syntax.expression.logical.And;
@@ -48,6 +45,7 @@ public abstract class QueryUpdate extends MetadataContainer<QueryTranslation> im
     this.type = other.type == null ? null : other.type.copy();
   }
 
+  @SafeVarargs
   public QueryUpdate(QueryUpdate other,
                      String value,
                      T2<String, ? extends Esql<?, ?>>... children) {
@@ -68,9 +66,6 @@ public abstract class QueryUpdate extends MetadataContainer<QueryTranslation> im
   @Override
   public Selection type(EsqlPath path) {
     if (type == null) {
-      TableExpr from = tables();
-      Relation fromType = from.type(path.add(from));
-
       /*
        * Type can be requested before macros in the ESQL has been expanded. In
        * this state the column names may be null. This pre-typing phase is required
@@ -78,128 +73,8 @@ public abstract class QueryUpdate extends MetadataContainer<QueryTranslation> im
        * we are in this phase, we compute the best type that we can but we do not
        * cache it as our best type at this point can still miss important information.
        */
-      boolean ongoingMacroExpansion = path.hasAncestor(Macro.OngoingMacroExpansion.class);
-      boolean expandColumns = !grouped() && path.ancestor(Cte.class) == null;
-
-      /*
-       * Add selected columns and metadata
-       */
-      int colIndex = 1;
-      Map<String, Column> columns = new LinkedHashMap<>();
-      Map<String, String> aliased = new HashMap<>();
-      if (columns() != null) {
-        for (Column column: columns()) {
-          String colName = column.name();
-          if (column.expression() instanceof ColumnRef ref) {
-            String refName = ref.name();
-            if (!refName.equals(colName)) {
-              aliased.put(refName, colName);
-            }
-            T2<Relation, Column> relCol = fromType.column(ref);
-            Column col = relCol.b;
-            String qualifier = relCol.a.alias() != null ? relCol.a.alias()
-                             : ref.qualifier()  != null ? ref.qualifier()
-                             : null;
-            if (qualifier != null) {
-              col = col.expression(ColumnRef.qualify(col.expression(), qualifier));
-            }
-            
-            if (colName == null) {
-              /*
-               * When we encounter a null column name in pre-typing phase, we
-               * set a temporary name to prevent subsequent NPE. This column
-               * name is only temporary and will be discarded on proper expansion.
-               */
-              colName = "__pre_column_" + (colIndex++) + "_" + random();
-              col = col.name(colName);
-            }
-
-            /*
-             * Override with explicit result metadata defined in select.
-             */
-            if (column.metadata() != null
-             && column.metadata().attributes() != null
-             && !column.metadata().attributes().isEmpty()) {
-
-              Map<String, Attribute> attributes = new LinkedHashMap<>();
-              Metadata metadata = col.metadata();
-              if (metadata != null && metadata.attributes() != null & !metadata.attributes().isEmpty()) {
-                attributes.putAll(metadata.attributes());
-              }
-              attributes.putAll(column.metadata().attributes());
-              col = new Column(col.context,
-                               colName,
-                               col.expression(),
-                               new Metadata(col.context, new ArrayList<>(attributes.values())));
-            }
-            columns.put(colName, col);
-          } else {
-            columns.put(colName, column);
-          }
-        }
-      }
-
-      /*
-       * Add all relation-level metadata columns defined on the tables
-       * being queried. Override with explicit result metadata defined in query.
-       */
-      Map<String, Attribute> relAtts = new LinkedHashMap<>();
-      if (fromType.attributes() != null) {
-        relAtts.putAll(fromType.attributes());
-      }
-      Metadata metadata = metadata();
-      if (metadata != null
-       && metadata.attributes() != null
-       && !metadata.attributes().isEmpty()) {
-        relAtts.putAll(metadata.attributes());
-      }
-
-      /*
-       * Add uncomputed forms for derived columns and attribute expressions.
-       */
-      List<Column> relCols = new ArrayList<>();
-      for (Map.Entry<String, Column> entry: columns.entrySet()) {
-        String colName = entry.getKey();
-        Column column = entry.getValue();
-
-        if (column.metadata() != null
-         && column.metadata().attributes() != null
-         && !column.metadata().attributes().isEmpty()) {
-          List<Attribute> atts = new ArrayList<>();
-          Map<String, Attribute> colAtts = column.metadata().attributes();
-          for (Map.Entry<String, Attribute> ae: colAtts.entrySet()) {
-            String attName = ae.getKey();
-            Attribute att = ae.getValue();
-            atts.add(att);
-
-            if (!(att.attributeValue() instanceof Literal)
-             && !attName.endsWith("/e")
-             && !colAtts.containsKey(attName + "/e")) {
-              UncomputedExpression expr = new UncomputedExpression(context, BaseRelation.rename(att.attributeValue(), aliased));
-              atts.add(new Attribute(att.context, attName + "/e", expr));
-            }
-          }
-          relCols.add(new Column(column.context,
-                                 colName,
-                                 column.expression(),
-                                 new Metadata(column.context, atts)));
-        } else {
-          relCols.add(column);
-        }
-
-        if (expandColumns
-         && !(column.expression() instanceof ColumnRef)
-         && !colName.endsWith("/e")
-         && !columns.containsKey(colName + "/e")) {
-          UncomputedExpression expr = new UncomputedExpression(context, BaseRelation.rename(column.expression(), aliased));
-          relCols.add(new Column(column.context,
-                              colName + "/e",
-                              expr, null));
-        }
-      }
-
-      Selection sel = new Selection(relCols, relAtts.values(), from);
-      if (ongoingMacroExpansion) {
+      Selection sel = new Selection(new ArrayList<>(columns()), null, tables(), null);
+      if (path.hasAncestor(Macro.OngoingMacroExpansion.class)) {
         return sel;
       } else {
         type = sel;
@@ -230,15 +105,10 @@ public abstract class QueryUpdate extends MetadataContainer<QueryTranslation> im
    */
   public static T2<QueryUpdate, EsqlPath> ancestorAndPath(EsqlPath path) {
     T2<Esql<?, ?>, EsqlPath> closest = path.closestAncestorAndPath(QueryUpdate.class, SelectExpression.class);
-    if (closest == null) {
-      return null;
-    } else if (closest.a instanceof QueryUpdate q) {
-      return T2.of(q, closest.b);
-    } else if (closest.a instanceof SelectExpression s) {
-      return T2.of(s.select(), closest.b);
-    } else {
-      return null;
-    }
+    return closest == null                          ? null
+         : closest.a instanceof QueryUpdate q       ? T2.of(q, closest.b)
+         : closest.a instanceof SelectExpression s  ? T2.of(s.select(), closest.b)
+         : null;
   }
 
   /**
@@ -325,7 +195,8 @@ public abstract class QueryUpdate extends MetadataContainer<QueryTranslation> im
      */
     int columnIndex = 0;
     for (T2<Relation, Column> c: selection.columns().stream()
-                                          .filter(c -> !c.b.name().contains("/")).toList()) {
+                                          .filter(c -> !c.b.name().contains("/"))
+                                          .toList()) {
       itemIndex++;
       columnIndex++;
       if (itemIndex > 1) {
@@ -388,14 +259,14 @@ public abstract class QueryUpdate extends MetadataContainer<QueryTranslation> im
 
         String attrName = alias.substring(pos + 1);
         Expression<?, String> attributeValue = col.b.expression();
-        if (optimiseAttributesLoading && (attributeValue instanceof Literal
-                                       || attributeValue instanceof UncomputedExpression)) {
-          mapping.attributes.put(attrName, attributeValue.value(target, path));
+        if (optimiseAttributesLoading &&  (attributeValue instanceof Literal
+                                        || attributeValue instanceof UncomputedExpression)) {
+          mapping.attributes().put(attrName, attributeValue.value(target, path));
         } else if (addAttributes) {
           itemIndex += 1;
           query.append(", ");
           appendExpression(query, attributeValue, target, path, qualifier, alias);
-          mapping.attributeIndices.add(T3.of(itemIndex, attrName, attributeValue.type(path.add(attributeValue))));
+          mapping.attributeIndices().add(T3.of(itemIndex, attrName, attributeValue.type(path.add(attributeValue))));
         }
       }
     }
@@ -569,18 +440,10 @@ public abstract class QueryUpdate extends MetadataContainer<QueryTranslation> im
     }
   }
 
-  protected static class Join {
-    public Join(String joinType, SingleTableExpr table, Expression<?, String> on) {
-      this.joinType = joinType;
-      this.table = table;
-      this.on = on;
-    }
+  protected record Join(String                joinType,
+                        SingleTableExpr       table,
+                        Expression<?, String> on) {}
 
-    public final String joinType;
-    public final SingleTableExpr table;
-    public final Expression<?, String> on;
-  }
-//
 //  public T2<Boolean, String> restrict(String restrictToTable) {
 //    return restrict(context.structure.relation(restrictToTable));
 //  }

@@ -153,8 +153,7 @@ public abstract class Literal<V> extends Expression<V, String> {
     } else if (value instanceof Interval) {
       return new IntervalLiteral(context, value.toString());
 
-    } else if (value instanceof JSONArray) {
-      JSONArray a = (JSONArray)value;
+    } else if (value instanceof JSONArray a) {
       Type type = null;
       if (a.length() > 0) {
         Class<?> componentType = null;
@@ -167,9 +166,7 @@ public abstract class Literal<V> extends Expression<V, String> {
         }
         if (componentType != null) {
           type = Types.typeOf(componentType);
-          if (type == null) {
-            throw new TranslationException(componentType + " is not supported");
-          } else if (type.kind() != Kind.BASE) {
+          if (type.kind() != Kind.BASE) {
             throw new TranslationException("Only arrays of base types are supported. " + type + " is not a base type.");
           }
         }
@@ -191,9 +188,7 @@ public abstract class Literal<V> extends Expression<V, String> {
     } else if (value.getClass().isArray()) {
       Class<?> componentType = value.getClass().getComponentType();
       Type type = Types.typeOf(componentType);
-      if (type == null) {
-        throw new TranslationException(componentType + " is not supported");
-      } else if (type.kind() != Kind.BASE) {
+      if (type.kind() != Kind.BASE) {
         throw new TranslationException("Only arrays of base types are supported. " + type + " is not a base type.");
       }
       List<BaseLiteral<?>> array = new ArrayList<>();

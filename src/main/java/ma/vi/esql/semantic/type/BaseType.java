@@ -30,7 +30,6 @@ public class BaseType extends AbstractType {
     this.size = other.size;
     this.integral = other.integral;
     this.translations = new HashMap<>(other.translations);
-
   }
 
   @Override

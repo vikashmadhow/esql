@@ -25,6 +25,7 @@ public class Multiplication extends ArithmeticOperator {
     super(other);
   }
 
+  @SafeVarargs
   public Multiplication(Multiplication other, String value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }

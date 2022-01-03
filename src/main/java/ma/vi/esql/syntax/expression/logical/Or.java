@@ -32,6 +32,7 @@ public class Or extends ComparisonOperator {
     super(other);
   }
 
+  @SafeVarargs
   public Or(Or other, String value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }

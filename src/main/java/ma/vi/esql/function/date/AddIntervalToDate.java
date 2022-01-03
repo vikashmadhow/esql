@@ -31,7 +31,7 @@ public class AddIntervalToDate extends Function {
   public AddIntervalToDate() {
     super("incdate", Types.DatetimeType,
           Arrays.asList(new FunctionParameter("date", Types.DatetimeType),
-            new FunctionParameter("interval", Types.IntervalType)));
+                        new FunctionParameter("interval", Types.IntervalType)));
   }
 
   @Override

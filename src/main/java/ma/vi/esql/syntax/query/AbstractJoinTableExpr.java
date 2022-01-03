@@ -9,6 +9,7 @@ import ma.vi.esql.semantic.type.Join;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
+import ma.vi.esql.syntax.Macro;
 
 import java.util.Arrays;
 import java.util.stream.Stream;
@@ -21,6 +22,7 @@ import java.util.stream.Stream;
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 public abstract class AbstractJoinTableExpr extends TableExpr {
+  @SafeVarargs
   public AbstractJoinTableExpr(Context context,
                                String joinType,
                                TableExpr left,
@@ -41,6 +43,7 @@ public abstract class AbstractJoinTableExpr extends TableExpr {
     super(other);
   }
 
+  @SafeVarargs
   public AbstractJoinTableExpr(AbstractJoinTableExpr other, String value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }
@@ -64,8 +67,13 @@ public abstract class AbstractJoinTableExpr extends TableExpr {
   @Override
   public Join type(EsqlPath path) {
     if (type == null) {
-      type = new Join(left().type(path.add(left())),
-                      right().type(path.add(right())));
+      Join t = new Join(left().type(path.add(left())),
+                        right().type(path.add(right())));
+      if (path.hasAncestor(Macro.OngoingMacroExpansion.class)) {
+        return t;
+      } else {
+        type = t;
+      }
     }
     return type;
   }

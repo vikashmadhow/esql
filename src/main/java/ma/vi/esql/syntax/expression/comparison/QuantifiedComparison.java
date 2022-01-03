@@ -40,6 +40,7 @@ public class QuantifiedComparison extends Expression<String, String> {
     super(other);
   }
 
+  @SafeVarargs
   public QuantifiedComparison(QuantifiedComparison other, String value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }

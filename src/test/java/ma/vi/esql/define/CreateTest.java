@@ -1,4 +1,4 @@
-package ma.vi.esql.parse;
+package ma.vi.esql.define;
 
 import ma.vi.esql.DataTest;
 import ma.vi.esql.exec.EsqlConnection;

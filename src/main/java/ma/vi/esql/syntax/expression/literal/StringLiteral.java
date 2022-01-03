@@ -30,6 +30,7 @@ public class StringLiteral extends BaseLiteral<String> {
     super(other);
   }
 
+  @SafeVarargs
   public StringLiteral(StringLiteral other, String value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }

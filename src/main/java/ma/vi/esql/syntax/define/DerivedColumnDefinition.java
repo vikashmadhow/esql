@@ -42,6 +42,7 @@ public class DerivedColumnDefinition extends ColumnDefinition {
     super(other);
   }
 
+  @SafeVarargs
   public DerivedColumnDefinition(DerivedColumnDefinition other, String value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }

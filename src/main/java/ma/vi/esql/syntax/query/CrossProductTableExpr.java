@@ -27,6 +27,7 @@ public class CrossProductTableExpr extends AbstractJoinTableExpr {
     super(other);
   }
 
+  @SafeVarargs
   public CrossProductTableExpr(CrossProductTableExpr other, String value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }

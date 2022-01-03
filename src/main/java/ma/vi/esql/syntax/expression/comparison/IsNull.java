@@ -34,6 +34,7 @@ public class IsNull extends SingleSubExpression {
     super(other);
   }
 
+  @SafeVarargs
   public IsNull(IsNull other, String value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }

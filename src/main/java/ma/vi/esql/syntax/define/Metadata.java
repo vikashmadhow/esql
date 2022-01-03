@@ -31,6 +31,7 @@ public class Metadata extends TableDefinition {
     super(other);
   }
 
+  @SafeVarargs
   public Metadata(Metadata other, String value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }

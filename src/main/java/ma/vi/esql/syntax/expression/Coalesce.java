@@ -30,6 +30,7 @@ public class Coalesce extends MultipleSubExpressions {
     super(other);
   }
 
+  @SafeVarargs
   public Coalesce(Coalesce other, String value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }
@@ -61,7 +62,7 @@ public class Coalesce extends MultipleSubExpressions {
           String t = e.translate(target, path.add(e), parameters);
           st.append("((" + t + ") || (" + t + ") === 0 || (" + t + ") === '' ? " + t + " : null)");
         }
-        String translation = "(" + st.toString() + ")";
+        String translation = "(" + st + ")";
         if (target == JSON) {
           translation = '"' + escapeJsonString(translation) + '"';
         }
