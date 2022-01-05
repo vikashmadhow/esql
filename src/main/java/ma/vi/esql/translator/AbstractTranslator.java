@@ -15,23 +15,14 @@ import java.util.Map;
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 public abstract class AbstractTranslator implements Translator {
+  @SuppressWarnings("unchecked")
   @Override
   public <R> R translate(Esql<?, R> esql, EsqlPath path, Map<String, Object> parameters) {
-    if (esql instanceof Select) {
-      return (R)translate((Select)esql, path, parameters);
-
-    } else if (esql instanceof Update) {
-      return (R)translate((Update)esql, path, parameters);
-
-    } else if (esql instanceof Delete) {
-      return (R)translate((Delete)esql, path, parameters);
-
-    } else if (esql instanceof Insert) {
-      return (R)translate((Insert)esql, path, parameters);
-
-    } else {
-      throw new TranslationException("Translation of " + esql + " to " + target() + " is not supported");
-    }
+    if      (esql instanceof Select) return (R)translate((Select)esql, path, parameters);
+    else if (esql instanceof Update) return (R)translate((Update)esql, path, parameters);
+    else if (esql instanceof Delete) return (R)translate((Delete)esql, path, parameters);
+    else if (esql instanceof Insert) return (R)translate((Insert)esql, path, parameters);
+    else                             throw new TranslationException("Translation of " + esql + " to " + target() + " is not supported");
   }
 
   protected abstract QueryTranslation translate(Select select, EsqlPath path, Map<String, Object> parameters);

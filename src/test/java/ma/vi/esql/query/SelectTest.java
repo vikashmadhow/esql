@@ -11,6 +11,7 @@ import ma.vi.esql.builder.Attr;
 import ma.vi.esql.builder.SelectBuilder;
 import ma.vi.esql.exec.EsqlConnection;
 import ma.vi.esql.exec.Result;
+import ma.vi.esql.exec.ResultColumn;
 import ma.vi.esql.semantic.type.AmbiguousColumnException;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Parser;
@@ -37,6 +38,12 @@ public class SelectTest extends DataTest {
                    System.out.println(db.target());
                    Parser p = new Parser(db.structure());
                    try (EsqlConnection con = db.esql(db.pooledConnection())) {
+                     con.exec("delete t from t:a.b.T");
+                     con.exec("delete s from s:S");
+                     con.exec("insert into S(_id, a, b, e, h, j) values "
+                                  + "(newid(), 1, 2, true, text['Four', 'Quatre'], int[1, 2, 3]),"
+                                  + "(newid(), 6, 7, false, text['Nine', 'Neuf', 'X'], int[5, 6, 7, 8])");
+
                      Select select = p.parse("select a, b from s:S order by s.a asc", SELECT);
                      Context context = new Context(db.structure());
                      assertEquals(new SelectBuilder(context)
@@ -46,7 +53,29 @@ public class SelectTest extends DataTest {
                                         .orderBy("s.a", "asc")
                                         .build(),
                                   select);
-                     printResult(con.exec(select), 20);
+
+//                     printResult(con.exec(select), 20, true);
+
+                     Result rs = con.exec(select);
+                     rs.next();
+                     ResultColumn<Integer> c1 = rs.get(1);
+                     ResultColumn<Integer> c2 = rs.get(2);
+                     assertEquals(1,     c1.value());
+                     assertEquals(false, c1.metadata().get("m1"));
+                     assertEquals(10L,   c1.metadata().get("m2"));
+                     assertEquals(true,  c1.metadata().get("m3"));
+
+                     assertEquals(2,     c2.value());
+                     assertEquals(false, c2.metadata().get("m1"));
+
+                     rs.next(); c1 = rs.get(1); c2 = rs.get(2);
+                     assertEquals(6,     c1.value());
+                     assertEquals(true,  c1.metadata().get("m1"));
+                     assertEquals(10L,   c1.metadata().get("m2"));
+                     assertEquals(true,  c1.metadata().get("m3"));
+
+                     assertEquals(7,     c2.value());
+                     assertEquals(false, c2.metadata().get("m1"));
                    }
                  }));
   }
@@ -67,11 +96,19 @@ public class SelectTest extends DataTest {
                      Select select = p.parse("select a {required: b < 5, mx: b > 5}, b "
                                            + "from x:(select a, b from s:S order by s.a asc)",
                                              SELECT);
+
                      Result rs = con.exec(select);
-                     rs.next(); assertEquals(1, (Integer)rs.value(1));
-                                assertEquals(2, (Integer)rs.value(2));
-                     rs.next(); assertEquals(6, (Integer)rs.value(1));
-                                assertEquals(7, (Integer)rs.value(2));
+                     printResult(rs, 30, true);
+
+//                     Result rs = con.exec(select);
+//                     rs.next();
+//                     ResultColumn<Integer> c1 = rs.get(1);
+//                     ResultColumn<Integer> c2 = rs.get(2);
+//                     assertEquals(1, c1.value());
+//                     assertEquals(2, c2.value());
+//
+//                     rs.next(); assertEquals(6, (Integer)rs.value(1));
+//                                assertEquals(7, (Integer)rs.value(2));
                    }
                  }));
   }
@@ -285,8 +322,8 @@ public class SelectTest extends DataTest {
                                       .starColumn("T")
                                       .column("x.a+y.b", "v", Attr.of("m1", "x.a"), Attr.of("m2", "y.b>=5"))
                                       .from("S", "s")
-                                      .leftJoin("a.b.T", null, "s._id = T.s_id")
-                                      .join("a.b.X", "x", "x.t_id = T._id")
+                                      .leftJoin("a.b.T", null, "s._id = T.s_id", false)
+                                      .join("a.b.X", "x", "x.t_id = T._id", false)
                                       .times("b.Y", "y")
                                       .where("leftstr(s.i, 2)='PI'")
                                       .orderBy("s.a", "desc")
@@ -324,8 +361,8 @@ public class SelectTest extends DataTest {
                       .starColumn("T")
                       .column("x.a+x.b", "v", Attr.of("m1", "x"), Attr.of("m2", "y>=5"))
                       .from("S", "s")
-                      .leftJoin("a.b.T", null, "s._id = T.s_id")
-                      .join("a.b.X", "x", "x.t_id = T._id")
+                      .leftJoin("a.b.T", null, "s._id = T.s_id", false)
+                      .join("a.b.X", "x", "x.t_id = T._id", false)
                       .times("b.Y", "y")
                       .orderBy("s.x", "desc")
                       .orderBy("y.x")

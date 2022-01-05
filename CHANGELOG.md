@@ -9,9 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - General-purpose language:
   - Variable definitions and assignments
   - Symbol table and scoping rules
-  - General typing  
-  - Conditional statements  
-  - Iteration and loops 
+  - General typing
+  - Conditional statements
+  - Iteration and loops
   - Functions
 - Array operations.
 - JSON operations.
@@ -27,8 +27,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Support for bulk copy manager in postgresql.
 - Support for merge queries.
 - Configure extensions (e.g. specify lookup schema) through parameters.
+- Use a (functional) persistent map for the parameters map to translate to allow
+  for fast addition and deletion of parameters without compromising the existing
+  parameters.
+- Replace all visual tests (printResult) with assertions.
+- Implement `explicit` in select (no expanded columns when explicit keyword used).
 
 ### To test
+- Test loaded metadata values.
+- Test lateral joins.
 - Testing of all normal functions.
 - Testing of translation of grouping by complex expressions (subqueries) in SQL
   Server.
@@ -39,8 +46,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Performance testing.
 
 ### To fix
-- fix ancestorDistance which does not seem to work on ESQLPath. Currently this 
+- fix ancestorDistance which does not seem to work on ESQLPath. Currently, this 
   function is not used anywhere, thus this is low-priority.
+- Apply result and column metadata overloading in column list expansion (currently,
+  the overridden metadata are not being considered). 
+
+## [0.6.6] - 2022-01-05
+### Added
+- ColumnList macro expansion now add columns for relation metadata where appropriate.
+- Support for lateral joins (using outer apply in SQL Server).
+
+### Fixed
+- Metadata expansion into columns in ColumnList macro expansion considers whether
+  query is grouped and is a modifying query.
+- `range` function (for building histogram of values similar to the `bin` macro) 
+  has been renamed to `binf` to not clash with the `range` keyword used in specifying
+  the window frame of window functions.
+
+### Improved
+- Attributes which are literal are normally optimised away (removed from the column-list
+  of the query and calculated statically). The optimisation was not carried out 
+  in subqueries as the attributes could be referenced in an outer query. An 
+  exception to the subqueries rule has been added which is when the query is the 
+  last query in a `With` query; in that case, attributes loading can be optimised 
+  as the columns will not be referred to outside the `With` query.
+- Simplified the `Result` classes by removing redundant fields, replacing generic
+  pairs and triples with new record types and removing unused methods.
+- Document `Result` classes.
+- Optimize loading of literal attribute values set as columns (as columns named
+  as '<col>/<attribute>').
 
 ## [0.6.5] - 2022-01-04
 ### Added
@@ -103,15 +137,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   they appear in insert row values and as part of the column list of another query.
 - Random naming of columns when a name is not provided or to disambiguate duplicate
   columns has been replaced with more friendly names in ColumnList expansion which
-  disambiguate column names using a index in the context of the other columns in
+  disambiguate column names using an index in the context of the other columns in
   the list.
-- Automatic BaseRelation columns uses friendly names instead of random ones. 
+- Automatic BaseRelation columns use friendly names instead of random ones. 
 
 ### Changed
 - QueryTranslation is now a Java record.
 - Columns are not longer automatically expanded in base relations; this decreases
   the number of synthetic columns with names containing '/' being added to the 
-  relations. The only synthetic columns added now are not uncomputed forms for
+  relations. The only synthetic columns added now are the uncomputed forms for
   derived columns (e.g. c=a+b result in c/e=$(a+b) being added to the column list).
 - Attributes access interface in types and in metadata have been normalised.
 - Table type inference no longer add synthetic columns.
@@ -125,10 +159,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.6.1] - 2021-12-19
 ### Added
-- ColumnRef expansion finds and include the proper qualifier (based on the relation 
+- ColumnRef expansion finds and includes the proper qualifier (based on the relation 
   that the referred column is coming from) resulting in a single method for handling
   this expansion and increased stability.
-- ColumnList expansion of * column has been improved.
+- ColumnList expansion of `*` column has been improved.
 
 ### Fixed
 - Parsing of default value expressions from SQL Server has been fixed to properly
@@ -162,7 +196,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - All tests passing (except for comparison difference due to different 
   dynamically-generated UUIDs).
 - Esql now raise an error when its value is of type ESQL. The value is a placeholder
-  for the value of the ESQL node in the AST. If it is also and ESQL, mapping 
+  for the value of the ESQL node in the AST. If it is also an ESQL, mapping 
   functions does not follow through it during processing. Thus, such values are 
   best stored as children of a tree node.
 

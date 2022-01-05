@@ -26,7 +26,7 @@ import static ma.vi.base.tuple.T2.of;
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public class Select extends QueryUpdate /* implements Macro */ {
+public class Select extends QueryUpdate {
   @SafeVarargs
   public Select(Context                     context,
                 Metadata                    metadata,

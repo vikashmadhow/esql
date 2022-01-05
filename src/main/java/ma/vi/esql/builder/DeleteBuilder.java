@@ -66,36 +66,36 @@ public class DeleteBuilder implements Builder<Delete> {
     return from(new CrossProductTableExpr(context, from, right));
   }
 
-  public DeleteBuilder join(String tableName, String alias, String onExpression) {
-    return join(new SingleTableExpr(context, tableName, alias), onExpression);
+  public DeleteBuilder join(String tableName, String alias, String onExpression, boolean lateral) {
+    return join(new SingleTableExpr(context, tableName, alias), onExpression, lateral);
   }
 
-  public DeleteBuilder join(TableExpr right, String onExpression) {
-    return from(new JoinTableExpr(context, null, from, right, parser.parseExpression(onExpression)));
+  public DeleteBuilder join(TableExpr right, String onExpression, boolean lateral) {
+    return from(new JoinTableExpr(context, null, lateral, from, right, parser.parseExpression(onExpression)));
   }
 
-  public DeleteBuilder leftJoin(String tableName, String alias, String onExpression) {
-    return leftJoin(new SingleTableExpr(context, tableName, alias), onExpression);
+  public DeleteBuilder leftJoin(String tableName, String alias, String onExpression, boolean lateral) {
+    return leftJoin(new SingleTableExpr(context, tableName, alias), onExpression, lateral);
   }
 
-  public DeleteBuilder leftJoin(TableExpr right, String onExpression) {
-    return from(new JoinTableExpr(context, "left", from, right, parser.parseExpression(onExpression)));
+  public DeleteBuilder leftJoin(TableExpr right, String onExpression, boolean lateral) {
+    return from(new JoinTableExpr(context, "left", lateral, from, right, parser.parseExpression(onExpression)));
   }
 
-  public DeleteBuilder rightJoin(String tableName, String alias, String onExpression) {
-    return rightJoin(new SingleTableExpr(context, tableName, alias), onExpression);
+  public DeleteBuilder rightJoin(String tableName, String alias, String onExpression, boolean lateral) {
+    return rightJoin(new SingleTableExpr(context, tableName, alias), onExpression, lateral);
   }
 
-  public DeleteBuilder rightJoin(TableExpr right, String onExpression) {
-    return from(new JoinTableExpr(context, "right", from, right, parser.parseExpression(onExpression)));
+  public DeleteBuilder rightJoin(TableExpr right, String onExpression, boolean lateral) {
+    return from(new JoinTableExpr(context, "right", lateral, from, right, parser.parseExpression(onExpression)));
   }
 
-  public DeleteBuilder fullJoin(String tableName, String alias, String onExpression) {
-    return fullJoin(new SingleTableExpr(context, tableName, alias), onExpression);
+  public DeleteBuilder fullJoin(String tableName, String alias, String onExpression, boolean lateral) {
+    return fullJoin(new SingleTableExpr(context, tableName, alias), onExpression, lateral);
   }
 
-  public DeleteBuilder fullJoin(TableExpr right, String onExpression) {
-    return from(new JoinTableExpr(context, "full", from, right, parser.parseExpression(onExpression)));
+  public DeleteBuilder fullJoin(TableExpr right, String onExpression, boolean lateral) {
+    return from(new JoinTableExpr(context, "full", lateral, from, right, parser.parseExpression(onExpression)));
   }
 
   public DeleteBuilder where(String expression) {

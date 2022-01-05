@@ -66,7 +66,6 @@ public class MariaDbTranslator extends AbstractTranslator {
     }
     return new QueryTranslation(st.toString(),
                                 q.columns(),
-                                q.columnToIndex(),
                                 q.resultAttributeIndices(),
                                 q.resultAttributes());
   }
@@ -77,7 +76,7 @@ public class MariaDbTranslator extends AbstractTranslator {
 
     TableExpr from = update.tables();
     st.append(from.translate(target(), path.add(from), parameters));
-    Update.addSet(st, update.set(), target(), false, path);
+    Util.addSet(st, update.set(), target(), false, path);
 
     if (update.where() != null) {
       st.append(" where ").append(update.where().translate(target(), path.add(update.where()), parameters));
@@ -85,8 +84,7 @@ public class MariaDbTranslator extends AbstractTranslator {
     if (update.columns() != null) {
       throw new TranslationException(target() + " does not support return values in updates");
     }
-    return new QueryTranslation(st.toString(), emptyList(), emptyMap(),
-                                   emptyList(), emptyMap());
+    return new QueryTranslation(st.toString(), emptyList(), emptyList(), emptyMap());
   }
 
   @Override
@@ -122,11 +120,12 @@ public class MariaDbTranslator extends AbstractTranslator {
       q = delete.constructResult(st, target(), path, null, parameters);
     }
     if (q == null) {
-      return new QueryTranslation(st.toString(), emptyList(), emptyMap(),
-                                  emptyList(), emptyMap());
+      return new QueryTranslation(st.toString(), emptyList(), emptyList(), emptyMap());
     } else {
-      return new QueryTranslation(st.toString(), q.columns(), q.columnToIndex(),
-                                  q.resultAttributeIndices(), q.resultAttributes());
+      return new QueryTranslation(st.toString(),
+                                  q.columns(),
+                                  q.resultAttributeIndices(),
+                                  q.resultAttributes());
     }
   }
 
@@ -167,10 +166,12 @@ public class MariaDbTranslator extends AbstractTranslator {
     }
 
     if (q == null) {
-      return new QueryTranslation(st.toString(), emptyList(), emptyMap(), emptyList(), emptyMap());
+      return new QueryTranslation(st.toString(), emptyList(), emptyList(), emptyMap());
     } else {
-      return new QueryTranslation(st.toString(), q.columns(), q.columnToIndex(),
-                                  q.resultAttributeIndices(), q.resultAttributes());
+      return new QueryTranslation(st.toString(),
+                                  q.columns(),
+                                  q.resultAttributeIndices(),
+                                  q.resultAttributes());
     }
   }
 }

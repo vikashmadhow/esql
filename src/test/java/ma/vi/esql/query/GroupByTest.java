@@ -13,6 +13,7 @@ import org.junit.jupiter.api.TestFactory;
 import java.util.UUID;
 import java.util.stream.Stream;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.DynamicTest.dynamicTest;
 
 public class GroupByTest extends DataTest {
@@ -41,7 +42,20 @@ public class GroupByTest extends DataTest {
                        + "  from t:a.b.T join s:S on t.s_id=s._id "
                        + " group by 1, t.b, 3"
                        + " order by t.a desc");
-                     printResult(rs, 10);
+
+//                     printResult(rs, 10);
+                     rs.next(); assertEquals(6, (Integer)rs.value("a"));
+                                assertEquals(2, (Integer)rs.value("b"));
+                                assertEquals(12, (Integer)rs.value(3));
+                                assertEquals(3, (Long)rs.value(4));
+                     rs.next(); assertEquals(3, (Integer)rs.value("a"));
+                                assertEquals(4, (Integer)rs.value("b"));
+                                assertEquals(12, (Integer)rs.value(3));
+                                assertEquals(13, (Long)rs.value(4));
+                     rs.next(); assertEquals(1, (Integer)rs.value("a"));
+                                assertEquals(2, (Integer)rs.value("b"));
+                                assertEquals(2, (Integer)rs.value(3));
+                                assertEquals(3, (Long)rs.value(4));
 
                      rs = con.exec(
                          "select t.a * t.b, " +
@@ -49,14 +63,12 @@ public class GroupByTest extends DataTest {
                        + "  from t:a.b.T join s:S on t.s_id=s._id "
                        + " group by 1 "
                        + " order by 1 desc");
-                     printResult(rs, 10);
 
-//                     rs.next(); assertEquals(1, (Integer)rs.value("a"));
-//                                assertEquals(2, (Integer)rs.value("b"));
-//                                assertEquals(3, (Integer)rs.value("c"));
-//                     rs.next(); assertEquals(3, (Integer)rs.value("a"));
-//                                assertEquals(4, (Integer)rs.value("b"));
-//                                assertEquals(13, (Integer)rs.value("c"));
+//                     printResult(rs, 10);
+                     rs.next(); assertEquals(12, (Integer)rs.value(1));
+                                assertEquals(16, (Long)rs.value(2));
+                     rs.next(); assertEquals(2, (Integer)rs.value(1));
+                                assertEquals(3, (Long)rs.value(2));
                    }
                  }));
   }

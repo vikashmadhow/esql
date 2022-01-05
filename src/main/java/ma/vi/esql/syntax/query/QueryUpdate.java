@@ -5,13 +5,11 @@
 package ma.vi.esql.syntax.query;
 
 import ma.vi.base.tuple.T2;
-import ma.vi.base.tuple.T3;
 import ma.vi.esql.database.Database;
 import ma.vi.esql.exec.ColumnMapping;
 import ma.vi.esql.exec.Result;
 import ma.vi.esql.semantic.type.Relation;
 import ma.vi.esql.semantic.type.Selection;
-import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.syntax.*;
 import ma.vi.esql.syntax.expression.*;
 import ma.vi.esql.syntax.expression.literal.Literal;
@@ -27,6 +25,7 @@ import static java.lang.System.Logger.Level.ERROR;
 import static java.sql.ResultSet.CONCUR_READ_ONLY;
 import static java.sql.ResultSet.TYPE_SCROLL_INSENSITIVE;
 import static ma.vi.base.string.Strings.random;
+import static ma.vi.esql.translator.SqlServerTranslator.ADD_IIF;
 
 /**
  * The parent of all query (select) and update (update, insert and delete)
@@ -66,13 +65,6 @@ public abstract class QueryUpdate extends MetadataContainer<QueryTranslation> im
   @Override
   public Selection type(EsqlPath path) {
     if (type == null) {
-      /*
-       * Type can be requested before macros in the ESQL has been expanded. In
-       * this state the column names may be null. This pre-typing phase is required
-       * to resolve columns in dynamically generated tables. When we detect that
-       * we are in this phase, we compute the best type that we can but we do not
-       * cache it as our best type at this point can still miss important information.
-       */
       Selection sel = new Selection(new ArrayList<>(columns()), null, tables(), null);
       if (path.hasAncestor(Macro.OngoingMacroExpansion.class)) {
         return sel;
@@ -91,13 +83,9 @@ public abstract class QueryUpdate extends MetadataContainer<QueryTranslation> im
    */
   public static QueryUpdate ancestor(EsqlPath path) {
     Esql<?, ?> closest = path.closestAncestor(QueryUpdate.class, SelectExpression.class);
-    if (closest instanceof QueryUpdate q) {
-      return q;
-    } else if (closest instanceof SelectExpression s) {
-      return s.select();
-    } else {
-      return null;
-    }
+    return closest instanceof QueryUpdate q      ? q
+         : closest instanceof SelectExpression s ? s.select()
+         : null;
   }
 
   /**
@@ -163,53 +151,39 @@ public abstract class QueryUpdate extends MetadataContainer<QueryTranslation> im
     boolean optimiseAttributesLoading = (Boolean)parameters.getOrDefault("optimiseAttributesLoading", true);
 
     /*
-     * Do not expand column list of selects inside expressions as the whole
-     * expression is a single-value and expanding the column list will break the
-     * query or not be of any use. The same applies to when select is used as an
-     * insert value, or part of a column list.
-     */
-    boolean selectExpression = path.hasAncestor(SelectExpression.class, InsertRow.class, Column.class);
-
-    /*
      * If this query is part of another query, it is a subquery and its attributes
      * must not be optimised away (removed from the query and calculated statically)
-     * as they could be referenced in the outer query.
+     * as they could be referenced in the outer query. The single exception is
+     * when the query is the last query in a `With` query; in that case, attributes
+     * loading can be optimised as the columns will not be referred outside of
+     * the `With` query.
      */
-    T2<QueryUpdate, EsqlPath> ancestorAndPath = path.ancestorAndPath(QueryUpdate.class);
-    EsqlPath pathAtAncestor = ancestorAndPath.b;
-    if (pathAtAncestor != null
-     && pathAtAncestor.tail() != null
-     && pathAtAncestor.tail().ancestor(QueryUpdate.class) != null) {
-      optimiseAttributesLoading = false;
+    if (path.tail() != null) {
+      QueryUpdate qu = path.tail().ancestor(QueryUpdate.class);
+      if (qu != null && !(qu instanceof With w && w.query() == this)) {
+        optimiseAttributesLoading = false;
+      }
     }
 
-    Map<String, Integer> columnToIndex = new HashMap<>();
     Map<String, ColumnMapping> columnMappings = new LinkedHashMap<>();
-    Map<String, Object> resultAttributes = new HashMap<>();
-    List<T3<Integer, String, Type>> resultAttributeIndices = new ArrayList<>();
+    Map<String, Object> resultAttributes = new LinkedHashMap<>();
+    List<AttributeIndex> resultAttributeIndices = new ArrayList<>();
     int itemIndex = 0;
     Selection selection = type(path.add(this));
 
     /*
      * Output columns.
      */
-    int columnIndex = 0;
     for (T2<Relation, Column> c: selection.columns().stream()
                                           .filter(c -> !c.b.name().contains("/"))
                                           .toList()) {
       itemIndex++;
-      columnIndex++;
       if (itemIndex > 1) {
         query.append(", ");
       }
-      Column column = c.b.copy();
-      Expression<?, String> expression = column.expression();
-      if (qualifier != null) {
-        ColumnRef.qualify(expression, qualifier);
-      }
-      query.append(column.translate(target, path.add(column), ADDIIF));
+      Column column = c.b;
+      query.append(column.translate(target, path.add(column), ADD_IIF));
       String colName = column.name();
-      columnToIndex.put(colName, columnIndex);
       columnMappings.put(colName, new ColumnMapping(itemIndex,
                                                     column,
                                                     column.type(path.add(column)),
@@ -218,9 +192,17 @@ public abstract class QueryUpdate extends MetadataContainer<QueryTranslation> im
     }
 
     /*
-     * Output result metadata
+     * Do not expand column list of selects inside expressions as the whole
+     * expression is a single-value and expanding the column list will break the
+     * query or not be of any use. The same applies to when select is used as an
+     * insert value, or part of a column list.
      */
-    if (!selectExpression) {
+    if (!path.hasAncestor(SelectExpression.class,
+                          InsertRow       .class,
+                          Column          .class)) {
+      /*
+       * Output result metadata
+       */
       for (T2<Relation, Column> column: selection.columns().stream()
                                                  .filter(c -> c.b.name().startsWith("/")).toList()) {
         String colName = column.b.name();
@@ -235,16 +217,14 @@ public abstract class QueryUpdate extends MetadataContainer<QueryTranslation> im
           if (itemIndex > 1) {
             query.append(", ");
           }
-          appendExpression(query, attributeValue, target, path, qualifier, colName);
-          resultAttributeIndices.add(T3.of(itemIndex, attrName, attributeValue.type(path.add(attributeValue))));
+          appendExpression(query, attributeValue, target, path, colName);
+          resultAttributeIndices.add(new AttributeIndex(itemIndex, attrName, attributeValue.type(path.add(attributeValue))));
         }
       }
-    }
 
-    /*
-     * Output columns metadata.
-     */
-    if (!selectExpression) {
+      /*
+       * Output columns metadata.
+       */
       for (T2<Relation, Column> col: selection.columns().stream()
                                               .filter(c -> c.b.name().charAt(0) != '/' && c.b.name().indexOf('/', 1) != -1)
                                               .toList()) {
@@ -265,14 +245,13 @@ public abstract class QueryUpdate extends MetadataContainer<QueryTranslation> im
         } else if (addAttributes) {
           itemIndex += 1;
           query.append(", ");
-          appendExpression(query, attributeValue, target, path, qualifier, alias);
-          mapping.attributeIndices().add(T3.of(itemIndex, attrName, attributeValue.type(path.add(attributeValue))));
+          appendExpression(query, attributeValue, target, path, alias);
+          mapping.attributeIndices().add(new AttributeIndex(itemIndex, attrName, attributeValue.type(path.add(attributeValue))));
         }
       }
     }
     return new QueryTranslation(query.toString(),
                                 new ArrayList<>(columnMappings.values()),
-                                columnToIndex,
                                 resultAttributeIndices,
                                 resultAttributes);
   }
@@ -284,12 +263,8 @@ public abstract class QueryUpdate extends MetadataContainer<QueryTranslation> im
                                   Expression<?, String> expression,
                                   Target target,
                                   EsqlPath path,
-                                  String qualifier,
                                   String alias) {
-    if (qualifier != null) {
-      ColumnRef.qualify(expression, qualifier);
-    }
-    query.append(expression.translate(target, path.add(expression), ADDIIF));
+    query.append(expression.translate(target, path.add(expression), ADD_IIF));
     if (alias != null) {
       query.append(" \"").append(alias).append('"');
     }
@@ -417,18 +392,14 @@ public abstract class QueryUpdate extends MetadataContainer<QueryTranslation> im
       if (!selection.columns().isEmpty()) {
         ResultSet rs = con.createStatement(TYPE_SCROLL_INSENSITIVE, CONCUR_READ_ONLY)
                           .executeQuery(translation.statement());
-        return new Result(db.structure(), rs,
-                          selection,
+        return new Result(db, rs,
                           translation.columns(),
-                          translation.columnToIndex(),
                           translation.resultAttributeIndices(),
                           translation.resultAttributes());
       } else {
         con.createStatement().executeUpdate(translation.statement());
-        return new Result(db.structure(), null,
-                          selection,
+        return new Result(db, null,
                           translation.columns(),
-                          translation.columnToIndex(),
                           translation.resultAttributeIndices(),
                           translation.resultAttributes());
       }
@@ -708,6 +679,4 @@ public abstract class QueryUpdate extends MetadataContainer<QueryTranslation> im
   private volatile Selection type;
 
   private static final System.Logger log = System.getLogger(QueryUpdate.class.getName());
-
-  private static final Map<String, Object> ADDIIF = new HashMap<>(Map.of("addIif", true));
 }

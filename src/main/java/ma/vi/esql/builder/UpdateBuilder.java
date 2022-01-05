@@ -76,36 +76,36 @@ public class UpdateBuilder implements Builder<Update> {
     return from(new CrossProductTableExpr(context, from, right));
   }
 
-  public UpdateBuilder join(String tableName, String alias, String onExpression) {
-    return join(new SingleTableExpr(context, tableName, alias), onExpression);
+  public UpdateBuilder join(String tableName, String alias, String onExpression, boolean lateral) {
+    return join(new SingleTableExpr(context, tableName, alias), onExpression, lateral);
   }
 
-  public UpdateBuilder join(TableExpr right, String onExpression) {
-    return from(new JoinTableExpr(context, null, from, right, parser.parseExpression(onExpression)));
+  public UpdateBuilder join(TableExpr right, String onExpression, boolean lateral) {
+    return from(new JoinTableExpr(context, null, lateral, from, right, parser.parseExpression(onExpression)));
   }
 
-  public UpdateBuilder leftJoin(String tableName, String alias, String onExpression) {
-    return leftJoin(new SingleTableExpr(context, tableName, alias), onExpression);
+  public UpdateBuilder leftJoin(String tableName, String alias, String onExpression, boolean lateral) {
+    return leftJoin(new SingleTableExpr(context, tableName, alias), onExpression, lateral);
   }
 
-  public UpdateBuilder leftJoin(TableExpr right, String onExpression) {
-    return from(new JoinTableExpr(context, "left", from, right, parser.parseExpression(onExpression)));
+  public UpdateBuilder leftJoin(TableExpr right, String onExpression, boolean lateral) {
+    return from(new JoinTableExpr(context, "left", lateral, from, right, parser.parseExpression(onExpression)));
   }
 
-  public UpdateBuilder rightJoin(String tableName, String alias, String onExpression) {
-    return rightJoin(new SingleTableExpr(context, tableName, alias), onExpression);
+  public UpdateBuilder rightJoin(String tableName, String alias, String onExpression, boolean lateral) {
+    return rightJoin(new SingleTableExpr(context, tableName, alias), onExpression, lateral);
   }
 
-  public UpdateBuilder rightJoin(TableExpr right, String onExpression) {
-    return from(new JoinTableExpr(context, "right", from, right, parser.parseExpression(onExpression)));
+  public UpdateBuilder rightJoin(TableExpr right, String onExpression, boolean lateral) {
+    return from(new JoinTableExpr(context, "right", lateral, from, right, parser.parseExpression(onExpression)));
   }
 
-  public UpdateBuilder fullJoin(String tableName, String alias, String onExpression) {
-    return fullJoin(new SingleTableExpr(context, tableName, alias), onExpression);
+  public UpdateBuilder fullJoin(String tableName, String alias, String onExpression, boolean lateral) {
+    return fullJoin(new SingleTableExpr(context, tableName, alias), onExpression, lateral);
   }
 
-  public UpdateBuilder fullJoin(TableExpr right, String onExpression) {
-    return from(new JoinTableExpr(context, "full", from, right, parser.parseExpression(onExpression)));
+  public UpdateBuilder fullJoin(TableExpr right, String onExpression, boolean lateral) {
+    return from(new JoinTableExpr(context, "full", lateral, from, right, parser.parseExpression(onExpression)));
   }
 
   public UpdateBuilder where(String expression) {

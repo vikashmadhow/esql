@@ -103,36 +103,36 @@ public class SelectBuilder implements Builder<Select> {
     return from(new CrossProductTableExpr(context, from, right));
   }
 
-  public SelectBuilder join(String tableName, String alias, String onExpression) {
-    return join(new SingleTableExpr(context, tableName, alias), onExpression);
+  public SelectBuilder join(String tableName, String alias, String onExpression, boolean lateral) {
+    return join(new SingleTableExpr(context, tableName, alias), onExpression, lateral);
   }
 
-  public SelectBuilder join(TableExpr right, String onExpression) {
-    return from(new JoinTableExpr(context, null, from, right, parser.parseExpression(onExpression)));
+  public SelectBuilder join(TableExpr right, String onExpression, boolean lateral) {
+    return from(new JoinTableExpr(context, null, lateral, from, right, parser.parseExpression(onExpression)));
   }
 
-  public SelectBuilder leftJoin(String tableName, String alias, String onExpression) {
-    return leftJoin(new SingleTableExpr(context, tableName, alias), onExpression);
+  public SelectBuilder leftJoin(String tableName, String alias, String onExpression, boolean lateral) {
+    return leftJoin(new SingleTableExpr(context, tableName, alias), onExpression, lateral);
   }
 
-  public SelectBuilder leftJoin(TableExpr right, String onExpression) {
-    return from(new JoinTableExpr(context, "left", from, right, parser.parseExpression(onExpression)));
+  public SelectBuilder leftJoin(TableExpr right, String onExpression, boolean lateral) {
+    return from(new JoinTableExpr(context, "left", lateral, from, right, parser.parseExpression(onExpression)));
   }
 
-  public SelectBuilder rightJoin(String tableName, String alias, String onExpression) {
-    return rightJoin(new SingleTableExpr(context, tableName, alias), onExpression);
+  public SelectBuilder rightJoin(String tableName, String alias, String onExpression, boolean lateral) {
+    return rightJoin(new SingleTableExpr(context, tableName, alias), onExpression, lateral);
   }
 
-  public SelectBuilder rightJoin(TableExpr right, String onExpression) {
-    return from(new JoinTableExpr(context, "right", from, right, parser.parseExpression(onExpression)));
+  public SelectBuilder rightJoin(TableExpr right, String onExpression, boolean lateral) {
+    return from(new JoinTableExpr(context, "right", lateral, from, right, parser.parseExpression(onExpression)));
   }
 
-  public SelectBuilder fullJoin(String tableName, String alias, String onExpression) {
-    return fullJoin(new SingleTableExpr(context, tableName, alias), onExpression);
+  public SelectBuilder fullJoin(String tableName, String alias, String onExpression, boolean lateral) {
+    return fullJoin(new SingleTableExpr(context, tableName, alias), onExpression, lateral);
   }
 
-  public SelectBuilder fullJoin(TableExpr right, String onExpression) {
-    return from(new JoinTableExpr(context, "full", from, right, parser.parseExpression(onExpression)));
+  public SelectBuilder fullJoin(TableExpr right, String onExpression, boolean lateral) {
+    return from(new JoinTableExpr(context, "full", lateral, from, right, parser.parseExpression(onExpression)));
   }
 
   public SelectBuilder where(String expression) {

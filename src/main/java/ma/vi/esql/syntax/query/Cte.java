@@ -86,7 +86,7 @@ public class Cte extends QueryUpdate {
   private static <Q extends QueryUpdate> Q renameColumns(Q query, List<String> fields) {
     if (fields.size() != query.columns().size()) {
       throw new SyntaxException("Number of fields for CTE is " + fields.size()
-                               + " while number of columns in the query for the CTE is " + query.columns().size());
+                              + " while number of columns in the query for the CTE is " + query.columns().size());
     }
     List<Column> cols = query.columns();
     List<Column> columns = new ArrayList<>();
@@ -141,7 +141,7 @@ public class Cte extends QueryUpdate {
   @Override
   public QueryTranslation trans(Target target, EsqlPath path, Map<String, Object> parameters) {
     /*
-     * translate query and surround by CTE fields definition
+     * Translate query and surround by CTE fields definition.
      */
     QueryTranslation q = query().translate(target, path, parameters);
     String s = '"' + name() + '"'
@@ -153,7 +153,6 @@ public class Cte extends QueryUpdate {
              + " as (" + q.statement() + ')';
     return new QueryTranslation(s,
                                 q.columns(),
-                                q.columnToIndex(),
                                 q.resultAttributeIndices(),
                                 q.resultAttributes());
   }

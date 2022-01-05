@@ -49,7 +49,7 @@ public class InsertTest extends DataTest {
                      }
                      Result rs = con.exec("select count(*) from S");
                      rs.next();
-                     assertEquals(((Number)rs.get(1).value).intValue(), 20);
+                     assertEquals(((Number)rs.get(1).value()).intValue(), 20);
                    }
                  }));
   }
@@ -71,23 +71,23 @@ public class InsertTest extends DataTest {
                             + "(u'" + id3 + "', null)");
                      Result rs = con.exec("select e from S where _id=u'" + id1 + "'");
                      assertTrue(rs.next());
-                     assertEquals(rs.get("e").value, true);
+                     assertEquals(rs.get("e").value(), true);
 
                      rs = con.exec("select e from S where _id=u'" + id2 + "'");
                      assertTrue(rs.next());
-                     assertEquals(rs.get("e").value, false);
+                     assertEquals(rs.get("e").value(), false);
 
                      rs = con.exec("select _id, e from S where e");
                      assertTrue(rs.next());
-                     assertEquals(rs.get("_id").value, id1);
+                     assertEquals(rs.get("_id").value(), id1);
 
                      rs = con.exec("select _id, coalesce(e, false) from S where coalesce(e, false)=true");
                      assertTrue(rs.next());
-                     assertEquals(rs.get("_id").value, id1);
+                     assertEquals(rs.get("_id").value(), id1);
 
                      rs = con.exec("select not e from S where _id=u'" + id2 + "' and not e");
                      assertTrue(rs.next());
-                     assertEquals(rs.get(1).value, true);
+                     assertEquals(rs.get(1).value(), true);
                    }
                  }));
   }
@@ -142,10 +142,10 @@ public class InsertTest extends DataTest {
 
                      Result rs = con.exec("select _id, a, b, e, h, j from S order by a");
 
-                     rs.next(); assertEquals(rs.get("a").value, 1);
-                     rs.next(); assertEquals(rs.get("a").value, 6);
-                     rs.next(); assertEquals(rs.get("a").value, 7);
-                     rs.next(); assertEquals(rs.get("a").value, 7);
+                     rs.next(); assertEquals(rs.get("a").value(), 1);
+                     rs.next(); assertEquals(rs.get("a").value(), 6);
+                     rs.next(); assertEquals(rs.get("a").value(), 7);
+                     rs.next(); assertEquals(rs.get("a").value(), 7);
                    }
                  }));
   }

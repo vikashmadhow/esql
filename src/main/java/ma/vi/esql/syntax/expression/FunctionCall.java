@@ -47,6 +47,12 @@ public class FunctionCall extends Expression<String, String> implements Macro {
           of("frame",      frame));
   }
 
+  public FunctionCall(Context context,
+                      String  functionName,
+                      List<Expression<?, ?>> arguments) {
+    this(context, functionName, false, null, arguments, false, null, null, null);
+  }
+
   public FunctionCall(FunctionCall other) {
     super(other);
   }

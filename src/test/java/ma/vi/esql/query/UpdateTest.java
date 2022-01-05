@@ -138,18 +138,18 @@ public class UpdateTest extends DataTest {
                                   + "select newid(), a, 2, u'" + id2 + "' from S ");
 
                      Result rs = con.exec("select _id, a, b, s_id from a.b.T order by b, a");
-                     rs.next(); assertEquals(rs.get("a").value, 1);
-                                assertEquals(rs.get("b").value, 1);
-                                assertEquals(rs.get("s_id").value, id1);
-                     rs.next(); assertEquals(rs.get("a").value, 6);
-                                assertEquals(rs.get("b").value, 1);
-                                assertEquals(rs.get("s_id").value , id1);
-                     rs.next(); assertEquals(rs.get("a").value, 1);
-                                assertEquals(rs.get("b").value, 2);
-                                assertEquals(rs.get("s_id").value, id2);
-                     rs.next(); assertEquals(rs.get("a").value, 6);
-                                assertEquals(rs.get("b").value, 2);
-                                assertEquals(rs.get("s_id").value , id2);
+                     rs.next(); assertEquals(rs.get("a").value(), 1);
+                                assertEquals(rs.get("b").value(), 1);
+                                assertEquals(rs.get("s_id").value(), id1);
+                     rs.next(); assertEquals(rs.get("a").value(), 6);
+                                assertEquals(rs.get("b").value(), 1);
+                                assertEquals(rs.get("s_id").value(), id1);
+                     rs.next(); assertEquals(rs.get("a").value(), 1);
+                                assertEquals(rs.get("b").value(), 2);
+                                assertEquals(rs.get("s_id").value(), id2);
+                     rs.next(); assertEquals(rs.get("a").value(), 6);
+                                assertEquals(rs.get("b").value(), 2);
+                                assertEquals(rs.get("s_id").value(), id2);
 
                      if (db.target() == Translatable.Target.HSQLDB) {
                        assertThrows(TranslationException.class, () ->
@@ -166,7 +166,7 @@ public class UpdateTest extends DataTest {
                                     " where t.a=6 and t.b=2");
                        rs = con.exec("select sum(a) from S");
                        rs.next();
-                       assertEquals(9L, ((Number)rs.get(1).value).longValue());
+                       assertEquals(9L, ((Number)rs.get(1).value()).longValue());
                      }
                    }
                  }));

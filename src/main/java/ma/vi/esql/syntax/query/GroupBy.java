@@ -63,7 +63,7 @@ public class GroupBy extends Esql<String, String> {
     Type type = groupType();
     return " group by "
          + (type == Type.Rollup ? "rollup(" :
-            type == Type.Cube   ? "cube("   : "")
+            type == Type.Cube   ?   "cube(" : "")
 
          + groupBy().stream()
                     .map(a -> a.translate(target, path.add(a), parameters))

@@ -35,6 +35,14 @@ public interface Macro {
    * A tagging class set in the path when macro expansion is ongoing. Downstream
    * processing can detect the presence or absence of an instance of this class
    * in the current exploring path and modify their behaviour consequently.
+   *
+   * One place where this is used is type inference during macro expansion. Types
+   * can be requested before macros in the ESQL has been expanded. In that state
+   * column names might be null and context information might be incomplete. This
+   * pre-typing phase is required to resolve columns in dynamically generated
+   * tables, for example. In this state, a best-guess type can be computed by that
+   * type should not be cached; instead it should be recomputed when the type is
+   * requested next after macro expansion.
    */
   final class OngoingMacroExpansion extends Esql<Void, Void> {
     private OngoingMacroExpansion() {

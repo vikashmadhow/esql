@@ -4,9 +4,7 @@
 
 package ma.vi.esql.syntax.query;
 
-import ma.vi.base.tuple.T3;
 import ma.vi.esql.exec.ColumnMapping;
-import ma.vi.esql.semantic.type.Type;
 
 import java.util.List;
 import java.util.Map;
@@ -19,11 +17,10 @@ import java.util.Map;
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public record QueryTranslation(String                          statement,
-                               List<ColumnMapping>             columns,
-                               Map<String, Integer>            columnToIndex,
-                               List<T3<Integer, String, Type>> resultAttributeIndices,
-                               Map<String, Object>             resultAttributes) {
+public record QueryTranslation(String               statement,
+                               List<ColumnMapping>  columns,
+                               List<AttributeIndex> resultAttributeIndices,
+                               Map<String, Object>  resultAttributes) {
   @Override
   public String toString() {
     return statement;

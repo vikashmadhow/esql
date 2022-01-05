@@ -40,8 +40,7 @@ public class DynamicTableExpr extends AbstractAliasTableExpr {
                           Metadata metadata,
                           List<NameWithMetadata> columns,
                           List<InsertRow> rows) {
-    super(context,
-          "DynamicTable",
+    super(context, "DynamicTable",
           alias,
           T2.of("metadata", metadata),
           T2.of("columns", new Esql<>(context, "columns", columns)),
@@ -87,9 +86,9 @@ public class DynamicTableExpr extends AbstractAliasTableExpr {
 
       /*
        * Infer column types of the rows by looking at up to 100 rows probabilistically.
-       * Using a random sampling of rows ensures that we are not looking at any specific
-       * cluster (such as the top 100) and inferring only the type characteristics of
-       * that cluster.
+       * Using a random sampling of rows ensures that we are not looking at any
+       * specific cluster (such as the top 100) and inferring only the type
+       * characteristics of that cluster.
        */
       Random random = new Random();
       List<InsertRow> rows = rows();

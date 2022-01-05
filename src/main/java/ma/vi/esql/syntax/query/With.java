@@ -64,12 +64,12 @@ public class With extends QueryUpdate {
 
   @Override
   public QueryTranslation trans(Target target, EsqlPath path, Map<String, Object> parameters) {
-    /*
-     * Ensure all CTE types are added to context-specific (local) type registry.
-     */
-    for (Cte cte: ctes()) {
-      cte.type(path.add(cte));
-    }
+//    /*
+//     * Ensure all CTE types are added to context-specific (local) type registry.
+//     */
+//    for (Cte cte: ctes()) {
+//      cte.type(path.add(cte));
+//    }
 
     StringBuilder st = new StringBuilder("with ");
     if (recursive() && (target == POSTGRESQL || target == HSQLDB)) {
@@ -85,8 +85,10 @@ public class With extends QueryUpdate {
 
     QueryTranslation q = query().translate(target, path.add(query()), parameters);
     st.append(' ').append(q.statement());
-    return new QueryTranslation(st.toString(), q.columns(), q.columnToIndex(),
-                                q.resultAttributeIndices(), q.resultAttributes());
+    return new QueryTranslation(st.toString(),
+                                q.columns(),
+                                q.resultAttributeIndices(),
+                                q.resultAttributes());
   }
 
   @Override

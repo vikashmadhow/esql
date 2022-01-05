@@ -6,7 +6,7 @@ package ma.vi.esql.database;
 
 import ma.vi.esql.function.Function;
 import ma.vi.esql.function.FunctionParameter;
-import ma.vi.esql.function.Range;
+import ma.vi.esql.function.BinFunction;
 import ma.vi.esql.function.date.*;
 import ma.vi.esql.function.string.*;
 import ma.vi.esql.semantic.type.BaseRelation;
@@ -410,7 +410,7 @@ public class Structure {
 
     // Range binning
     ///////////////////////////////////
-    function(new Range());
+    function(new BinFunction());
     function(new Bin());
   }
 

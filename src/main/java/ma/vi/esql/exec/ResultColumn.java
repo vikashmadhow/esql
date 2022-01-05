@@ -11,34 +11,18 @@ import java.util.Arrays;
 import java.util.Map;
 
 /**
+ * The value for a column along with the values of its metadata attributes read
+ * from the resultset of a query.
+ *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public class ResultColumn<T> {
-  public ResultColumn(T value, Column column, Map<String, Object> metadata) {
-    this.value = value;
-    this.column = column;
-    this.metadata = metadata;
-  }
-
+public record ResultColumn<T>(T value,
+                              Column column,
+                              Map<String, Object> metadata) {
   @Override
   public String toString() {
     return column.name() + '='
-        + (value == null ? "null" : value.getClass().isArray() ? Arrays.toString((Object[])value) : value)
-        + (metadata != null ? ' ' + Maps.toString(metadata) : "");
+         + (value == null ? "null" : value.getClass().isArray() ? Arrays.toString((Object[])value) : value)
+         + (metadata != null ? ' ' + Maps.toString(metadata) : "");
   }
-
-  /**
-   * The value of the field.
-   */
-  public T value;
-
-  /**
-   * Information on the field.
-   */
-  public final Column column;
-
-  /**
-   * Additional metadata attached to the field.
-   */
-  public final Map<String, Object> metadata;
 }

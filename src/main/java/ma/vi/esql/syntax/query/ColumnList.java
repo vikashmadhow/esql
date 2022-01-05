@@ -68,7 +68,15 @@ public class ColumnList extends Esql<String, String> implements Macro {
   public Esql<?, ?> expand(Esql<?, ?> esql, EsqlPath path) {
     QueryUpdate query = path.ancestor(QueryUpdate.class);
     TableExpr from = query.tables();
-    Relation fromType = null;
+    Relation fromType = from.type(path.add(from));
+
+    boolean expandColumns = !query.grouped() && !path.hasAncestor(SelectExpression.class);
+    if (expandColumns) {
+      Cte cte = path.ancestor(Cte.class);
+      if (cte != null && cte.fields() != null && !cte.fields().isEmpty()) {
+        expandColumns = false;
+      }
+    }
 
     boolean changed = false;
     int colIndex = 1;
@@ -81,9 +89,6 @@ public class ColumnList extends Esql<String, String> implements Macro {
       if (column instanceof StarColumn all) {
         changed = true;
         String qualifier = all.qualifier();
-        if (fromType == null) {
-          fromType = from.type(path.add(from));
-        }
         for (T2<Relation, Column> relCol: fromType.columns()) {
           /*
            * Ensure each column has a name, and it is unique in the column list.
@@ -184,19 +189,9 @@ public class ColumnList extends Esql<String, String> implements Macro {
         }
         resolvedColumns.put(column.name(), column);
 
-        boolean expandColumns = !path.hasAncestor(SelectExpression.class);
-        if (expandColumns) {
-          Cte cte = path.ancestor(Cte.class);
-          if (cte != null && cte.fields() != null && !cte.fields().isEmpty()) {
-            expandColumns = false;
-          }
-        }
         if (expandColumns) {
           ColumnRef ref = ColumnRef.from(column.expression());
           if (ref != null && !ref.name().contains("/")) {
-            if (fromType == null) {
-              fromType = from.type(path.add(from));
-            }
             for (T2<Relation, Column> relCol: fromType.columns(ref.name())) {
               Relation rel = relCol.a;
               if (Objects.equals(rel.alias(), ref.qualifier())) {
@@ -208,6 +203,23 @@ public class ColumnList extends Esql<String, String> implements Macro {
               }
             }
           }
+        }
+      }
+    }
+    if (expandColumns && !columns().isEmpty()) {
+      /*
+       * Add relation metadata if the column list is not empty (which would be
+       * the case in general for the returning clause of a modifying statement;
+       * in those cases adding the relation metadata would result in the modifying
+       * statement to returning data when that is clearly contrary to the intention
+       * of the statement).
+       */
+      for (T2<Relation, Column> relCol: fromType.columns().stream()
+                                                .filter(c -> c.b.name().startsWith("/")).toList()) {
+        Column col = relCol.b;
+        if (!existingColNames.contains(col.name())) {
+          changed = true;
+          resolvedColumns.put(col.name(), col);
         }
       }
     }

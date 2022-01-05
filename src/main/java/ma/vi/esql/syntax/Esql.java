@@ -491,12 +491,12 @@ public class Esql<V, R> implements Copy<Esql<V, R>>, Translatable<R> {
   }
 
   @Override
-  public R translate(Target target) {
+  public final R translate(Target target) {
     return translate(target, new EsqlPath(this), emptyMap());
   }
 
   @Override
-  public R translate(Target target, EsqlPath path, Map<String, Object> parameters) {
+  public final R translate(Target target, EsqlPath path, Map<String, Object> parameters) {
     return trans(target, path, parameters);
   }
 

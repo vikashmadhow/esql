@@ -75,7 +75,6 @@ public class PostgresqlTranslator extends AbstractTranslator {
     }
     return new QueryTranslation(st.toString(),
                                 q.columns(),
-                                q.columnToIndex(),
                                 q.resultAttributeIndices(),
                                 q.resultAttributes());
   }
@@ -86,7 +85,7 @@ public class PostgresqlTranslator extends AbstractTranslator {
     if (from instanceof SingleTableExpr) {
       StringBuilder st = new StringBuilder("update ");
       st.append(from.translate(target(), path.add(from), parameters));
-      Update.addSet(st, update.set(), target(), false, path);
+      Util.addSet(st, update.set(), target(), false, path);
       if (update.where() != null) {
         st.append(" where ").append(update.where().translate(target(), path.add(update.where()), parameters));
       }
@@ -96,11 +95,12 @@ public class PostgresqlTranslator extends AbstractTranslator {
         q = update.constructResult(st, target(), path, null, parameters);
       }
       if (q == null) {
-        return new QueryTranslation(st.toString(), emptyList(), emptyMap(),
-                                    emptyList(), emptyMap());
+        return new QueryTranslation(st.toString(), emptyList(), emptyList(), emptyMap());
       } else {
-        return new QueryTranslation(st.toString(), q.columns(), q.columnToIndex(),
-                                    q.resultAttributeIndices(), q.resultAttributes());
+        return new QueryTranslation(st.toString(),
+                                    q.columns(),
+                                    q.resultAttributeIndices(),
+                                    q.resultAttributes());
       }
     } else if (from instanceof AbstractJoinTableExpr) {
       /*
@@ -190,11 +190,12 @@ public class PostgresqlTranslator extends AbstractTranslator {
         q = update.constructResult(st, target(), path, null, parameters);
       }
       if (q == null) {
-        return new QueryTranslation(st.toString(), emptyList(), emptyMap(),
-                                    emptyList(), emptyMap());
+        return new QueryTranslation(st.toString(), emptyList(), emptyList(), emptyMap());
       } else {
-        return new QueryTranslation(st.toString(), q.columns(), q.columnToIndex(),
-                                    q.resultAttributeIndices(), q.resultAttributes());
+        return new QueryTranslation(st.toString(),
+                                    q.columns(),
+                                    q.resultAttributeIndices(),
+                                    q.resultAttributes());
       }
     } else {
       throw new TranslationException("Wrong table type to update: " + from);
@@ -275,11 +276,12 @@ public class PostgresqlTranslator extends AbstractTranslator {
     if (delete.columns() != null && !delete.columns().isEmpty()) {
       st.append(" returning ");
       QueryTranslation q = delete.constructResult(st, target(), path, null, parameters);
-      return new QueryTranslation(st.toString(), q.columns(), q.columnToIndex(),
-                                  q.resultAttributeIndices(), q.resultAttributes());
+      return new QueryTranslation(st.toString(),
+                                  q.columns(),
+                                  q.resultAttributeIndices(),
+                                  q.resultAttributes());
     } else {
-      return new QueryTranslation(st.toString(), emptyList(), emptyMap(),
-                                  emptyList(), emptyMap());
+      return new QueryTranslation(st.toString(), emptyList(), emptyList(), emptyMap());
     }
   }
 
@@ -322,10 +324,12 @@ public class PostgresqlTranslator extends AbstractTranslator {
     }
 
     if (q == null) {
-      return new QueryTranslation(st.toString(), emptyList(), emptyMap(), emptyList(), emptyMap());
+      return new QueryTranslation(st.toString(), emptyList(), emptyList(), emptyMap());
     } else {
-      return new QueryTranslation(st.toString(), q.columns(), q.columnToIndex(),
-                                  q.resultAttributeIndices(), q.resultAttributes());
+      return new QueryTranslation(st.toString(),
+                                  q.columns(),
+                                  q.resultAttributeIndices(),
+                                  q.resultAttributes());
     }
   }
 }

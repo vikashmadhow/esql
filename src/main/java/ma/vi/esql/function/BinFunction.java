@@ -21,17 +21,17 @@ import static ma.vi.esql.syntax.Translatable.Target.SQLSERVER;
  * Given a value and a variadic array of intervals, returns the range
  * where the value fits. E.g.
  * <p>
- * range(15, 1,5,12,20,35,67) returns '12 to 19'
+ * binf(15, 1,5,12,20,35,67) returns '12 to 19'
  * <p>
  * whereas
  * <p>
- * range(29, 1,5,12,20,35,67) returns '20 to 35'
+ * binf(29, 1,5,12,20,35,67) returns '20 to 35'
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public class Range extends Function {
-  public Range() {
-    super("range", Types.TextType,
+public class BinFunction extends Function {
+  public BinFunction() {
+    super("binf", Types.TextType,
           Arrays.asList(new FunctionParameter("val", Types.TextType),
             new FunctionParameter("ranges", Types.TextType)));
   }
@@ -68,7 +68,7 @@ public class Range extends Function {
       return func.toString();
 
     } else {
-      StringBuilder func = new StringBuilder("range(" + value.translate(target, path.add(value)));
+      StringBuilder func = new StringBuilder("binf(" + value.translate(target, path.add(value)));
       while (i.hasNext()) {
         Expression<?, ?> v = i.next();
         func.append(", ").append(v.translate(target, path.add(v)));

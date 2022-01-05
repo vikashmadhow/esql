@@ -335,7 +335,8 @@ tableExpr
     | alias ':' '(' select ')'                                   #SelectTableExpr
     | alias metadata? dynamicColumns ':' '(' rows ')'            #DynamicTableExpr
     | left=tableExpr 'times' right=tableExpr                     #CrossProductTableExpr
-    | left=tableExpr JoinType? 'join' right=tableExpr 'on' expr  #JoinTableExpr
+    | left=tableExpr JoinType? 'join' lateral?
+      right=tableExpr 'on' expr                                  #JoinTableExpr
     ;
 
 /**
@@ -364,6 +365,9 @@ JoinType
     | 'right'
     | 'full'
     ;
+
+lateral
+    : 'lateral';
 
 /**
  * The `group by` clause of a select consists of a subset of expressions present
@@ -530,6 +534,7 @@ defaultValues
  * For example:
  *      update y
  *        from x:X join y:Y on x.y_id=y._id and y.status in ('A', 'T')
+ *         set a=x.b
  *       where y.min_age <= x.age <= y.max_age
  *
  * will only update rows in table Y that would be returned by an equivalent

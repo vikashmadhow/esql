@@ -67,8 +67,8 @@ public class EsqlTranslator extends AbstractTranslator {
     if (select.orderBy() != null && !select.orderBy().isEmpty()) {
       st.append(" order by ")
         .append(select.orderBy().stream()
-                         .map(e -> e.translate(target(), path.add(e), parameters))
-                         .collect(joining(", ")));
+                      .map(e -> e.translate(target(), path.add(e), parameters))
+                      .collect(joining(", ")));
     }
     if (select.offset() != null) {
       st.append(" offset ").append(select.offset().translate(target(), path.add(select.offset()), parameters));
@@ -76,16 +76,16 @@ public class EsqlTranslator extends AbstractTranslator {
     if (select.limit() != null) {
       st.append(" limit ").append(select.limit().translate(target(), path.add(select.limit()), parameters));
     }
-    return new QueryTranslation(st.toString(), null, null, null, null);
-
+    return new QueryTranslation(st.toString(), null,null, null);
   }
 
   @Override
   protected QueryTranslation translate(Update update, EsqlPath path, Map<String, Object> parameters) {
     TableExpr from = update.tables();
-    StringBuilder st = new StringBuilder("update ");
-    st.append(from.translate(target(), path.add(from), parameters));
-    Update.addSet(st, update.set(), target(), false, path);
+    StringBuilder st = new StringBuilder();
+    st.append("update ").append(update.updateTableAlias())
+      .append(" from ") .append(from.translate(target(), path.add(from), parameters));
+    Util.addSet(st, update.set(), target(), false, path);
     if (update.where() != null) {
       st.append(" where ").append(update.where().translate(target(), path.add(update.where()), parameters));
     }
@@ -95,32 +95,34 @@ public class EsqlTranslator extends AbstractTranslator {
       q = update.constructResult(st, target(), path, null, parameters);
     }
     if (q == null) {
-      return new QueryTranslation(st.toString(), emptyList(), emptyMap(),
-                                  emptyList(), emptyMap());
+      return new QueryTranslation(st.toString(), emptyList(), emptyList(), emptyMap());
     } else {
-      return new QueryTranslation(st.toString(), q.columns(), q.columnToIndex(),
-                                  q.resultAttributeIndices(), q.resultAttributes());
+      return new QueryTranslation(st.toString(),
+                                  q.columns(),
+                                  q.resultAttributeIndices(),
+                                  q.resultAttributes());
     }
   }
 
   @Override
   protected QueryTranslation translate(Delete delete, EsqlPath path, Map<String, Object> parameters) {
-    StringBuilder st = new StringBuilder("delete ");
-
     TableExpr from = delete.tables();
-    st.append(" from ").append(from.translate(target(), path.add(from), parameters));
+    StringBuilder st = new StringBuilder();
+    st.append("delete ").append(delete.deleteTableAlias())
+      .append(" from ") .append(from.translate(target(), path.add(from), parameters));
+
     if (delete.where() != null) {
       st.append(" where ").append(delete.where().translate(target(), path.add(delete.where()), parameters));
     }
-
-    if (delete.columns() != null) {
+    if (delete.columns() != null && !delete.columns().isEmpty()) {
       st.append(" returning ");
       QueryTranslation q = delete.constructResult(st, target(), path,null, parameters);
-      return new QueryTranslation(st.toString(), q.columns(), q.columnToIndex(),
-                                  q.resultAttributeIndices(), q.resultAttributes());
+      return new QueryTranslation(st.toString(),
+                                  q.columns(),
+                                  q.resultAttributeIndices(),
+                                  q.resultAttributes());
     } else {
-      return new QueryTranslation(st.toString(), emptyList(), emptyMap(),
-                                  emptyList(), emptyMap());
+      return new QueryTranslation(st.toString(), emptyList(), emptyList(), emptyMap());
     }
   }
 
@@ -130,7 +132,7 @@ public class EsqlTranslator extends AbstractTranslator {
     TableExpr table = insert.tables();
     if (!(table instanceof SingleTableExpr)) {
       throw new TranslationException("Insert only works with single tables. A " + table.getClass().getSimpleName()
-                                         + " was found instead.");
+                                   + " was found instead.");
     }
     st.append(Type.dbTableName(((SingleTableExpr)table).tableName(), target()));
 
@@ -161,10 +163,12 @@ public class EsqlTranslator extends AbstractTranslator {
     }
 
     if (q == null) {
-      return new QueryTranslation(st.toString(), emptyList(), emptyMap(), emptyList(), emptyMap());
+      return new QueryTranslation(st.toString(), emptyList(), emptyList(), emptyMap());
     } else {
-      return new QueryTranslation(st.toString(), q.columns(), q.columnToIndex(),
-                                  q.resultAttributeIndices(), q.resultAttributes());
+      return new QueryTranslation(st.toString(),
+                                  q.columns(),
+                                  q.resultAttributeIndices(),
+                                  q.resultAttributes());
     }
   }
 }

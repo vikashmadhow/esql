@@ -5,11 +5,15 @@
 package ma.vi.esql;
 
 import ma.vi.esql.database.Database;
+import ma.vi.esql.exec.ColumnMapping;
 import ma.vi.esql.exec.EsqlConnection;
 import ma.vi.esql.exec.Result;
+import ma.vi.esql.exec.ResultColumn;
 import ma.vi.esql.syntax.Parser;
 import ma.vi.esql.syntax.Program;
 import org.junit.jupiter.api.BeforeAll;
+
+import java.util.Map;
 
 import static org.apache.commons.lang3.StringUtils.*;
 
@@ -204,33 +208,50 @@ public class DataTest {
   }
 
   public static void printResult(Result rs, int columnWidth) {
+    printResult(rs, columnWidth, false);
+  }
+
+  public static void printResult(Result rs, int columnWidth, boolean showMetadata) {
     boolean first = true;
     while(rs.next()) {
       if (first) {
-        System.out.println('+' + repeat(repeat('-', columnWidth) + '+', rs.columns()));
+        System.out.println('+' + repeat(repeat('-', columnWidth) + '+', rs.columnsCount()));
         System.out.print('|');
-        for (int i = 0; i < rs.columns(); i++) {
-          System.out.print(rightPad(rs.column(i + 1).name(), columnWidth) + '|');
+        for (ColumnMapping col: rs.columns()) {
+          System.out.print(rightPad(col.column().name(), columnWidth) + '|');
         }
         System.out.println();
-        System.out.println('+' + repeat(repeat('-', columnWidth) + '+', rs.columns()));
+        System.out.println('+' + repeat(repeat('-', columnWidth) + '+', rs.columnsCount()));
         first = false;
       }
       System.out.print('|');
-      for (int i = 0; i < rs.columns(); i++) {
-        Object value = rs.value(i + 1);
-        if (value == null) {
-          System.out.print(repeat(' ', columnWidth) + '|');
-        } else if (value instanceof Number) {
-          System.out.print(leftPad(value.toString(), columnWidth) + '|');
-        } else {
-          System.out.print(rightPad(value.toString(), columnWidth) + '|');
+      for (int i = 0; i < rs.columnsCount(); i++) {
+        ResultColumn<Object> col = rs.get(i + 1);
+        Object value = col.value();
+        int spaceLeft = columnWidth;
+        if (value != null) {
+          spaceLeft -= value.toString().length();
+          System.out.print(value);
         }
+        if (showMetadata) {
+          if (col.metadata() != null && !col.metadata().isEmpty()) {
+            for (Map.Entry<String, Object> e: col.metadata().entrySet()) {
+              if (e.getValue() != null) {
+                spaceLeft -= e.getKey().length() + e.getValue().toString().length() - 2;
+                System.out.print(',' + e.getKey() + ':' + e.getValue().toString());
+              }
+            }
+          }
+        }
+        if (spaceLeft > 0) {
+          System.out.print(repeat(' ', spaceLeft));
+        }
+        System.out.print('|');
       }
       System.out.println();
     }
     if (!first) {
-      System.out.println('+' + repeat(repeat('-', columnWidth) + '+', rs.columns()));
+      System.out.println('+' + repeat(repeat('-', columnWidth) + '+', rs.columnsCount()));
     }
   }
 }

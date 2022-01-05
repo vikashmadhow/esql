@@ -103,7 +103,7 @@ public class ColumnRef extends Expression<String, String> implements Macro {
       }
       if (type == null) {
         /*
-         * The column could be part of a create statement.
+         * The column could be part of a `create` statement.
          */
         CreateTable create = path.ancestor(CreateTable.class);
         if (create != null) {
@@ -267,5 +267,8 @@ public class ColumnRef extends Expression<String, String> implements Macro {
     });
   }
 
+  /**
+   * The type of the column referred to by this reference.
+   */
   private transient volatile Type type;
 }

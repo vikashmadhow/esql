@@ -108,8 +108,10 @@ public class CompositeSelects extends Select {
         q = trans;
       }
     }
-    return new QueryTranslation(st.toString(), q.columns(), q.columnToIndex(),
-                                q.resultAttributeIndices(), q.resultAttributes());
+    return new QueryTranslation(st.toString(),
+                                q.columns(),
+                                q.resultAttributeIndices(),
+                                q.resultAttributes());
   }
 
 //  /**

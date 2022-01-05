@@ -4,8 +4,8 @@
 
 package ma.vi.esql.exec;
 
-import ma.vi.base.tuple.T3;
 import ma.vi.esql.semantic.type.Type;
+import ma.vi.esql.syntax.query.AttributeIndex;
 import ma.vi.esql.syntax.query.Column;
 
 import java.util.List;
@@ -18,8 +18,8 @@ import java.util.Map;
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public record ColumnMapping(int                             valueIndex,
-                            Column                          column,
-                            Type                            valueType,
-                            List<T3<Integer, String, Type>> attributeIndices,
-                            Map<String, Object>             attributes) {}
+public record ColumnMapping(int                  valueIndex,
+                            Column               column,
+                            Type                 valueType,
+                            List<AttributeIndex> attributeIndices,
+                            Map<String, Object>  attributes) {}

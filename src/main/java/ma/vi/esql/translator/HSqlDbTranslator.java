@@ -71,7 +71,6 @@ public class HSqlDbTranslator extends AbstractTranslator {
     }
     return new QueryTranslation(st.toString(),
                                 q.columns(),
-                                q.columnToIndex(),
                                 q.resultAttributeIndices(),
                                 q.resultAttributes());
   }
@@ -85,7 +84,7 @@ public class HSqlDbTranslator extends AbstractTranslator {
       throw new TranslationException(target() + " does not support multiple tables or joins in updates");
     }
     st.append(from.translate(target(), path.add(from), parameters));
-    Update.addSet(st, update.set(), target(), false, path);
+    Util.addSet(st, update.set(), target(), false, path);
 
     if (update.where() != null) {
       st.append(" where ").append(update.where().translate(target(), path.add(update.where()), parameters));
@@ -93,8 +92,7 @@ public class HSqlDbTranslator extends AbstractTranslator {
     if (update.columns() != null) {
       throw new TranslationException(target() + " does not support return values in updates");
     }
-    return new QueryTranslation(st.toString(), emptyList(), emptyMap(),
-                                emptyList(), emptyMap());
+    return new QueryTranslation(st.toString(), emptyList(), emptyList(), emptyMap());
   }
 
   @Override
@@ -111,8 +109,7 @@ public class HSqlDbTranslator extends AbstractTranslator {
     if (delete.columns() != null) {
       throw new TranslationException(target() + " does not support returning rows in deletes");
     }
-    return new QueryTranslation(st.toString(), emptyList(), emptyMap(),
-                                emptyList(), emptyMap());
+    return new QueryTranslation(st.toString(), emptyList(), emptyList(), emptyMap());
   }
 
   @Override
@@ -148,6 +145,6 @@ public class HSqlDbTranslator extends AbstractTranslator {
     if (insert.columns() != null && !insert.columns().isEmpty()) {
       throw new TranslationException(target() + " does not support returning rows in inserts");
     }
-    return new QueryTranslation(st.toString(), emptyList(), emptyMap(), emptyList(), emptyMap());
+    return new QueryTranslation(st.toString(), emptyList(), emptyList(), emptyMap());
   }
 }

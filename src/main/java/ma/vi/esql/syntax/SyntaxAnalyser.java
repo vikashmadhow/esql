@@ -276,6 +276,7 @@ public class SyntaxAnalyser extends EsqlBaseListener {
   public void exitJoinTableExpr(JoinTableExprContext ctx) {
     put(ctx, new JoinTableExpr(context,
                                ctx.JoinType() == null ? null : ctx.JoinType().getText(),
+                               ctx.lateral() != null,
                                get(ctx.left),
                                get(ctx.right),
                                get(ctx.expr())));

@@ -70,24 +70,13 @@ public class InMonth extends Function implements Macro {
       List<Expression<?, ?>> funcArgs = singletonList(date);
       return new GroupedExpression(
         ctx,
-        new And(
-            ctx,
-            new Equality(
-                ctx,
-                new FunctionCall(ctx, "month",
-                                 false, null,
-                                 funcArgs, false,
-                                 null, null, null),
-                month
-            ),
-            new Equality(
-                ctx,
-                new FunctionCall(ctx, "year",
-                                 false, null,
-                                 funcArgs, false,
-                                 null, null, null),
-                year
-            )
+        new And(ctx,
+                new Equality(ctx,
+                             new FunctionCall(ctx, "month", funcArgs),
+                             month),
+                new Equality(ctx,
+                             new FunctionCall(ctx, "year", funcArgs),
+                             year)
         )
       );
     }

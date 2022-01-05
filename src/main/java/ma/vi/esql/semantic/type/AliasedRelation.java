@@ -14,7 +14,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-import static java.util.stream.Collectors.toList;
 import static ma.vi.esql.syntax.expression.ColumnRef.qualify;
 
 /**
@@ -53,7 +52,7 @@ public class AliasedRelation extends Relation {
     if (columns == null) {
       columns = relation.columns().stream()
                         .map(c -> T2.of(c.a(), qualify(c.b(), alias)))
-                        .collect(toList());
+                        .toList();
     }
     return columns;
   }

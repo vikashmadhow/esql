@@ -314,6 +314,16 @@ public interface EsqlListener extends ParseTreeListener {
 	 */
 	void exitNameWithMetadata(EsqlParser.NameWithMetadataContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link EsqlParser#lateral}.
+	 * @param ctx the parse tree
+	 */
+	void enterLateral(EsqlParser.LateralContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link EsqlParser#lateral}.
+	 * @param ctx the parse tree
+	 */
+	void exitLateral(EsqlParser.LateralContext ctx);
+	/**
 	 * Enter a parse tree produced by the {@code SimpleGroup}
 	 * labeled alternative in {@link EsqlParser#groupByList}.
 	 * @param ctx the parse tree

@@ -6,26 +6,24 @@ package ma.vi.esql.syntax.query;
 
 import ma.vi.base.string.Strings;
 import ma.vi.base.tuple.T2;
-import ma.vi.esql.semantic.type.Relation;
 import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.semantic.type.Types;
-import ma.vi.esql.syntax.*;
+import ma.vi.esql.syntax.Context;
+import ma.vi.esql.syntax.Esql;
+import ma.vi.esql.syntax.EsqlPath;
+import ma.vi.esql.syntax.MetadataContainer;
 import ma.vi.esql.syntax.define.Attribute;
 import ma.vi.esql.syntax.define.ColumnDefinition;
 import ma.vi.esql.syntax.define.DerivedColumnDefinition;
 import ma.vi.esql.syntax.define.Metadata;
 import ma.vi.esql.syntax.expression.ColumnRef;
-import ma.vi.esql.syntax.expression.ExpandedDerivedColumnRef;
 import ma.vi.esql.syntax.expression.Expression;
-import ma.vi.esql.syntax.expression.GroupedExpression;
 import ma.vi.esql.syntax.expression.literal.BooleanLiteral;
 import ma.vi.esql.syntax.expression.literal.StringLiteral;
 
 import java.util.*;
 import java.util.stream.Stream;
 
-import static java.util.Collections.emptyList;
-import static java.util.Collections.emptySet;
 import static ma.vi.esql.builder.Attributes.*;
 import static ma.vi.esql.syntax.Translatable.Target.ESQL;
 
@@ -34,7 +32,7 @@ import static ma.vi.esql.syntax.Translatable.Target.ESQL;
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public class Column extends MetadataContainer<String> { // implements Macro {
+public class Column extends MetadataContainer<String> {
   @SafeVarargs
   public Column(Context context,
                 String name,
@@ -77,45 +75,6 @@ public class Column extends MetadataContainer<String> { // implements Macro {
   public Column copy(String value, T2<String, ? extends Esql<?, ?>>... children) {
     return new Column(this, value, children);
   }
-
-//  /**
-//   * Expand derived columns to their base expressions.
-//   */
-//  @Override
-//  public Esql<?, ?> expand(Esql<?, ?> e, EsqlPath path)  {
-//    Expression<?, String> expr = expression();
-//    ColumnRef ref = null;
-//    if (expr instanceof ColumnRef r) ref = r;
-//    if (expr instanceof ExpandedDerivedColumnRef r) ref = ColumnRef.of(r.qualifier(), r.name());
-//
-//    if (ref != null) {
-//      QueryUpdate qu = QueryUpdate.ancestor(path);
-//      T2<Relation, Column> col = ColumnRef.column(qu, ref, path);
-//      if (col != null) {
-//        Metadata colMeta = col.b.metadata();
-//        if (colMeta != null && !colMeta.attributes().isEmpty()) {
-//          Set<String> colAttrs = new HashSet<>(colMeta.attributes().keySet());
-//          colAttrs.remove("id");
-//          if (metadata() == null || !metadata().attributes().keySet().containsAll(colAttrs)) {
-//            Set<String> existingKeys = metadata() == null ? emptySet() : metadata().attributes().keySet();
-//            List<Attribute> attributes = new ArrayList<>(metadata() == null ? emptyList() : metadata().attributes().values());
-//            boolean changed = false;
-//            for (Map.Entry<String, Attribute> entry: colMeta.attributes().entrySet()) {
-//              String attrName = entry.getKey();
-//              if (!attrName.equals("id") && !existingKeys.contains(attrName)) {
-//                attributes.add(entry.getValue());
-//                changed = true;
-//              }
-//            }
-//            if (changed) {
-//              return metadata(new Metadata(context, attributes));
-//            }
-//          }
-//        }
-//      }
-//    }
-//    return e;
-//  }
 
   private static Metadata addId(Metadata metadata) {
     if (metadata != null) {
@@ -177,8 +136,8 @@ public class Column extends MetadataContainer<String> { // implements Macro {
 
   @Override
   protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
+    StringBuilder st = new StringBuilder();
     if (target == ESQL) {
-      StringBuilder st = new StringBuilder();
       if (name() != null) {
         st.append(name()).append(':');
       }
@@ -195,15 +154,14 @@ public class Column extends MetadataContainer<String> { // implements Macro {
         }
         st.append('}');
       }
-      return st.toString();
 
     } else {
-      StringBuilder st = new StringBuilder(expression().translate(target, path.add(expression()), parameters));
+      st.append(expression().translate(target, path.add(expression()), parameters));
       if (name() != null) {
         st.append(" \"").append(name()).append('"');
       }
-      return st.toString();
     }
+    return st.toString();
   }
 
   public boolean derived() {
