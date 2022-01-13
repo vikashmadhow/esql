@@ -11,7 +11,9 @@ import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.Macro;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.stream.Stream;
 
 /**
@@ -32,8 +34,8 @@ public abstract class AbstractJoinTableExpr extends TableExpr {
           Stream.concat(
             Arrays.stream(
               new T2[]{
-                T2.of("left", left),
-                T2.of("right", right),
+                T2.of("left",     left),
+                T2.of("right",    right),
                 T2.of("joinType", new Esql<>(context, joinType))
               }),
             Arrays.stream(children)).toArray(T2[]::new));
@@ -51,6 +53,16 @@ public abstract class AbstractJoinTableExpr extends TableExpr {
   @Override
   public abstract AbstractJoinTableExpr copy();
 
+  @Override
+  public TableExpr named(String name) {
+    if (name == null) {
+      return this;
+    } else {
+      TableExpr expr = left().named(name);
+      return expr != null ? expr : right().named(name);
+    }
+  }
+
   /**
    * Returns a shallow copy of this object replacing the value in the copy with
    * the provided value and replacing the specified children in the children list
@@ -60,15 +72,15 @@ public abstract class AbstractJoinTableExpr extends TableExpr {
   public abstract AbstractJoinTableExpr copy(String value, T2<String, ? extends Esql<?, ?>>... children);
 
   @Override
-  public boolean exists() {
-    return left().exists() && right().exists();
+  public boolean exists(EsqlPath path) {
+    return left().exists(path) && right().exists(path);
   }
 
   @Override
-  public Join type(EsqlPath path) {
+  public Join computeType(EsqlPath path) {
     if (type == null) {
-      Join t = new Join(left().type(path.add(left())),
-                        right().type(path.add(right())));
+      Join t = new Join(left().computeType(path.add(left())),
+                        right().computeType(path.add(right())));
       if (path.hasAncestor(Macro.OngoingMacroExpansion.class)) {
         return t;
       } else {
@@ -76,6 +88,13 @@ public abstract class AbstractJoinTableExpr extends TableExpr {
       }
     }
     return type;
+  }
+
+  @Override
+  public List<Column> columnList(EsqlPath path) {
+    List<Column> cols = new ArrayList<>(left().columnList(path));
+    cols.addAll(right().columnList(path));
+    return cols;
   }
 
   public String joinType() {

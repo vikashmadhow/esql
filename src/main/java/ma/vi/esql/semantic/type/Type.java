@@ -6,7 +6,6 @@ package ma.vi.esql.semantic.type;
 
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.semantic.scope.Symbol;
-import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Copy;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.Translatable;
@@ -30,6 +29,11 @@ public interface Type extends Symbol, Copy<Type>, Translatable<String> {
    * The name of the type.
    */
   String name();
+
+  @Override
+  default Type type() {
+    return this;
+  }
 
   /**
    * Allows for the name to be changed; useful in some circumstances when
@@ -144,8 +148,6 @@ public interface Type extends Symbol, Copy<Type>, Translatable<String> {
 
     private final String name;
   }
-
-  Type Void = new InternalType("Void");
 
   /**
    * Returns the schema from a fully qualified name. A fully qualified name

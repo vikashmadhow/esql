@@ -48,9 +48,9 @@ abstract class ArithmeticOperator extends BinaryOperator {
   public abstract ArithmeticOperator copy(String value, T2<String, ? extends Esql<?, ?>>... children);
 
   @Override
-  public Type type(EsqlPath path) {
-    Type leftType = expr1().type(path.add(expr1()));
-    Type rightType = expr2().type(path.add(expr2()));
+  public Type computeType(EsqlPath path) {
+    Type leftType = expr1().computeType(path.add(expr1()));
+    Type rightType = expr2().computeType(path.add(expr2()));
 
     if (leftType instanceof BaseType left
      && rightType instanceof BaseType right) {

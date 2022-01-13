@@ -24,6 +24,8 @@ import java.util.*;
 import static java.lang.System.Logger.Level.ERROR;
 import static java.sql.ResultSet.CONCUR_READ_ONLY;
 import static java.sql.ResultSet.TYPE_SCROLL_INSENSITIVE;
+import static java.util.Collections.unmodifiableList;
+import static java.util.Collections.unmodifiableMap;
 import static ma.vi.base.string.Strings.random;
 import static ma.vi.esql.translator.SqlServerTranslator.ADD_IIF;
 
@@ -63,7 +65,7 @@ public abstract class QueryUpdate extends MetadataContainer<QueryTranslation> im
   public abstract QueryUpdate copy(String value, T2<String, ? extends Esql<?, ?>>... children);
 
   @Override
-  public Selection type(EsqlPath path) {
+  public Selection computeType(EsqlPath path) {
     if (type == null) {
       Selection sel = new Selection(new ArrayList<>(columns()), null, tables(), null);
       if (path.hasAncestor(Macro.OngoingMacroExpansion.class)) {
@@ -169,7 +171,7 @@ public abstract class QueryUpdate extends MetadataContainer<QueryTranslation> im
     Map<String, Object> resultAttributes = new LinkedHashMap<>();
     List<AttributeIndex> resultAttributeIndices = new ArrayList<>();
     int itemIndex = 0;
-    Selection selection = type(path.add(this));
+    Selection selection = computeType(path.add(this));
 
     /*
      * Output columns.
@@ -186,7 +188,7 @@ public abstract class QueryUpdate extends MetadataContainer<QueryTranslation> im
       String colName = column.name();
       columnMappings.put(colName, new ColumnMapping(itemIndex,
                                                     column,
-                                                    column.type(path.add(column)),
+                                                    column.computeType(path.add(column)),
                                                     new ArrayList<>(),
                                                     new HashMap<>()));
     }
@@ -218,7 +220,7 @@ public abstract class QueryUpdate extends MetadataContainer<QueryTranslation> im
             query.append(", ");
           }
           appendExpression(query, attributeValue, target, path, colName);
-          resultAttributeIndices.add(new AttributeIndex(itemIndex, attrName, attributeValue.type(path.add(attributeValue))));
+          resultAttributeIndices.add(new AttributeIndex(itemIndex, attrName, attributeValue.computeType(path.add(attributeValue))));
         }
       }
 
@@ -246,14 +248,14 @@ public abstract class QueryUpdate extends MetadataContainer<QueryTranslation> im
           itemIndex += 1;
           query.append(", ");
           appendExpression(query, attributeValue, target, path, alias);
-          mapping.attributeIndices().add(new AttributeIndex(itemIndex, attrName, attributeValue.type(path.add(attributeValue))));
+          mapping.attributeIndices().add(new AttributeIndex(itemIndex, attrName, attributeValue.computeType(path.add(attributeValue))));
         }
       }
     }
-    return new QueryTranslation(query.toString(),
-                                new ArrayList<>(columnMappings.values()),
-                                resultAttributeIndices,
-                                resultAttributes);
+    return new QueryTranslation(this, query.toString(),
+                                unmodifiableList(new ArrayList<>(columnMappings.values())),
+                                unmodifiableList(resultAttributeIndices),
+                                unmodifiableMap(resultAttributes));
   }
 
   /**
@@ -386,27 +388,21 @@ public abstract class QueryUpdate extends MetadataContainer<QueryTranslation> im
 
   @Override
   public Result execute(Database db, Connection con, EsqlPath path) {
-    QueryTranslation translation = translate(db.target(), path);
+    QueryTranslation q = translate(db.target(), path);
     try {
-      Selection selection = type(path.add(this));
+      Selection selection = computeType(path.add(this));
       if (!selection.columns().isEmpty()) {
         ResultSet rs = con.createStatement(TYPE_SCROLL_INSENSITIVE, CONCUR_READ_ONLY)
-                          .executeQuery(translation.statement());
-        return new Result(db, rs,
-                          translation.columns(),
-                          translation.resultAttributeIndices(),
-                          translation.resultAttributes());
+                          .executeQuery(q.translation());
+        return new Result(db, rs, q);
       } else {
-        con.createStatement().executeUpdate(translation.statement());
-        return new Result(db, null,
-                          translation.columns(),
-                          translation.resultAttributeIndices(),
-                          translation.resultAttributes());
+        con.createStatement().executeUpdate(q.translation());
+        return new Result(db, null, q);
       }
     } catch (SQLException e) {
       log.log(ERROR, e.getMessage());
       log.log(ERROR, "Original query: " + this);
-      log.log(ERROR, "Translation: " + translation.statement());
+      log.log(ERROR, "Translation: " + q.translation());
       throw new RuntimeException(e);
     }
   }

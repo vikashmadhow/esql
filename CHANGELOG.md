@@ -34,22 +34,54 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Implement `explicit` in select (no expanded columns when explicit keyword used).
 
 ### To test
+- Test composition of select statements (union, intersect, except).
+- Test query translation and mapping of attributes (special columns such as `a/m1` 
+  to attributes of their respective columns).
+- Test result (returning clause) from insert, update and delete.
 - Test loaded metadata values.
 - Test lateral joins.
-- Testing of all normal functions.
-- Testing of translation of grouping by complex expressions (subqueries) in SQL
-  Server.
-- Testing of translation of distinct over multiple columns in SQL Server.
-- Testing of window functions.
-- Testing of query translation and mapping of attributes (special columns such as
-  `a/m1` to attributes of their respective columns).
-- Performance testing.
+- Test all normal functions.
+- Test translation of grouping by complex expressions (subqueries) in SQL Server.
+- Test translation of distinct over multiple columns in SQL Server.
+- Test window functions.
+- Test performance.
 
 ### To fix
-- fix ancestorDistance which does not seem to work on ESQLPath. Currently, this 
+- Fix ancestorDistance which does not seem to work on ESQLPath. Currently, this 
   function is not used anywhere, thus this is low-priority.
 - Apply result and column metadata overloading in column list expansion (currently,
   the overridden metadata are not being considered). 
+
+## [0.7.0] - 2022-01-13
+### Added
+- Macro expansion have been split into two phases:
+  - UntypedMacro are expanded first: during this expansion, types could be 
+    unavailable and expansion must not assume their presence. In this phase 
+    column lists are expanded (star columns and column metadata);
+  - TypedMacro are then expanded: types are not available (or can be computed).
+    All previous macros (except for ColumnList) are of this kind.
+- Column and ColumnRef now carries type information which could simplify type 
+  inference and propagation
+- The general structure of variable scopes and symbols has been added (continuing
+  semantic analysis work in preparation to adding general purpose language features).
+- Original query is now kept in the QueryTranslation to improve error management.
+- `find` method in Esql to find first child, if any, satisfying a predicate function.
+- `columnList` method to get column list from a TableExpr.
+- `named` method to get a sub-TableExpr from a TableExpr with the specified alias.
+
+### Improved
+- Type inference has been improved to work in many more cases, properly propagating
+  type information from inner queries to outer ones.
+- Column list expansion improved to not require type information during its expansion
+  and works in more scenarios.
+- Simplified Result class which reuses the QueryTranslation instead of duplicating
+  its fields.
+- Simplified unknown function translation by reusing translation code in Function 
+  class.
+
+### Fixed
+- Overloading of column metadata in column list expansion.
+- ___unknown mapped to UnknownType instead of (erroneously) Json.
 
 ## [0.6.6] - 2022-01-05
 ### Added
@@ -143,7 +175,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - QueryTranslation is now a Java record.
-- Columns are not longer automatically expanded in base relations; this decreases
+- Columns are no longer automatically expanded in base relations; this decreases
   the number of synthetic columns with names containing '/' being added to the 
   relations. The only synthetic columns added now are the uncomputed forms for
   derived columns (e.g. c=a+b result in c/e=$(a+b) being added to the column list).

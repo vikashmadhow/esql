@@ -5,8 +5,6 @@
 package ma.vi.esql.syntax.query;
 
 import ma.vi.base.tuple.T2;
-import ma.vi.esql.semantic.type.Type;
-import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
@@ -47,11 +45,6 @@ public class Order extends Esql<String, String> {
    */
   public Order copy(String value, T2<String, ? extends Esql<?, ?>>... children) {
     return new Order(this, value, children);
-  }
-
-  @Override
-  public Type type(EsqlPath path) {
-    return Types.VoidType;
   }
 
   @Override

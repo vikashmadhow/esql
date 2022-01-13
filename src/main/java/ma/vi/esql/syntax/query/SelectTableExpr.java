@@ -5,7 +5,6 @@
 package ma.vi.esql.syntax.query;
 
 import ma.vi.base.tuple.T2;
-import ma.vi.esql.semantic.type.AliasedRelation;
 import ma.vi.esql.semantic.type.Selection;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
@@ -13,6 +12,7 @@ import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.Macro;
 import ma.vi.esql.syntax.expression.ColumnRef;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -58,17 +58,33 @@ public class SelectTableExpr extends AbstractAliasTableExpr {
   }
 
   @Override
-  public boolean exists() {
-    return select().tables().exists();
+  public boolean exists(EsqlPath path) {
+    return select().tables().exists(path);
   }
 
   @Override
-  public Selection type(EsqlPath path) {
+  public TableExpr named(String name) {
+    return name == null || name.equals(alias()) ? this : null;
+  }
+
+  @Override
+  public List<Column> columnList(EsqlPath path) {
+    return select().columns().stream()
+                   .map(c -> new Column(c.context,
+                                        c.name(),
+                                        new ColumnRef(c.context, alias(), c.name()),
+                                        c.type(),
+                                        ColumnRef.qualify(c.metadata(), alias())))
+                   .toList();
+  }
+
+  @Override
+  public Selection computeType(EsqlPath path) {
     if (type == null) {
-      Selection sel = select().type(path.add(select()));
+      Selection sel = select().computeType(path.add(select()));
       Selection t = new Selection(sel.columns().stream()
-                                           .map(c -> c.b.expression(new ColumnRef(c.b.context, alias(), c.b.name())))
-                                           .toList(),
+                                     .map(c -> c.b.expression(new ColumnRef(c.b.context, alias(), c.b.name())))
+                                     .toList(),
                                   sel.attributesList(),
                                   this, alias());
 
@@ -85,7 +101,7 @@ public class SelectTableExpr extends AbstractAliasTableExpr {
 
   @Override
   protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
-    return '(' + select().translate(target, path.add(select()), parameters).statement() + ") \"" + alias() + '"';
+    return '(' + select().translate(target, path.add(select()), parameters).translation() + ") \"" + alias() + '"';
   }
 
   @Override

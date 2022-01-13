@@ -1,6 +1,7 @@
 package ma.vi.esql.semantic.scope;
 
 import ma.vi.esql.semantic.type.Type;
+import ma.vi.esql.semantic.type.Types;
 
 /**
  * @author Vikash Madhow (vikash.madhow@gmail.com)
@@ -8,6 +9,6 @@ import ma.vi.esql.semantic.type.Type;
 public interface Symbol {
   String name();
   default Type type() {
-    return Type.Void;
+    return Types.UnknownType;
   }
 }

@@ -44,9 +44,9 @@ public abstract class MultipleSubExpressions extends Expression<String, String> 
   public abstract MultipleSubExpressions copy(String value, T2<String, ? extends Esql<?, ?>>... children);
 
   @Override
-  public Type type(EsqlPath path) {
+  public Type computeType(EsqlPath path) {
     for (Expression<?, ?> e: expressions()) {
-      Type type = e.type(path.add(e));
+      Type type = e.computeType(path.add(e));
       if (!type.equals(Types.NullType)) {
         return type;
       }

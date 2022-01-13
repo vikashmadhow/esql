@@ -79,7 +79,7 @@ public class Coalesce extends MultipleSubExpressions {
 
       default -> {
         boolean sqlServerBool = target == Target.SQLSERVER
-                             && type(path.add(this)) == Types.BoolType
+                             && computeType(path.add(this)) == Types.BoolType
                              && (path.ancestor("on") != null || path.ancestor("where") != null || path.ancestor("having") != null)
                              && (path.ancestor(FunctionCall.class) == null);
         StringBuilder st = new StringBuilder();

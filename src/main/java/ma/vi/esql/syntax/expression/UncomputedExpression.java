@@ -49,7 +49,7 @@ public class UncomputedExpression extends SingleSubExpression {
   }
 
   @Override
-  public Type type(EsqlPath path) {
+  public Type computeType(EsqlPath path) {
     /*
      * Uncomputed expressions are not computed and therefore their
      * representation is their type. Thus all uncomputed expressions

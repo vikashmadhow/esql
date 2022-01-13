@@ -227,7 +227,7 @@ public class SyntaxAnalyser extends EsqlBaseListener {
   @Override
   public void exitSingleColumn(SingleColumnContext ctx) {
     Metadata metadata = get(ctx.metadata());
-    put(ctx, new Column(context, value(ctx.alias()), get(ctx.expr()), metadata));
+    put(ctx, new Column(context, value(ctx.alias()), get(ctx.expr()), Types.UnknownType, metadata));
   }
 
   @Override
@@ -719,7 +719,7 @@ public class SyntaxAnalyser extends EsqlBaseListener {
                           distinct != null && distinct.getText().startsWith("distinct"),
                           distinct != null && distinct.expressionList() != null ? value(distinct.expressionList()) : null,
                           true,
-                          singletonList(new Column(context, value(ctx.alias()), get(ctx.col), null)),
+                          singletonList(new Column(context, value(ctx.alias()), get(ctx.col), Types.UnknownType, null)),
                           get(ctx.tableExpr()),
                           ctx.where == null ? null : get(ctx.where),
                           null,

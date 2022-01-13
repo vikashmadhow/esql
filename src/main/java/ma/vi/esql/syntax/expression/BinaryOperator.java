@@ -48,8 +48,8 @@ public abstract class BinaryOperator extends Expression<String, String>  {
   public abstract BinaryOperator copy(String value, T2<String, ? extends Esql<?, ?>>... children);
 
   @Override
-  public Type type(EsqlPath path) {
-    return expr1().type(path.add(expr1()));
+  public Type computeType(EsqlPath path) {
+    return expr1().computeType(path.add(expr1()));
   }
 
   @Override

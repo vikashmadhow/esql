@@ -158,9 +158,11 @@ public abstract class AbstractDatabase implements Database {
                 attributes.add(new Attribute(context, ID, new UuidLiteral(context, columnId)));
                 attributes.add(new Attribute(context, REQUIRED, new BooleanLiteral(context, notNull)));
                 Metadata metadata = new Metadata(context, attributes);
+                Type type = Types.typeOf(columnType);
                 columns.add(new Column(context,
                                        columnName,
-                                       new ColumnRef(context, null, columnName),
+                                       new ColumnRef(context, null, columnName, type),
+                                       type,
                                        metadata));
               }
             }
@@ -761,7 +763,7 @@ public abstract class AbstractDatabase implements Database {
         for (BaseRelation rel: structure.relations().values()) {
           for (T2<Relation, Column> column: rel.columns()) {
             if (column.b.derived()) {
-              column.b.type(new EsqlPath(column.b));
+              column.b.computeType(new EsqlPath(column.b));
             }
           }
         }
@@ -933,6 +935,7 @@ public abstract class AbstractDatabase implements Database {
         String columnName = rs.getString("name");
         int columnNumber = rs.getInt("seq");
         String columnType = rs.getString("type");
+        Type type = Types.typeOf(columnType);
         boolean notNull = rs.getBoolean("not_null");
         String expression = rs.getString("expression");
         boolean derivedColumn = rs.getBoolean("derived_column");
@@ -961,6 +964,7 @@ public abstract class AbstractDatabase implements Database {
           col = new Column(context,
                            columnName,
                            expr,
+                           type,
                            new Metadata(context, new ArrayList<>(attributes.values())));
         } else {
           if (expr != null) {
@@ -968,7 +972,8 @@ public abstract class AbstractDatabase implements Database {
           }
           col = new Column(context,
                            columnName,
-                           new ColumnRef(context, null, columnName),
+                           new ColumnRef(context, null, columnName, type),
+                           type,
                            new Metadata(context, new ArrayList<>(attributes.values())));
         }
         columns.add(col);
@@ -1304,6 +1309,7 @@ public abstract class AbstractDatabase implements Database {
         column = new Column(column.context,
                             column.name(),
                             column.expression(),
+                            column.type(),
                             new Metadata(column.context, new ArrayList<>(attributes.values())));
       }
       econ.exec(insertCol,
@@ -1312,7 +1318,7 @@ public abstract class AbstractDatabase implements Database {
                 Param.of("relation",      tableId),
                 Param.of("name",          column.name()),
                 Param.of("derivedColumn", column.derived()),
-                Param.of("type",          column.type(new EsqlPath(column)).translate(ESQL)),
+                Param.of("type",          column.computeType(new EsqlPath(column)).translate(ESQL)),
                 Param.of("nonNull",       column.notNull()),
                 Param.of("expression",
                          column.derived()                   ? column.expression().translate(ESQL) :

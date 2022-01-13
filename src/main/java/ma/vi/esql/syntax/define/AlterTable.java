@@ -287,7 +287,7 @@ public class AlterTable extends Define {
                 con.createStatement().executeUpdate(
                     "ALTER TABLE " + dbName +
                         " ALTER COLUMN \"" + column.name() +
-                        "\" " + column.type(path.add(column)).translate(db.target(), path.add(column)) + " NOT NULL");
+                        "\" " + column.computeType(path.add(column)).translate(db.target(), path.add(column)) + " NOT NULL");
               } else {
                 con.createStatement().executeUpdate(
                     "ALTER TABLE " + dbName +
@@ -307,7 +307,7 @@ public class AlterTable extends Define {
                 con.createStatement().executeUpdate(
                     "ALTER TABLE " + dbName +
                         " ALTER COLUMN \"" + column.name() +
-                        "\" " + column.type(path.add(column)).translate(db.target(), path.add(column)) + " NULL");
+                        "\" " + column.computeType(path.add(column)).translate(db.target(), path.add(column)) + " NULL");
               } else {
                 con.createStatement().executeUpdate(
                     "ALTER TABLE " + dbName +

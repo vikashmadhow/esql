@@ -10,16 +10,15 @@ import ma.vi.esql.semantic.type.Relation;
 import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.*;
-import ma.vi.esql.syntax.define.AlterTable;
-import ma.vi.esql.syntax.define.ColumnDefinition;
-import ma.vi.esql.syntax.define.CreateTable;
-import ma.vi.esql.syntax.define.DerivedColumnDefinition;
+import ma.vi.esql.syntax.define.*;
 import ma.vi.esql.syntax.query.Column;
 import ma.vi.esql.syntax.query.QueryUpdate;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
-import static ma.vi.esql.builder.Attributes.TYPE;
+import static ma.vi.esql.semantic.type.Types.UnknownType;
 import static ma.vi.esql.translator.SqlServerTranslator.requireIif;
 
 /**
@@ -27,11 +26,16 @@ import static ma.vi.esql.translator.SqlServerTranslator.requireIif;
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public class ColumnRef extends Expression<String, String> implements Macro {
+public class ColumnRef extends Expression<String, String> implements TypedMacro {
   public ColumnRef(Context context, String qualifier, String name) {
+    this(context, qualifier, name, UnknownType);
+  }
+
+  public ColumnRef(Context context, String qualifier, String name, Type type) {
     super(context, "ColumnRef",
           T2.of("qualifier", new Esql<>(context, qualifier)),
-          T2.of("name", new Esql<>(context, name)));
+          T2.of("name", new Esql<>(context, name)),
+          T2.of("type", new Esql<>(context, type == null ? UnknownType : type)));
   }
 
   public ColumnRef(ColumnRef other) {
@@ -63,80 +67,87 @@ public class ColumnRef extends Expression<String, String> implements Macro {
   }
 
   @Override
-  public Type type(EsqlPath path) {
+  public Type computeType(EsqlPath path) {
     if (type == null) {
-      QueryUpdate qu = QueryUpdate.ancestor(path);
-      if (qu != null) {
-        /*
-         * In a query check all levels as the column might refer to a table in
-         * an outer level if it is in a subquery.
-         */
-        T2<Relation, Column> relCol = column(qu, this, path);
-        if (relCol != null) {
-          Column column = relCol.b;
-          if (column.expression() instanceof ColumnRef) {
-            if (column.metadata() != null && column.metadata().attribute(TYPE) != null) {
-              type = Types.typeOf((String)column.metadata().evaluateAttribute(TYPE));
-            } else {
-              type = Types.VoidType;
-            }
-          } else {
-            type = column.type(path.add(column));
-          }
-        }
+      Type computedType = null;
+      Type t = type();
+      if (t != UnknownType) {
+        computedType = t;
       } else {
-        Column column = path.ancestor(Column.class);
-        if (column != null
-         && column.has("relation")
-         && column.childValue("relation") instanceof BaseRelation rel) {
+        QueryUpdate qu = QueryUpdate.ancestor(path);
+        if (qu != null) {
           /*
-           * Derived columns which are part of base relations can use the type
-           * information of the relation to find their correct type. (the columns
-           * of base relations are loaded on startup and their type set to void
-           * for derived columns).
+           * In a query check all levels as the column might refer to a table in
+           * an outer level if it is in a subquery.
            */
-          Column col = rel.findColumn(name());
-          if (col != null) {
-            type = col.type(path.add(col));
-          }
-        }
-      }
-      if (type == null) {
-        /*
-         * The column could be part of a `create` statement.
-         */
-        CreateTable create = path.ancestor(CreateTable.class);
-        if (create != null) {
-          for (ColumnDefinition col: create.columns()) {
-            if (col.name().equals(name())) {
-              if (col instanceof DerivedColumnDefinition) {
-                type = col.expression().type(path.add(col.expression()));
-              } else {
-                type = col.type();
-              }
+          T2<Relation, Column> relCol = column(qu, this, path);
+          if (relCol != null) {
+            Column column = relCol.b;
+            computedType = column.type();
+            if (computedType == UnknownType
+            && !(column.expression() instanceof ColumnRef)) {
+              computedType = column.expression().computeType(path.add(column.expression()));
             }
           }
         } else {
+          Column column = path.ancestor(Column.class);
+          if (column != null
+              && column.has("relation")
+              && column.childValue("relation") instanceof BaseRelation rel) {
+            /*
+             * Derived columns which are part of base relations can use the type
+             * information of the relation to find their correct type. (the columns
+             * of base relations are loaded on startup and their type set to void
+             * for derived columns).
+             */
+            Column col = rel.findColumn(name());
+            if (col != null) {
+              computedType = col.computeType(path.add(col));
+            }
+          }
+        }
+        if (computedType == null) {
           /*
-           * The column could be part of an alter table statement.
+           * The column could be part of a `create` statement.
            */
-          AlterTable alter = path.ancestor(AlterTable.class);
-          if (alter != null) {
-            BaseRelation table = context.structure.relation(alter.name());
-            if (table == null) {
-              throw new TranslationException("Could not find table " + alter.name());
+          CreateTable create = path.ancestor(CreateTable.class);
+          if (create != null) {
+            for (ColumnDefinition col : create.columns()) {
+              if (col.name().equals(name())) {
+                if (col instanceof DerivedColumnDefinition) {
+                  computedType = col.expression().computeType(path.add(col.expression()));
+                } else {
+                  computedType = col.type();
+                }
+              }
             }
-            Column column = table.column(name());
-            if (column == null) {
-              throw new TranslationException("Could not find field " + name() + " in table " + alter.name());
+          } else {
+            /*
+             * The column could be part of an alter table statement.
+             */
+            AlterTable alter = path.ancestor(AlterTable.class);
+            if (alter != null) {
+              BaseRelation table = context.structure.relation(alter.name());
+              if (table == null) {
+                throw new TranslationException("Could not find table " + alter.name());
+              }
+              Column column = table.column(name());
+              if (column == null) {
+                throw new TranslationException("Could not find field " + name() + " in table " + alter.name());
+              }
+              computedType = column.computeType(path.add(column));
             }
-            type = column.type(path.add(column));
           }
         }
       }
-    }
-    if (type == null) {
-      throw new TranslationException("Could not determine the type of " + qualifiedName());
+      if (computedType == null) {
+        throw new TranslationException("Could not determine the type of " + qualifiedName());
+      }
+      if (path.hasAncestor(OngoingMacroExpansion.class)) {
+        return computedType;
+      } else {
+        type = computedType;
+      }
     }
     return type;
   }
@@ -153,11 +164,11 @@ public class ColumnRef extends Expression<String, String> implements Macro {
       String alias = rel.alias();
       Column column = col.b;
       if (column.derived()) {
-        GroupedExpression expr = new GroupedExpression(
+        return new GroupedExpression(
             context, alias != null       ? qualify(column.expression(), alias)
                    : qualifier() != null ? qualify(column.expression(), qualifier())
                    : column.expression());
-        return new ExpandedDerivedColumnRef(context, alias != null ? alias : qualifier(), name(), expr);
+//        return new ExpandedDerivedColumnRef(context, alias != null ? alias : qualifier(), name(), expr);
       }
       return alias == null || alias.equals(qualifier()) ? e : qualify(e, alias);
     }
@@ -173,9 +184,9 @@ public class ColumnRef extends Expression<String, String> implements Macro {
                                             ColumnRef ref,
                                             EsqlPath path) {
     T2<Relation, Column> column = null;
-    while (column == null && qu != null && qu.tables().exists()) {
+    while (column == null && qu != null && qu.tables().exists(path)) {
       column = qu.tables()
-                 .type(path.add(qu.tables()))
+                 .computeType(path.add(qu.tables()))
                  .findColumn(ref);
       if (column == null) {
         T2<QueryUpdate, EsqlPath> ancestor = path.tail() == null
@@ -203,7 +214,7 @@ public class ColumnRef extends Expression<String, String> implements Macro {
                          EsqlPath path,
                          Map<String, Object> parameters) {
     boolean sqlServerBool = target == Target.SQLSERVER
-                         && type(path.add(this)) == Types.BoolType
+                         && computeType(path.add(this)) == Types.BoolType
                          && !requireIif(path, parameters)
                          && (path.ancestor(FunctionCall.class) == null);
     return switch (target) {
@@ -223,7 +234,8 @@ public class ColumnRef extends Expression<String, String> implements Macro {
 
   @Override
   public void _toString(StringBuilder st, int level, int indent) {
-    st.append(qualifiedName());
+    st.append(qualifiedName())
+      .append(type() != UnknownType ? " (" + type() + ')' : "");
   }
 
   public String qualifier() {
@@ -247,6 +259,14 @@ public class ColumnRef extends Expression<String, String> implements Macro {
     return (q != null ? q + '.' : "") + name();
   }
 
+  public Type type() {
+    return childValue("type");
+  }
+
+  public ColumnRef type(Type type) {
+    return set("type", new Esql<>(context, type));
+  }
+
   /**
    * Change the qualifier of all column references in an expression to the specified
    * one, replacing the existing ones if replaceExistingQualifier is true. This is
@@ -265,6 +285,19 @@ public class ColumnRef extends Expression<String, String> implements Macro {
       }
       return e;
     });
+  }
+
+  public static Metadata qualify(Metadata metadata, String qualifier) {
+    if (metadata != null
+     && metadata.attributes() != null
+     && !metadata.attributes().isEmpty()) {
+      List<Attribute> atts = new ArrayList<>();
+      for (Attribute a: metadata.attributes().values()) {
+        atts.add(new Attribute(a.context, a.name(), qualify(a.attributeValue(), qualifier)));
+      }
+      return new Metadata(metadata.context, atts);
+    }
+    return metadata;
   }
 
   /**

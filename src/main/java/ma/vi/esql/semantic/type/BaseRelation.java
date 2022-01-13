@@ -6,15 +6,9 @@ package ma.vi.esql.semantic.type;
 
 import ma.vi.base.trie.PathTrie;
 import ma.vi.base.tuple.T2;
-import ma.vi.esql.syntax.CircularReferenceException;
-import ma.vi.esql.syntax.Context;
-import ma.vi.esql.syntax.Esql;
-import ma.vi.esql.syntax.TranslationException;
+import ma.vi.esql.syntax.*;
 import ma.vi.esql.syntax.define.*;
-import ma.vi.esql.syntax.expression.ColumnRef;
-import ma.vi.esql.syntax.expression.Expression;
-import ma.vi.esql.syntax.expression.GroupedExpression;
-import ma.vi.esql.syntax.expression.UncomputedExpression;
+import ma.vi.esql.syntax.expression.*;
 import ma.vi.esql.syntax.expression.literal.Literal;
 import ma.vi.esql.syntax.query.Column;
 import ma.vi.esql.syntax.query.Select;
@@ -25,6 +19,7 @@ import static java.util.Collections.*;
 import static java.util.stream.Collectors.toSet;
 import static ma.vi.base.string.Strings.random;
 import static ma.vi.esql.builder.Attributes.DERIVED;
+import static ma.vi.esql.semantic.type.Types.UnknownType;
 
 /**
  * A relation is a composite type with a qualified name (i.e. with a schema name included).
@@ -147,8 +142,6 @@ public class BaseRelation extends Relation {
   }
 
   public void addColumn(Column column) {
-//    this.columns.add(column);
-//    this.columnsByAlias.put(column.name(), column);
     for (Column c: expandColumn(column, aliasedColumns(columns))) {
       this.columns.add(c);
       this.columnsByAlias.put(c.name(), c);
@@ -249,12 +242,14 @@ public class BaseRelation extends Relation {
                                                  String prefix,
                                                  Map<String, String> aliased) {
     List<Column> cols = new ArrayList<>();
-    if (!attr.name().equals("id")) {
+    if (!attr.name().startsWith("_")) {
       String attrPrefix = prefix + attr.name();
       Expression<?, String> expr = attr.attributeValue().copy();
-      cols.add(new Column(attr.context,
-                          attrPrefix,
-                          expr,
+      ColumnRef ref = expr.find(ColumnRef.class);
+      cols.add(new Column(attr.context, attrPrefix, expr,
+                          ref == null || expr instanceof SelectExpression
+                            ? expr.computeType(new EsqlPath(expr))
+                            : UnknownType,
                           null));
       if (!(expr instanceof Literal)) {
         /*
@@ -264,6 +259,7 @@ public class BaseRelation extends Relation {
         cols.add(new Column(attr.context,
                             attrPrefix + "/e",
                             new UncomputedExpression(attr.context, rename(expr, aliased)),
+                            Types.TextType,
                             null));
       }
     }
@@ -339,7 +335,7 @@ public class BaseRelation extends Relation {
    *    a/m3:10
    * </pre>
    */
-  private static List<Column> expandColumn(Column column, Map<String, String> aliased) {
+  public static List<Column> expandColumn(Column column, Map<String, String> aliased) {
     List<Column> newCols = new ArrayList<>();
     newCols.add(column);
     String colAlias = column.name();
@@ -350,7 +346,8 @@ public class BaseRelation extends Relation {
           newCols.add(new Column(column.context,
                                  colAlias + "/e",
                                  new UncomputedExpression(column.context,
-                                                          rename(column.expression(), aliased)),
+                                                                   rename(column.expression(), aliased)),
+                                 Types.TextType,
                                  null));
         }
         for (Attribute attr: column.metadata().attributes().values()) {

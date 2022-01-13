@@ -5,6 +5,7 @@
 package ma.vi.esql.syntax;
 
 import ma.vi.base.lang.NotFoundException;
+import ma.vi.base.tuple.T1;
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.database.Database;
 import ma.vi.esql.exec.Result;
@@ -18,7 +19,7 @@ import java.util.function.BiFunction;
 import java.util.function.Predicate;
 
 import static java.util.Collections.emptyMap;
-import static ma.vi.esql.semantic.type.Types.VoidType;
+import static ma.vi.esql.semantic.type.Types.UnknownType;
 import static org.apache.commons.lang3.StringUtils.repeat;
 
 /**
@@ -382,6 +383,23 @@ public class Esql<V, R> implements Copy<Esql<V, R>>, Translatable<R> {
     }
   }
 
+  public <T extends Esql<?, ?>> T find(Predicate<Esql<?, ?>> predicate) {
+    T1<T> found = new T1<>(null);
+    forEach((e, path) -> {
+      if (predicate.test(e)) {
+        found.a = (T)e;
+        return false;
+      }
+      return true;
+    } , null);
+    return found.a;
+  }
+
+  public <T extends Esql<?, ?>> T find(Class<T> cls) {
+    return find(e -> e.getClass().equals(cls));
+  }
+
+
   public <T extends Esql<V, R>> T map(BiFunction<Esql<?, ?>, EsqlPath, Esql<?, ?>> mapper) {
     return map(mapper, null);
   }
@@ -482,12 +500,12 @@ public class Esql<V, R> implements Copy<Esql<V, R>>, Translatable<R> {
   }
 
   /**
-   * The type of expressions produced when the statement is executed.
-   * Default is the {@link Type#Void} type representing the case that
-   * the expression does not produce anything.
+   * The type of expressions produced when the statement is executed. Default is
+   * the {@link ma.vi.esql.semantic.type.Types#UnknownType} type representing the
+   * case that the expression does not produce anything.
    */
-  public Type type(EsqlPath path) {
-    return VoidType;
+  public Type computeType(EsqlPath path) {
+    return UnknownType;
   }
 
   @Override

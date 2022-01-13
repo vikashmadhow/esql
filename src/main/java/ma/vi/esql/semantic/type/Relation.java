@@ -6,6 +6,8 @@ package ma.vi.esql.semantic.type;
 
 import ma.vi.base.lang.NotFoundException;
 import ma.vi.base.tuple.T2;
+import ma.vi.esql.semantic.scope.Scope;
+import ma.vi.esql.semantic.scope.Symbol;
 import ma.vi.esql.syntax.expression.ColumnRef;
 import ma.vi.esql.syntax.query.Column;
 
@@ -17,7 +19,7 @@ import java.util.Set;
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public abstract class Relation extends AbstractType {
+public abstract class Relation extends AbstractType implements Symbol {
   /**
    * Relation type.
    */

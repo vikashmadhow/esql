@@ -145,7 +145,7 @@ public class SqlServerTranslator extends AbstractTranslator {
 //                       .map(e -> e.translate(target))
 //                       .collect(joining(", "));
 //      }
-      return new QueryTranslation(query,
+      return new QueryTranslation(select, query,
                                   q.columns(),
                                   q.resultAttributeIndices(),
                                   q.resultAttributes());
@@ -201,6 +201,7 @@ public class SqlServerTranslator extends AbstractTranslator {
                 select.context,
                 column.name(),
                 remapped,
+                column.type(),
                 column.metadata()
             ));
           } else {
@@ -217,6 +218,7 @@ public class SqlServerTranslator extends AbstractTranslator {
                 select.context,
                 alias,
                 colExpr,
+                column.type(),
                 column.metadata()
             ));
             ColumnRef outerCol = new ColumnRef(select.context, innerSelectAlias, alias);
@@ -224,6 +226,7 @@ public class SqlServerTranslator extends AbstractTranslator {
                 select.context,
                 column.name(),
                 outerCol,
+                column.type(),
                 column.metadata()
             ));
             if (groups.contains(colExpr)) {
@@ -322,7 +325,7 @@ public class SqlServerTranslator extends AbstractTranslator {
           }
           st.append(" fetch next ").append(select.limit().translate(target(), path.add(select.limit()), parameters)).append(" rows only");
         }
-        return new QueryTranslation(st.toString(),
+        return new QueryTranslation(select, st.toString(),
                                     q.columns(),
                                     q.resultAttributeIndices(),
                                     q.resultAttributes());
@@ -353,9 +356,9 @@ public class SqlServerTranslator extends AbstractTranslator {
       st.append(" where ").append(update.where().translate(target(), path.add(update.where()), parameters));
     }
     if (q == null) {
-      return new QueryTranslation(st.toString(), emptyList(), emptyList(), emptyMap());
+      return new QueryTranslation(update, st.toString(), emptyList(), emptyList(), emptyMap());
     } else {
-      return new QueryTranslation(st.toString(),
+      return new QueryTranslation(update, st.toString(),
                                   q.columns(),
                                   q.resultAttributeIndices(),
                                   q.resultAttributes());
@@ -379,9 +382,9 @@ public class SqlServerTranslator extends AbstractTranslator {
       st.append(" where ").append(delete.where().translate(target(), path.add(delete.where()), parameters));
     }
     if (q == null) {
-      return new QueryTranslation(st.toString(), emptyList(), emptyList(), emptyMap());
+      return new QueryTranslation(delete, st.toString(), emptyList(), emptyList(), emptyMap());
     } else {
-      return new QueryTranslation(st.toString(),
+      return new QueryTranslation(delete, st.toString(),
                                   q.columns(),
                                   q.resultAttributeIndices(),
                                   q.resultAttributes());
@@ -427,13 +430,13 @@ public class SqlServerTranslator extends AbstractTranslator {
       params.put("addAttributes", false);
       st.append(' ').append(insert.select().translate(target(),
                                                       path.add(insert.select()),
-                                                      params).statement());
+                                                      params).translation());
     }
 
     if (q == null) {
-      return new QueryTranslation(st.toString(), emptyList(), emptyList(), emptyMap());
+      return new QueryTranslation(insert, st.toString(), emptyList(), emptyList(), emptyMap());
     } else {
-      return new QueryTranslation(st.toString(),
+      return new QueryTranslation(insert, st.toString(),
                                   q.columns(),
                                   q.resultAttributeIndices(),
                                   q.resultAttributes());

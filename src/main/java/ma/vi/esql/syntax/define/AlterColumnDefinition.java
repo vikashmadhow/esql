@@ -66,7 +66,7 @@ public class AlterColumnDefinition extends Define {
   @Override
   protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
     return (toName() == null ? "" : toName() + ' ')
-         + (toType() == null ? "" : type(path.add(this)).translate(target, path, parameters) + ' ')
+         + (toType() == null ? "" : computeType(path.add(this)).translate(target, path, parameters) + ' ')
          + (setNotNull() ? "null " : "")
          + (dropNotNull() ? "not null " : "")
          + (setDefault() != null ? "default " + setDefault().translate(target, path.add(setDefault()), parameters) + ' ' : "")

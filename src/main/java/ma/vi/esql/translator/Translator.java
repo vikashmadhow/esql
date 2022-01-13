@@ -13,10 +13,13 @@ import static ma.vi.esql.syntax.Translatable.Target.ESQL;
 /**
  * <p>
  * A translator knows how to translate (some) ESQL nodes to certain targets.
- * Translators are useful to combine related translation logic in a single class;
- * for instance, translation logic for `select`, `update`, `delete` and `insert`
- * statements have certain commonalities which can be easier to maintain if gathered
- * in a single translator class.
+ * Translators are useful to separate translation logic by targets (instead of
+ * combining all the targets into the single translate function and using `if`s
+ * to select the specific target branch) and, secondarily, combine related
+ * translation logic in a single class; for instance, translation logic for
+ * `select`, `update`, `delete` and `insert` statements have certain commonalities
+ * which can be easier to maintain if gathered in a single translator class for
+ * a specific target.
  * </p>
  *
  * <p>

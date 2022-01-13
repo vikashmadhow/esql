@@ -66,11 +66,11 @@ public class Attributes {
    */
   public static final String INITIAL_VALUE = "initial_value";
 
+  public static final String ID = "_id";
+
   /**
    * Contains the type of attribute.
    */
-  public static final String ID = "id";
-
   public static final String TYPE = "type";
 
   /**
@@ -384,7 +384,6 @@ public class Attributes {
 
 // Excel report formatting
 ////////////////////////////////////////////////////////
-
 
 // fonts
 // export const FONT_NAME      = "font_name";

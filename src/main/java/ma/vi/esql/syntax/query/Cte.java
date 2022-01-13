@@ -102,9 +102,9 @@ public class Cte extends QueryUpdate {
    * part of.
    */
   @Override
-  public Selection type(EsqlPath path) {
+  public Selection computeType(EsqlPath path) {
     if (type == null) {
-      type = query().type(path.add(query()));
+      type = query().computeType(path.add(query()));
       type.name(name());
 
       /*
@@ -121,7 +121,7 @@ public class Cte extends QueryUpdate {
         List<Column> typeFields = new ArrayList<>();
         for (int i = 0; i < fields.size(); i++) {
           Column col = typeCols.get(i).b();
-          Type type = col.type(path.add(col));
+          Type type = col.computeType(path.add(col));
           typeFields.add(col.type(type)
                             .expression(new ColumnRef(context, name(), fields.get(i)))
                             .name(fields.get(i)));
@@ -150,8 +150,8 @@ public class Cte extends QueryUpdate {
                 : fields().stream()
                           .map(f -> '"' + f + '"')
                           .collect(joining(", ", "(", ")")))
-             + " as (" + q.statement() + ')';
-    return new QueryTranslation(s,
+             + " as (" + q.translation() + ')';
+    return new QueryTranslation(this, s,
                                 q.columns(),
                                 q.resultAttributeIndices(),
                                 q.resultAttributes());

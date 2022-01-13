@@ -6,9 +6,11 @@ package ma.vi.esql.builder;
 
 import ma.vi.base.lang.Builder;
 import ma.vi.esql.syntax.Context;
+import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.Parser;
 import ma.vi.esql.syntax.define.Attribute;
 import ma.vi.esql.syntax.define.Metadata;
+import ma.vi.esql.syntax.expression.ColumnRef;
 import ma.vi.esql.syntax.expression.Expression;
 import ma.vi.esql.syntax.modify.Insert;
 import ma.vi.esql.syntax.modify.InsertRow;
@@ -22,6 +24,7 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
+import static ma.vi.esql.semantic.type.Types.UnknownType;
 
 /**
  * A builder for directly constructing insert statements.
@@ -97,10 +100,12 @@ public class InsertBuilder implements Builder<Insert> {
   }
 
   public InsertBuilder returning(Expression<?, String> expression, String alias, Attr... metadata) {
+    ColumnRef ref = expression.find(ColumnRef.class);
     this.returnColumns.add(
       new Column(context,
                  alias,
                  expression,
+                 ref == null ? expression.computeType(new EsqlPath(expression)) : UnknownType,
                  metadata.length == 0
                    ? null
                    : new Metadata(context,

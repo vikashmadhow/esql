@@ -7,6 +7,7 @@ package ma.vi.esql;
 import ma.vi.esql.database.Database;
 import ma.vi.esql.database.Structure;
 import ma.vi.esql.semantic.type.BaseRelation;
+import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.EsqlTransformer;
 import ma.vi.esql.syntax.Parser;
@@ -80,6 +81,7 @@ public class TestDatabase implements Database {
               new Column(
                   context, null,
                   parser.parseExpression("a"),
+                  Types.IntType,
                   new Metadata(
                       context,
                       new ArrayList<>(Arrays.asList(
@@ -93,6 +95,7 @@ public class TestDatabase implements Database {
               new Column(
                   context, null,
                   parser.parseExpression("b"),
+                  Types.IntType,
                   new Metadata(
                       context,
                       new ArrayList<>(Arrays.asList(
@@ -104,6 +107,7 @@ public class TestDatabase implements Database {
               new Column(
                   context, "c",
                   parser.parseExpression("a+b"),
+                  Types.IntType,
                   new Metadata(
                       context,
                       new ArrayList<>(Arrays.asList(
@@ -117,6 +121,7 @@ public class TestDatabase implements Database {
               new Column(
                   context, "d",
                   parser.parseExpression("b+c"),
+                  Types.IntType,
                   new Metadata(
                       context,
                       new ArrayList<>(Arrays.asList(
@@ -128,6 +133,7 @@ public class TestDatabase implements Database {
               new Column(
                   context, null,
                   parser.parseExpression("e"),
+                  Types.IntType,
                   new Metadata(
                       context,
                       new ArrayList<>(Arrays.asList(
@@ -139,6 +145,7 @@ public class TestDatabase implements Database {
               new Column(
                   context, "f",
                   parser.parseExpression("from S select max(a)"),
+                  Types.IntType,
                   new Metadata(
                       context,
                       new ArrayList<>(Arrays.asList(
@@ -150,6 +157,7 @@ public class TestDatabase implements Database {
               new Column(
                   context, "g",
                   parser.parseExpression("from S select distinct c where d>5"),
+                  Types.IntType,
                   new Metadata(
                       context,
                       new ArrayList<>(Arrays.asList(
@@ -161,6 +169,7 @@ public class TestDatabase implements Database {
               new Column(
                   context, null,
                   parser.parseExpression("h"),
+                  Types.IntType,
                   new Metadata(
                       context,
                       new ArrayList<>(Arrays.asList(
@@ -172,6 +181,7 @@ public class TestDatabase implements Database {
               new Column(
                   context, null,
                   parser.parseExpression("i"),
+                  Types.StringType,
                   new Metadata(
                       context,
                       new ArrayList<>(Collections.singletonList(
@@ -194,6 +204,7 @@ public class TestDatabase implements Database {
               new Column(
                   context, null,
                   parser.parseExpression("a"),
+                  Types.IntType,
                   new Metadata(
                       context,
                       new ArrayList<>(Arrays.asList(
@@ -207,6 +218,7 @@ public class TestDatabase implements Database {
               new Column(
                   context, null,
                   parser.parseExpression("b"),
+                  Types.IntType,
                   new Metadata(
                       context,
                       new ArrayList<>(Arrays.asList(
@@ -218,6 +230,7 @@ public class TestDatabase implements Database {
               new Column(
                   context, "c",
                   parser.parseExpression("a+b"),
+                  Types.IntType,
                   new Metadata(
                       context,
                       new ArrayList<>(Arrays.asList(
@@ -231,6 +244,7 @@ public class TestDatabase implements Database {
               new Column(
                   context, "d",
                   parser.parseExpression("b+c"),
+                  Types.IntType,
                   new Metadata(
                       context,
                       new ArrayList<>(Arrays.asList(

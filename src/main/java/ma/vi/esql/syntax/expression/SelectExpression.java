@@ -54,9 +54,9 @@ public class SelectExpression extends Expression<String, String> {
   }
 
   @Override
-  public Type type(EsqlPath path) {
+  public Type computeType(EsqlPath path) {
     Column col = select().columns().get(0);
-    return col.type(path.add(col));
+    return col.computeType(path.add(col));
   }
 
   @Override
@@ -101,7 +101,7 @@ public class SelectExpression extends Expression<String, String> {
     } else {
       Map<String, Object> params = new HashMap<>(parameters);
       params.remove("addIif");
-      return "(" + select().translate(target, path.add(select()), params).statement() + ")";
+      return "(" + select().translate(target, path.add(select()), params).translation() + ")";
     }
   }
 

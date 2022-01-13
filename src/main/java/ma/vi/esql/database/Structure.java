@@ -4,9 +4,9 @@
 
 package ma.vi.esql.database;
 
+import ma.vi.esql.function.BinFunction;
 import ma.vi.esql.function.Function;
 import ma.vi.esql.function.FunctionParameter;
-import ma.vi.esql.function.BinFunction;
 import ma.vi.esql.function.date.*;
 import ma.vi.esql.function.string.*;
 import ma.vi.esql.semantic.type.BaseRelation;
@@ -15,7 +15,6 @@ import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.Translatable;
 import ma.vi.esql.syntax.TranslationException;
-import ma.vi.esql.syntax.expression.Expression;
 import ma.vi.esql.syntax.expression.FunctionCall;
 import ma.vi.esql.syntax.macro.Bin;
 import ma.vi.esql.syntax.macro.InMonth;
@@ -26,7 +25,6 @@ import java.util.concurrent.ConcurrentMap;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.*;
-import static java.util.stream.Collectors.joining;
 import static ma.vi.esql.function.date.DatePart.Part.*;
 import static ma.vi.esql.semantic.type.Types.*;
 import static ma.vi.esql.syntax.Translatable.Target.*;
@@ -40,44 +38,6 @@ import static ma.vi.esql.syntax.Translatable.Target.*;
 public class Structure {
   public Structure(Database database) {
     this.database = database;
-
-    /*
-     * A default function used to generate a translated call for unknown functions
-     */
-    UnknownFunction = new Function("<unknown_function>", TopType, emptyList()) {
-      @Override
-      public String translate(FunctionCall call, Translatable.Target target, EsqlPath path) {
-        String functionName = call.functionName();
-        if (functionName.contains(".")) {
-          functionName = Type.dbTableName(functionName, target);
-        }
-        StringBuilder st = new StringBuilder(functionName).append('(');
-        if (call.distinct()) {
-          st.append("distinct ");
-          List<Expression<?, String>> distinctOn = call.distinctOn();
-          if (distinctOn != null && !distinctOn.isEmpty()) {
-            st.append("on (")
-              .append(distinctOn.stream()
-                                .map(e -> e.translate(target, path.add(e)))
-                                .collect(joining(", ")))
-              .append(") ");
-          }
-        }
-        List<Expression<?, ?>> arguments = call.arguments();
-        if (arguments != null) {
-          boolean first = true;
-          for (Expression<?, ?> e: arguments) {
-            if (first) {
-              first = false;
-            } else {
-              st.append(", ");
-            }
-            st.append(e.translate(target, path.add(e)));
-          }
-        }
-        return st.append(')').toString();
-      }
-    };
 
     // existence
     /////////////////////////////////////
@@ -475,12 +435,22 @@ public class Structure {
     sequences.put(sequence.name(), sequence);
   }
 
-  public final Database database;
-
   /**
-   * A special default function used to generate a translated call.
+   * A special function used to generate a translated call when the invoked
+   * function name does not match any known functions in the structure.
    */
-  public final Function UnknownFunction;
+  public static final Function UnknownFunction = new Function("___unknown_function", TopType, emptyList()) {
+    @Override
+    public String translatedFunctionName(FunctionCall call, Translatable.Target target, EsqlPath path) {
+      String functionName = call.functionName();
+      if (functionName.contains(".")) {
+        functionName = Type.dbTableName(functionName, target);
+      }
+      return functionName;
+    }
+  };
+
+  public final Database database;
 
   private final ConcurrentMap<String, Function> functions = new ConcurrentHashMap<>();
 

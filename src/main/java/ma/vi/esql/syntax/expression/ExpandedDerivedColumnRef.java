@@ -29,7 +29,7 @@ public class ExpandedDerivedColumnRef extends Expression<String, String> {
     super(context, "ExpandedDerivedColumnRef",
         T2.of("qualifier", new Esql<>(context, qualifier)),
         T2.of("name", new Esql<>(context, name)),
-        T2.of("expansion",expansion));
+        T2.of("expansion", expansion));
   }
 
   public ExpandedDerivedColumnRef(ExpandedDerivedColumnRef other) {
@@ -57,8 +57,8 @@ public class ExpandedDerivedColumnRef extends Expression<String, String> {
   }
 
   @Override
-  public Type type(EsqlPath path) {
-    return expansion().type(path.add(expansion()));
+  public Type computeType(EsqlPath path) {
+    return expansion().computeType(path.add(expansion()));
   }
 
   @Override

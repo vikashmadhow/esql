@@ -54,11 +54,11 @@ public class JsonArrayLiteral extends Literal<List<Literal<?>>> {
   }
 
   @Override
-  public Type type(EsqlPath path) {
+  public Type computeType(EsqlPath path) {
     /*
      * The database should treat this as an opaque string.
      */
-    return Types.StringType;
+    return Types.JsonType;
   }
 
   @Override

@@ -103,12 +103,13 @@ public class CompositeSelects extends Select {
       params.put("addAttributes", parameters.getOrDefault("addAttributes", true));
       params.put("optimiseAttributesLoading", false);
       QueryTranslation trans = select.translate(target, path.add(select), params);
-      st.append(trans.statement());
+      st.append(trans.translation());
       if (q == null) {
         q = trans;
       }
     }
-    return new QueryTranslation(st.toString(),
+    return new QueryTranslation(this,
+                                st.toString(),
                                 q.columns(),
                                 q.resultAttributeIndices(),
                                 q.resultAttributes());

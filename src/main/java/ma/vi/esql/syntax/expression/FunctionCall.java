@@ -9,10 +9,7 @@ import ma.vi.esql.database.Structure;
 import ma.vi.esql.function.Function;
 import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.semantic.type.Types;
-import ma.vi.esql.syntax.Context;
-import ma.vi.esql.syntax.Esql;
-import ma.vi.esql.syntax.EsqlPath;
-import ma.vi.esql.syntax.Macro;
+import ma.vi.esql.syntax.*;
 import ma.vi.esql.syntax.query.Order;
 
 import java.util.List;
@@ -26,7 +23,7 @@ import static ma.vi.base.tuple.T2.of;
  *
  * @author vikash.madhow@gmail.com
  */
-public class FunctionCall extends Expression<String, String> implements Macro {
+public class FunctionCall extends Expression<String, String> implements TypedMacro {
   public FunctionCall(Context                     context,
                       String                      functionName,
                       boolean                     distinct,
@@ -78,17 +75,17 @@ public class FunctionCall extends Expression<String, String> implements Macro {
   }
 
   @Override
-  public Type type(EsqlPath path) {
+  public Type computeType(EsqlPath path) {
     Type type = Types.TopType;
     List<Expression<?, ?>> arguments = arguments();
     Function function = context.structure.function(functionName());
     if (function != null) {
       type = function.returnType;
       if (type.equals(Types.AsParameterType) && !arguments.isEmpty()) {
-        type = arguments.get(0).type(path.add(arguments.get(0)));
+        type = arguments.get(0).computeType(path.add(arguments.get(0)));
 
       } else if (type.equals(Types.AsPromotedNumericParameterType) && !arguments.isEmpty()) {
-        type = arguments.get(0).type(path.add(arguments.get(0))).promote();
+        type = arguments.get(0).computeType(path.add(arguments.get(0))).promote();
       }
     }
     return type;
@@ -111,7 +108,7 @@ public class FunctionCall extends Expression<String, String> implements Macro {
     Structure s = context.structure;
     Function function = s.function(functionName);
     if (function == null) {
-      function = s.UnknownFunction;
+      function = Structure.UnknownFunction;
     }
     StringBuilder translation = new StringBuilder(function.translate(this, target, path));
 

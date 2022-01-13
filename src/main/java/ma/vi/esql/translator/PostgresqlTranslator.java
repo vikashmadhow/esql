@@ -73,7 +73,7 @@ public class PostgresqlTranslator extends AbstractTranslator {
     if (select.limit() != null) {
       st.append(" limit ").append(select.limit().translate(target(), path.add(select.limit()), parameters));
     }
-    return new QueryTranslation(st.toString(),
+    return new QueryTranslation(select, st.toString(),
                                 q.columns(),
                                 q.resultAttributeIndices(),
                                 q.resultAttributes());
@@ -95,9 +95,9 @@ public class PostgresqlTranslator extends AbstractTranslator {
         q = update.constructResult(st, target(), path, null, parameters);
       }
       if (q == null) {
-        return new QueryTranslation(st.toString(), emptyList(), emptyList(), emptyMap());
+        return new QueryTranslation(update, st.toString(), emptyList(), emptyList(), emptyMap());
       } else {
-        return new QueryTranslation(st.toString(),
+        return new QueryTranslation(update, st.toString(),
                                     q.columns(),
                                     q.resultAttributeIndices(),
                                     q.resultAttributes());
@@ -190,9 +190,9 @@ public class PostgresqlTranslator extends AbstractTranslator {
         q = update.constructResult(st, target(), path, null, parameters);
       }
       if (q == null) {
-        return new QueryTranslation(st.toString(), emptyList(), emptyList(), emptyMap());
+        return new QueryTranslation(update, st.toString(), emptyList(), emptyList(), emptyMap());
       } else {
-        return new QueryTranslation(st.toString(),
+        return new QueryTranslation(update, st.toString(),
                                     q.columns(),
                                     q.resultAttributeIndices(),
                                     q.resultAttributes());
@@ -276,12 +276,12 @@ public class PostgresqlTranslator extends AbstractTranslator {
     if (delete.columns() != null && !delete.columns().isEmpty()) {
       st.append(" returning ");
       QueryTranslation q = delete.constructResult(st, target(), path, null, parameters);
-      return new QueryTranslation(st.toString(),
+      return new QueryTranslation(delete, st.toString(),
                                   q.columns(),
                                   q.resultAttributeIndices(),
                                   q.resultAttributes());
     } else {
-      return new QueryTranslation(st.toString(), emptyList(), emptyList(), emptyMap());
+      return new QueryTranslation(delete, st.toString(), emptyList(), emptyList(), emptyMap());
     }
   }
 
@@ -314,7 +314,7 @@ public class PostgresqlTranslator extends AbstractTranslator {
     } else {
       st.append(' ').append(insert.select().translate(target(),
                                                       path.add(insert.select()),
-                                                      Map.of("addAttributes", false)).statement());
+                                                      Map.of("addAttributes", false)).translation());
     }
 
     QueryTranslation q = null;
@@ -324,9 +324,9 @@ public class PostgresqlTranslator extends AbstractTranslator {
     }
 
     if (q == null) {
-      return new QueryTranslation(st.toString(), emptyList(), emptyList(), emptyMap());
+      return new QueryTranslation(insert, st.toString(), emptyList(), emptyList(), emptyMap());
     } else {
-      return new QueryTranslation(st.toString(),
+      return new QueryTranslation(insert, st.toString(),
                                   q.columns(),
                                   q.resultAttributeIndices(),
                                   q.resultAttributes());

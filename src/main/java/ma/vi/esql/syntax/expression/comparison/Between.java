@@ -60,7 +60,7 @@ public class Between extends Expression<String, String> {
   }
 
   @Override
-  public Type type(EsqlPath path) {
+  public Type computeType(EsqlPath path) {
     return Types.BoolType;
   }
 

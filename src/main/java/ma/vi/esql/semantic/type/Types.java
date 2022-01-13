@@ -6,6 +6,7 @@ package ma.vi.esql.semantic.type;
 
 import ma.vi.base.lang.NotFoundException;
 import ma.vi.base.tuple.T2;
+import ma.vi.esql.syntax.Macro;
 import ma.vi.esql.syntax.Translatable;
 import ma.vi.esql.syntax.query.Column;
 
@@ -129,25 +130,25 @@ public class Types {
   }
 
   /*
-  ESQL TYPE       // POSTGRESQL TYPE      SQL SERVER TYPE
-  : 'byte'        // tinyint              tinyint
-  | 'short'       // smallint             smallint
-  | 'int'         // integer              int
-  | 'long'        // bigint               bigint
-  | 'float'       // real                 real
-  | 'double'      // double precision     float
-  | 'money'       // money                money
-  | 'bool'        // boolean              bit
-  | 'char'        // char(1)              char(1)
-  | 'string'      // text                 varchar(8000)
-  | 'text'        // text                 varchar(max)
-  | 'bytes'       // bytea                varbinary(max)
-  | 'date'        // date                 date
-  | 'time'        // time                 time
-  | 'datetime'    // timestamp            datetime2
-  | 'interval'    // interval             varchar(200)     -- No interval type in SQL Server, simulated
-  | 'uuid'        // uuid                 uniqueidentifier
-  | 'json'        // jsonb                varchar(max)
+    ESQL TYPE       // POSTGRESQL TYPE      SQL SERVER TYPE
+    : 'byte'        // tinyint              tinyint
+    | 'short'       // smallint             smallint
+    | 'int'         // integer              int
+    | 'long'        // bigint               bigint
+    | 'float'       // real                 real
+    | 'double'      // double precision     float
+    | 'money'       // money                money
+    | 'bool'        // boolean              bit
+    | 'char'        // char(1)              char(1)
+    | 'string'      // text                 varchar(8000)
+    | 'text'        // text                 varchar(max)
+    | 'bytes'       // bytea                varbinary(max)
+    | 'date'        // date                 date
+    | 'time'        // time                 time
+    | 'datetime'    // timestamp            datetime2
+    | 'interval'    // interval             varchar(200)     -- No interval type in SQL Server, simulated
+    | 'uuid'        // uuid                 uniqueidentifier
+    | 'json'        // jsonb                varchar(max)
    */
   private static final Map<String, String> sqlServerTypeMapping = new HashMap<>();
   private static final Map<String, String> postgresqlTypeMapping = new HashMap<>();
@@ -170,7 +171,7 @@ public class Types {
    * A basetype whose isAbstract() method returns true. This is the class of
    * special types such as NullType and TopType.
    */
-  private static final class SpecialBaseType extends BaseType {
+  private static class SpecialBaseType extends BaseType {
     public SpecialBaseType(String name, int size, boolean integral, Map<Target, String> translations) {
       super(name, size, integral, translations);
     }
@@ -452,7 +453,7 @@ public class Types {
     esqlTypes.put("interval",   IntervalType);
     esqlTypes.put("uuid",       UuidType);
     esqlTypes.put("json",       JsonType);
-    esqlTypes.put(UNKNOWN_TYPE, JsonType);
+    esqlTypes.put(UNKNOWN_TYPE, UnknownType);
 
     /*
      * abstract numeric types

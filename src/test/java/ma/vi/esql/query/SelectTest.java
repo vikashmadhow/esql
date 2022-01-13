@@ -54,9 +54,8 @@ public class SelectTest extends DataTest {
                                         .build(),
                                   select);
 
-//                     printResult(con.exec(select), 20, true);
-
                      Result rs = con.exec(select);
+//                     printResult(rs, 20, true);
                      rs.next();
                      ResultColumn<Integer> c1 = rs.get(1);
                      ResultColumn<Integer> c2 = rs.get(2);
@@ -98,17 +97,30 @@ public class SelectTest extends DataTest {
                                              SELECT);
 
                      Result rs = con.exec(select);
-                     printResult(rs, 30, true);
+                     // printResult(rs, 30, true);
+                     rs.next();
+                     ResultColumn<Integer> c1 = rs.get(1);
+                     ResultColumn<Integer> c2 = rs.get(2);
+                     assertEquals(1,     c1.value());
+                     assertEquals(false, c1.metadata().get("m1"));
+                     assertEquals(10L,   c1.metadata().get("m2"));
+                     assertEquals(true,  c1.metadata().get("m3"));
+                     assertEquals(true,  c1.metadata().get("required"));
+                     assertEquals(false, c1.metadata().get("mx"));
 
-//                     Result rs = con.exec(select);
-//                     rs.next();
-//                     ResultColumn<Integer> c1 = rs.get(1);
-//                     ResultColumn<Integer> c2 = rs.get(2);
-//                     assertEquals(1, c1.value());
-//                     assertEquals(2, c2.value());
-//
-//                     rs.next(); assertEquals(6, (Integer)rs.value(1));
-//                                assertEquals(7, (Integer)rs.value(2));
+                     assertEquals(2,     c2.value());
+                     assertEquals(false, c2.metadata().get("m1"));
+
+                     rs.next(); c1 = rs.get(1); c2 = rs.get(2);
+                     assertEquals(6,     c1.value());
+                     assertEquals(true,  c1.metadata().get("m1"));
+                     assertEquals(10L,   c1.metadata().get("m2"));
+                     assertEquals(true,  c1.metadata().get("m3"));
+                     assertEquals(false, c1.metadata().get("required"));
+                     assertEquals(true,  c1.metadata().get("mx"));
+
+                     assertEquals(7,     c2.value());
+                     assertEquals(false, c2.metadata().get("m1"));
                    }
                  }));
   }
@@ -218,6 +230,30 @@ public class SelectTest extends DataTest {
                                 assertEquals(3,  (Integer)rs.value(2));
                      rs.next(); assertEquals(6,  (Integer)rs.value(1));
                                 assertEquals(13, (Integer)rs.value(2));
+                   }
+                 }));
+  }
+
+  @TestFactory
+  Stream<DynamicTest> selectAllFromSelectAll() {
+    return Stream.of(databases)
+                 .map(db -> dynamicTest(db.target().toString(), () -> {
+                   System.out.println(db.target());
+                   Parser p = new Parser(db.structure());
+                   try (EsqlConnection con = db.esql(db.pooledConnection())) {
+                     con.exec("delete t from t:a.b.T");
+                     con.exec("delete s from s:S");
+                     con.exec("insert into S(_id, a, b, e, h, j) values "
+                            + "(newid(), 1, 2, true, text['Four', 'Quatre'], int[1, 2, 3]),"
+                            + "(newid(), 6, 7, false, text['Nine', 'Neuf', 'X'], int[5, 6, 7, 8])");
+
+                     Select select = p.parse("select * from x:(select * from S) where a >= 3", SELECT);
+                     Result rs = con.exec(select);
+                     printResult(rs, 20);
+//                     rs.next(); assertEquals(1,  (Integer)rs.value(1));
+//                                assertEquals(3,  (Integer)rs.value(2));
+//                     rs.next(); assertEquals(6,  (Integer)rs.value(1));
+//                                assertEquals(13, (Integer)rs.value(2));
                    }
                  }));
   }

@@ -47,7 +47,7 @@ import static org.apache.commons.lang3.StringUtils.leftPad;
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public class Bin extends Function implements Macro {
+public class Bin extends Function implements TypedMacro {
   public Bin() {
     super("bin", Types.TextType,
           Arrays.asList(new FunctionParameter("val", Types.TextType),

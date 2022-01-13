@@ -48,7 +48,7 @@ public class DefaultValue extends Expression<String, String> {
   }
 
   @Override
-  public Type type(EsqlPath path) {
+  public Type computeType(EsqlPath path) {
     /*
      * The type of the default value will require analysis of the
      * context, which is not necessary for the translation. TopType

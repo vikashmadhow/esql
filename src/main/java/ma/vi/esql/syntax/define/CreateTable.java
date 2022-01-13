@@ -138,7 +138,7 @@ public class CreateTable extends Define {
       for (ColumnDefinition column: columns) {
         if (column instanceof DerivedColumnDefinition derived) {
           if (derived.type() == null && !(derived.expression() instanceof SelectExpression)) {
-            Type type = derived.expression().type(typeProxy.add(derived.expression()));
+            Type type = derived.expression().computeType(typeProxy.add(derived.expression()));
             typedCols.add(derived.type(type));
           } else {
             typedCols.add(derived);
@@ -322,7 +322,7 @@ public class CreateTable extends Define {
              * alter existing field
              */
             Column existingColumn = existing.b();
-            Type toType = !existingColumn.type(path.add(existingColumn)).equals(column.type()) ? column.type() : null;
+            Type toType = !existingColumn.computeType(path.add(existingColumn)).equals(column.type()) ? column.type() : null;
 
             boolean setNotNull = column.notNull() != null
                               && column.notNull()

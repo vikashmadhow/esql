@@ -50,10 +50,7 @@ public class Function extends AbstractType {
   }
 
   public String translate(FunctionCall call, Translatable.Target target, EsqlPath path) {
-    String functionName = translations == null || !translations.containsKey(target) ? name : translations.get(target);
-    if (functionName.contains(".")) {
-      functionName = Type.dbTableName(functionName, target);
-    }
+    String functionName = translatedFunctionName(call, target, path);
     StringBuilder st = new StringBuilder(functionName).append('(');
     if (call.distinct()) {
       st.append("distinct ");
@@ -81,6 +78,16 @@ public class Function extends AbstractType {
       }
     }
     return st.append(')').toString();
+  }
+
+  protected String translatedFunctionName(FunctionCall call, Translatable.Target target, EsqlPath path) {
+    String functionName = translations == null || !translations.containsKey(target)
+                        ? name
+                        : translations.get(target);
+    if (functionName.contains(".")) {
+      functionName = Type.dbTableName(functionName, target);
+    }
+    return functionName;
   }
 
   @Override

@@ -6,12 +6,15 @@ package ma.vi.esql.syntax.query;
 
 import ma.vi.base.lang.NotFoundException;
 import ma.vi.base.tuple.T2;
+import ma.vi.esql.database.Structure;
 import ma.vi.esql.semantic.type.AliasedRelation;
 import ma.vi.esql.semantic.type.Relation;
 import ma.vi.esql.semantic.type.Selection;
 import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.syntax.*;
+import ma.vi.esql.syntax.expression.ColumnRef;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -55,12 +58,66 @@ public class SingleTableExpr extends AbstractAliasTableExpr {
   }
 
   @Override
-  public boolean exists() {
-    return context.type(tableName()) != null;
+  public boolean exists(EsqlPath path) {
+    if (context.type(tableName()) != null) {
+      return true;
+    } else {
+      With with = path.ancestor(With.class);
+      if (with != null) {
+        for (Cte cte: with.ctes()) {
+          if (cte.name().equals(tableName())) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
   }
 
   @Override
-  public AliasedRelation type(EsqlPath path) {
+  public TableExpr named(String name) {
+    return name == null || name.equals(alias()) ? this : null;
+  }
+
+  @Override
+  public List<Column> columnList(EsqlPath path) {
+    String table = tableName();
+    Structure structure = context.structure;
+    if (structure.relationExists(table)) {
+      return structure.relation(table)
+                      .columns().stream()
+                      .map(c -> new Column(c.b.context,
+                                           c.b.name(),
+                                           ColumnRef.qualify(c.b.expression(), alias()),
+                                           c.b.type(),
+                                           ColumnRef.qualify(c.b.metadata(), alias())))
+                      .toList();
+    } else {
+      /*
+       * Check CTE with this table name if in a 'with' query.
+       */
+      With with = path.ancestor(With.class);
+      if (with != null) {
+        for (Cte cte: with.ctes()) {
+          if (cte.name().equals(table)) {
+            if (cte.fields() == null || cte.fields().isEmpty()) {
+              return cte.columns();
+            } else {
+              return cte.columns().stream()
+                        .map(c -> new Column(c.context, c.name(),
+                                             new ColumnRef(c.context, table, c.name()),
+                                             c.type(), null))
+                        .toList();
+            }
+          }
+        }
+      }
+    }
+    throw new NotFoundException(table + " is not a known relation (not a base relation or defined in this query)");
+  }
+
+  @Override
+  public AliasedRelation computeType(EsqlPath path) {
     if (type == null) {
       String table = tableName();
       Type t = context.type(table);
@@ -72,8 +129,8 @@ public class SingleTableExpr extends AbstractAliasTableExpr {
         With with = path.ancestor(With.class);
         if (with != null) {
           for (Cte cte: with.ctes()) {
-            if (cte.name().equals(tableName())) {
-              cte.type(path.add(cte));
+            if (cte.name().equals(table)) {
+              cte.computeType(path.add(cte));
             }
           }
         }
@@ -83,7 +140,7 @@ public class SingleTableExpr extends AbstractAliasTableExpr {
         throw new NotFoundException(table + " is not a known relation in this query");
       }
       if (!(t instanceof Relation)) {
-        throw new TranslationException(tableName() + " is not a Relation. It is a " + t);
+        throw new TranslationException(table + " is not a Relation. It is a " + t);
       }
       if (t instanceof AliasedRelation ar) {
         if (!ar.alias.equals(alias())) {

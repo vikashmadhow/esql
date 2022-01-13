@@ -42,7 +42,7 @@ public class UpdateTest extends DataTest {
           "update \"public\".\"S\" \"usr\" " +
               "set \"a\"=1, \"i\"='yxz' " +
               "where (\"i\" = 'xyz@yxz.com')",
-          q.statement());
+          q.translation());
       con.exec(s);
     }
   }
@@ -63,7 +63,7 @@ public class UpdateTest extends DataTest {
               "set \"a\"=1, \"i\"=N'yxz' " +
               "from \"DBO\".\"S\" \"usr\" " +
               "where (\"i\" = N'xyz@yxz.com')",
-          q.statement());
+          q.translation());
       con.exec(s);
     }
   }
@@ -92,7 +92,7 @@ public class UpdateTest extends DataTest {
                   "update \"public\".\"S\" \"usr\" " +
                   "set a=\"!!\".v1, i=\"!!\".v2 " +
                   "from \"!!\" where \"usr\".ctid=\"!!\".id",
-          q.statement());
+          q.translation());
       con.exec(s);
 
       s = p.parse("update usr_role " +
@@ -114,7 +114,7 @@ public class UpdateTest extends DataTest {
               "set a=\"!!\".v1 " +
               "from \"!!\" where \"usr_role\".ctid=\"!!\".id " +
               "returning \"usr_role\".\"s_id\" \"s_id\"",
-          q.statement());
+          q.translation());
       con.exec(s);
     }
   }

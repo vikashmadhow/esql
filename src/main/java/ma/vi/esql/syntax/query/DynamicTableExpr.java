@@ -23,7 +23,7 @@ import java.util.Map;
 import java.util.Random;
 
 import static java.util.stream.Collectors.joining;
-import static ma.vi.esql.semantic.type.Types.NullType;
+import static ma.vi.esql.semantic.type.Types.UnknownType;
 
 /**
  * Represents a dynamic table created from a list of rows:
@@ -72,16 +72,37 @@ public class DynamicTableExpr extends AbstractAliasTableExpr {
   }
 
   @Override
-  public boolean exists() {
+  public boolean exists(EsqlPath path) {
     return true;
   }
 
   @Override
-  public Selection type(EsqlPath path) {
-    if (type == null) {
-      List<Type> columnTypes = new ArrayList<>();
-      for (NameWithMetadata ignored: columns()) {
-        columnTypes.add(NullType);
+  public TableExpr named(String name) {
+    return name == null || name.equals(alias()) ? this : null;
+  }
+
+  @Override
+  public List<Column> columnList(EsqlPath path) {
+    List<Type> columnTypes = guessColumnTypes(path);
+    List<NameWithMetadata> columns = columns();
+    List<Column> relationColumns = new ArrayList<>();
+    for (int i = 0; i < columnTypes.size(); i++) {
+      NameWithMetadata column = columns.get(i);
+      Column col = new Column(context,
+                              column.name(),
+                              new ColumnRef(context, alias(), column.name()),
+                              columnTypes.get(i),
+                              ColumnRef.qualify(column.metadata(), alias()));
+      relationColumns.add(col);
+    }
+    return relationColumns;
+  }
+
+  private List<Type> guessColumnTypes(EsqlPath path) {
+    if (columnTypes == null) {
+      columnTypes = new ArrayList<>();
+      for (NameWithMetadata ignored : columns()) {
+        columnTypes.add(UnknownType);
       }
 
       /*
@@ -99,7 +120,7 @@ public class DynamicTableExpr extends AbstractAliasTableExpr {
         boolean hasAbstractTypes = false;
         List<Expression<?, String>> values = row.values();
         for (int j = 0; j < values.size(); j++) {
-          Type type = values.get(j).type(path.add(values.get(j)));
+          Type type = values.get(j).computeType(path.add(values.get(j)));
           hasAbstractTypes |= columnTypes.get(j).isAbstract() && type.isAbstract();
           if (columnTypes.get(j).isAbstract()) {
             columnTypes.set(j, type);
@@ -109,19 +130,14 @@ public class DynamicTableExpr extends AbstractAliasTableExpr {
           break;
         }
       }
+    }
+    return columnTypes;
+  }
 
-      List<NameWithMetadata> columns = columns();
-      List<Column> relationColumns = new ArrayList<>();
-      for (int i = 0; i < columnTypes.size(); i++) {
-        NameWithMetadata column = columns.get(i);
-        Column col = new Column(context,
-                                column.name(),
-                                new ColumnRef(context, null, column.name()),
-                                column.metadata());
-        col = col.type(columnTypes.get(i));
-        relationColumns.add(col);
-      }
-      Selection selection = new Selection(relationColumns,
+  @Override
+  public Selection computeType(EsqlPath path) {
+    if (type == null) {
+      Selection selection = new Selection(columnList(path),
                                           metadata() != null
                                           ? new ArrayList<>(metadata().attributes().values())
                                           : null, this, alias());
@@ -137,7 +153,9 @@ public class DynamicTableExpr extends AbstractAliasTableExpr {
   }
 
   @Override
-  protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
+  protected String trans(Target target,
+                         EsqlPath path,
+                         Map<String, Object> parameters) {
     return "(values "
          + rows().stream()
                  .map(r -> r.translate(target, path.add(r), parameters))
@@ -151,10 +169,10 @@ public class DynamicTableExpr extends AbstractAliasTableExpr {
 
   @Override
   public String toString() {
-    return alias()
-         + ":(" + columns().stream()
-                           .map(NameWithMetadata::name)
-                           .collect(joining(", "))
+    return alias() + ":("
+         + columns().stream()
+                    .map(NameWithMetadata::name)
+                    .collect(joining(", "))
          + ")";
   }
 
@@ -182,6 +200,8 @@ public class DynamicTableExpr extends AbstractAliasTableExpr {
   public Metadata metadata() {
     return childValue("metadata");
   }
+
+  private transient volatile List<Type> columnTypes;
 
   private transient volatile Selection type;
 }

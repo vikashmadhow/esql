@@ -128,7 +128,7 @@ public class Select extends QueryUpdate {
       if (e instanceof ColumnRef ref) {
         if (!addedInnerCols.containsKey(ref.qualifiedName())) {
           String alias = Strings.makeUnique(new HashSet<>(addedInnerCols.values()), ref.name());
-          innerCols.add(new Column(context, alias, ref.copy(), null));
+          innerCols.add(new Column(context, alias, ref.copy(), ref.type(), null));
           addedInnerCols.put(ref.qualifiedName(), alias);
         }
       }

@@ -143,9 +143,9 @@ program
 
 /**
  * A semi-colon can also be interpreted as a silent no-operation (noop)
- * statement. Noops can be used to disable certain part of a program
- * dynamically (by replacing the statement with a noop) without having
- * to remove the statement which can be harder in some cases.
+ * translation. Noops can be used to disable certain part of a program
+ * dynamically (by replacing the translation with a noop) without having
+ * to remove the translation which can be harder in some cases.
  */
 noop
     : ';'
@@ -155,7 +155,7 @@ noop
  * ESQL statements can be divided into two groups: statements for defining
  * and altering database structures (such as tables and columns) and those
  * for querying and manipulating the data in those structures (select, insert, etc.).
- * select is the only statement for querying data while there are 3 different
+ * select is the only translation for querying data while there are 3 different
  * statements for modifying data (insert, update and delete) which are grouped
  * into modify statements.
  */
@@ -184,13 +184,13 @@ queryUpdate
     ;
 
 /**
- * A `select` statement extracts rows with a set columns (and metadata)
+ * A `select` translation extracts rows with a set columns (and metadata)
  * from a one or more joined tables and optionally subject to filters,
  * groupings, limits and orderings.
  *
  * Selects can also be combined with set operators (union, intersection, etc.)
  * or through `with` statements which creates temporary selects that can
- * be used to compose more complex `selects` in the same statement.
+ * be used to compose more complex `selects` in the same translation.
  */
 select
     : 'select'  (metadata ','?)? distinct? explicit? columns
@@ -211,7 +211,7 @@ select
  * Metadata in ESQL is a comma-separated list of attributes surrounded by curly
  * parentheses ({}) with each attribute consisting of a name-expression pair.
  * Metadata can beattached to a table and to its columns. For instance this is
- * a `create table` statement which defines metadata attributes on both the table
+ * a `create table` translation which defines metadata attributes on both the table
  * and its columns:
  *
  *      create table com.example.S(
@@ -310,7 +310,7 @@ columns
     ;
 
 /**
- * A column in a select statement consists of a expression which will be executed
+ * A column in a select translation consists of a expression which will be executed
  * in the context of the tables in the `from` clause of the select. The column can
  * be given an alias which will be the name of that column in the result of the query.
  * Metadata can also be associated to the column and will override any metadata
@@ -413,7 +413,7 @@ qualifiedName
  * 1. A single table optionally aliased. If an alias is not provided, a default one with the
  *    the table name (without schema) will be used. I.e. `a.b.X` is equivalent to `X:a.b.X`.
  *
- * 2. An aliased select statement: E.g. `select t.x, t.y from t:(select x, y, z from T)`.
+ * 2. An aliased select translation: E.g. `select t.x, t.y from t:(select x, y, z from T)`.
  *
  * 3. A dynamic table expression which creates a named temporary table with rows as part of
  *    the query and allow selection from it. E.g.:
@@ -476,7 +476,7 @@ groupByList
     ;
 
 /**
- * The `order by` clause of a `select` statement is a comma-separated list
+ * The `order by` clause of a `select` translation is a comma-separated list
  * or expression by which the select must order its result.
  */
 orderByList
@@ -2061,28 +2061,28 @@ This is only applicable to the client-side.
 `fn test() <statement>` is translated to:
 ```javascript
 test: function() {
-    // <translated statement>
+    // <translated translation>
 }
 ```
 
 `fn test(a, b) <statement>` is translated to:
 ```javascript
 test: function(a, b) {
-    // <translated statement>
+    // <translated translation>
 }
 ```
 
 `fn test(a, b=10, c='test') <statement>` is translated to:
 ```javascript
 test: function(a, b=10, c='test') {
-    // <translated statement>
+    // <translated translation>
 }
 ```
 
 `fn test(a, b=10, c='test', ...p) <statement>` is translated to:
 ```javascript
 test: function(a, b=10, c='test', ...p) {
-    // <translated statement>
+    // <translated translation>
 }
 ```
 

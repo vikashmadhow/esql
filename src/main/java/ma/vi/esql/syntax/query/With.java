@@ -58,8 +58,8 @@ public class With extends QueryUpdate {
   }
 
   @Override
-  public Selection type(EsqlPath path) {
-    return query().type(path.add(query()));
+  public Selection computeType(EsqlPath path) {
+    return query().computeType(path.add(query()));
   }
 
   @Override
@@ -80,12 +80,12 @@ public class With extends QueryUpdate {
     for (Cte cte: ctes()) {
       if (first) { first = false; }
       else       { st.append(", "); }
-      st.append(cte.translate(target, path.add(cte), parameters).statement());
+      st.append(cte.translate(target, path.add(cte), parameters).translation());
     }
 
     QueryTranslation q = query().translate(target, path.add(query()), parameters);
-    st.append(' ').append(q.statement());
-    return new QueryTranslation(st.toString(),
+    st.append(' ').append(q.translation());
+    return new QueryTranslation(this, st.toString(),
                                 q.columns(),
                                 q.resultAttributeIndices(),
                                 q.resultAttributes());

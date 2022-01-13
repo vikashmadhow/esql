@@ -138,9 +138,18 @@ public class EsqlConnectionImpl implements EsqlConnection {
     }
 
     /*
+     * Base macro expansion where base-level changes, which does not require any
+     * type information or which are necessary for determing type information, is
+     * performed now.
+     */
+    st = expand(st, UntypedMacro.class);
+
+    // Type derivation -> scoping, symbols, etc.
+
+    /*
      * Expand macros in statement.
      */
-    st = expandMacros(st);
+    st = expand(st, TypedMacro.class);
 
     /*
      * Transform ESQL through registered transformers prior to execution.
@@ -152,11 +161,12 @@ public class EsqlConnectionImpl implements EsqlConnection {
     return esql.execute(db, con, new EsqlPath(esql));
   }
 
-  private static <T extends Esql<?, ?>> T expandMacros(T esql) {
+  private static <T extends Esql<?, ?>,
+                  M extends Macro> T expand(T esql, Class<M> macroType) {
     T expanded;
     int iteration = 0;
-    while ((expanded = (T)esql.map((e, p) -> e instanceof Macro m
-                                           ? m.expand(e, p.add(ONGOING_MACRO_EXPANSION))
+    while ((expanded = (T)esql.map((e, p) -> macroType.isAssignableFrom(e.getClass())
+                                           ? ((Macro)e).expand(e, p.add(ONGOING_MACRO_EXPANSION))
                                            : e)) != esql) {
       esql = expanded;
       iteration++;

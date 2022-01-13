@@ -50,8 +50,8 @@ public abstract class SingleSubExpression extends Expression<String, String> {
   public abstract SingleSubExpression copy(String value, T2<String, ? extends Esql<?, ?>>... children);
 
   @Override
-  public Type type(EsqlPath path) {
-    return expr().type(path.add(expr()));
+  public Type computeType(EsqlPath path) {
+    return expr().computeType(path.add(expr()));
   }
 
   public Expression<?, String> expr() {

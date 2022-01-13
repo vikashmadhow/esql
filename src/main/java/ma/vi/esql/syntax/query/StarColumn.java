@@ -21,7 +21,7 @@ import static ma.vi.esql.syntax.Translatable.Target.JSON;
  */
 public class StarColumn extends Column {
   public StarColumn(Context context, String qualifier) {
-    super(context, "_", null, null,
+    super(context, "_", null, null, null,
           T2.of("qualifier", new Esql<>(context, qualifier)));
   }
 

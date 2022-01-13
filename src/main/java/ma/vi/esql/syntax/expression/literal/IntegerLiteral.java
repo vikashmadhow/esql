@@ -48,7 +48,7 @@ public class IntegerLiteral extends BaseLiteral<Long> {
   }
 
   @Override
-  public Type type(EsqlPath path) {
+  public Type computeType(EsqlPath path) {
     return Types.LongType;
   }
 

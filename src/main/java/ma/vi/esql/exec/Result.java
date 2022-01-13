@@ -15,6 +15,7 @@ import ma.vi.esql.semantic.type.Interval;
 import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.query.AttributeIndex;
+import ma.vi.esql.syntax.query.QueryTranslation;
 import org.postgresql.util.PGInterval;
 
 import java.sql.ResultSet;
@@ -39,42 +40,33 @@ public class Result implements AutoCloseable {
    * @param db The database from which the data was loaded.
    * @param rs The underlying resultset containing the data for the query and
    *           which will be iterated over to produce the rows of this Result.
-   * @param columns The list of columns in the result. Each column is represented
-   *                as a {@link ColumnMapping} object which carries information
-   *                on the index of the column and the indices of its attributes
-   *                in the underlying resultset along with pre-computed values
-   *                for literal attributes.
-   * @param resultAttributeIndices List of result attributes which are loaded from
-   *                               the resultset. Each entry in the list consists
-   *                               of the position in the resultset of the value
-   *                               of that attribute, its name and its type.
-   * @param resultAttributes Precomputed values for literal result attributes.
+   * @param query The query translation object containing information on the source
+   *              ESQL query, its SQL translation, columns and attributes mapping.
    */
-  public Result(Database             db,
-                ResultSet            rs,
-                List<ColumnMapping>  columns,
-                List<AttributeIndex> resultAttributeIndices,
-                Map<String, Object>  resultAttributes) {
+  public Result(Database         db,
+                ResultSet        rs,
+                QueryTranslation query) {
     this.db = db;
     this.rs = rs;
-    this.columns = columns;
-    this.columnNameToIndex = columns.stream().collect(toMap(m -> m.column().name(),
-                                                            ColumnMapping::valueIndex,
-                                                            (i, j) -> i,
-                                                            LinkedHashMap::new));
-    this.resultAttributes = resultAttributes;
-    this.resultAttributeIndices = resultAttributeIndices;
+    this.query = query;
+    this.columnNameToIndex = query.columns() == null
+                           ? emptyMap()
+                           : query.columns().stream()
+                                  .collect(toMap(m -> m.column().name(),
+                                                 ColumnMapping::valueIndex,
+                                                 (i, j) -> i,
+                                                 LinkedHashMap::new));
   }
 
   /**
    * Returns the number of columns in the result.
    */
   public int columnsCount() {
-    return columns == null ? 0 : columns.size();
+    return query.columns() == null ? 0 : query.columns().size();
   }
 
   public List<ColumnMapping> columns() {
-    return unmodifiableList(columns);
+    return unmodifiableList(query.columns());
   }
 
   /**
@@ -108,7 +100,7 @@ public class Result implements AutoCloseable {
    */
   public <T> ResultColumn<T> get(int column) {
     try {
-      ColumnMapping mapping = columns.get(column - 1);
+      ColumnMapping mapping = query.columns().get(column - 1);
       if (mapping == null) {
         throw new NotFoundException("Invalid column index: " + column);
       }
@@ -159,7 +151,7 @@ public class Result implements AutoCloseable {
    * Returns the column definition at the specified index in the result.
    */
   public ColumnMapping column(int index) {
-    return columns.get(index - 1);
+    return query.columns().get(index - 1);
   }
 
   /**
@@ -254,8 +246,8 @@ public class Result implements AutoCloseable {
    */
   public Map<String, Object> resultAttributes() {
     try {
-      Map<String, Object> attributes = new HashMap<>(resultAttributes);
-      for (AttributeIndex attr: resultAttributeIndices) {
+      Map<String, Object> attributes = new HashMap<>(query.resultAttributes());
+      for (AttributeIndex attr: query.resultAttributeIndices()) {
         Object v = rs.getObject(attr.index());
         if (attr.type() == Types.BoolType && v instanceof Number) {
           /*
@@ -282,7 +274,9 @@ public class Result implements AutoCloseable {
    * A Result containing nothing, used as the return value of modifying queries
    * with no returning clause.
    */
-  public static final Result Nothing = new Result(null, null, emptyList(), emptyList(), emptyMap());
+  public static final Result Nothing = new Result(null, null,
+                                                  new QueryTranslation(null, null,
+                                                                       emptyList(), emptyList(), emptyMap()));
 
   /**
    * The database from which the data was loaded.
@@ -296,27 +290,12 @@ public class Result implements AutoCloseable {
   private final ResultSet rs;
 
   /**
-   * The list of columns in the result. Each column is represented as a
-   * {@link ColumnMapping} object which carries information on the index of the
-   * column and the indices of its attributes in the underlying resultset along
-   * with pre-computed values for literal attributes.
+   * The query that produced this result.
    */
-  private final List<ColumnMapping> columns;
+  public final QueryTranslation query;
 
   /**
    * Maps column names to their position in the underlying resultset.
    */
   private final Map<String, Integer> columnNameToIndex;
-
-  /**
-   * List of result attributes which are loaded from the resultset. Each entry
-   * in the list consists of the position in the resultset of the value of that
-   * attribute, its name and its type.
-   */
-  private final List<AttributeIndex> resultAttributeIndices;
-
-  /**
-   * Precomputed values for literal result attributes.
-   */
-  private final Map<String, Object> resultAttributes;
 }

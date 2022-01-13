@@ -49,7 +49,7 @@ public class Cast extends Expression<String, String> {
   }
 
   @Override
-  public Type type(EsqlPath path) {
+  public Type computeType(EsqlPath path) {
     return toType();
   }
 

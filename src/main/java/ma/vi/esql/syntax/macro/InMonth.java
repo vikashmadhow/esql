@@ -31,7 +31,7 @@ import static ma.vi.esql.syntax.Translatable.Target.ESQL;
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public class InMonth extends Function implements Macro {
+public class InMonth extends Function implements TypedMacro {
   public InMonth() {
     super("inmonth", Types.StringType, emptyList());
   }

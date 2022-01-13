@@ -24,6 +24,5 @@ public class AmbiguousColumnException extends RuntimeException {
     super(message);
   }
 
-  public AmbiguousColumnException() {
-  }
+  public AmbiguousColumnException() {}
 }

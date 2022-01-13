@@ -4,14 +4,10 @@
 
 package ma.vi.esql.syntax.query;
 
-import ma.vi.base.string.Strings;
 import ma.vi.base.tuple.T2;
+import ma.vi.esql.semantic.scope.Symbol;
 import ma.vi.esql.semantic.type.Type;
-import ma.vi.esql.semantic.type.Types;
-import ma.vi.esql.syntax.Context;
-import ma.vi.esql.syntax.Esql;
-import ma.vi.esql.syntax.EsqlPath;
-import ma.vi.esql.syntax.MetadataContainer;
+import ma.vi.esql.syntax.*;
 import ma.vi.esql.syntax.define.Attribute;
 import ma.vi.esql.syntax.define.ColumnDefinition;
 import ma.vi.esql.syntax.define.DerivedColumnDefinition;
@@ -19,12 +15,12 @@ import ma.vi.esql.syntax.define.Metadata;
 import ma.vi.esql.syntax.expression.ColumnRef;
 import ma.vi.esql.syntax.expression.Expression;
 import ma.vi.esql.syntax.expression.literal.BooleanLiteral;
-import ma.vi.esql.syntax.expression.literal.StringLiteral;
 
 import java.util.*;
 import java.util.stream.Stream;
 
 import static ma.vi.esql.builder.Attributes.*;
+import static ma.vi.esql.semantic.type.Types.UnknownType;
 import static ma.vi.esql.syntax.Translatable.Target.ESQL;
 
 /**
@@ -32,22 +28,24 @@ import static ma.vi.esql.syntax.Translatable.Target.ESQL;
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public class Column extends MetadataContainer<String> {
+public class Column extends MetadataContainer<String> implements TypedMacro, Symbol {
   @SafeVarargs
   public Column(Context context,
                 String name,
                 Expression<?, String> expression,
+                Type type,
                 Metadata metadata,
                 T2<String, ? extends Esql<?, ?>>... children) {
     super(context, "Column",
           Stream.concat(
             Stream.of(
               new T2[]{
-                T2.of("name", new Esql<>(context, name != null ? name
-                                                   : expression instanceof ColumnRef r ? r.name()
-                                                   : null)),
+                T2.of("name",       new Esql<>(context, name != null ? name
+                                                         : expression instanceof ColumnRef r ? r.name()
+                                                         : null)),
                 T2.of("expression", expression),
-                T2.of("metadata", addId(metadata))
+                T2.of("type",       new Esql<>(context, type)),
+                T2.of("metadata",   addId(metadata))
               }),
             Stream.of(children)).toArray(T2[]::new));
   }
@@ -87,27 +85,13 @@ public class Column extends MetadataContainer<String> {
     return metadata;
   }
 
-  /**
-   * Compute a unique name with referenced column name if provided name is null.
-   */
-  private static String autoName(Expression<?, String> expr, String name) {
-    if (name == null) {
-      if (expr instanceof ColumnRef) {
-        return ((ColumnRef)expr).name();
-      } else {
-        return "__auto_col_" + Strings.random(10);
-      }
-    }
-    return name;
-  }
-
   public static Column fromDefinition(ColumnDefinition def, EsqlPath path) {
     boolean derived = def instanceof DerivedColumnDefinition;
     DerivedColumnDefinition derivedDef = derived ? (DerivedColumnDefinition)def : null;
 
     Type columnType = def.type();
     if (columnType == null) {
-      columnType = Types.UnknownType;
+      columnType = UnknownType;
     }
     Boolean notNull = def.notNull();
     Expression<?, String> defaultExpr = def.expression();
@@ -124,14 +108,26 @@ public class Column extends MetadataContainer<String> {
       attributes.put(EXPRESSION, new Attribute(def.context, EXPRESSION, defaultExpr));
     }
 
-    attributes.put(TYPE, Attribute.from(def.context, TYPE, "'" + columnType.translate(ESQL, path) + "'"));
+    // attributes.put(TYPE, Attribute.from(def.context, TYPE, "'" + columnType.translate(ESQL, path) + "'"));
     if (notNull) {
       attributes.put(REQUIRED, Attribute.from(def.context, REQUIRED, true));
     }
     return new Column(def.context,
                       def.name(),
-                      derived ? derivedDef.expression() : new ColumnRef(def.context, null, def.name()),
+                      derived ? derivedDef.expression() : new ColumnRef(def.context, null, def.name(), columnType),
+                      columnType,
                       new Metadata(def.context, new ArrayList<>(attributes.values())));
+  }
+
+  @Override
+  public Esql<?, ?> expand(Esql<?, ?> esql, EsqlPath path) {
+    if (type() == UnknownType) {
+      Type type = expression().computeType(path.add(expression()));
+      if (type != UnknownType) {
+        return type(type);
+      }
+    }
+    return esql;
   }
 
   @Override
@@ -154,7 +150,6 @@ public class Column extends MetadataContainer<String> {
         }
         st.append('}');
       }
-
     } else {
       st.append(expression().translate(target, path.add(expression()), parameters));
       if (name() != null) {
@@ -210,26 +205,43 @@ public class Column extends MetadataContainer<String> {
     return setMetadata(EXPRESSION, expr);
   }
 
+//  @Override
+//  public Type computeType(EsqlPath path) {
+//    if (metadata() != null && metadata().attribute(TYPE) != null) {
+//      Type type = Types.typeOf((String)metadata().evaluateAttribute(TYPE));
+//      if (type == Types.UnknownType && derived()) {
+//        /*
+//         * Derived type are set to void on load. Their actual types can be
+//         * determined at this point.
+//         */
+//        type = expression().computeType(path.add(expression()));
+//      }
+//      return type;
+//    } else {
+//      return expression().computeType(path.add(expression()));
+//    }
+//  }
+
   @Override
-  public Type type(EsqlPath path) {
-    if (metadata() != null && metadata().attribute(TYPE) != null) {
-      Type type = Types.typeOf((String)metadata().evaluateAttribute(TYPE));
-      if (type == Types.VoidType && derived()) {
-        /*
-         * Derived type are set to void on load. Their actual types can be
-         * determined at this point.
-         */
-        type = expression().type(path.add(expression()));
-      }
-      return type;
-    } else {
-      return expression().type(path.add(expression()));
-    }
+  public Type computeType(EsqlPath path) {
+    return type();
+  }
+
+  @Override
+  public Type type() {
+//    return metadata() != null && metadata().attribute(TYPE) != null
+//         ? Types.typeOf((String) metadata().evaluateAttribute(TYPE))
+//         : Types.UnknownType;
+    return childValue("type");
   }
 
   public Column type(Type type) {
-    return setMetadata(TYPE, new StringLiteral(context, type.translate(ESQL)));
+    return set("type", new Esql<>(context, type));
   }
+
+//  public Column type(Type type) {
+//    return setMetadata(TYPE, new StringLiteral(context, type.translate(ESQL)));
+//  }
 
   private Column setMetadata(String name, Expression<?, String> expr) {
     List<Attribute> attributes = new ArrayList<>();
@@ -249,6 +261,9 @@ public class Column extends MetadataContainer<String> {
     if (metadata() != null && !metadata().attributes().isEmpty()) {
       st.append(' ');
       metadata()._toString(st, level, indent);
+    }
+    if (type() != UnknownType) {
+      st.append(" (").append(type()).append(')');
     }
   }
 

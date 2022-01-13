@@ -56,7 +56,7 @@ public class ComparisonOperator extends BinaryOperator {
   }
 
   @Override
-  public Type type(EsqlPath path) {
+  public Type computeType(EsqlPath path) {
     return Types.BoolType;
   }
 
