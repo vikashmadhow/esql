@@ -11,12 +11,11 @@ import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.expression.Expression;
-
-import java.util.Map;
+import org.pcollections.PMap;
 
 import static ma.vi.base.string.Escape.escapeJsonString;
-import static ma.vi.esql.syntax.Translatable.Target.JSON;
-import static ma.vi.esql.translator.SqlServerTranslator.requireIif;
+import static ma.vi.esql.translation.SqlServerTranslator.requireIif;
+import static ma.vi.esql.translation.Translatable.Target.JSON;
 
 /**
  * A range expression bounds an expression between two expression
@@ -71,7 +70,7 @@ public class Range extends Expression<String, String> {
   @Override
   protected String trans(Target target,
                          EsqlPath path,
-                         Map<String, Object> parameters) {
+                         PMap<String, Object> parameters) {
     switch (target) {
       case JSON, JAVASCRIPT -> {
         String compareEx = compareExpression().translate(target, path.add(compareExpression()), parameters);

@@ -11,14 +11,14 @@ import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
+import org.pcollections.PMap;
 
 import java.lang.reflect.Array;
 import java.util.List;
-import java.util.Map;
 
 import static java.util.stream.Collectors.joining;
 import static ma.vi.base.collections.ArrayUtils.ARRAY_ESCAPE;
-import static ma.vi.esql.syntax.Translatable.Target.SQLSERVER;
+import static ma.vi.esql.translation.Translatable.Target.SQLSERVER;
 
 /**
  * A simple array literal consisting only of items of base types.
@@ -60,7 +60,7 @@ public class BaseArrayLiteral extends Literal<Type> {
   }
 
   @Override
-  protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
+  protected String trans(Target target, EsqlPath path, PMap<String, Object> parameters) {
     return switch (target) {
       case POSTGRESQL
           -> "array[" + items().stream()

@@ -11,11 +11,15 @@ import ma.vi.esql.semantic.type.AliasedRelation;
 import ma.vi.esql.semantic.type.Relation;
 import ma.vi.esql.semantic.type.Selection;
 import ma.vi.esql.semantic.type.Type;
-import ma.vi.esql.syntax.*;
+import ma.vi.esql.syntax.Context;
+import ma.vi.esql.syntax.Esql;
+import ma.vi.esql.syntax.EsqlPath;
+import ma.vi.esql.syntax.Macro;
 import ma.vi.esql.syntax.expression.ColumnRef;
+import ma.vi.esql.translation.TranslationException;
+import org.pcollections.PMap;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * Represents a single table in the from clause; a single table can either refer
@@ -161,7 +165,7 @@ public class SingleTableExpr extends AbstractAliasTableExpr {
   }
 
   @Override
-  protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
+  protected String trans(Target target, EsqlPath path, PMap<String, Object> parameters) {
     String table = tableName();
     String alias = alias();
     if (target == Target.ESQL) {

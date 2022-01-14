@@ -8,7 +8,7 @@ import ma.vi.base.tuple.T2;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
-import ma.vi.esql.syntax.Translatable;
+import ma.vi.esql.translation.Translatable;
 
 import java.util.List;
 

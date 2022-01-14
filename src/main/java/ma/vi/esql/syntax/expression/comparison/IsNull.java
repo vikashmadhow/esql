@@ -12,11 +12,10 @@ import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.expression.Expression;
 import ma.vi.esql.syntax.expression.SingleSubExpression;
-
-import java.util.Map;
+import org.pcollections.PMap;
 
 import static ma.vi.base.string.Escape.escapeJsonString;
-import static ma.vi.esql.syntax.Translatable.Target.JSON;
+import static ma.vi.esql.translation.Translatable.Target.JSON;
 
 /**
  * The is null operator in ESQL.
@@ -60,7 +59,7 @@ public class IsNull extends SingleSubExpression {
   }
 
   @Override
-  protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
+  protected String trans(Target target, EsqlPath path, PMap<String, Object> parameters) {
     switch (target) {
       case JSON:
       case JAVASCRIPT:

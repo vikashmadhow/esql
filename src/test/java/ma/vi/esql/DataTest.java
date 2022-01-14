@@ -13,9 +13,11 @@ import ma.vi.esql.syntax.Parser;
 import ma.vi.esql.syntax.Program;
 import org.junit.jupiter.api.BeforeAll;
 
+import java.util.Arrays;
 import java.util.Map;
 
-import static org.apache.commons.lang3.StringUtils.*;
+import static org.apache.commons.lang3.StringUtils.repeat;
+import static org.apache.commons.lang3.StringUtils.rightPad;
 
 public class DataTest {
   public static Database[] databases;
@@ -231,7 +233,11 @@ public class DataTest {
         int spaceLeft = columnWidth;
         if (value != null) {
           spaceLeft -= value.toString().length();
-          System.out.print(value);
+          if (value.getClass().isArray()) {
+            System.out.print(Arrays.deepToString((Object[])value));
+          } else {
+            System.out.print(value);
+          }
         }
         if (showMetadata) {
           if (col.metadata() != null && !col.metadata().isEmpty()) {

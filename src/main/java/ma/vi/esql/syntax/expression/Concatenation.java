@@ -8,12 +8,12 @@ import ma.vi.base.tuple.T2;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
+import org.pcollections.PMap;
 
 import java.util.List;
-import java.util.Map;
 
 import static ma.vi.base.string.Escape.escapeJsonString;
-import static ma.vi.esql.syntax.Translatable.Target.JSON;
+import static ma.vi.esql.translation.Translatable.Target.JSON;
 
 /**
  * Concatenation operation in ESQL (||).
@@ -50,7 +50,7 @@ public class Concatenation extends MultipleSubExpressions {
   }
 
   @Override
-  protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
+  protected String trans(Target target, EsqlPath path, PMap<String, Object> parameters) {
     switch (target) {
       case JSON, JAVASCRIPT -> {
         StringBuilder st = new StringBuilder();

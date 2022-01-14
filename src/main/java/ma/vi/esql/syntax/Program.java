@@ -8,10 +8,10 @@ import ma.vi.base.tuple.T2;
 import ma.vi.esql.database.Database;
 import ma.vi.esql.exec.Result;
 import ma.vi.esql.syntax.expression.Expression;
+import org.pcollections.PMap;
 
 import java.sql.Connection;
 import java.util.List;
-import java.util.Map;
 
 import static java.util.stream.Collectors.toList;
 
@@ -49,7 +49,7 @@ public class Program extends Esql<String, List<?>> {
   }
 
   @Override
-  public List<?> trans(Target target, EsqlPath path, Map<String, Object> parameters) {
+  public List<?> trans(Target target, EsqlPath path, PMap<String, Object> parameters) {
     return expressions().stream()
                         .map(s -> s.translate(target, path.add(s), parameters))
                         .collect(toList());

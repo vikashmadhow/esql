@@ -8,13 +8,13 @@ import ma.vi.base.tuple.T2;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
+import org.pcollections.PMap;
 
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 
-import static ma.vi.esql.syntax.Translatable.Target.MARIADB;
-import static ma.vi.esql.syntax.Translatable.Target.MYSQL;
+import static ma.vi.esql.translation.Translatable.Target.MARIADB;
+import static ma.vi.esql.translation.Translatable.Target.MYSQL;
 
 /**
  * A unique constraint over one or more columns of a table.
@@ -64,7 +64,7 @@ public class UniqueConstraint extends ConstraintDefinition {
   }
 
   @Override
-  protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
+  protected String trans(Target target, EsqlPath path, PMap<String, Object> parameters) {
     String name = name();
     if (name.length() >= 64 && (target == MARIADB || target == MYSQL)) {
       /*

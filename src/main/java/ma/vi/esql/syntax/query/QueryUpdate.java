@@ -27,7 +27,7 @@ import static java.sql.ResultSet.TYPE_SCROLL_INSENSITIVE;
 import static java.util.Collections.unmodifiableList;
 import static java.util.Collections.unmodifiableMap;
 import static ma.vi.base.string.Strings.random;
-import static ma.vi.esql.translator.SqlServerTranslator.ADD_IIF;
+import static ma.vi.esql.translation.SqlServerTranslator.ADD_IIF;
 
 /**
  * The parent of all query (select) and update (update, insert and delete)

@@ -5,8 +5,7 @@
 package ma.vi.esql.semantic.type;
 
 import ma.vi.esql.syntax.EsqlPath;
-
-import java.util.Map;
+import org.pcollections.PMap;
 
 import static ma.vi.base.lang.Errors.checkArgument;
 
@@ -32,7 +31,7 @@ public class ArrayType extends AbstractType {
   }
 
   @Override
-  public String translate(Target target, EsqlPath path, Map<String, Object> parameters) {
+  public String translate(Target target, EsqlPath path, PMap<String, Object> parameters) {
     return switch (target) {
       case SQLSERVER      -> "nvarchar(max)";
       case MARIADB, MYSQL -> "text";

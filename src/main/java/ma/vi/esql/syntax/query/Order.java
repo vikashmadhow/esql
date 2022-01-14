@@ -9,8 +9,7 @@ import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.expression.Expression;
-
-import java.util.Map;
+import org.pcollections.PMap;
 
 /**
  * Order by clause in ESQL.
@@ -48,7 +47,7 @@ public class Order extends Esql<String, String> {
   }
 
   @Override
-  protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
+  protected String trans(Target target, EsqlPath path, PMap<String, Object> parameters) {
     String dir = dir();
     return order().translate(target, path.add(order()), parameters) + (dir == null ? "" : ' ' + dir);
   }

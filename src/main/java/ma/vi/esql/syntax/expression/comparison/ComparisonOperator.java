@@ -12,10 +12,9 @@ import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.expression.BinaryOperator;
 import ma.vi.esql.syntax.expression.Expression;
+import org.pcollections.PMap;
 
-import java.util.Map;
-
-import static ma.vi.esql.translator.SqlServerTranslator.requireIif;
+import static ma.vi.esql.translation.SqlServerTranslator.requireIif;
 
 /**
  * A relational expression (such as comparison) always has a
@@ -63,7 +62,7 @@ public class ComparisonOperator extends BinaryOperator {
   @Override
   protected String trans(Target target,
                          EsqlPath path,
-                         Map<String, Object> parameters) {
+                         PMap<String, Object> parameters) {
     boolean sqlServerBool = target == Target.SQLSERVER && requireIif(path, parameters);
     return (sqlServerBool ? "iif" : "") + '('
          + super.trans(target, path, parameters)

@@ -14,6 +14,7 @@ import ma.vi.esql.syntax.UntypedMacro;
 import ma.vi.esql.syntax.define.Attribute;
 import ma.vi.esql.syntax.expression.ColumnRef;
 import ma.vi.esql.syntax.expression.SelectExpression;
+import org.pcollections.PMap;
 
 import java.util.*;
 
@@ -485,7 +486,7 @@ public class ColumnList extends Esql<String, String> implements UntypedMacro {
   }
 
   @Override
-  protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
+  protected String trans(Target target, EsqlPath path, PMap<String, Object> parameters) {
     return columns().stream()
                     .map(c -> c.trans(target, path, parameters))
                     .collect(joining(", "));

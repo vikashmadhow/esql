@@ -8,12 +8,16 @@ import ma.vi.base.tuple.T2;
 import ma.vi.esql.semantic.type.Relation;
 import ma.vi.esql.semantic.type.Selection;
 import ma.vi.esql.semantic.type.Type;
-import ma.vi.esql.syntax.*;
+import ma.vi.esql.syntax.Context;
+import ma.vi.esql.syntax.Esql;
+import ma.vi.esql.syntax.EsqlPath;
+import ma.vi.esql.syntax.SyntaxException;
 import ma.vi.esql.syntax.expression.ColumnRef;
+import ma.vi.esql.translation.TranslationException;
+import org.pcollections.PMap;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.joining;
@@ -139,7 +143,7 @@ public class Cte extends QueryUpdate {
   }
 
   @Override
-  public QueryTranslation trans(Target target, EsqlPath path, Map<String, Object> parameters) {
+  public QueryTranslation trans(Target target, EsqlPath path, PMap<String, Object> parameters) {
     /*
      * Translate query and surround by CTE fields definition.
      */

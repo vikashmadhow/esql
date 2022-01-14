@@ -10,9 +10,8 @@ import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
-import ma.vi.esql.syntax.Translatable;
-
-import java.util.Map;
+import ma.vi.esql.translation.Translatable;
+import org.pcollections.PMap;
 
 import static java.lang.Double.parseDouble;
 
@@ -57,7 +56,7 @@ public class FloatingPointLiteral extends BaseLiteral<String> {
   }
 
   @Override
-  protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
+  protected String trans(Target target, EsqlPath path, PMap<String, Object> parameters) {
     return value;
   }
 

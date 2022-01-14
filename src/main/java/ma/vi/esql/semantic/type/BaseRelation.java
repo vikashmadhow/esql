@@ -6,12 +6,16 @@ package ma.vi.esql.semantic.type;
 
 import ma.vi.base.trie.PathTrie;
 import ma.vi.base.tuple.T2;
-import ma.vi.esql.syntax.*;
+import ma.vi.esql.syntax.CircularReferenceException;
+import ma.vi.esql.syntax.Context;
+import ma.vi.esql.syntax.Esql;
+import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.define.*;
 import ma.vi.esql.syntax.expression.*;
 import ma.vi.esql.syntax.expression.literal.Literal;
 import ma.vi.esql.syntax.query.Column;
 import ma.vi.esql.syntax.query.Select;
+import ma.vi.esql.translation.TranslationException;
 
 import java.util.*;
 

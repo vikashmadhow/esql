@@ -2,7 +2,9 @@
  * Copyright (c) 2020 Vikash Madhow
  */
 
-package ma.vi.esql.syntax;
+package ma.vi.esql.translation;
+
+import ma.vi.esql.syntax.EsqlException;
 
 /**
  * An exception thrown if any error is detected during parsing or translation

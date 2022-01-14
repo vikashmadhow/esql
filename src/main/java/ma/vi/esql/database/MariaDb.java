@@ -6,7 +6,7 @@ package ma.vi.esql.database;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
-import ma.vi.esql.syntax.Translatable;
+import ma.vi.esql.translation.Translatable;
 import org.mariadb.jdbc.MariaDbDataSource;
 
 import java.sql.*;
@@ -14,7 +14,7 @@ import java.util.Map;
 import java.util.Properties;
 
 import static ma.vi.base.lang.Errors.unchecked;
-import static ma.vi.esql.syntax.Translatable.Target.MARIADB;
+import static ma.vi.esql.translation.Translatable.Target.MARIADB;
 
 /**
  * @author Vikash Madhow (vikash.madhow@gmail.com)

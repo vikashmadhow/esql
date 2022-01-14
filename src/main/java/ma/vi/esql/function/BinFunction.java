@@ -6,16 +6,16 @@ package ma.vi.esql.function;
 
 import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.EsqlPath;
-import ma.vi.esql.syntax.Translatable;
 import ma.vi.esql.syntax.expression.Expression;
 import ma.vi.esql.syntax.expression.FunctionCall;
+import ma.vi.esql.translation.Translatable;
 
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
-import static ma.vi.esql.syntax.Translatable.Target.POSTGRESQL;
-import static ma.vi.esql.syntax.Translatable.Target.SQLSERVER;
+import static ma.vi.esql.translation.Translatable.Target.POSTGRESQL;
+import static ma.vi.esql.translation.Translatable.Target.SQLSERVER;
 
 /**
  * Given a value and a variadic array of intervals, returns the range

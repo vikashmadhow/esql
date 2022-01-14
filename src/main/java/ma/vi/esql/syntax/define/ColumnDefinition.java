@@ -10,14 +10,15 @@ import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.expression.Expression;
+import org.pcollections.PMap;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 import static ma.vi.esql.builder.Attributes.TYPE;
-import static ma.vi.esql.syntax.Translatable.Target.ESQL;
-import static ma.vi.esql.syntax.Translatable.Target.HSQLDB;
+import static ma.vi.esql.translation.Translatable.Target.ESQL;
+import static ma.vi.esql.translation.Translatable.Target.HSQLDB;
 
 /**
  * The definition of a column in a create or alter table statement.
@@ -75,7 +76,7 @@ public class ColumnDefinition extends TableDefinition {
   }
 
   @Override
-  protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
+  protected String trans(Target target, EsqlPath path, PMap<String, Object> parameters) {
     if (target == ESQL) {
       StringBuilder st = new StringBuilder('"' + name() + "\" "
                                                + type().translate(target, path, parameters)

@@ -10,8 +10,7 @@ import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
-
-import java.util.Map;
+import org.pcollections.PMap;
 
 /**
  * Represents the default value in insert and update statements.
@@ -58,7 +57,7 @@ public class DefaultValue extends Expression<String, String> {
   }
 
   @Override
-  protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
+  protected String trans(Target target, EsqlPath path, PMap<String, Object> parameters) {
     return "default";
   }
 

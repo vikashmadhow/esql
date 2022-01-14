@@ -6,9 +6,8 @@ package ma.vi.esql.semantic.type;
 
 import ma.vi.base.lang.NotFoundException;
 import ma.vi.base.tuple.T2;
-import ma.vi.esql.syntax.Macro;
-import ma.vi.esql.syntax.Translatable;
 import ma.vi.esql.syntax.query.Column;
+import ma.vi.esql.translation.Translatable;
 
 import java.sql.Date;
 import java.sql.Time;
@@ -16,7 +15,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static java.lang.Integer.MAX_VALUE;
-import static ma.vi.esql.syntax.Translatable.Target.*;
+import static ma.vi.esql.translation.Translatable.Target.*;
 
 /**
  * Type information on various structures stored in the database

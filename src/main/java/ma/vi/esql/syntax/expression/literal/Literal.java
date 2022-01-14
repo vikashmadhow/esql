@@ -8,8 +8,8 @@ import ma.vi.base.tuple.T2;
 import ma.vi.esql.semantic.type.*;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
-import ma.vi.esql.syntax.TranslationException;
 import ma.vi.esql.syntax.expression.Expression;
+import ma.vi.esql.translation.TranslationException;
 import org.json.JSONArray;
 import org.json.JSONObject;
 

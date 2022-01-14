@@ -8,10 +8,9 @@ import ma.vi.base.tuple.T2;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
+import org.pcollections.PMap;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Selects combined with set operators: union (all), intersect and except.
@@ -89,7 +88,7 @@ public class CompositeSelects extends Select {
   }
 
   @Override
-  public QueryTranslation trans(Target target, EsqlPath path, Map<String, Object> parameters) {
+  public QueryTranslation trans(Target target, EsqlPath path, PMap<String, Object> parameters) {
     boolean first = true;
     StringBuilder st = new StringBuilder();
     QueryTranslation q = null;
@@ -99,10 +98,10 @@ public class CompositeSelects extends Select {
       } else {
         st.append(' ').append(operator()).append(' ');
       }
-      Map<String, Object> params = new HashMap<>();
-      params.put("addAttributes", parameters.getOrDefault("addAttributes", true));
-      params.put("optimiseAttributesLoading", false);
-      QueryTranslation trans = select.translate(target, path.add(select), params);
+      QueryTranslation trans = select.translate(target,
+                                                path.add(select),
+                                                parameters.plus("addAttributes", parameters.getOrDefault("addAttributes", true))
+                                                          .plus("optimiseAttributesLoading", false));
       st.append(trans.translation());
       if (q == null) {
         q = trans;

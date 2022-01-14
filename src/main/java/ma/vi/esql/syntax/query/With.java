@@ -9,12 +9,12 @@ import ma.vi.esql.semantic.type.Selection;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
+import org.pcollections.PMap;
 
 import java.util.List;
-import java.util.Map;
 
-import static ma.vi.esql.syntax.Translatable.Target.HSQLDB;
-import static ma.vi.esql.syntax.Translatable.Target.POSTGRESQL;
+import static ma.vi.esql.translation.Translatable.Target.HSQLDB;
+import static ma.vi.esql.translation.Translatable.Target.POSTGRESQL;
 
 /**
  * A with query combines several common table expressions (query and updates) into an
@@ -63,7 +63,7 @@ public class With extends QueryUpdate {
   }
 
   @Override
-  public QueryTranslation trans(Target target, EsqlPath path, Map<String, Object> parameters) {
+  public QueryTranslation trans(Target target, EsqlPath path, PMap<String, Object> parameters) {
 //    /*
 //     * Ensure all CTE types are added to context-specific (local) type registry.
 //     */

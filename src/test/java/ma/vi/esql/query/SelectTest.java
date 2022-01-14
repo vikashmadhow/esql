@@ -47,8 +47,8 @@ public class SelectTest extends DataTest {
                      Select select = p.parse("select a, b from s:S order by s.a asc", SELECT);
                      Context context = new Context(db.structure());
                      assertEquals(new SelectBuilder(context)
-                                        .column("a", null)
-                                        .column("b", null)
+                                        .column("a", "a")
+                                        .column("b", "b")
                                         .from("S", "s")
                                         .orderBy("s.a", "asc")
                                         .build(),
@@ -291,9 +291,9 @@ public class SelectTest extends DataTest {
                      Select select = p.parse("select a, b, c from s:S where c > 1000 order by c asc, a desc", SELECT);
                      Context context = new Context(db.structure());
                      assertEquals(new SelectBuilder(context)
-                                        .column("a", null)
-                                        .column("b", null)
-                                        .column("c", null)
+                                        .column("a", "a")
+                                        .column("b", "b")
+                                        .column("c", "c")
                                         .from("S", "s")
                                         .where("c>1000")
                                         .orderBy("c", "asc")

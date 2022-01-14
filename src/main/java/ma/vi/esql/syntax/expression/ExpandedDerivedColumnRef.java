@@ -9,8 +9,7 @@ import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
-
-import java.util.Map;
+import org.pcollections.PMap;
 
 /**
  * Keeps a reference to a derived column together with its expansion. This class
@@ -64,7 +63,7 @@ public class ExpandedDerivedColumnRef extends Expression<String, String> {
   @Override
   protected String trans(Target target,
                          EsqlPath path,
-                         Map<String, Object> parameters) {
+                         PMap<String, Object> parameters) {
     return expansion().translate(target, path.add(expansion()), parameters);
   }
 

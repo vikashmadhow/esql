@@ -8,11 +8,10 @@ import ma.vi.base.tuple.T2;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
-
-import java.util.Map;
+import org.pcollections.PMap;
 
 import static ma.vi.base.string.Escape.escapeJsonString;
-import static ma.vi.esql.syntax.Translatable.Target.JSON;
+import static ma.vi.esql.translation.Translatable.Target.JSON;
 
 /**
  * The wild-card (*) representing all columns in a query.
@@ -50,7 +49,7 @@ public class StarColumn extends Column {
   }
 
   @Override
-  protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
+  protected String trans(Target target, EsqlPath path, PMap<String, Object> parameters) {
     switch (target) {
       case JSON:
       case JAVASCRIPT:

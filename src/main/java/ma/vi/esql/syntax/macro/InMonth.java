@@ -6,7 +6,10 @@ package ma.vi.esql.syntax.macro;
 
 import ma.vi.esql.function.Function;
 import ma.vi.esql.semantic.type.Types;
-import ma.vi.esql.syntax.*;
+import ma.vi.esql.syntax.Context;
+import ma.vi.esql.syntax.Esql;
+import ma.vi.esql.syntax.EsqlPath;
+import ma.vi.esql.syntax.TypedMacro;
 import ma.vi.esql.syntax.expression.Expression;
 import ma.vi.esql.syntax.expression.FunctionCall;
 import ma.vi.esql.syntax.expression.GroupedExpression;
@@ -15,6 +18,7 @@ import ma.vi.esql.syntax.expression.comparison.Equality;
 import ma.vi.esql.syntax.expression.literal.DateLiteral;
 import ma.vi.esql.syntax.expression.literal.IntegerLiteral;
 import ma.vi.esql.syntax.expression.logical.And;
+import ma.vi.esql.translation.TranslationException;
 import org.apache.commons.lang3.StringUtils;
 
 import java.time.LocalDate;
@@ -22,7 +26,7 @@ import java.util.List;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
-import static ma.vi.esql.syntax.Translatable.Target.ESQL;
+import static ma.vi.esql.translation.Translatable.Target.ESQL;
 
 /**
  * A macro function to check whether a date value falls in a specific month of a

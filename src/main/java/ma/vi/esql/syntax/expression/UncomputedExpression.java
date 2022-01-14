@@ -10,8 +10,7 @@ import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
-
-import java.util.Map;
+import org.pcollections.PMap;
 
 /**
  * A wrapped expression which is not computed but sent to the client in a form
@@ -59,7 +58,7 @@ public class UncomputedExpression extends SingleSubExpression {
   }
 
   @Override
-  protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
+  protected String trans(Target target, EsqlPath path, PMap<String, Object> parameters) {
     return switch (target) {
       case JAVASCRIPT -> '`' + expr().translate(target, path.add(expr()), parameters) + '`';
       case ESQL       -> "$(" + expr().translate(target, path.add(expr()), parameters) + ')';

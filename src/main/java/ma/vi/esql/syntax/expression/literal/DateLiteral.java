@@ -11,14 +11,14 @@ import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
+import org.pcollections.PMap;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Map;
 
 import static ma.vi.base.string.Escape.escapeJsonString;
-import static ma.vi.esql.syntax.Translatable.Target.JSON;
+import static ma.vi.esql.translation.Translatable.Target.JSON;
 
 /**
  * A date literal in ESQL.
@@ -71,7 +71,7 @@ public class DateLiteral extends BaseLiteral<String> {
   }
 
   @Override
-  protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
+  protected String trans(Target target, EsqlPath path, PMap<String, Object> parameters) {
     switch (target) {
       case POSTGRESQL:
         return '\'' + value + "'::" + computeType(path.add(this)).translate(target, path, parameters);

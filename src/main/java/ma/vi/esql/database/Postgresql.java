@@ -8,7 +8,7 @@ import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.semantic.type.Types;
-import ma.vi.esql.syntax.Translatable;
+import ma.vi.esql.translation.Translatable;
 import org.postgresql.ds.PGSimpleDataSource;
 
 import java.sql.*;
@@ -16,7 +16,7 @@ import java.util.Map;
 import java.util.Properties;
 
 import static ma.vi.base.lang.Errors.unchecked;
-import static ma.vi.esql.syntax.Translatable.Target.POSTGRESQL;
+import static ma.vi.esql.translation.Translatable.Target.POSTGRESQL;
 
 /**
  * @author Vikash Madhow (vikash.madhow@gmail.com)

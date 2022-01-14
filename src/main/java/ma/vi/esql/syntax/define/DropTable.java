@@ -12,13 +12,13 @@ import ma.vi.esql.semantic.type.BaseRelation;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
+import org.pcollections.PMap;
 
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.Map;
 
 import static ma.vi.esql.semantic.type.Type.dbTableName;
-import static ma.vi.esql.syntax.Translatable.Target.ESQL;
+import static ma.vi.esql.translation.Translatable.Target.ESQL;
 
 /**
  * Drop table statement.
@@ -55,7 +55,7 @@ public class DropTable extends Define {
   }
 
   @Override
-  protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
+  protected String trans(Target target, EsqlPath path, PMap<String, Object> parameters) {
     return "drop table " + (target == ESQL ? name() : dbTableName(name(), target));
   }
 

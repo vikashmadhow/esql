@@ -13,11 +13,11 @@ import ma.vi.esql.semantic.type.BaseRelation;
 import ma.vi.esql.semantic.type.Sequence;
 import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.syntax.EsqlPath;
-import ma.vi.esql.syntax.Translatable;
-import ma.vi.esql.syntax.TranslationException;
 import ma.vi.esql.syntax.expression.FunctionCall;
 import ma.vi.esql.syntax.macro.Bin;
 import ma.vi.esql.syntax.macro.InMonth;
+import ma.vi.esql.translation.Translatable;
+import ma.vi.esql.translation.TranslationException;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -27,7 +27,7 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.*;
 import static ma.vi.esql.function.date.DatePart.Part.*;
 import static ma.vi.esql.semantic.type.Types.*;
-import static ma.vi.esql.syntax.Translatable.Target.*;
+import static ma.vi.esql.translation.Translatable.Target.*;
 
 /**
  * Holds type information on the objects of interest, such as tables

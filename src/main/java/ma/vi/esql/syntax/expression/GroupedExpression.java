@@ -8,8 +8,7 @@ import ma.vi.base.tuple.T2;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
-
-import java.util.Map;
+import org.pcollections.PMap;
 
 /**
  * Groups an expression by surrounding it with parenthesis.
@@ -46,7 +45,7 @@ public class GroupedExpression extends SingleSubExpression {
   }
 
   @Override
-  protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
+  protected String trans(Target target, EsqlPath path, PMap<String, Object> parameters) {
     return "(" + String.valueOf(expr().translate(target, path.add(expr()), parameters)) + ")";
   }
 

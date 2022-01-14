@@ -1,14 +1,12 @@
-package ma.vi.esql.translator;
+package ma.vi.esql.translation;
 
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
-import ma.vi.esql.syntax.Translatable;
 import ma.vi.esql.syntax.define.Attribute;
 import ma.vi.esql.syntax.define.Metadata;
+import org.pcollections.PMap;
 
-import java.util.Map;
-
-import static ma.vi.esql.syntax.Translatable.Target.ESQL;
+import static ma.vi.esql.translation.Translatable.Target.ESQL;
 
 /**
  * <p>
@@ -26,7 +24,7 @@ import static ma.vi.esql.syntax.Translatable.Target.ESQL;
  * The existing translation mechanism consists of every ESQL node implementing
  * the {@link Translatable#translate(Translatable.Target)} method of the
  * {@link Translatable} interface, which is called to produce the translation for
- * that node. This has been augmented with the {@link Esql#trans(Translatable.Target)}
+ * that node. This has been augmented with the Esql#trans(Translatable.Target)
  * method which has the same signature as the translate method. The implementation
  * of the `translate` method in the `Esql` class now delegates to `trans` which,
  * by default, looks for translator implementation for the target (using {@link TranslatorFactory}
@@ -48,7 +46,7 @@ public interface Translator {
   /**
    * Call to translate an Esql node.
    */
-  <R> R translate(Esql<?, R> esql, EsqlPath path, Map<String, Object> parameters);
+  <R> R translate(Esql<?, R> esql, EsqlPath path, PMap<String, Object> parameters);
 
   /**
    * Static translation utility functions.

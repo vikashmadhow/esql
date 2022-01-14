@@ -10,10 +10,9 @@ import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.expression.Expression;
+import org.pcollections.PMap;
 
-import java.util.Map;
-
-import static ma.vi.esql.syntax.Translatable.Target.ESQL;
+import static ma.vi.esql.translation.Translatable.Target.ESQL;
 
 /**
  * An alter column definition (change name, type, etc.).
@@ -64,7 +63,7 @@ public class AlterColumnDefinition extends Define {
   }
 
   @Override
-  protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
+  protected String trans(Target target, EsqlPath path, PMap<String, Object> parameters) {
     return (toName() == null ? "" : toName() + ' ')
          + (toType() == null ? "" : computeType(path.add(this)).translate(target, path, parameters) + ' ')
          + (setNotNull() ? "null " : "")

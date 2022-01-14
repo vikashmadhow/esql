@@ -11,12 +11,11 @@ import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.EsqlTransformer;
 import ma.vi.esql.syntax.Parser;
-import ma.vi.esql.syntax.Translatable;
 import ma.vi.esql.syntax.define.Attribute;
 import ma.vi.esql.syntax.define.ConstraintDefinition;
 import ma.vi.esql.syntax.define.Metadata;
 import ma.vi.esql.syntax.query.Column;
-import ma.vi.esql.translator.*;
+import ma.vi.esql.translation.*;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -25,7 +24,7 @@ import java.util.*;
 
 import static ma.vi.esql.builder.Attributes.DERIVED;
 import static ma.vi.esql.builder.Attributes.TYPE;
-import static ma.vi.esql.syntax.Translatable.Target.*;
+import static ma.vi.esql.translation.Translatable.Target.*;
 
 /**
  * A test structure container containing structures used

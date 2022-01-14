@@ -11,9 +11,9 @@ import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.expression.Expression;
+import org.pcollections.PMap;
 
 import java.util.List;
-import java.util.Map;
 
 import static java.util.stream.Collectors.joining;
 
@@ -63,7 +63,7 @@ public class In extends Expression<String, String> {
   }
 
   @Override
-  protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
+  protected String trans(Target target, EsqlPath path, PMap<String, Object> parameters) {
     return expr().translate(target, path.add(expr()), parameters) + (not() ? " not in (" : " in (")
         + list().stream()
                 .map(e -> e.translate(target, path.add(e), parameters))

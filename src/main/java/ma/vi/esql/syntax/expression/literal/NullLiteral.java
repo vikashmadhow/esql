@@ -10,9 +10,8 @@ import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
-import ma.vi.esql.syntax.Translatable;
-
-import java.util.Map;
+import ma.vi.esql.translation.Translatable;
+import org.pcollections.PMap;
 
 /**
  * The null literal ('null') in ESQL.
@@ -54,7 +53,7 @@ public class NullLiteral extends Literal<String> {
   }
 
   @Override
-  protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
+  protected String trans(Target target, EsqlPath path, PMap<String, Object> parameters) {
     return "null";
   }
 

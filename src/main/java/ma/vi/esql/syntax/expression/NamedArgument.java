@@ -8,10 +8,9 @@ import ma.vi.base.tuple.T2;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
+import org.pcollections.PMap;
 
-import java.util.Map;
-
-import static ma.vi.esql.syntax.Translatable.Target.JSON;
+import static ma.vi.esql.translation.Translatable.Target.JSON;
 
 /**
  * A named argument to a function. The name is dropped when this is translated
@@ -50,7 +49,7 @@ public class NamedArgument extends Expression<String, String> {
   }
 
   @Override
-  protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
+  protected String trans(Target target, EsqlPath path, PMap<String, Object> parameters) {
     switch (target) {
       case ESQL:
         return name() + ":=" + arg().translate(target, path.add(arg()), parameters);

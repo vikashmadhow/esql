@@ -8,13 +8,12 @@ import ma.vi.base.tuple.T2;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
-import ma.vi.esql.syntax.Translatable;
 import ma.vi.esql.syntax.expression.Expression;
-
-import java.util.Map;
+import ma.vi.esql.translation.Translatable;
+import org.pcollections.PMap;
 
 import static ma.vi.base.string.Escape.escapeJsonString;
-import static ma.vi.esql.syntax.Translatable.Target.JSON;
+import static ma.vi.esql.translation.Translatable.Target.JSON;
 
 /**
  * The exponentiation operator (^) in ESQL.
@@ -51,7 +50,7 @@ public class Exponentiation extends ArithmeticOperator {
   }
 
   @Override
-  protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
+  protected String trans(Target target, EsqlPath path, PMap<String, Object> parameters) {
     if (target == Translatable.Target.SQLSERVER) {
       return "POWER(" + expr1().translate(target, path.add(expr1()), parameters) + ", " + expr2().translate(target, path.add(expr2()), parameters) + ")";
     } else {

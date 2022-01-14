@@ -10,7 +10,11 @@ import ma.vi.base.tuple.T2;
 import ma.vi.esql.database.Database;
 import ma.vi.esql.exec.Result;
 import ma.vi.esql.semantic.type.Type;
-import ma.vi.esql.translator.TranslatorFactory;
+import ma.vi.esql.translation.Translatable;
+import ma.vi.esql.translation.TranslatorFactory;
+import org.pcollections.HashPMap;
+import org.pcollections.IntTreePMap;
+import org.pcollections.PMap;
 
 import java.lang.reflect.ParameterizedType;
 import java.sql.Connection;
@@ -18,7 +22,6 @@ import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Predicate;
 
-import static java.util.Collections.emptyMap;
 import static ma.vi.esql.semantic.type.Types.UnknownType;
 import static org.apache.commons.lang3.StringUtils.repeat;
 
@@ -510,15 +513,15 @@ public class Esql<V, R> implements Copy<Esql<V, R>>, Translatable<R> {
 
   @Override
   public final R translate(Target target) {
-    return translate(target, new EsqlPath(this), emptyMap());
+    return translate(target, new EsqlPath(this), HashPMap.empty(IntTreePMap.empty()));
   }
 
   @Override
-  public final R translate(Target target, EsqlPath path, Map<String, Object> parameters) {
+  public final R translate(Target target, EsqlPath path, PMap<String, Object> parameters) {
     return trans(target, path, parameters);
   }
 
-  protected R trans(Target target, EsqlPath path, Map<String, Object> parameters) {
+  protected R trans(Target target, EsqlPath path, PMap<String, Object> parameters) {
     return TranslatorFactory.get(target).translate(this, path, parameters);
   }
 

@@ -10,8 +10,8 @@ import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
+import org.pcollections.PMap;
 
-import java.util.Map;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
@@ -55,7 +55,7 @@ public class UuidLiteral extends BaseLiteral<UUID> {
   }
 
   @Override
-  protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
+  protected String trans(Target target, EsqlPath path, PMap<String, Object> parameters) {
     return switch(target) {
       case ESQL       -> "u'" + value + "'";
       case POSTGRESQL -> "'" + value + "'::uuid";

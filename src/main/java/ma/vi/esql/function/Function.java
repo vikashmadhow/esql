@@ -8,16 +8,16 @@ import ma.vi.esql.semantic.type.AbstractType;
 import ma.vi.esql.semantic.type.Kind;
 import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.syntax.EsqlPath;
-import ma.vi.esql.syntax.Translatable;
 import ma.vi.esql.syntax.expression.Expression;
 import ma.vi.esql.syntax.expression.FunctionCall;
+import ma.vi.esql.translation.Translatable;
 
 import java.util.List;
 import java.util.Map;
 
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.joining;
-import static ma.vi.esql.syntax.Translatable.Target.HSQLDB;
+import static ma.vi.esql.translation.Translatable.Target.HSQLDB;
 
 /**
  * A stored database function.

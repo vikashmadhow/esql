@@ -16,10 +16,10 @@ import ma.vi.esql.syntax.define.NameWithMetadata;
 import ma.vi.esql.syntax.expression.ColumnRef;
 import ma.vi.esql.syntax.expression.Expression;
 import ma.vi.esql.syntax.modify.InsertRow;
+import org.pcollections.PMap;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
 
 import static java.util.stream.Collectors.joining;
@@ -155,7 +155,7 @@ public class DynamicTableExpr extends AbstractAliasTableExpr {
   @Override
   protected String trans(Target target,
                          EsqlPath path,
-                         Map<String, Object> parameters) {
+                         PMap<String, Object> parameters) {
     return "(values "
          + rows().stream()
                  .map(r -> r.translate(target, path.add(r), parameters))

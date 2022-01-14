@@ -2,10 +2,12 @@
  * Copyright (c) 2020 Vikash Madhow
  */
 
-package ma.vi.esql.syntax;
+package ma.vi.esql.translation;
 
-import java.util.HashMap;
-import java.util.Map;
+import ma.vi.esql.syntax.EsqlPath;
+import org.pcollections.HashPMap;
+import org.pcollections.IntTreePMap;
+import org.pcollections.PMap;
 
 /**
  * A translatable can produce a representation of itself for a specific
@@ -44,7 +46,7 @@ public interface Translatable<T> {
   T translate(Target target);
 
   default T translate(Target target, EsqlPath path) {
-    return translate(target, path, new HashMap<>());
+    return translate(target, path, HashPMap.empty(IntTreePMap.empty()));
   }
 
   /**
@@ -56,7 +58,7 @@ public interface Translatable<T> {
    * @param parameters A set of arbitrary parameters to pass to the translator.
    * @return A statement adapted for the specified target system.
    */
-  T translate(Target target, EsqlPath path, Map<String, Object> parameters);
+  T translate(Target target, EsqlPath path, PMap<String, Object> parameters);
 
   /**
    * The value of a translatable is generally its translation. In some
@@ -65,6 +67,6 @@ public interface Translatable<T> {
    * while its value will remove it.
    */
   default Object value(Target target, EsqlPath path) {
-    return translate(target, path, new HashMap<>());
+    return translate(target, path, HashPMap.empty(IntTreePMap.empty()));
   }
 }

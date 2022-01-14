@@ -1,12 +1,10 @@
-package ma.vi.esql.translator;
+package ma.vi.esql.translation;
 
 import ma.vi.base.string.Strings;
 import ma.vi.esql.function.Function;
 import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.EsqlPath;
-import ma.vi.esql.syntax.Translatable;
-import ma.vi.esql.syntax.TranslationException;
 import ma.vi.esql.syntax.expression.ColumnRef;
 import ma.vi.esql.syntax.expression.Expression;
 import ma.vi.esql.syntax.expression.FunctionCall;
@@ -16,6 +14,9 @@ import ma.vi.esql.syntax.modify.Insert;
 import ma.vi.esql.syntax.modify.InsertRow;
 import ma.vi.esql.syntax.modify.Update;
 import ma.vi.esql.syntax.query.*;
+import org.pcollections.HashPMap;
+import org.pcollections.IntTreePMap;
+import org.pcollections.PMap;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -35,7 +36,7 @@ public class SqlServerTranslator extends AbstractTranslator {
   }
 
   @Override
-  protected QueryTranslation translate(Select select, EsqlPath path, Map<String, Object> parameters) {
+  protected QueryTranslation translate(Select select, EsqlPath path, PMap<String, Object> parameters) {
     /*
      * If group by expression list contains numbers, those refer to the column expressions
      * in the expressions list. This is not supported in SQL server, so replace the
@@ -94,26 +95,32 @@ public class SqlServerTranslator extends AbstractTranslator {
       }
       st.append(") ").append(rank);
 
-      parameters.put("addIif", false);
       if (select.tables() != null) {
-        st.append(" from ").append(select.tables().translate(target(), path.add(select.tables()), parameters));
+        st.append(" from ").append(select.tables().translate(target(),
+                                                             path.add(select.tables()),
+                                                             parameters.plusAll(DONT_ADD_IIF)));
       }
       if (select.where() != null) {
-        st.append(" where ").append(select.where().translate(target(), path.add(select.where()), parameters));
+        st.append(" where ").append(select.where().translate(target(),
+                                                             path.add(select.where()),
+                                                             parameters.plusAll(DONT_ADD_IIF)));
       }
       if (select.groupBy() != null) {
-        parameters.put("addIif", true);
-        st.append(select.groupBy().translate(target(), path.add(select.groupBy()), parameters));
+        st.append(select.groupBy().translate(target(),
+                                             path.add(select.groupBy()),
+                                             parameters.plusAll(ADD_IIF)));
       }
       if (select.having() != null) {
-        parameters.put("addIif", false);
-        st.append(" having ").append(select.having().translate(target(), path.add(select.having()), parameters));
+        st.append(" having ").append(select.having().translate(target(),
+                                                               path.add(select.having()),
+                                                               parameters.plusAll(DONT_ADD_IIF)));
       }
-      parameters.put("addIif", true);
       if (select.orderBy() != null && !select.orderBy().isEmpty()) {
         st.append(" order by ")
           .append(select.orderBy().stream()
-                        .map(e -> e.translate(target(), path.add(e)))
+                        .map(e -> e.translate(target(),
+                                              path.add(e),
+                                              parameters.plusAll(ADD_IIF)))
                         .collect(joining(", ")));
         if (select.offset() == null && select.limit() == null) {
           /*
@@ -124,7 +131,9 @@ public class SqlServerTranslator extends AbstractTranslator {
       }
       if (select.offset() != null) {
         st.append(" offset ")
-          .append(select.offset().translate(target(), path.add(select.offset()), parameters))
+          .append(select.offset().translate(target(),
+                                            path.add(select.offset()),
+                                            parameters.plusAll(ADD_IIF)))
           .append(" rows");
       }
       if (select.limit() != null) {
@@ -286,27 +295,32 @@ public class SqlServerTranslator extends AbstractTranslator {
         }
         // add output clause
         QueryTranslation q = select.constructResult(st, target(), path, null, parameters);
-        parameters.put("addIif", false);
-
         if (select.tables() != null) {
-          st.append(" from ").append(select.tables().translate(target(), path.add(select.tables()), parameters));
+          st.append(" from ").append(select.tables().translate(target(),
+                                                               path.add(select.tables()),
+                                                               parameters.plusAll(DONT_ADD_IIF)));
         }
         if (select.where() != null) {
-          st.append(" where ").append(select.where().translate(target(), path.add(select.where()), parameters));
+          st.append(" where ").append(select.where().translate(target(),
+                                                               path.add(select.where()),
+                                                               parameters.plusAll(DONT_ADD_IIF)));
         }
         if (select.groupBy() != null) {
-          parameters.put("addIif", true);
-          st.append(select.groupBy().translate(target(), path.add(select.groupBy()), parameters));
+          st.append(select.groupBy().translate(target(),
+                                               path.add(select.groupBy()),
+                                               parameters.plusAll(ADD_IIF)));
         }
         if (select.having() != null) {
-          parameters.put("addIif", false);
-          st.append(" having ").append(select.having().translate(target(), path.add(select.having()), parameters));
+          st.append(" having ").append(select.having().translate(target(),
+                                                                 path.add(select.having()),
+                                                                 parameters.plusAll(DONT_ADD_IIF)));
         }
         if (select.orderBy() != null && !select.orderBy().isEmpty()) {
-          parameters.put("addIif", true);
           st.append(" order by ")
             .append(select.orderBy().stream()
-                          .map(e -> e.translate(target(), path.add(e), parameters))
+                          .map(e -> e.translate(target(),
+                                                path.add(e),
+                                                parameters.plusAll(ADD_IIF)))
                           .collect(joining(", ")));
           if (subSelect && select.offset() == null && select.limit() == null) {
             /*
@@ -316,14 +330,18 @@ public class SqlServerTranslator extends AbstractTranslator {
           }
         }
         if (select.offset() != null) {
-          st.append(" offset ").append(select.offset().translate(target(), path.add(select.offset()), parameters)).append(" rows");
+          st.append(" offset ").append(select.offset().translate(target(),
+                                                                 path.add(select.offset()),
+                                                                 parameters)).append(" rows");
         }
         if (select.limit() != null) {
           if (select.offset() == null) {
             // offset clause is mandatory with SQL Server when limit is specified
             st.append(" offset 0 rows");
           }
-          st.append(" fetch next ").append(select.limit().translate(target(), path.add(select.limit()), parameters)).append(" rows only");
+          st.append(" fetch next ").append(select.limit().translate(target(),
+                                                                    path.add(select.limit()),
+                                                                    parameters)).append(" rows only");
         }
         return new QueryTranslation(select, st.toString(),
                                     q.columns(),
@@ -336,7 +354,7 @@ public class SqlServerTranslator extends AbstractTranslator {
   @Override
   protected QueryTranslation translate(Update update,
                                        EsqlPath path,
-                                       Map<String, Object> parameters) {
+                                       PMap<String, Object> parameters) {
     StringBuilder st = new StringBuilder("update ");
 
     TableExpr from = update.tables();
@@ -348,12 +366,15 @@ public class SqlServerTranslator extends AbstractTranslator {
     if (update.columns() != null && !update.columns().isEmpty()) {
       st.append(" output ");
       q = update.constructResult(st, target(), path, "inserted", parameters);
-      parameters.put("addIif", false);
     }
-    st.append(" from ").append(from.translate(target(), path.add(from), parameters));
+    st.append(" from ").append(from.translate(target(),
+                                              path.add(from),
+                                              parameters.plusAll(DONT_ADD_IIF)));
 
     if (update.where() != null) {
-      st.append(" where ").append(update.where().translate(target(), path.add(update.where()), parameters));
+      st.append(" where ").append(update.where().translate(target(),
+                                                           path.add(update.where()),
+                                                           parameters.plusAll(DONT_ADD_IIF)));
     }
     if (q == null) {
       return new QueryTranslation(update, st.toString(), emptyList(), emptyList(), emptyMap());
@@ -366,7 +387,7 @@ public class SqlServerTranslator extends AbstractTranslator {
   }
 
   @Override
-  protected QueryTranslation translate(Delete delete, EsqlPath path, Map<String, Object> parameters) {
+  protected QueryTranslation translate(Delete delete, EsqlPath path, PMap<String, Object> parameters) {
     StringBuilder st = new StringBuilder("delete ").append((delete.deleteTableAlias()));
     QueryTranslation q = null;
 
@@ -374,12 +395,15 @@ public class SqlServerTranslator extends AbstractTranslator {
     if (delete.columns() != null && !delete.columns().isEmpty()) {
       st.append(" output ");
       q = delete.constructResult(st, target(), path, "deleted", parameters);
-      parameters.put("addIif", false);
     }
-    st.append(" from ").append(from.translate(target(), path.add(from), parameters));
+    st.append(" from ").append(from.translate(target(),
+                                              path.add(from),
+                                              parameters.plusAll(DONT_ADD_IIF)));
 
     if (delete.where() != null) {
-      st.append(" where ").append(delete.where().translate(target(), path.add(delete.where()), parameters));
+      st.append(" where ").append(delete.where().translate(target(),
+                                                           path.add(delete.where()),
+                                                           parameters.plusAll(DONT_ADD_IIF)));
     }
     if (q == null) {
       return new QueryTranslation(delete, st.toString(), emptyList(), emptyList(), emptyMap());
@@ -392,7 +416,7 @@ public class SqlServerTranslator extends AbstractTranslator {
   }
 
   @Override
-  protected QueryTranslation translate(Insert insert, EsqlPath path, Map<String, Object> parameters) {
+  protected QueryTranslation translate(Insert insert, EsqlPath path, PMap<String, Object> parameters) {
     StringBuilder st = new StringBuilder("insert into ");
     TableExpr table = insert.tables();
     if (!(table instanceof SingleTableExpr)) {
@@ -413,24 +437,23 @@ public class SqlServerTranslator extends AbstractTranslator {
     if (insert.columns() != null && !insert.columns().isEmpty()) {
       st.append(" output ");
       q = insert.constructResult(st, target(), path, "inserted", parameters);
-      parameters.put("addIif", false);
     }
 
     List<InsertRow> rows = insert.rows();
     if (rows != null && !rows.isEmpty()) {
       st.append(rows.stream()
-                    .map(row -> row.translate(target(), path.add(row), parameters))
+                    .map(row -> row.translate(target(),
+                                              path.add(row),
+                                              parameters.plusAll(DONT_ADD_IIF)))
                     .collect(joining(", ", " values", "")));
 
     } else if (insert.defaultValues()) {
       st.append(" default values");
 
     } else {
-      Map<String, Object> params = new HashMap<>();
-      params.put("addAttributes", false);
       st.append(' ').append(insert.select().translate(target(),
                                                       path.add(insert.select()),
-                                                      params).translation());
+                                                      parameters.plus("addAttributes", false)).translation());
     }
 
     if (q == null) {
@@ -475,7 +498,7 @@ public class SqlServerTranslator extends AbstractTranslator {
    * in a place where SQL Server does not support boolean expressions such as in
    * a column list).
    */
-  public static final Map<String, Object> ADD_IIF = Map.of("addIif", true);
+  public static final PMap<String, Object> ADD_IIF = HashPMap.<String, Object>empty(IntTreePMap.empty()).plus("addIif", true);
 
   /**
    * A translation parameter set to instruction downstream translation node to
@@ -483,5 +506,5 @@ public class SqlServerTranslator extends AbstractTranslator {
    * in a place where SQL Server supports boolean expressions such as the where
    * clause).
    */
-  public static final Map<String, Object> DONT_ADD_IIF = Map.of("addIif", false);
+  public static final PMap<String, Object> DONT_ADD_IIF = HashPMap.<String, Object>empty(IntTreePMap.empty()).plus("addIif", false);
 }

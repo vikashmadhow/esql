@@ -9,8 +9,7 @@ import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
-
-import java.util.Map;
+import org.pcollections.PMap;
 
 /**
  * Renames a table. This only renames the last part of the qualified
@@ -49,7 +48,7 @@ public class RenameTable extends Alteration {
   }
 
   @Override
-  protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
+  protected String trans(Target target, EsqlPath path, PMap<String, Object> parameters) {
     return "rename to " + Type.dbTableName(toName(), target);
   }
 

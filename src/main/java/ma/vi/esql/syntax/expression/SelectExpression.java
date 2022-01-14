@@ -12,12 +12,12 @@ import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.query.Column;
 import ma.vi.esql.syntax.query.Order;
 import ma.vi.esql.syntax.query.Select;
+import org.pcollections.PMap;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import static java.util.stream.Collectors.joining;
+import static ma.vi.esql.translation.SqlServerTranslator.DONT_ADD_IIF;
 
 /**
  * A single-column, single-row select in a column list.
@@ -60,7 +60,7 @@ public class SelectExpression extends Expression<String, String> {
   }
 
   @Override
-  protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
+  protected String trans(Target target, EsqlPath path, PMap<String, Object> parameters) {
     if (target == Target.ESQL) {
       Select sel = select();
       StringBuilder st = new StringBuilder();
@@ -99,9 +99,7 @@ public class SelectExpression extends Expression<String, String> {
       st.append(')');
       return st.toString();
     } else {
-      Map<String, Object> params = new HashMap<>(parameters);
-      params.remove("addIif");
-      return "(" + select().translate(target, path.add(select()), params).translation() + ")";
+      return "(" + select().translate(target, path.add(select()), parameters.plusAll(DONT_ADD_IIF)).translation() + ")";
     }
   }
 

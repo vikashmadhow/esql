@@ -12,7 +12,7 @@ import ma.vi.esql.syntax.define.Metadata;
 import ma.vi.esql.syntax.expression.literal.StringLiteral;
 import org.junit.jupiter.api.Test;
 
-import static ma.vi.esql.syntax.Translatable.Target.*;
+import static ma.vi.esql.translation.Translatable.Target.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class StringTest {

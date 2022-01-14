@@ -15,6 +15,7 @@ import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.expression.ColumnRef;
 import ma.vi.esql.syntax.query.Column;
+import org.pcollections.PMap;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -27,7 +28,7 @@ import java.util.Map;
 import static java.util.Collections.singletonList;
 import static ma.vi.esql.semantic.type.Type.dbTableName;
 import static ma.vi.esql.semantic.type.Type.splitName;
-import static ma.vi.esql.syntax.Translatable.Target.*;
+import static ma.vi.esql.translation.Translatable.Target.*;
 
 /**
  * Alter table statement.
@@ -66,7 +67,7 @@ public class AlterTable extends Define {
   }
 
   @Override
-  protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
+  protected String trans(Target target, EsqlPath path, PMap<String, Object> parameters) {
     StringBuilder st = new StringBuilder("alter table ");
     st.append(dbTableName(name(), target)).append(' ');
 

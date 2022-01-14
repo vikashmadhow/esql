@@ -9,8 +9,7 @@ import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.expression.Expression;
-
-import java.util.Map;
+import org.pcollections.PMap;
 
 /**
  * Represents a join between two table expressions. The join type, which can
@@ -59,7 +58,7 @@ public class JoinTableExpr extends AbstractJoinTableExpr {
   }
 
   @Override
-  protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
+  protected String trans(Target target, EsqlPath path, PMap<String, Object> parameters) {
     if (lateral()) {
       if (target == Target.SQLSERVER) {
         return left().translate(target, path.add(left()), parameters)

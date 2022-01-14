@@ -11,9 +11,9 @@ import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.Macro;
 import ma.vi.esql.syntax.expression.ColumnRef;
+import org.pcollections.PMap;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * Represents a select in a from clause:
@@ -100,7 +100,7 @@ public class SelectTableExpr extends AbstractAliasTableExpr {
   }
 
   @Override
-  protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
+  protected String trans(Target target, EsqlPath path, PMap<String, Object> parameters) {
     return '(' + select().translate(target, path.add(select()), parameters).translation() + ") \"" + alias() + '"';
   }
 

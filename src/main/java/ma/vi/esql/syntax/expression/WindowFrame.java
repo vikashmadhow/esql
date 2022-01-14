@@ -8,8 +8,7 @@ import ma.vi.base.tuple.T2;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
-
-import java.util.Map;
+import org.pcollections.PMap;
 
 /**
  * The frame definition in window functions.
@@ -47,7 +46,7 @@ public class WindowFrame extends Esql<String, String> {
   }
 
   @Override
-  public String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
+  public String trans(Target target, EsqlPath path, PMap<String, Object> parameters) {
     FrameBound preceding = preceding();
     FrameBound following = following();
     return frameType() + " between "

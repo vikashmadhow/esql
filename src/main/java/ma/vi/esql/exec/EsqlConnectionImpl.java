@@ -10,6 +10,7 @@ import ma.vi.esql.syntax.expression.Expression;
 import ma.vi.esql.syntax.expression.NamedParameter;
 import ma.vi.esql.syntax.expression.literal.Literal;
 import ma.vi.esql.syntax.expression.literal.NullLiteral;
+import ma.vi.esql.translation.TranslationException;
 
 import java.sql.Connection;
 import java.sql.SQLException;

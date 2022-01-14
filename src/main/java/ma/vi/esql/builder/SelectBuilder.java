@@ -12,13 +12,16 @@ import ma.vi.esql.syntax.define.Attribute;
 import ma.vi.esql.syntax.define.Metadata;
 import ma.vi.esql.syntax.expression.ColumnRef;
 import ma.vi.esql.syntax.expression.Expression;
+import ma.vi.esql.syntax.expression.literal.NullLiteral;
 import ma.vi.esql.syntax.query.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 import static ma.vi.esql.semantic.type.Types.UnknownType;
 import static ma.vi.esql.syntax.query.GroupBy.Type.*;
 
@@ -63,11 +66,18 @@ public class SelectBuilder implements Builder<Select> {
   }
 
   public SelectBuilder column(String expression, String alias, Attr... metadata) {
-    return column(expression == null ? null : parser.parseExpression(expression), alias, metadata);
+    return column(expression == null ? new NullLiteral(context)
+                                     : parser.parseExpression(expression),
+                  alias, metadata);
   }
 
   public SelectBuilder column(Expression<?, String> expression, String alias, Attr... metadata) {
     ColumnRef ref = expression.find(ColumnRef.class);
+    if (alias == null) {
+      alias = ColumnList.makeUnique("column",
+                                    this.columns.stream().map(Column::name).collect(toSet()),
+                                    1, true).a;
+    }
     this.columns.add(
       new Column(context,
                  alias,

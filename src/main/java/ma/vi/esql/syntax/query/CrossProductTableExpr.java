@@ -8,10 +8,9 @@ import ma.vi.base.tuple.T2;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
+import org.pcollections.PMap;
 
-import java.util.Map;
-
-import static ma.vi.esql.syntax.Translatable.Target.ESQL;
+import static ma.vi.esql.translation.Translatable.Target.ESQL;
 
 /**
  * Represents a cross-product (cartesian product) over two table expressions.
@@ -48,7 +47,7 @@ public class CrossProductTableExpr extends AbstractJoinTableExpr {
   }
 
   @Override
-  protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
+  protected String trans(Target target, EsqlPath path, PMap<String, Object> parameters) {
     return left().translate(target, path.add(left()), parameters)
          + (target == ESQL ? " times " : " cross join ")
          + right().translate(target, path.add(right()), parameters);

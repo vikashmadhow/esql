@@ -4,7 +4,7 @@
 
 package ma.vi.esql.semantic.type;
 
-import ma.vi.esql.syntax.TranslationException;
+import ma.vi.esql.translation.TranslationException;
 
 import static java.lang.Integer.parseInt;
 

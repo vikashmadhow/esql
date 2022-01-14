@@ -9,17 +9,21 @@ import ma.vi.esql.semantic.type.BaseRelation;
 import ma.vi.esql.semantic.type.Relation;
 import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.semantic.type.Types;
-import ma.vi.esql.syntax.*;
+import ma.vi.esql.syntax.Context;
+import ma.vi.esql.syntax.Esql;
+import ma.vi.esql.syntax.EsqlPath;
+import ma.vi.esql.syntax.TypedMacro;
 import ma.vi.esql.syntax.define.*;
 import ma.vi.esql.syntax.query.Column;
 import ma.vi.esql.syntax.query.QueryUpdate;
+import ma.vi.esql.translation.TranslationException;
+import org.pcollections.PMap;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import static ma.vi.esql.semantic.type.Types.UnknownType;
-import static ma.vi.esql.translator.SqlServerTranslator.requireIif;
+import static ma.vi.esql.translation.SqlServerTranslator.requireIif;
 
 /**
  * Reference to a column.
@@ -212,7 +216,7 @@ public class ColumnRef extends Expression<String, String> implements TypedMacro 
   @Override
   protected String trans(Target target,
                          EsqlPath path,
-                         Map<String, Object> parameters) {
+                         PMap<String, Object> parameters) {
     boolean sqlServerBool = target == Target.SQLSERVER
                          && computeType(path.add(this)) == Types.BoolType
                          && !requireIif(path, parameters)

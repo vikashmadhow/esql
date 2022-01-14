@@ -27,9 +27,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Support for bulk copy manager in postgresql.
 - Support for merge queries.
 - Configure extensions (e.g. specify lookup schema) through parameters.
-- Use a (functional) persistent map for the parameters map to translate to allow
-  for fast addition and deletion of parameters without compromising the existing
-  parameters.
 - Replace all visual tests (printResult) with assertions.
 - Implement `explicit` in select (no expanded columns when explicit keyword used).
 
@@ -51,6 +48,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   function is not used anywhere, thus this is low-priority.
 - Apply result and column metadata overloading in column list expansion (currently,
   the overridden metadata are not being considered). 
+
+## [0.7.1] - 2022-01-14
+### Added
+- Translation now use a (functional) persistent map (PCollections.org) for the 
+  parameters map to allow for fast addition and deletion of parameters without
+  compromising the existing parameters.
+
+### Fixed
+- Columns are given a unique user-friendly name by the syntax analyser and the 
+  select builder to resolve errors in code which assumes columns always have a 
+  non-null name.
 
 ## [0.7.0] - 2022-01-13
 ### Added

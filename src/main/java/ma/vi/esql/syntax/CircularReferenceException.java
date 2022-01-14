@@ -4,6 +4,8 @@
 
 package ma.vi.esql.syntax;
 
+import ma.vi.esql.translation.TranslationException;
+
 /**
  * An exception thrown if a circular reference is detected in an Esql
  * statement or expression.

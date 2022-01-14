@@ -28,6 +28,7 @@ import ma.vi.esql.syntax.modify.Insert;
 import ma.vi.esql.syntax.modify.InsertRow;
 import ma.vi.esql.syntax.modify.Update;
 import ma.vi.esql.syntax.query.*;
+import ma.vi.esql.translation.TranslationException;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.RuleContext;
 import org.antlr.v4.runtime.Token;
@@ -161,22 +162,25 @@ public class SyntaxAnalyser extends EsqlBaseListener {
     if (ctx.tableExpr() == null) {
       error(ctx,"Missing or wrong from clause in Select");
     }
-    if (ctx.columns() == null) {
+    if (ctx.columns() == null || value(ctx.columns()) == null) {
       error(ctx,"No columns specified in Select");
+    } else {
+      List<Column> namedColumns = new ArrayList<>();
+      ColumnList.disambiguateNames(value(ctx.columns()), namedColumns);
+      put(ctx, new Select(context,
+                          ctx.metadata() == null ? null : get(ctx.metadata()),
+                          distinct != null && distinct.getText().startsWith("distinct"),
+                          distinct != null && distinct.expressionList() != null ? value(distinct.expressionList()) : null,
+                          ctx.explicit() != null,
+                          namedColumns,
+                          ctx.tableExpr() == null ? null : get(ctx.tableExpr()),
+                          ctx.where == null ? null : get(ctx.where),
+                          get(ctx.groupByList()),
+                          ctx.having == null ? null : get(ctx.having),
+                          ctx.orderByList() == null ? null : value(ctx.orderByList()),
+                          ctx.offset == null ? null : get(ctx.offset),
+                          ctx.limit == null ? null : get(ctx.limit)));
     }
-    put(ctx, new Select(context,
-                        ctx.metadata() == null ? null : get(ctx.metadata()),
-                        distinct != null && distinct.getText().startsWith("distinct"),
-                        distinct != null && distinct.expressionList() != null ? value(distinct.expressionList()) : null,
-                        ctx.explicit() != null,
-                        value(ctx.columns()),
-                        ctx.tableExpr() == null ? null : get(ctx.tableExpr()),
-                        ctx.where == null ? null : get(ctx.where),
-                        get(ctx.groupByList()),
-                        ctx.having == null ? null : get(ctx.having),
-                        ctx.orderByList() == null ? null : value(ctx.orderByList()),
-                        ctx.offset == null ? null : get(ctx.offset),
-                        ctx.limit == null ? null : get(ctx.limit)));
   }
 
   @Override
@@ -714,12 +718,16 @@ public class SyntaxAnalyser extends EsqlBaseListener {
   @Override
   public void exitSelectExpression(SelectExpressionContext ctx) {
     DistinctContext distinct = ctx.distinct();
+    String colName = value(ctx.alias());
+    if (colName == null) {
+      colName = "col";
+    }
     Select s = new Select(context,
                           null,
                           distinct != null && distinct.getText().startsWith("distinct"),
                           distinct != null && distinct.expressionList() != null ? value(distinct.expressionList()) : null,
                           true,
-                          singletonList(new Column(context, value(ctx.alias()), get(ctx.col), Types.UnknownType, null)),
+                          singletonList(new Column(context, colName, get(ctx.col), Types.UnknownType, null)),
                           get(ctx.tableExpr()),
                           ctx.where == null ? null : get(ctx.where),
                           null,

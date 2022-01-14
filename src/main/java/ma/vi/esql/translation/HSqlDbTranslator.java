@@ -1,9 +1,7 @@
-package ma.vi.esql.translator;
+package ma.vi.esql.translation;
 
 import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.syntax.EsqlPath;
-import ma.vi.esql.syntax.Translatable;
-import ma.vi.esql.syntax.TranslationException;
 import ma.vi.esql.syntax.expression.Expression;
 import ma.vi.esql.syntax.modify.Delete;
 import ma.vi.esql.syntax.modify.Insert;
@@ -13,9 +11,9 @@ import ma.vi.esql.syntax.query.QueryTranslation;
 import ma.vi.esql.syntax.query.Select;
 import ma.vi.esql.syntax.query.SingleTableExpr;
 import ma.vi.esql.syntax.query.TableExpr;
+import org.pcollections.PMap;
 
 import java.util.List;
-import java.util.Map;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
@@ -31,7 +29,7 @@ public class HSqlDbTranslator extends AbstractTranslator {
   }
 
   @Override
-  protected QueryTranslation translate(Select select, EsqlPath path, Map<String, Object> parameters) {
+  protected QueryTranslation translate(Select select, EsqlPath path, PMap<String, Object> parameters) {
     StringBuilder st = new StringBuilder("select ");
     if (select.distinct()) {
       st.append("distinct ");
@@ -76,7 +74,7 @@ public class HSqlDbTranslator extends AbstractTranslator {
   }
 
   @Override
-  protected QueryTranslation translate(Update update, EsqlPath path, Map<String, Object> parameters) {
+  protected QueryTranslation translate(Update update, EsqlPath path, PMap<String, Object> parameters) {
     StringBuilder st = new StringBuilder("update ");
 
     TableExpr from = update.tables();
@@ -96,7 +94,7 @@ public class HSqlDbTranslator extends AbstractTranslator {
   }
 
   @Override
-  protected QueryTranslation translate(Delete delete, EsqlPath path, Map<String, Object> parameters) {
+  protected QueryTranslation translate(Delete delete, EsqlPath path, PMap<String, Object> parameters) {
     StringBuilder st = new StringBuilder("delete ");
     TableExpr from = delete.tables();
     if (!(from instanceof SingleTableExpr)) {
@@ -113,7 +111,7 @@ public class HSqlDbTranslator extends AbstractTranslator {
   }
 
   @Override
-  protected QueryTranslation translate(Insert insert, EsqlPath path, Map<String, Object> parameters) {
+  protected QueryTranslation translate(Insert insert, EsqlPath path, PMap<String, Object> parameters) {
     StringBuilder st = new StringBuilder("insert into ");
     TableExpr table = insert.tables();
     if (!(table instanceof SingleTableExpr)) {
@@ -139,7 +137,9 @@ public class HSqlDbTranslator extends AbstractTranslator {
       st.append(" default values");
 
     } else {
-      st.append(' ').append(insert.select().translate(target(), path.add(insert.select()), Map.of("addAttributes", false)).translation());
+      st.append(' ').append(insert.select().translate(target(),
+                                                      path.add(insert.select()),
+                                                      parameters.plus("addAttributes", false)).translation());
     }
 
     if (insert.columns() != null && !insert.columns().isEmpty()) {

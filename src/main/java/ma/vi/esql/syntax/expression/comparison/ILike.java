@@ -8,14 +8,13 @@ import ma.vi.base.tuple.T2;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
-import ma.vi.esql.syntax.Translatable;
 import ma.vi.esql.syntax.expression.Expression;
 import ma.vi.esql.syntax.expression.NegatableDoubleSubExpressions;
+import ma.vi.esql.translation.Translatable;
+import org.pcollections.PMap;
 
-import java.util.Map;
-
-import static ma.vi.esql.syntax.Translatable.Target.SQLSERVER;
-import static ma.vi.esql.translator.SqlServerTranslator.requireIif;
+import static ma.vi.esql.translation.SqlServerTranslator.requireIif;
+import static ma.vi.esql.translation.Translatable.Target.SQLSERVER;
 
 /**
  * The case-insensitive like operator (ilike) in ESQL.
@@ -57,7 +56,7 @@ public class ILike extends NegatableDoubleSubExpressions<String> {
   @Override
   protected String trans(Translatable.Target target,
                          EsqlPath path,
-                         Map<String, Object> parameters) {
+                         PMap<String, Object> parameters) {
     if (target == SQLSERVER) {
       /*
        * SQL Server requires collation for case-insensitive like.

@@ -13,8 +13,8 @@ import ma.vi.esql.syntax.expression.literal.BooleanLiteral;
 import ma.vi.esql.syntax.expression.literal.IntegerLiteral;
 import ma.vi.esql.syntax.expression.literal.StringLiteral;
 import ma.vi.esql.syntax.expression.literal.UuidLiteral;
+import org.pcollections.PMap;
 
-import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -69,7 +69,7 @@ public class Attribute extends Esql<String, String> {
   }
 
   @Override
-  protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
+  protected String trans(Target target, EsqlPath path, PMap<String, Object> parameters) {
     return name() + ": " + (attributeValue() == null
                               ? "null"
                               : attributeValue().translate(target, path.add(attributeValue()), parameters));

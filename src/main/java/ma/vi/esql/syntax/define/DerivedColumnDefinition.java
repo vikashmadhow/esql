@@ -10,6 +10,7 @@ import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.expression.Expression;
+import org.pcollections.PMap;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -87,7 +88,7 @@ public class DerivedColumnDefinition extends ColumnDefinition {
   }
 
   @Override
-  protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
+  protected String trans(Target target, EsqlPath path, PMap<String, Object> parameters) {
     if (target == Target.ESQL) {
       StringBuilder st = new StringBuilder("derived \"" + name() + "\" " + expression().translate(target, path.add(expression()), parameters));
       addMetadata(st, target);

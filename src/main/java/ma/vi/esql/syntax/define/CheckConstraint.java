@@ -10,13 +10,13 @@ import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.expression.ColumnRef;
 import ma.vi.esql.syntax.expression.Expression;
+import org.pcollections.PMap;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
-import static ma.vi.esql.syntax.Translatable.Target.MARIADB;
-import static ma.vi.esql.syntax.Translatable.Target.MYSQL;
+import static ma.vi.esql.translation.Translatable.Target.MARIADB;
+import static ma.vi.esql.translation.Translatable.Target.MYSQL;
 
 /**
  * Represents a check constraint defined on a table.
@@ -79,7 +79,7 @@ public class CheckConstraint extends ConstraintDefinition {
   }
 
   @Override
-  protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
+  protected String trans(Target target, EsqlPath path, PMap<String, Object> parameters) {
     String name = name();
     if (name.length() >= 64 && (target == MARIADB || target == MYSQL)) {
       /*

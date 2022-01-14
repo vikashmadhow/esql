@@ -14,8 +14,8 @@ import ma.vi.esql.syntax.expression.FunctionCall;
 import java.util.Arrays;
 import java.util.List;
 
-import static ma.vi.esql.syntax.Translatable.Target.POSTGRESQL;
-import static ma.vi.esql.syntax.Translatable.Target.SQLSERVER;
+import static ma.vi.esql.translation.Translatable.Target.POSTGRESQL;
+import static ma.vi.esql.translation.Translatable.Target.SQLSERVER;
 
 /**
  * Add months to date.

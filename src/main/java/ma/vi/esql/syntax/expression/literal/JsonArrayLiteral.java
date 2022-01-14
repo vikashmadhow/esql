@@ -10,11 +10,11 @@ import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
-import ma.vi.esql.syntax.Translatable;
+import ma.vi.esql.translation.Translatable;
 import org.json.JSONArray;
+import org.pcollections.PMap;
 
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.joining;
@@ -64,7 +64,7 @@ public class JsonArrayLiteral extends Literal<List<Literal<?>>> {
   @Override
   protected String trans(Target target,
                          EsqlPath path,
-                         Map<String, Object> parameters) {
+                         PMap<String, Object> parameters) {
     String t = items().stream()
                       .map(e -> e.translate(target, path.add(e), parameters))
                       .collect(joining(",", "[", "]"));

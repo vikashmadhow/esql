@@ -10,8 +10,7 @@ import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.expression.Expression;
 import ma.vi.esql.syntax.expression.SingleSubExpression;
-
-import java.util.Map;
+import org.pcollections.PMap;
 
 /**
  * Arithmetic negation (-) in ESQL.
@@ -48,7 +47,7 @@ public class Negation extends SingleSubExpression {
   }
 
   @Override
-  protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
+  protected String trans(Target target, EsqlPath path, PMap<String, Object> parameters) {
     return '-' + expr().translate(target, path.add(expr()), parameters);
   }
 

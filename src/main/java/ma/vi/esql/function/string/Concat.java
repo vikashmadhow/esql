@@ -8,14 +8,14 @@ import ma.vi.esql.function.Function;
 import ma.vi.esql.function.FunctionParameter;
 import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.EsqlPath;
-import ma.vi.esql.syntax.Translatable;
 import ma.vi.esql.syntax.expression.Expression;
 import ma.vi.esql.syntax.expression.FunctionCall;
+import ma.vi.esql.translation.Translatable;
 
 import java.util.Iterator;
 
 import static java.util.Arrays.asList;
-import static ma.vi.esql.syntax.Translatable.Target.JAVASCRIPT;
+import static ma.vi.esql.translation.Translatable.Target.JAVASCRIPT;
 
 /**
  * Concatenates two or more strings.

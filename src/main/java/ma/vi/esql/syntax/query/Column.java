@@ -15,13 +15,14 @@ import ma.vi.esql.syntax.define.Metadata;
 import ma.vi.esql.syntax.expression.ColumnRef;
 import ma.vi.esql.syntax.expression.Expression;
 import ma.vi.esql.syntax.expression.literal.BooleanLiteral;
+import org.pcollections.PMap;
 
 import java.util.*;
 import java.util.stream.Stream;
 
 import static ma.vi.esql.builder.Attributes.*;
 import static ma.vi.esql.semantic.type.Types.UnknownType;
-import static ma.vi.esql.syntax.Translatable.Target.ESQL;
+import static ma.vi.esql.translation.Translatable.Target.ESQL;
 
 /**
  * A column in a select statement.
@@ -131,7 +132,7 @@ public class Column extends MetadataContainer<String> implements TypedMacro, Sym
   }
 
   @Override
-  protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
+  protected String trans(Target target, EsqlPath path, PMap<String, Object> parameters) {
     StringBuilder st = new StringBuilder();
     if (target == ESQL) {
       if (name() != null) {

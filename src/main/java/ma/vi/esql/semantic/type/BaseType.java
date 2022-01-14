@@ -5,6 +5,7 @@
 package ma.vi.esql.semantic.type;
 
 import ma.vi.esql.syntax.EsqlPath;
+import org.pcollections.PMap;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -39,7 +40,7 @@ public class BaseType extends AbstractType {
   }
 
   @Override
-  public String translate(Target target, EsqlPath path, Map<String, Object> parameters) {
+  public String translate(Target target, EsqlPath path, PMap<String, Object> parameters) {
     return target == Target.ESQL             ? name() :
             translations.containsKey(target) ? translations.get(target) : translations.get(Target.ALL);
   }

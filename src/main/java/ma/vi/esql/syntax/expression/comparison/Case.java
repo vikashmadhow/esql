@@ -10,15 +10,15 @@ import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.expression.Expression;
 import ma.vi.esql.syntax.expression.MultipleSubExpressions;
+import org.pcollections.PMap;
 
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
 import static ma.vi.base.string.Escape.escapeJsonString;
-import static ma.vi.esql.syntax.Translatable.Target.JSON;
-import static ma.vi.esql.translator.SqlServerTranslator.ADD_IIF;
-import static ma.vi.esql.translator.SqlServerTranslator.DONT_ADD_IIF;
+import static ma.vi.esql.translation.SqlServerTranslator.ADD_IIF;
+import static ma.vi.esql.translation.SqlServerTranslator.DONT_ADD_IIF;
+import static ma.vi.esql.translation.Translatable.Target.JSON;
 
 /**
  * Ternary condition in the form:
@@ -60,7 +60,7 @@ public class Case extends MultipleSubExpressions {
   }
 
   @Override
-  protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
+  protected String trans(Target target, EsqlPath path, PMap<String, Object> parameters) {
     switch (target) {
       case JSON, JAVASCRIPT -> {
         StringBuilder est = new StringBuilder();
@@ -106,19 +106,19 @@ public class Case extends MultipleSubExpressions {
       case SQLSERVER -> {
         List<Expression<?, String>> exprs = expressions();
         if (expressions().size() == 3) {
-          return "iif(" + exprs.get(1).translate(target, path.add(exprs.get(1)), DONT_ADD_IIF) + ", "
-                        + exprs.get(0).translate(target, path.add(exprs.get(0)), ADD_IIF) + ", "
-                        + exprs.get(2).translate(target, path.add(exprs.get(2)), ADD_IIF) + ')';
+          return "iif(" + exprs.get(1).translate(target, path.add(exprs.get(1)), parameters.plusAll(DONT_ADD_IIF)) + ", "
+                        + exprs.get(0).translate(target, path.add(exprs.get(0)), parameters.plusAll(ADD_IIF)) + ", "
+                        + exprs.get(2).translate(target, path.add(exprs.get(2)), parameters.plusAll(ADD_IIF)) + ')';
         } else {
           StringBuilder st = new StringBuilder("case");
           for (Iterator<Expression<?, String>> i = expressions().iterator(); i.hasNext(); ) {
             Expression<?, String> e = i.next();
             if (i.hasNext()) {
               Expression<?, String> expr = i.next();
-              st.append(" when ").append(expr.translate(target, path.add(expr), DONT_ADD_IIF))
-                .append(" then ").append(e.translate(target, path.add(e), ADD_IIF));
+              st.append(" when ").append(expr.translate(target, path.add(expr), parameters.plusAll(DONT_ADD_IIF)))
+                .append(" then ").append(e.translate(target, path.add(e), parameters.plusAll(ADD_IIF)));
             } else {
-              st.append(" else ").append(e.translate(target, path.add(e), ADD_IIF));
+              st.append(" else ").append(e.translate(target, path.add(e), parameters.plusAll(ADD_IIF)));
             }
           }
           st.append(" end");

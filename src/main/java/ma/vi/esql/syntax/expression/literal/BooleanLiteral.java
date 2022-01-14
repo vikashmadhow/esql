@@ -9,9 +9,8 @@ import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
-import ma.vi.esql.syntax.Translatable;
-
-import java.util.Map;
+import ma.vi.esql.translation.Translatable;
+import org.pcollections.PMap;
 
 import static ma.vi.esql.semantic.type.Types.BoolType;
 
@@ -55,7 +54,7 @@ public class BooleanLiteral extends BaseLiteral<Boolean> {
   }
 
   @Override
-  protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
+  protected String trans(Target target, EsqlPath path, PMap<String, Object> parameters) {
     if (target == Translatable.Target.SQLSERVER) {
       return value ? "1" : "0";
     }

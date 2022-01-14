@@ -10,11 +10,10 @@ import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.expression.Expression;
 import ma.vi.esql.syntax.expression.comparison.ComparisonOperator;
-
-import java.util.Map;
+import org.pcollections.PMap;
 
 import static ma.vi.base.string.Escape.escapeJsonString;
-import static ma.vi.esql.syntax.Translatable.Target.JSON;
+import static ma.vi.esql.translation.Translatable.Target.JSON;
 
 /**
  * Logical and operator in ESQL.
@@ -53,7 +52,7 @@ public class And extends ComparisonOperator {
   }
 
   @Override
-  protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
+  protected String trans(Target target, EsqlPath path, PMap<String, Object> parameters) {
     switch (target) {
       case JSON, JAVASCRIPT -> {
         String e = expr1().translate(target, path.add(expr1()), parameters) + " && " + expr2().translate(target, path.add(expr2()), parameters);

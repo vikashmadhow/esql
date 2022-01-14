@@ -1,10 +1,8 @@
-package ma.vi.esql.translator;
+package ma.vi.esql.translation;
 
 import ma.vi.base.tuple.T1;
 import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.syntax.EsqlPath;
-import ma.vi.esql.syntax.Translatable;
-import ma.vi.esql.syntax.TranslationException;
 import ma.vi.esql.syntax.define.Attribute;
 import ma.vi.esql.syntax.expression.Expression;
 import ma.vi.esql.syntax.modify.Delete;
@@ -12,10 +10,10 @@ import ma.vi.esql.syntax.modify.Insert;
 import ma.vi.esql.syntax.modify.InsertRow;
 import ma.vi.esql.syntax.modify.Update;
 import ma.vi.esql.syntax.query.*;
+import org.pcollections.PMap;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.IntStream;
 
 import static java.util.Collections.emptyList;
@@ -35,7 +33,7 @@ public class PostgresqlTranslator extends AbstractTranslator {
   @Override
   protected QueryTranslation translate(Select select,
                                        EsqlPath path,
-                                       Map<String, Object> parameters) {
+                                       PMap<String, Object> parameters) {
     StringBuilder st = new StringBuilder("select ");
     if (select.distinct()) {
       st.append("distinct ");
@@ -80,7 +78,7 @@ public class PostgresqlTranslator extends AbstractTranslator {
   }
 
   @Override
-  protected QueryTranslation translate(Update update, EsqlPath path, Map<String, Object> parameters) {
+  protected QueryTranslation translate(Update update, EsqlPath path, PMap<String, Object> parameters) {
     TableExpr from = update.tables();
     if (from instanceof SingleTableExpr) {
       StringBuilder st = new StringBuilder("update ");
@@ -205,7 +203,7 @@ public class PostgresqlTranslator extends AbstractTranslator {
   @Override
   protected QueryTranslation translate(Delete delete,
                                        EsqlPath path,
-                                       Map<String, Object> parameters) {
+                                       PMap<String, Object> parameters) {
     StringBuilder st = new StringBuilder("delete ");
 
     TableExpr from = delete.tables();
@@ -286,7 +284,7 @@ public class PostgresqlTranslator extends AbstractTranslator {
   }
 
   @Override
-  protected QueryTranslation translate(Insert insert, EsqlPath path, Map<String, Object> parameters) {
+  protected QueryTranslation translate(Insert insert, EsqlPath path, PMap<String, Object> parameters) {
     StringBuilder st = new StringBuilder("insert into ");
     TableExpr table = insert.tables();
     if (!(table instanceof SingleTableExpr)) {
@@ -314,7 +312,7 @@ public class PostgresqlTranslator extends AbstractTranslator {
     } else {
       st.append(' ').append(insert.select().translate(target(),
                                                       path.add(insert.select()),
-                                                      Map.of("addAttributes", false)).translation());
+                                                      parameters.plus("addAttributes", false)).translation());
     }
 
     QueryTranslation q = null;

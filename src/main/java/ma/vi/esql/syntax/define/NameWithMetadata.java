@@ -8,8 +8,7 @@ import ma.vi.base.tuple.T2;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
-
-import java.util.Map;
+import org.pcollections.PMap;
 
 /**
  * Name with associated metadata, used in dynamic tables definition.
@@ -48,7 +47,7 @@ public class NameWithMetadata extends TableDefinition {
   }
 
   @Override
-  protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
+  protected String trans(Target target, EsqlPath path, PMap<String, Object> parameters) {
     String sql = '"' + name() + "\" ";
     if (target == Target.ESQL) {
       StringBuilder st = new StringBuilder(sql);

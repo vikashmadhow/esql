@@ -24,7 +24,7 @@ import ma.vi.esql.syntax.expression.literal.StringLiteral;
 import ma.vi.esql.syntax.expression.literal.UuidLiteral;
 import ma.vi.esql.syntax.modify.Insert;
 import ma.vi.esql.syntax.query.Column;
-import ma.vi.esql.translator.*;
+import ma.vi.esql.translation.*;
 
 import java.sql.*;
 import java.util.*;
@@ -37,8 +37,8 @@ import static java.util.Collections.*;
 import static java.util.stream.Collectors.joining;
 import static ma.vi.base.string.Escape.escapeSqlString;
 import static ma.vi.esql.builder.Attributes.*;
-import static ma.vi.esql.syntax.Translatable.Target.*;
 import static ma.vi.esql.syntax.define.ConstraintDefinition.Type.fromMarker;
+import static ma.vi.esql.translation.Translatable.Target.*;
 import static org.apache.commons.lang3.StringUtils.repeat;
 
 /**

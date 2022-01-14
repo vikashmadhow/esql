@@ -11,7 +11,10 @@ import ma.vi.esql.exec.Result;
 import ma.vi.esql.semantic.type.BaseRelation;
 import ma.vi.esql.semantic.type.Relation;
 import ma.vi.esql.semantic.type.Type;
-import ma.vi.esql.syntax.*;
+import ma.vi.esql.syntax.CircularReferenceException;
+import ma.vi.esql.syntax.Context;
+import ma.vi.esql.syntax.Esql;
+import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.expression.ColumnRef;
 import ma.vi.esql.syntax.expression.Expression;
 import ma.vi.esql.syntax.expression.GroupedExpression;
@@ -19,6 +22,8 @@ import ma.vi.esql.syntax.expression.SelectExpression;
 import ma.vi.esql.syntax.expression.literal.Literal;
 import ma.vi.esql.syntax.query.Column;
 import ma.vi.esql.syntax.query.Select;
+import ma.vi.esql.translation.TranslationException;
+import org.pcollections.PMap;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -32,7 +37,7 @@ import static java.util.stream.Collectors.*;
 import static ma.vi.esql.builder.Attributes.DESCRIPTION;
 import static ma.vi.esql.builder.Attributes.NAME;
 import static ma.vi.esql.semantic.type.Type.dbTableName;
-import static ma.vi.esql.syntax.Translatable.Target.*;
+import static ma.vi.esql.translation.Translatable.Target.*;
 
 /**
  * Create table statement.
@@ -187,7 +192,7 @@ public class CreateTable extends Define {
   }
 
   @Override
-  protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
+  protected String trans(Target target, EsqlPath path, PMap<String, Object> parameters) {
     StringBuilder st = new StringBuilder("create table ");
     if (target != SQLSERVER) {
       st.append("if not exists ");

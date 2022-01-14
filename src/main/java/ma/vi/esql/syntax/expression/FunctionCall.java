@@ -11,9 +11,9 @@ import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.*;
 import ma.vi.esql.syntax.query.Order;
+import org.pcollections.PMap;
 
 import java.util.List;
-import java.util.Map;
 
 import static java.util.stream.Collectors.joining;
 import static ma.vi.base.tuple.T2.of;
@@ -103,7 +103,7 @@ public class FunctionCall extends Expression<String, String> implements TypedMac
   }
 
   @Override
-  protected String trans(Target target, EsqlPath path, Map<String, Object> parameters) {
+  protected String trans(Target target, EsqlPath path, PMap<String, Object> parameters) {
     String functionName = functionName();
     Structure s = context.structure;
     Function function = s.function(functionName);
