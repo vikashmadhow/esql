@@ -702,6 +702,18 @@ public class EsqlBaseListener implements EsqlListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterAssignment(EsqlParser.AssignmentContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitAssignment(EsqlParser.AssignmentContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterSelectStatement(EsqlParser.SelectStatementContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -733,6 +745,18 @@ public class EsqlBaseListener implements EsqlListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitDefineStatement(EsqlParser.DefineStatementContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterVarDecl(EsqlParser.VarDeclContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitVarDecl(EsqlParser.VarDeclContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -798,18 +822,6 @@ public class EsqlBaseListener implements EsqlListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterNamedArgument(EsqlParser.NamedArgumentContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitNamedArgument(EsqlParser.NamedArgumentContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
 	@Override public void enterMultiplicationExpr(EsqlParser.MultiplicationExprContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -853,6 +865,18 @@ public class EsqlBaseListener implements EsqlListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitFunctionInvocation(EsqlParser.FunctionInvocationContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterReturn(EsqlParser.ReturnContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitReturn(EsqlParser.ReturnContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -913,6 +937,18 @@ public class EsqlBaseListener implements EsqlListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitRangeExpr(EsqlParser.RangeExprContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterFunctionDecl(EsqlParser.FunctionDeclContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitFunctionDecl(EsqlParser.FunctionDeclContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -1261,6 +1297,54 @@ public class EsqlBaseListener implements EsqlListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitExpressionList(EsqlParser.ExpressionListContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterArguments(EsqlParser.ArgumentsContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitArguments(EsqlParser.ArgumentsContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterArgument(EsqlParser.ArgumentContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitArgument(EsqlParser.ArgumentContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterNamedArgument(EsqlParser.NamedArgumentContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitNamedArgument(EsqlParser.NamedArgumentContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterPositionalArgument(EsqlParser.PositionalArgumentContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitPositionalArgument(EsqlParser.PositionalArgumentContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *

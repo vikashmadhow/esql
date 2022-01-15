@@ -628,6 +628,18 @@ public interface EsqlListener extends ParseTreeListener {
 	 */
 	void exitSimpleExpression(EsqlParser.SimpleExpressionContext ctx);
 	/**
+	 * Enter a parse tree produced by the {@code Assignment}
+	 * labeled alternative in {@link EsqlParser#expr}.
+	 * @param ctx the parse tree
+	 */
+	void enterAssignment(EsqlParser.AssignmentContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code Assignment}
+	 * labeled alternative in {@link EsqlParser#expr}.
+	 * @param ctx the parse tree
+	 */
+	void exitAssignment(EsqlParser.AssignmentContext ctx);
+	/**
 	 * Enter a parse tree produced by the {@code SelectStatement}
 	 * labeled alternative in {@link EsqlParser#expr}.
 	 * @param ctx the parse tree
@@ -663,6 +675,18 @@ public interface EsqlListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitDefineStatement(EsqlParser.DefineStatementContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code VarDecl}
+	 * labeled alternative in {@link EsqlParser#expr}.
+	 * @param ctx the parse tree
+	 */
+	void enterVarDecl(EsqlParser.VarDeclContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code VarDecl}
+	 * labeled alternative in {@link EsqlParser#expr}.
+	 * @param ctx the parse tree
+	 */
+	void exitVarDecl(EsqlParser.VarDeclContext ctx);
 	/**
 	 * Enter a parse tree produced by the {@code Comparison}
 	 * labeled alternative in {@link EsqlParser#expr}.
@@ -724,18 +748,6 @@ public interface EsqlListener extends ParseTreeListener {
 	 */
 	void exitNotExpr(EsqlParser.NotExprContext ctx);
 	/**
-	 * Enter a parse tree produced by the {@code NamedArgument}
-	 * labeled alternative in {@link EsqlParser#expr}.
-	 * @param ctx the parse tree
-	 */
-	void enterNamedArgument(EsqlParser.NamedArgumentContext ctx);
-	/**
-	 * Exit a parse tree produced by the {@code NamedArgument}
-	 * labeled alternative in {@link EsqlParser#expr}.
-	 * @param ctx the parse tree
-	 */
-	void exitNamedArgument(EsqlParser.NamedArgumentContext ctx);
-	/**
 	 * Enter a parse tree produced by the {@code MultiplicationExpr}
 	 * labeled alternative in {@link EsqlParser#expr}.
 	 * @param ctx the parse tree
@@ -783,6 +795,18 @@ public interface EsqlListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitFunctionInvocation(EsqlParser.FunctionInvocationContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code Return}
+	 * labeled alternative in {@link EsqlParser#expr}.
+	 * @param ctx the parse tree
+	 */
+	void enterReturn(EsqlParser.ReturnContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code Return}
+	 * labeled alternative in {@link EsqlParser#expr}.
+	 * @param ctx the parse tree
+	 */
+	void exitReturn(EsqlParser.ReturnContext ctx);
 	/**
 	 * Enter a parse tree produced by the {@code SelectExpr}
 	 * labeled alternative in {@link EsqlParser#expr}.
@@ -843,6 +867,18 @@ public interface EsqlListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitRangeExpr(EsqlParser.RangeExprContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code FunctionDecl}
+	 * labeled alternative in {@link EsqlParser#expr}.
+	 * @param ctx the parse tree
+	 */
+	void enterFunctionDecl(EsqlParser.FunctionDeclContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code FunctionDecl}
+	 * labeled alternative in {@link EsqlParser#expr}.
+	 * @param ctx the parse tree
+	 */
+	void exitFunctionDecl(EsqlParser.FunctionDeclContext ctx);
 	/**
 	 * Enter a parse tree produced by the {@code LogicalOrExpr}
 	 * labeled alternative in {@link EsqlParser#expr}.
@@ -1167,6 +1203,46 @@ public interface EsqlListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitExpressionList(EsqlParser.ExpressionListContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link EsqlParser#arguments}.
+	 * @param ctx the parse tree
+	 */
+	void enterArguments(EsqlParser.ArgumentsContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link EsqlParser#arguments}.
+	 * @param ctx the parse tree
+	 */
+	void exitArguments(EsqlParser.ArgumentsContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link EsqlParser#argument}.
+	 * @param ctx the parse tree
+	 */
+	void enterArgument(EsqlParser.ArgumentContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link EsqlParser#argument}.
+	 * @param ctx the parse tree
+	 */
+	void exitArgument(EsqlParser.ArgumentContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link EsqlParser#namedArgument}.
+	 * @param ctx the parse tree
+	 */
+	void enterNamedArgument(EsqlParser.NamedArgumentContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link EsqlParser#namedArgument}.
+	 * @param ctx the parse tree
+	 */
+	void exitNamedArgument(EsqlParser.NamedArgumentContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link EsqlParser#positionalArgument}.
+	 * @param ctx the parse tree
+	 */
+	void enterPositionalArgument(EsqlParser.PositionalArgumentContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link EsqlParser#positionalArgument}.
+	 * @param ctx the parse tree
+	 */
+	void exitPositionalArgument(EsqlParser.PositionalArgumentContext ctx);
 	/**
 	 * Enter a parse tree produced by the {@code BasicLiterals}
 	 * labeled alternative in {@link EsqlParser#literal}.

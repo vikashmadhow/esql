@@ -385,7 +385,7 @@ public class SelectTest extends DataTest {
                                         "          y.x," +
                                         "          T.b asc");
 
-    List<Expression<?, ?>> st = program.expressions();
+    List<? extends Expression<?, ?>> st = program.expressions();
     assertEquals(1, st.size());
 
     assertTrue(st.get(0) instanceof Select);

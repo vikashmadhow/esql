@@ -58,6 +58,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Apply result and column metadata overloading in column list expansion (currently,
   the overridden metadata are not being considered). 
 
+## [0.7.3] - 2022-01-16
+### Changed
+- Changed the grammar of function call to allow a slightly shorter syntax for 
+  named arguments where the ':=' is replaced with '='. E.g., `sum(0, values:=[1,2,3])` 
+  can now be written `sum(0, values=[1,2,3])`. This also removes a potential 
+  conflict with assignment to variables in the extension of ESQL with general
+  purpose features.
+
 ## [0.7.2] - 2022-01-15
 ### Fixed
 - Fixed an error where columns in select expressions were being wrongly aliased  

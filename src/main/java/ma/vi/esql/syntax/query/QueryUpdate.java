@@ -35,7 +35,7 @@ import static ma.vi.esql.translation.SqlServerTranslator.ADD_IIF;
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public abstract class QueryUpdate extends MetadataContainer<QueryTranslation> implements Statement {
+public abstract class QueryUpdate extends MetadataContainer<QueryTranslation> {
   @SafeVarargs
   public QueryUpdate(Context context, String value, T2<String, ? extends Esql<?, ?>>... children) {
     super(context, value, children);

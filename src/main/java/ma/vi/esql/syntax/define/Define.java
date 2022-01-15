@@ -7,7 +7,6 @@ package ma.vi.esql.syntax.define;
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
-import ma.vi.esql.syntax.Statement;
 import ma.vi.esql.syntax.expression.Expression;
 
 import java.util.List;
@@ -18,7 +17,7 @@ import java.util.List;
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public abstract class Define extends Expression<String, String> implements Statement {
+public abstract class Define extends Expression<String, String> {
   @SafeVarargs
   Define(Context context,
          String value,

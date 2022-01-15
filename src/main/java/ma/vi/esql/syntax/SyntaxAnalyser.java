@@ -746,14 +746,14 @@ public class SyntaxAnalyser extends EsqlBaseListener {
   @Override
   public void exitFunctionInvocation(FunctionInvocationContext ctx) {
     createFunctionInvocation(ctx, ctx.distinct(), ctx.window(),
-                             ctx.qualifiedName(), ctx.expressionList(),
+                             ctx.qualifiedName(), ctx.arguments(),
                              ctx.star);
   }
 
   @Override
   public void exitSimpleFunctionInvocation(SimpleFunctionInvocationContext ctx) {
     createFunctionInvocation(ctx, ctx.distinct(), ctx.window(),
-                             ctx.qualifiedName(), ctx.expressionList(),
+                             ctx.qualifiedName(), ctx.arguments(),
                              ctx.star);
   }
 
@@ -761,13 +761,13 @@ public class SyntaxAnalyser extends EsqlBaseListener {
                                        DistinctContext distinct,
                                        WindowContext window,
                                        ParserRuleContext qualifiedName,
-                                       ParserRuleContext expressionList,
+                                       ParserRuleContext arguments,
                                        Token star) {
     put(ctx, new FunctionCall(context,
                               value(qualifiedName),
                               distinct != null && distinct.getText().startsWith("distinct"),
                               distinct != null && distinct.expressionList() != null ? value(distinct.expressionList()) : null,
-                              value(expressionList),
+                              value(arguments),
                               star != null,
                               window != null ? value(window.partition() != null ? window.partition().expressionList() : null) : null,
                               window != null ? value(window.orderByList()) : null,
@@ -806,6 +806,20 @@ public class SyntaxAnalyser extends EsqlBaseListener {
   }
 
   @Override
+  public void exitArguments(ArgumentsContext ctx) {
+    put(ctx, new Esql<>(context, ctx.argument().stream()
+                                    .map(e -> (Expression<?, ?>)get(e))
+                                    .toList()));
+  }
+
+  @Override
+  public void exitArgument(ArgumentContext ctx) {
+    put(ctx, ctx.namedArgument() != null
+           ? get(ctx.namedArgument())
+           : get(ctx.positionalArgument()));
+  }
+
+  @Override
   public void exitComparison(ComparisonContext ctx) {
     String compare = ctx.compare().getText();
     switch (compare) {
@@ -836,7 +850,7 @@ public class SyntaxAnalyser extends EsqlBaseListener {
                        get(ctx.mid),
                        ctx.rightCompare.getText(),
                        get(ctx.right)));
-   }
+  }
 
   @Override
   public void exitInExpression(InExpressionContext ctx) {
@@ -1238,7 +1252,12 @@ public class SyntaxAnalyser extends EsqlBaseListener {
 
   @Override
   public void exitNamedArgument(NamedArgumentContext ctx) {
-    put(ctx, new NamedArgument(context, ctx.Identifier().getText(), get(ctx.expr())));
+    put(ctx, new NamedArgument(context, ctx.Identifier().getText(), get(ctx.positionalArgument())));
+  }
+
+  @Override
+  public void exitPositionalArgument(PositionalArgumentContext ctx) {
+    put(ctx, get(ctx.expr()));
   }
 
   @Override

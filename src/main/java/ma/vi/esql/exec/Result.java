@@ -172,9 +172,6 @@ public class Result implements AutoCloseable {
     Map<String, ResultColumn<?>> row = new HashMap<>();
     for (int i = 1; i <= columnsCount(); i++) {
       ResultColumn<Object> col = get(i);
-//      if (col.value instanceof BigDecimal) {
-//        col.value = ((BigDecimal)col.value).doubleValue();
-//      }
       row.put(col.column().name(), col);
     }
     return row;

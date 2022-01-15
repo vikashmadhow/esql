@@ -21,7 +21,7 @@ import static java.util.stream.Collectors.toList;
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 public class Program extends Esql<String, List<?>> {
-  public Program(Context context, List<Expression<?, ?>> expressions) {
+  public Program(Context context, List<? extends Expression<?, ?>> expressions) {
     super(context, "Program", expressions, true);
   }
 
@@ -67,7 +67,7 @@ public class Program extends Esql<String, List<?>> {
     return result;
   }
 
-  public List<Expression<?, ?>> expressions() {
+  public List<? extends Expression<?, ?>> expressions() {
     return children();
   }
 }

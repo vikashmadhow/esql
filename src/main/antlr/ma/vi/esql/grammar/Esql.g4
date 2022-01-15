@@ -16,10 +16,9 @@ package ma.vi.esql.grammar;
 }
 
 /**
- * An ESQL program is a semi-colon separated sequence of ESQL statements.
+ * An ESQL program is a semi-colon separated sequence of ESQL expressions.
  */
 program
-//    : statement (';' statement)* ';'?
     : expressions
     ;
 
@@ -37,20 +36,14 @@ noop
     : ';'
     ;
 
-/**
- * ESQL statements can be divided into two groups: statements for defining and
- * altering database structures (such as tables and columns) and those for
- * querying and manipulating the data in those structures (select, insert, etc.).
- * `select` is the only statement for querying data while there are 3 different
- * statements for modifying data (insert, update and delete) which are grouped
- * into modify statements.
- */
-//statement
-//    : select
-//    | modify
-//    | define
-//    | noop
-//    ;
+//////////////////////////////////////////////////////////////////////////////////
+// ESQL statements can be divided into two groups: statements for defining and
+// altering database structures (such as tables and columns) and those for
+// querying and manipulating the data in those structures (select, insert, etc.).
+// `select` is the only statement for querying data while there are 3 different
+// statements for modifying data (insert, update and delete) which are grouped
+// into modify statements.
+//////////////////////////////////////////////////////////////////////////////////
 
 /**
  * The 3 data modifying statements are update, insert and delete.
@@ -602,9 +595,15 @@ expr
     | define                                                    #DefineStatement
     | noop                                                      #NoopStatement
 
+    | 'function' qualifiedName '(' names ')' '{'
+        expressions
+      '}'                                                       #FunctionDecl
+    | 'let' Identifier ':=' expr                                #VarDecl
+    | Identifier ':=' expr                                      #Assignment
+    | 'return' expr                                             #Return
+
 //    | Identifier                                                #Reference
 //    | expr '.' Identifier                                       #Selector
-//    | 'let' Identifier (':' type)? (':=' expr)?                 #Declaration
 //    | Identifier ':=' expr                                      #Assignment
 //    | 'for' (key=Identifier ',')? value=Identifier 'in' expr 'do'
 //        expressions
@@ -703,16 +702,6 @@ expr
     | ':' Identifier                                            #NamedParameter
 
       /*
-       * A named argument to a function. The name is dropped when this is
-       * translated to SQL as most databases do not support named arguments yet.
-       * This is however useful as macro parameters to control the macro
-       * expansion. Since macros are expanded before translation of the ESQL
-       * statement to SQL, the named parameters can be interpreted by the macro
-       * and dropped from the expansion.
-       */
-    | Identifier ':=' expr                                      #NamedArgument
-
-      /*
        * A single-column, single-row only select used as an expression.
        */
     | selectExpression                                          #SelectExpr
@@ -733,7 +722,7 @@ expr
        * applicable to certain aggregate functions (such as `count`).
        */
     | qualifiedName
-      '(' distinct? (expressionList | star='*')? ')'
+      '(' distinct? (arguments | star='*')? ')'
       window?                                                   #FunctionInvocation
 
       /*
@@ -841,7 +830,7 @@ simpleExpr
     | left=simpleExpr op=('*' | '/' | '%') right=simpleExpr                           #SimpleMultiplicationExpr
     | left=simpleExpr op=('+' | '-') right=simpleExpr                                 #SimpleAdditionExpr
     | selectExpression                                                                #SimpleSelectExpr
-    | qualifiedName '(' distinct? (expressionList | star='*')? ')' window?            #SimpleFunctionInvocation
+    | qualifiedName '(' distinct? (arguments | star='*')? ')' window?                 #SimpleFunctionInvocation
     | columnReference                                                                 #SimpleColumnExpr
     | <assoc=right> simpleExpr ('if' simpleExpr 'else' simpleExpr)+                   #SimpleCaseExpr
     ;
@@ -951,6 +940,31 @@ ordering
 expressionList
     : expr (',' expr)*
     ;
+
+arguments
+  : argument (',' argument)*
+  ;
+
+argument
+  : namedArgument
+  | positionalArgument
+  ;
+
+/*
+ * A named argument to a function. The name is dropped when this is
+ * translated to SQL as most databases do not support named arguments yet.
+ * This is however useful as macro parameters to control the macro
+ * expansion. Since macros are expanded before translation of the ESQL
+ * statement to SQL, the named parameters can be interpreted by the macro
+ * and dropped from the expansion.
+ */
+namedArgument
+  : Identifier '=' positionalArgument
+  ;
+
+positionalArgument
+  : expr
+  ;
 
 /**
  * Literals are values of the different types supported by ESQL, and can be
