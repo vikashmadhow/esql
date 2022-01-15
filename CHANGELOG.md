@@ -26,6 +26,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Support for 'within group' for ordering in string and array aggregate functions.
 - Support for bulk copy manager in postgresql.
 - Support for merge queries.
+- Implement state-based model where an ESQL program is specified as a target state 
+  instead of a sequence of imperative statements. For instance, a table definition
+  is specified instead of a `create table` and/or a set `alter table` statements.
+  The table definition will then be realised with a sequence of `create table` 
+  and `alter table` statements. Currently, the `create table` statement already 
+  work in this manner. In the state-based model this is applied to all statements
+  where this make senses. For example, a set of records is specified as the target
+  content of a table which will then be merged with the existing data through a 
+  merge statement and/or a set of insert and update statements.
 - Configure extensions (e.g. specify lookup schema) through parameters.
 - Replace all visual tests (printResult) with assertions.
 - Implement `explicit` in select (no expanded columns when explicit keyword used).
@@ -48,6 +57,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   function is not used anywhere, thus this is low-priority.
 - Apply result and column metadata overloading in column list expansion (currently,
   the overridden metadata are not being considered). 
+
+## [0.7.2] - 2022-01-15
+### Fixed
+- Fixed an error where columns in select expressions were being wrongly aliased  
+  with table alias from surrounding context.
 
 ## [0.7.1] - 2022-01-14
 ### Added

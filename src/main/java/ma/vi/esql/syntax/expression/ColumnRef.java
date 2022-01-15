@@ -16,6 +16,7 @@ import ma.vi.esql.syntax.TypedMacro;
 import ma.vi.esql.syntax.define.*;
 import ma.vi.esql.syntax.query.Column;
 import ma.vi.esql.syntax.query.QueryUpdate;
+import ma.vi.esql.syntax.query.TableExpr;
 import ma.vi.esql.translation.TranslationException;
 import org.pcollections.PMap;
 
@@ -283,7 +284,7 @@ public class ColumnRef extends Expression<String, String> implements TypedMacro 
     return (T)esql.map((e, path) -> {
       if (e instanceof ColumnRef ref) {
         SelectExpression selExpr = path.ancestor(SelectExpression.class);
-        if (selExpr == null || ref.qualifier() == null) {
+        if (selExpr == null) {
           return ref.qualifier(qualifier);
         }
       }

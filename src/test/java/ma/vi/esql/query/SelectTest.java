@@ -367,7 +367,7 @@ public class SelectTest extends DataTest {
                                       .orderBy("T.b", "asc")
                                       .build().toString()).replaceAll("00000000-0000-0000-0000-000000000000"),
                                   UuidLiteral.PATTERN.matcher(select.toString()).replaceAll("00000000-0000-0000-0000-000000000000"));
-//                     con.exec(select);
+                     con.exec(select);
                    }
                  }));
   }
