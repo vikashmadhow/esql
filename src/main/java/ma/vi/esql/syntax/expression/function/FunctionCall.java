@@ -2,7 +2,7 @@
  * Copyright (c) 2020 Vikash Madhow
  */
 
-package ma.vi.esql.syntax.expression;
+package ma.vi.esql.syntax.expression.function;
 
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.database.Structure;
@@ -10,6 +10,9 @@ import ma.vi.esql.function.Function;
 import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.*;
+import ma.vi.esql.syntax.expression.Expression;
+import ma.vi.esql.syntax.macro.Macro;
+import ma.vi.esql.syntax.macro.TypedMacro;
 import ma.vi.esql.syntax.query.Order;
 import org.pcollections.PMap;
 

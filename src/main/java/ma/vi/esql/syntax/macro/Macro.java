@@ -2,7 +2,12 @@
  * Copyright (c) 2020 Vikash Madhow
  */
 
-package ma.vi.esql.syntax;
+package ma.vi.esql.syntax.macro;
+
+import ma.vi.esql.syntax.Context;
+import ma.vi.esql.syntax.Esql;
+import ma.vi.esql.syntax.EsqlPath;
+import ma.vi.esql.syntax.expression.function.FunctionCall;
 
 /**
  * A macro is a part of an Esql statement which is expanded after parsing but
@@ -18,7 +23,7 @@ public interface Macro {
    *
    * @param esql The ESQL node that this macro is to expand. This will be, in most
    *             cases, the macro instance itself. In some cases (such as for
-   *             {@link ma.vi.esql.syntax.expression.FunctionCall}) the ESQL node
+   *             {@link FunctionCall}) the ESQL node
    *             delegates the expansion to another macro class. In such cases
    *             this parameter will be set to the source ESQL statement delegating
    *             to this macro.

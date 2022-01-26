@@ -10,10 +10,12 @@ import ma.vi.esql.exec.ColumnMapping;
 import ma.vi.esql.exec.Result;
 import ma.vi.esql.semantic.type.Relation;
 import ma.vi.esql.semantic.type.Selection;
+import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.*;
 import ma.vi.esql.syntax.expression.*;
 import ma.vi.esql.syntax.expression.literal.Literal;
 import ma.vi.esql.syntax.expression.logical.And;
+import ma.vi.esql.syntax.macro.Macro;
 import ma.vi.esql.syntax.modify.InsertRow;
 
 import java.sql.Connection;
@@ -66,7 +68,7 @@ public abstract class QueryUpdate extends MetadataContainer<QueryTranslation> {
 
   @Override
   public Selection computeType(EsqlPath path) {
-    if (type == null) {
+    if (type == Types.UnknownType) {
       Selection sel = new Selection(new ArrayList<>(columns()), null, tables(), null);
       if (path.hasAncestor(Macro.OngoingMacroExpansion.class)) {
         return sel;
@@ -74,7 +76,7 @@ public abstract class QueryUpdate extends MetadataContainer<QueryTranslation> {
         type = sel;
       }
     }
-    return type;
+    return (Selection)type;
   }
 
   /**
@@ -668,11 +670,6 @@ public abstract class QueryUpdate extends MetadataContainer<QueryTranslation> {
 //                                  .collect(toList()));
 //    }
 //  }
-
-  /**
-   * Result type of the query/update.
-   */
-  private volatile Selection type;
 
   private static final System.Logger log = System.getLogger(QueryUpdate.class.getName());
 }

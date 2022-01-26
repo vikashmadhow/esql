@@ -7,6 +7,9 @@ package ma.vi.esql.syntax;
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.database.Database;
 import ma.vi.esql.exec.Result;
+import ma.vi.esql.semantic.scope.Allocator;
+import ma.vi.esql.semantic.scope.FunctionScope;
+import ma.vi.esql.semantic.scope.Scope;
 import ma.vi.esql.syntax.expression.Expression;
 import org.pcollections.PMap;
 
@@ -49,6 +52,16 @@ public class Program extends Esql<String, List<?>> {
   }
 
   @Override
+  public Esql<?, ?> scope(Scope scope, EsqlPath path) {
+    Scope programScope = new FunctionScope("Program Scope", scope, new Allocator());
+    super.scope(programScope, path);
+    for (Expression<?, ?> e: expressions()) {
+      e.scope(programScope, path.add(this));
+    }
+    return this;
+  }
+
+  @Override
   public List<?> trans(Target target, EsqlPath path, PMap<String, Object> parameters) {
     return expressions().stream()
                         .map(s -> s.translate(target, path.add(s), parameters))
@@ -59,7 +72,7 @@ public class Program extends Esql<String, List<?>> {
   public Result execute(Database db, Connection con, EsqlPath path) {
     Result result = Result.Nothing;
     for (Expression<?, ?> st: expressions()) {
-      Result r = st.execute(db, con, path);
+      Result r = st.execute(db, con, path.add(st));
       if (r != Result.Nothing) {
         result = r;
       }

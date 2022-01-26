@@ -9,6 +9,7 @@ import ma.vi.base.tuple.T1;
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.database.Database;
 import ma.vi.esql.exec.Result;
+import ma.vi.esql.semantic.scope.Scope;
 import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.translation.Translatable;
 import ma.vi.esql.translation.TranslatorFactory;
@@ -30,10 +31,13 @@ import static org.apache.commons.lang3.StringUtils.repeat;
  * latter consists of a tree of Esql objects which can be further processed
  * by macros and other methods before being translated for execution on a
  * target database.
+ * 
+ * @param <V> The type of value held.
+ * @param <T> The type that this ESQL node is transated to.
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public class Esql<V, R> implements Copy<Esql<V, R>>, Translatable<R> {
+public class Esql<V, T> implements Copy<Esql<V, T>>, Translatable<T> {
   public Esql(Context context) {
     this.value = getDefaultValue();
     this.context = context;
@@ -142,7 +146,7 @@ public class Esql<V, R> implements Copy<Esql<V, R>>, Translatable<R> {
     }
   }
 
-  public Esql(Esql<V, R> other) {
+  public Esql(Esql<V, T> other) {
     this.context = other.context;
     this.value = other.value;
     this.childrenNames = other.childrenNames;
@@ -150,12 +154,12 @@ public class Esql<V, R> implements Copy<Esql<V, R>>, Translatable<R> {
   }
 
   @SafeVarargs
-  public Esql(Esql<V, R> other, T2<String, ? extends Esql<?, ?>>... children) {
+  public Esql(Esql<V, T> other, T2<String, ? extends Esql<?, ?>>... children) {
     this(other, null, children);
   }
 
   @SafeVarargs
-  public Esql(Esql<V, R> other, V value, T2<String, ? extends Esql<?, ?>>... children) {
+  public Esql(Esql<V, T> other, V value, T2<String, ? extends Esql<?, ?>>... children) {
     if (value instanceof Esql<?,?>) {
       throw new EsqlException(VALUE_OF_TYPE_ESQL_ERROR);
     }
@@ -175,7 +179,7 @@ public class Esql<V, R> implements Copy<Esql<V, R>>, Translatable<R> {
    * Returns a shallow copy of this object. The copy will have a separate children
    * list pointing to the same children as this object.
    */
-  public Esql<V, R> copy() {
+  public Esql<V, T> copy() {
     return new Esql<>(this);
   }
 
@@ -184,7 +188,7 @@ public class Esql<V, R> implements Copy<Esql<V, R>>, Translatable<R> {
    * the provided value and replacing the specified children in the children list
    * of the copy.
    */
-  public Esql<V, R> copy(V value, T2<String, ? extends Esql<?, ?>>... children) {
+  public Esql<V, T> copy(V value, T2<String, ? extends Esql<?, ?>>... children) {
     return new Esql<>(this, value, children);
   }
 
@@ -198,15 +202,15 @@ public class Esql<V, R> implements Copy<Esql<V, R>>, Translatable<R> {
     return null;
   }
 
-  public <T extends Esql<?, ?>> List<T> children() {
-    return (List<T>)Collections.unmodifiableList(children);
+  public <X extends Esql<?, ?>> List<X> children() {
+    return (List<X>)Collections.unmodifiableList(children);
   }
 
-  public <T extends Esql<?, ?>> Map<String, T> childrenMap() {
+  public <X extends Esql<?, ?>> Map<String, X> childrenMap() {
     Map<String, Integer> names = childrenNames();
-    Map<String, T> children = new LinkedHashMap<>(names.size());
+    Map<String, X> children = new LinkedHashMap<>(names.size());
     for (Map.Entry<String, Integer> e: names.entrySet()) {
-      children.put(e.getKey(), (T)this.children.get(e.getValue()));
+      children.put(e.getKey(), (X)this.children.get(e.getValue()));
     }
     return children;
   }
@@ -258,17 +262,17 @@ public class Esql<V, R> implements Copy<Esql<V, R>>, Translatable<R> {
     return _indexOf(childName) != -1;
   }
 
-  public <T extends Esql<?, ?>> T child(String child) {
+  public <X extends Esql<?, ?>> X child(String child) {
     return get(indexOf(child));
   }
 
-  public <T> T childValue(String child) {
+  public <X> X childValue(String child) {
     Esql<?, ?> e = get(indexOf(child));
-    return e == null ? null : (T)get(indexOf(child)).value;
+    return e == null ? null : (X)get(indexOf(child)).value;
   }
 
-  public <T extends Esql<?, ?>> T get(int child) {
-    return (T)children.get(child);
+  public <X extends Esql<?, ?>> X get(int child) {
+    return (X)children.get(child);
   }
 
   public Esql<?, ?> get(String path) {
@@ -285,32 +289,33 @@ public class Esql<V, R> implements Copy<Esql<V, R>>, Translatable<R> {
     return node;
   }
 
-  public <T extends Esql<V, R>> T set(V value) {
-    return (T)copy(value);
+  public <X extends Esql<V, T>> X set(V value) {
+    return (X)copy(value);
   }
 
-  public <T extends Esql<V, R>> T set(String childName, Esql<?, ?> child) {
-    if (has(childName)) {
+  public <X extends Esql<V, T>> X set(String childName, Esql<?, ?> child) {
+    if(has(childName)) {
       return set(indexOf(childName), child);
     } else {
+      childrenNames.put(childName, children().size());
       return set(children.size(), child);
     }
   }
 
-  public <T extends Esql<V, R>> T set(int index, Esql<?, ?> child) {
-    Esql<V, R> copy = copy();
+  public <X extends Esql<V, T>> X set(int index, Esql<?, ?> child) {
+    Esql<V, T> copy = copy();
     while (copy.children.size() <= index) {
       copy.children.add(null);
     }
     copy.children.set(index, child);
-    return (T)copy;
+    return (X)copy;
   }
 
-  public <T extends Esql<V, R>> T setPath(String path, Esql<?, ?> child) {
+  public <X extends Esql<V, T>> X setPath(String path, Esql<?, ?> child) {
     return _setPath(path.split("/"), 0, child);
   }
 
-  private <T extends Esql<V, R>> T _setPath(String[] path,
+  private <X extends Esql<V, T>> X _setPath(String[] path,
                                             int indexInPath,
                                             Esql<?, ?> child) {
     while (indexInPath < path.length
@@ -318,16 +323,16 @@ public class Esql<V, R> implements Copy<Esql<V, R>>, Translatable<R> {
       indexInPath++;
     }
     if (indexInPath < path.length) {
-      Esql<V, R> copy = this.copy();
+      Esql<V, T> copy = this.copy();
       int childIndex = indexOf(path[indexInPath]);
       Esql<?, ?> childCopy = copy.get(childIndex);
       if (childCopy != null) {
         Esql<?, ?> rep = childCopy._setPath(path, indexInPath++, child);
         copy.children.set(childIndex, rep);
       }
-      return (T)copy;
+      return (X)copy;
     } else {
-      return (T)child;
+      return (X)child;
     }
   }
 
@@ -335,13 +340,13 @@ public class Esql<V, R> implements Copy<Esql<V, R>>, Translatable<R> {
    * Return the first child (or itself) of the specified type in the Esql tree.
    * Return null if no such child exist.
    */
-  public <T> T descendent(Class<T> cls) {
+  public <X> X descendent(Class<X> cls) {
     if (cls.isAssignableFrom(getClass())) {
-      return (T)this;
+      return (X)this;
     }
     for (Esql<?, ?> child: children) {
       if (child != null) {
-        T firstChild = child.descendent(cls);
+        X firstChild = child.descendent(cls);
         if (firstChild != null) {
           return firstChild;
         }
@@ -386,11 +391,11 @@ public class Esql<V, R> implements Copy<Esql<V, R>>, Translatable<R> {
     }
   }
 
-  public <T extends Esql<?, ?>> T find(Predicate<Esql<?, ?>> predicate) {
-    T1<T> found = new T1<>(null);
+  public <X extends Esql<?, ?>> X find(Predicate<Esql<?, ?>> predicate) {
+    T1<X> found = new T1<>(null);
     forEach((e, path) -> {
       if (predicate.test(e)) {
-        found.a = (T)e;
+        found.a = (X)e;
         return false;
       }
       return true;
@@ -398,12 +403,11 @@ public class Esql<V, R> implements Copy<Esql<V, R>>, Translatable<R> {
     return found.a;
   }
 
-  public <T extends Esql<?, ?>> T find(Class<T> cls) {
+  public <X extends Esql<?, ?>> X find(Class<X> cls) {
     return find(e -> e.getClass().equals(cls));
   }
 
-
-  public <T extends Esql<V, R>> T map(BiFunction<Esql<?, ?>, EsqlPath, Esql<?, ?>> mapper) {
+  public <X extends Esql<V, T>> X map(BiFunction<Esql<?, ?>, EsqlPath, Esql<?, ?>> mapper) {
     return map(mapper, null);
   }
 
@@ -417,7 +421,7 @@ public class Esql<V, R> implements Copy<Esql<V, R>>, Translatable<R> {
    * @param explore
    * @return
    */
-  public <T extends Esql<V, R>> T map(BiFunction<Esql<?, ?>, EsqlPath, Esql<?, ?>> mapper,
+  public <X extends Esql<V, T>> X map(BiFunction<Esql<?, ?>, EsqlPath, Esql<?, ?>> mapper,
                                       Predicate<Esql<?, ?>> explore) {
     return map(mapper, explore, new EsqlPath(this));
   }
@@ -439,11 +443,11 @@ public class Esql<V, R> implements Copy<Esql<V, R>>, Translatable<R> {
    * @param explore
    * @return
    */
-  public <T extends Esql<V, R>> T map(BiFunction<Esql<?, ?>, EsqlPath, Esql<?, ?>> mapper,
+  public <X extends Esql<V, T>> X map(BiFunction<Esql<?, ?>, EsqlPath, Esql<?, ?>> mapper,
                                       Predicate<Esql<?, ?>> explore,
                                       EsqlPath path) {
     if (explore == null || explore.test(this)) {
-      Esql<V, R> copy = null;
+      Esql<V, T> copy = null;
       for (int i = 0; i < children.size(); i++) {
         Esql<?, ?> child = children.get(i);
         if (child != null) {
@@ -457,29 +461,29 @@ public class Esql<V, R> implements Copy<Esql<V, R>>, Translatable<R> {
           }
         }
       }
-      return (T)mapper.apply(copy != null ? copy : this, path);
+      return (X)mapper.apply(copy != null ? copy : this, path);
     }
-    return (T)this;
+    return (X)this;
   }
 
-  public <T extends Esql<V, R>> T bfsMap(BiFunction<Esql<?, ?>, EsqlPath, Esql<?, ?>> mapper) {
+  public <X extends Esql<V, T>> X bfsMap(BiFunction<Esql<?, ?>, EsqlPath, Esql<?, ?>> mapper) {
     return bfsMap(mapper, null);
   }
 
-  public <T extends Esql<V, R>> T bfsMap(BiFunction<Esql<?, ?>, EsqlPath, Esql<?, ?>> mapper,
+  public <X extends Esql<V, T>> X bfsMap(BiFunction<Esql<?, ?>, EsqlPath, Esql<?, ?>> mapper,
                                          Predicate<Esql<?, ?>> explore) {
     return bfsMap(mapper, explore, new EsqlPath(this));
   }
 
-  public <T extends Esql<V, R>> T bfsMap(BiFunction<Esql<?, ?>, EsqlPath, Esql<?, ?>> mapper,
+  public <X extends Esql<V, T>> X bfsMap(BiFunction<Esql<?, ?>, EsqlPath, Esql<?, ?>> mapper,
                                          Predicate<Esql<?, ?>> explore,
                                          EsqlPath path) {
     if (explore == null || explore.test(this)) {
-      Esql<V, R> mapped = (Esql<V, R>)mapper.apply(this, path);
+      Esql<V, T> mapped = (Esql<V, T>)mapper.apply(this, path);
       if (mapped == null) {
         return null;
       }
-      Esql<V, R> copy = null;
+      Esql<V, T> copy = null;
       for (int i = 0; i < mapped.children.size(); i++) {
         Esql<?, ?> child = mapped.children.get(i);
         if (child != null) {
@@ -493,13 +497,13 @@ public class Esql<V, R> implements Copy<Esql<V, R>>, Translatable<R> {
           }
         }
       }
-      return (T)(copy != null ? copy : mapped);
+      return (X)(copy != null ? copy : mapped);
     }
-    return (T)this;
+    return (X)this;
   }
 
-  public <T extends Esql<?, ?>> T replace(Esql<?, ?> searchFor, Esql<?, ?> replaceWith) {
-    return (T)map((e, path) -> e == searchFor ? replaceWith : e);
+  public <X extends Esql<?, ?>> X replace(Esql<?, ?> searchFor, Esql<?, ?> replaceWith) {
+    return (X)map((e, path) -> e == searchFor ? replaceWith : e);
   }
 
   /**
@@ -508,23 +512,45 @@ public class Esql<V, R> implements Copy<Esql<V, R>>, Translatable<R> {
    * case that the expression does not produce anything.
    */
   public Type computeType(EsqlPath path) {
-    return UnknownType;
+    return type;
   }
 
   @Override
-  public final R translate(Target target) {
+  public final T translate(Target target) {
     return translate(target, new EsqlPath(this), HashPMap.empty(IntTreePMap.empty()));
   }
 
   @Override
-  public final R translate(Target target, EsqlPath path, PMap<String, Object> parameters) {
+  public final T translate(Target target, EsqlPath path, PMap<String, Object> parameters) {
     return trans(target, path, parameters);
   }
 
-  protected R trans(Target target, EsqlPath path, PMap<String, Object> parameters) {
+  protected T trans(Target target, EsqlPath path, PMap<String, Object> parameters) {
     return TranslatorFactory.get(target).translate(this, path, parameters);
   }
 
+  /**
+   * Places symbols in the ESQL node in the current scope and/or creates children
+   * scopes as needed.
+   */
+  public Esql<?, ?> scope(Scope scope, EsqlPath path) {
+    this.scope = scope;
+    return this;
+  }
+
+  public Type type() {
+    return type;
+  }
+
+  public Esql<?, ?> type(Type type) {
+    this.type = type;
+    return this;
+  }
+
+  /**
+   * Executes this ESQL node and returns its result. The default returns
+   * {@link Result#Nothing}.
+   */
   public Result execute(Database db, Connection con, EsqlPath path) {
     return Result.Nothing;
   }
@@ -588,6 +614,17 @@ public class Esql<V, R> implements Copy<Esql<V, R>>, Translatable<R> {
    * Translation context.
    */
   public final Context context;
+
+  /**
+   * Scope of this esql node.
+   */
+  protected transient Scope scope;
+
+  /**
+   * Type of this esql node. This is set to {@link ma.vi.esql.semantic.type.Types#UnknownType}
+   * initially and resolved during scoping and type computation.
+   */
+  protected transient Type type = UnknownType;
 
   private static final String VALUE_OF_TYPE_ESQL_ERROR = """
       Value of an ESQL object is not allowed to be of ESQL type. All ESQL parameters \

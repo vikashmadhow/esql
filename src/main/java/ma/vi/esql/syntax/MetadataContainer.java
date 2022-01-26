@@ -17,7 +17,7 @@ import java.util.List;
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public abstract class MetadataContainer<R> extends Expression<String, R> {
+public abstract class MetadataContainer<T> extends Expression<String, T> {
   @SafeVarargs
   public MetadataContainer(Context context, String value, T2<String, ? extends Esql<?, ?>>... children) {
     super(context, value, children);
@@ -27,19 +27,19 @@ public abstract class MetadataContainer<R> extends Expression<String, R> {
     super(context, "MetadataContainer", children);
   }
 
-  public MetadataContainer(MetadataContainer<R> other) {
+  public MetadataContainer(MetadataContainer<T> other) {
     super(other);
   }
 
   @SafeVarargs
-  public MetadataContainer(MetadataContainer<R> other,
+  public MetadataContainer(MetadataContainer<T> other,
                            String value,
                            T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }
 
   @Override
-  public abstract MetadataContainer<R> copy();
+  public abstract MetadataContainer<T> copy();
 
   /**
    * Returns a shallow copy of this object replacing the value in the copy with
@@ -47,7 +47,7 @@ public abstract class MetadataContainer<R> extends Expression<String, R> {
    * of the copy.
    */
   @Override
-  public abstract MetadataContainer<R> copy(String value, T2<String, ? extends Esql<?, ?>>... children);
+  public abstract MetadataContainer<T> copy(String value, T2<String, ? extends Esql<?, ?>>... children);
 
   /**
    * Metadata.

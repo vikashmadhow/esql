@@ -72,8 +72,7 @@ public class TestDatabase implements Database {
 
       BaseRelation S = new BaseRelation(
           context, UUID.randomUUID(), "S", "S", "S",
-          Arrays.asList(
-              new Attribute(context, "tm1", parser.parseExpression("from S select max(b)")),
+          List.of(
               new Attribute(context, "tm2", parser.parseExpression("a > b"))
           ),
           new ArrayList<>(Arrays.asList(
@@ -143,25 +142,23 @@ public class TestDatabase implements Database {
               ),
               new Column(
                   context, "f",
-                  parser.parseExpression("from S select max(a)"),
+                  parser.parseExpression("e+d"),
                   Types.IntType,
                   new Metadata(
                       context,
-                      new ArrayList<>(Arrays.asList(
-                          new Attribute(context, DERIVED, parser.parseExpression("true")),
-                          new Attribute(context, "m1", parser.parseExpression("from S select min(a)"))
+                      new ArrayList<>(List.of(
+                          new Attribute(context, DERIVED, parser.parseExpression("true"))
                       ))
                   )
               ),
               new Column(
                   context, "g",
-                  parser.parseExpression("from S select distinct c where d>5"),
+                  parser.parseExpression("f+e"),
                   Types.IntType,
                   new Metadata(
                       context,
-                      new ArrayList<>(Arrays.asList(
-                          new Attribute(context, DERIVED, parser.parseExpression("true")),
-                          new Attribute(context, "m1", parser.parseExpression("from a.b.T select min(a)"))
+                      new ArrayList<>(List.of(
+                          new Attribute(context, DERIVED, parser.parseExpression("true"))
                       ))
                   )
               ),
@@ -184,8 +181,7 @@ public class TestDatabase implements Database {
                   new Metadata(
                       context,
                       new ArrayList<>(Collections.singletonList(
-                          new Attribute(context, TYPE, parser.parseExpression("'string'"))
-                                                               ))
+                          new Attribute(context, TYPE, parser.parseExpression("'string'"))))
                   )
               )
           )),
@@ -195,8 +191,7 @@ public class TestDatabase implements Database {
 
       BaseRelation T = new BaseRelation(
           context, UUID.randomUUID(), "a.b.T","a.b.T","a.b.T",
-          Arrays.asList(
-              new Attribute(context, "tm1", parser.parseExpression("from S select max(b)")),
+          List.of(
               new Attribute(context, "tm2", parser.parseExpression("a > b"))
           ),
           new ArrayList<>(Arrays.asList(

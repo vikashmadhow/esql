@@ -220,7 +220,8 @@ public class AlterTable extends Define {
               }
             }
             s.database.columnType(con, column.id(), def.toType().translate(ESQL, path.add(def)));
-            column = column.type(def.toType());
+//            column = column.type(def.toType());
+            column.type(def.toType());
             relation.addOrReplaceColumn(column);
           }
 

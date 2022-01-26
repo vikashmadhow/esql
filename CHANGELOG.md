@@ -58,6 +58,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Apply result and column metadata overloading in column list expansion (currently,
   the overridden metadata are not being considered). 
 
+## [0.7.4] - 2022-01-26
+### Added
+- Type inference system improved with type assigned and computed for every ESQL
+  node in a syntax tree. All nodes are assigned the `UnknownType` initially.
+- Scope rules and mechanism added with `Structure` being the top-level `SystemScope`,
+  a program forming the `GlobalScope`, functions introducing `FunctionScope` and
+  blocks creating local block scopes.
+- Syntax and implementation of user-defined functions syntax, variable declaration 
+  and assignments for general purpose ESQL.
+
+### Fixed
+- `money` ESQL type mapped to `Double` Java class, allows correct numeric conversion 
+  of  values of this type read from the database.
+- Sub-select detection corrected in Sql-Server translator to allow translation to
+  automatically correct use of `order` clause in sub-selects (which is prohibited
+  in SQL Server without an `offset` clause). 
+
 ## [0.7.3] - 2022-01-16
 ### Changed
 - Changed the grammar of function call to allow a slightly shorter syntax for 

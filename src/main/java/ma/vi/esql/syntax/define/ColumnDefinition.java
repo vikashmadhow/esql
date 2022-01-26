@@ -38,6 +38,7 @@ public class ColumnDefinition extends TableDefinition {
           T2.of("notNull", new Esql<>(context, notNull)),
           T2.of("expression", expression),
           T2.of("metadata", addType(context, metadata, type)));
+    this.type = type;
   }
 
   public ColumnDefinition(ColumnDefinition other) {
@@ -116,8 +117,14 @@ public class ColumnDefinition extends TableDefinition {
     }
   }
 
+  @Override
   public Type type() {
     return childValue("type");
+  }
+
+  @Override
+  public ColumnDefinition type(Type type) {
+    return new ColumnDefinition(context, name(), type, notNull(), expression(), metadata());
   }
 
   public Boolean notNull() {
@@ -126,10 +133,6 @@ public class ColumnDefinition extends TableDefinition {
 
   public ColumnDefinition expression(Expression<?, String> expression) {
     return new ColumnDefinition(context, name(), type(), notNull(), expression, metadata());
-  }
-
-  public ColumnDefinition type(Type type) {
-    return new ColumnDefinition(context, name(), type, notNull(), expression(), metadata());
   }
 
   public Expression<?, String> expression() {

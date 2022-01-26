@@ -2,12 +2,13 @@
  * Copyright (c) 2020 Vikash Madhow
  */
 
-package ma.vi.esql.syntax.expression;
+package ma.vi.esql.syntax.expression.function;
 
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
+import ma.vi.esql.syntax.expression.Expression;
 import org.pcollections.PMap;
 
 import static ma.vi.esql.translation.Translatable.Target.JSON;

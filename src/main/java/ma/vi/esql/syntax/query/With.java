@@ -64,13 +64,6 @@ public class With extends QueryUpdate {
 
   @Override
   public QueryTranslation trans(Target target, EsqlPath path, PMap<String, Object> parameters) {
-//    /*
-//     * Ensure all CTE types are added to context-specific (local) type registry.
-//     */
-//    for (Cte cte: ctes()) {
-//      cte.type(path.add(cte));
-//    }
-
     StringBuilder st = new StringBuilder("with ");
     if (recursive() && (target == POSTGRESQL || target == HSQLDB)) {
       st.append("recursive ");

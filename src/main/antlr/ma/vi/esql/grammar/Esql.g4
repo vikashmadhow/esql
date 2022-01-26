@@ -595,13 +595,6 @@ expr
     | define                                                    #DefineStatement
     | noop                                                      #NoopStatement
 
-    | 'function' qualifiedName '(' names ')' '{'
-        expressions
-      '}'                                                       #FunctionDecl
-    | 'let' Identifier ':=' expr                                #VarDecl
-    | Identifier ':=' expr                                      #Assignment
-    | 'return' expr                                             #Return
-
 //    | Identifier                                                #Reference
 //    | expr '.' Identifier                                       #Selector
 //    | Identifier ':=' expr                                      #Assignment
@@ -785,7 +778,7 @@ expr
       /*
        * A reference to a column.
        */
-    | columnReference                                           #ColumnExpr
+    | columnReference                                           #ColumnRef
 
       /*
        * Logical and.
@@ -808,6 +801,13 @@ expr
        */
     | <assoc=right> expr ('if' expr 'else' expr)+               #CaseExpr
 
+    | 'function' qualifiedName '(' parameters? ')' ':' type '{'
+        expressions
+      '}'                                                       #FunctionDecl
+    | 'let' Identifier (':' type)? ':=' expr                    #VarDecl
+    | Identifier ':=' expr                                      #Assignment
+    | 'return' expr                                             #Return
+
       /*
        * A restricted expression that can be used as the middle expression in
        * range comparison (limited to avoid ambiguity in the parser).
@@ -820,28 +820,40 @@ expr
  * used as the middle expression of a range (e.g `a > simpleExpr > b`)
  */
 simpleExpr
-    : '(' simpleExpr ')'                                                              #SimpleGroupingExpr
-    | type '<' simpleExpr '>'                                                         #SimpleCastExpr
-    | literal                                                                         #SimpleLiteralExpr
-//    | simpleExpr ('?' simpleExpr)+                                                    #SimpleCoalesceExpr
-    | simpleExpr ('||' simpleExpr)+                                                   #SimpleConcatenationExpr
-    | '-' simpleExpr                                                                  #SimpleNegationExpr
-    | <assoc=right> left=simpleExpr '^' right=simpleExpr                              #SimpleExponentiationExpr
-    | left=simpleExpr op=('*' | '/' | '%') right=simpleExpr                           #SimpleMultiplicationExpr
-    | left=simpleExpr op=('+' | '-') right=simpleExpr                                 #SimpleAdditionExpr
-    | selectExpression                                                                #SimpleSelectExpr
-    | qualifiedName '(' distinct? (arguments | star='*')? ')' window?                 #SimpleFunctionInvocation
-    | columnReference                                                                 #SimpleColumnExpr
-    | <assoc=right> simpleExpr ('if' simpleExpr 'else' simpleExpr)+                   #SimpleCaseExpr
+    : '(' simpleExpr ')'                                                #SimpleGroupingExpr
+    | type '<' simpleExpr '>'                                           #SimpleCastExpr
+    | literal                                                           #SimpleLiteralExpr
+//    | simpleExpr ('?' simpleExpr)+                                      #SimpleCoalesceExpr
+    | simpleExpr ('||' simpleExpr)+                                     #SimpleConcatenationExpr
+    | '-' simpleExpr                                                    #SimpleNegationExpr
+    | <assoc=right> left=simpleExpr '^' right=simpleExpr                #SimpleExponentiationExpr
+    | left=simpleExpr op=('*' | '/' | '%') right=simpleExpr             #SimpleMultiplicationExpr
+    | left=simpleExpr op=('+' | '-') right=simpleExpr                   #SimpleAdditionExpr
+    | selectExpression                                                  #SimpleSelectExpr
+    | qualifiedName '(' distinct? (arguments | star='*')? ')' window?   #SimpleFunctionInvocation
+    | columnReference                                                   #SimpleColumnExpr
+    | <assoc=right> simpleExpr ('if' simpleExpr 'else' simpleExpr)+     #SimpleCaseExpr
     ;
+
+
+/**
+ * A function parameter is a name followed by colon (:) and its type.
+ */
+parameter
+  :  Identifier ':' type
+  ;
+
+parameters
+  : parameter (',' parameter)*
+  ;
 
 /**
  * A column can be referred to by its name in a table or its alias if the
  * column has been renamed in the query, optionally qualified.
  */
 columnReference
-    : qualifier? alias
-    ;
+  : qualifier? alias
+  ;
 
 /**
  * A select returning zero or one row with a single column and can thus be used

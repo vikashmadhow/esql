@@ -568,18 +568,6 @@ public interface EsqlListener extends ParseTreeListener {
 	 */
 	void exitBetweenExpr(EsqlParser.BetweenExprContext ctx);
 	/**
-	 * Enter a parse tree produced by the {@code ColumnExpr}
-	 * labeled alternative in {@link EsqlParser#expr}.
-	 * @param ctx the parse tree
-	 */
-	void enterColumnExpr(EsqlParser.ColumnExprContext ctx);
-	/**
-	 * Exit a parse tree produced by the {@code ColumnExpr}
-	 * labeled alternative in {@link EsqlParser#expr}.
-	 * @param ctx the parse tree
-	 */
-	void exitColumnExpr(EsqlParser.ColumnExprContext ctx);
-	/**
 	 * Enter a parse tree produced by the {@code ILikeExpr}
 	 * labeled alternative in {@link EsqlParser#expr}.
 	 * @param ctx the parse tree
@@ -916,6 +904,18 @@ public interface EsqlListener extends ParseTreeListener {
 	 */
 	void exitNullCheckExpr(EsqlParser.NullCheckExprContext ctx);
 	/**
+	 * Enter a parse tree produced by the {@code ColumnRef}
+	 * labeled alternative in {@link EsqlParser#expr}.
+	 * @param ctx the parse tree
+	 */
+	void enterColumnRef(EsqlParser.ColumnRefContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code ColumnRef}
+	 * labeled alternative in {@link EsqlParser#expr}.
+	 * @param ctx the parse tree
+	 */
+	void exitColumnRef(EsqlParser.ColumnRefContext ctx);
+	/**
 	 * Enter a parse tree produced by the {@code CaseExpr}
 	 * labeled alternative in {@link EsqlParser#expr}.
 	 * @param ctx the parse tree
@@ -1083,6 +1083,26 @@ public interface EsqlListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitSimpleColumnExpr(EsqlParser.SimpleColumnExprContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link EsqlParser#parameter}.
+	 * @param ctx the parse tree
+	 */
+	void enterParameter(EsqlParser.ParameterContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link EsqlParser#parameter}.
+	 * @param ctx the parse tree
+	 */
+	void exitParameter(EsqlParser.ParameterContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link EsqlParser#parameters}.
+	 * @param ctx the parse tree
+	 */
+	void enterParameters(EsqlParser.ParametersContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link EsqlParser#parameters}.
+	 * @param ctx the parse tree
+	 */
+	void exitParameters(EsqlParser.ParametersContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link EsqlParser#columnReference}.
 	 * @param ctx the parse tree

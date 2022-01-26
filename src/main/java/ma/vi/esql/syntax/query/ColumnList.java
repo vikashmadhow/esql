@@ -10,10 +10,10 @@ import ma.vi.esql.semantic.type.BaseRelation;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
-import ma.vi.esql.syntax.UntypedMacro;
 import ma.vi.esql.syntax.define.Attribute;
 import ma.vi.esql.syntax.expression.ColumnRef;
 import ma.vi.esql.syntax.expression.SelectExpression;
+import ma.vi.esql.syntax.macro.UntypedMacro;
 import org.pcollections.PMap;
 
 import java.util.*;

@@ -4,12 +4,13 @@
 
 package ma.vi.esql.function;
 
+import ma.vi.esql.semantic.scope.Symbol;
 import ma.vi.esql.semantic.type.AbstractType;
 import ma.vi.esql.semantic.type.Kind;
 import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.expression.Expression;
-import ma.vi.esql.syntax.expression.FunctionCall;
+import ma.vi.esql.syntax.expression.function.FunctionCall;
 import ma.vi.esql.translation.Translatable;
 
 import java.util.List;
@@ -24,7 +25,7 @@ import static ma.vi.esql.translation.Translatable.Target.HSQLDB;
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public class Function extends AbstractType {
+public class Function extends AbstractType implements Symbol {
   public Function(String name,
                   Type returnType,
                   List<FunctionParameter> parameters) {

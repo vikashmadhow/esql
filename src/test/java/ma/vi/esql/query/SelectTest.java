@@ -224,7 +224,7 @@ public class SelectTest extends DataTest {
                          "select * "
                        + "from x:(select * "
                                + "from x:(select a, c "
-                                       + "from s:S order by s.a asc) order by x.a asc)", SELECT);
+                                       + "from s:S order by s.a asc)) order by x.a asc", SELECT);
                      Result rs = con.exec(select);
                      rs.next(); assertEquals(1,  (Integer)rs.value(1));
                                 assertEquals(3,  (Integer)rs.value(2));

@@ -195,7 +195,7 @@ public class Result implements AutoCloseable {
          * Interval support.
          */
         if (v instanceof PGInterval i) {
-          final int microseconds = (int)(i.getSeconds() * 1000000.0);
+          final int microseconds = (int)(i.getSeconds() * 1_000_000.0);
           final int milliseconds = (microseconds + ((microseconds < 0) ? -500 : 500)) / 1000;
           v = new Interval(i.getYears(), i.getMonths(), 0, i.getDays(),
                            i.getHours(), i.getMinutes(), 0, milliseconds);

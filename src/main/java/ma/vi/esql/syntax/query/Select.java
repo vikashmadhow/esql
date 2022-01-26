@@ -12,7 +12,7 @@ import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.define.Metadata;
 import ma.vi.esql.syntax.expression.ColumnRef;
 import ma.vi.esql.syntax.expression.Expression;
-import ma.vi.esql.syntax.expression.FunctionCall;
+import ma.vi.esql.syntax.expression.function.FunctionCall;
 
 import java.util.HashSet;
 import java.util.List;

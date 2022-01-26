@@ -64,6 +64,7 @@ public class BaseRelation extends Relation {
         }
       }
       aliasedColumns.put(col.name(), col);
+      col = col.set("relation", new Esql<>(context, this));
       renamedCols.add(col);
     }
 
@@ -350,7 +351,7 @@ public class BaseRelation extends Relation {
           newCols.add(new Column(column.context,
                                  colAlias + "/e",
                                  new UncomputedExpression(column.context,
-                                                                   rename(column.expression(), aliased)),
+                                                          rename(column.expression(), aliased)),
                                  Types.TextType,
                                  null));
         }

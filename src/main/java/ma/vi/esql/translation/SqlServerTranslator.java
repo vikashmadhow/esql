@@ -1,13 +1,14 @@
 package ma.vi.esql.translation;
 
 import ma.vi.base.string.Strings;
+import ma.vi.base.tuple.T2;
 import ma.vi.esql.function.Function;
 import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.expression.ColumnRef;
 import ma.vi.esql.syntax.expression.Expression;
-import ma.vi.esql.syntax.expression.FunctionCall;
+import ma.vi.esql.syntax.expression.function.FunctionCall;
 import ma.vi.esql.syntax.expression.literal.IntegerLiteral;
 import ma.vi.esql.syntax.modify.Delete;
 import ma.vi.esql.syntax.modify.Insert;
@@ -69,7 +70,13 @@ public class SqlServerTranslator extends AbstractTranslator {
     }
 
     List<Expression<?, String>> distinctOn = select.distinctOn();
-    boolean subSelect = path.ancestor("tables") != null || path.ancestor(Cte.class) != null;
+    boolean subSelect = path.ancestor(Cte.class) != null;
+    if (!subSelect) {
+      T2<QueryUpdate, EsqlPath> qu = path.ancestorAndPath(QueryUpdate.class);
+      if (qu != null && qu.b.ancestor(QueryUpdate.class) != null) {
+        subSelect = true;
+      }
+    }
     if (select.distinct() && distinctOn != null && !distinctOn.isEmpty()) {
       String subquery = "q_" + Strings.random();
       String rank = "r_" + Strings.random();

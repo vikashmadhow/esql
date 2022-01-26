@@ -5,9 +5,11 @@
 package ma.vi.esql.syntax.query;
 
 import ma.vi.base.tuple.T2;
-import ma.vi.esql.semantic.scope.Symbol;
 import ma.vi.esql.semantic.type.Type;
-import ma.vi.esql.syntax.*;
+import ma.vi.esql.syntax.Context;
+import ma.vi.esql.syntax.Esql;
+import ma.vi.esql.syntax.EsqlPath;
+import ma.vi.esql.syntax.MetadataContainer;
 import ma.vi.esql.syntax.define.Attribute;
 import ma.vi.esql.syntax.define.ColumnDefinition;
 import ma.vi.esql.syntax.define.DerivedColumnDefinition;
@@ -29,7 +31,7 @@ import static ma.vi.esql.translation.Translatable.Target.ESQL;
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public class Column extends MetadataContainer<String> implements TypedMacro, Symbol {
+public class Column extends MetadataContainer<String> { // implements TypedMacro, Symbol {
   @SafeVarargs
   public Column(Context context,
                 String name,
@@ -45,10 +47,11 @@ public class Column extends MetadataContainer<String> implements TypedMacro, Sym
                                                          : expression instanceof ColumnRef r ? r.name()
                                                          : null)),
                 T2.of("expression", expression),
-                T2.of("type",       new Esql<>(context, type)),
+//                T2.of("type",       new Esql<>(context, type)),
                 T2.of("metadata",   addId(metadata))
               }),
             Stream.of(children)).toArray(T2[]::new));
+    this.type = type == null ? UnknownType : type;
   }
 
   public Column(Column other) {
@@ -120,16 +123,16 @@ public class Column extends MetadataContainer<String> implements TypedMacro, Sym
                       new Metadata(def.context, new ArrayList<>(attributes.values())));
   }
 
-  @Override
-  public Esql<?, ?> expand(Esql<?, ?> esql, EsqlPath path) {
-    if (type() == UnknownType) {
-      Type type = expression().computeType(path.add(expression()));
-      if (type != UnknownType) {
-        return type(type);
-      }
-    }
-    return esql;
-  }
+//  @Override
+//  public Esql<?, ?> expand(Esql<?, ?> esql, EsqlPath path) {
+//    if (type == UnknownType) {
+//      Type t = expression().computeType(path.add(expression()));
+//      if (t != UnknownType) {
+//        return type(type);
+//      }
+//    }
+//    return esql;
+//  }
 
   @Override
   protected String trans(Target target, EsqlPath path, PMap<String, Object> parameters) {
@@ -206,42 +209,24 @@ public class Column extends MetadataContainer<String> implements TypedMacro, Sym
     return setMetadata(EXPRESSION, expr);
   }
 
-//  @Override
-//  public Type computeType(EsqlPath path) {
-//    if (metadata() != null && metadata().attribute(TYPE) != null) {
-//      Type type = Types.typeOf((String)metadata().evaluateAttribute(TYPE));
-//      if (type == Types.UnknownType && derived()) {
-//        /*
-//         * Derived type are set to void on load. Their actual types can be
-//         * determined at this point.
-//         */
-//        type = expression().computeType(path.add(expression()));
-//      }
-//      return type;
-//    } else {
-//      return expression().computeType(path.add(expression()));
-//    }
-//  }
-
   @Override
   public Type computeType(EsqlPath path) {
-    return type();
+    if (type == UnknownType) {
+      type = expression().computeType(path.add(expression()));
+    }
+    return type;
   }
 
   @Override
   public Type type() {
-//    return metadata() != null && metadata().attribute(TYPE) != null
-//         ? Types.typeOf((String) metadata().evaluateAttribute(TYPE))
-//         : Types.UnknownType;
-    return childValue("type");
+    if (type == UnknownType) {
+      type = expression().type();
+    }
+    return type;
   }
 
-  public Column type(Type type) {
-    return set("type", new Esql<>(context, type));
-  }
-
-//  public Column type(Type type) {
-//    return setMetadata(TYPE, new StringLiteral(context, type.translate(ESQL)));
+  //  public Column type(Type type) {
+//    return set("type", new Esql<>(context, type));
 //  }
 
   private Column setMetadata(String name, Expression<?, String> expr) {

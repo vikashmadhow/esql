@@ -12,8 +12,10 @@ import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
-import ma.vi.esql.syntax.TypedMacro;
 import ma.vi.esql.syntax.define.*;
+import ma.vi.esql.syntax.expression.function.FunctionCall;
+import ma.vi.esql.syntax.macro.TypedMacro;
+import ma.vi.esql.syntax.macro.UntypedMacro;
 import ma.vi.esql.syntax.query.Column;
 import ma.vi.esql.syntax.query.QueryUpdate;
 import ma.vi.esql.syntax.query.TableExpr;
@@ -39,8 +41,8 @@ public class ColumnRef extends Expression<String, String> implements TypedMacro 
   public ColumnRef(Context context, String qualifier, String name, Type type) {
     super(context, "ColumnRef",
           T2.of("qualifier", new Esql<>(context, qualifier)),
-          T2.of("name", new Esql<>(context, name)),
-          T2.of("type", new Esql<>(context, type == null ? UnknownType : type)));
+          T2.of("name", new Esql<>(context, name)));
+    this.type = type == null ? UnknownType : type;
   }
 
   public ColumnRef(ColumnRef other) {
@@ -73,7 +75,7 @@ public class ColumnRef extends Expression<String, String> implements TypedMacro 
 
   @Override
   public Type computeType(EsqlPath path) {
-    if (type == null) {
+    if (type == UnknownType) {
       Type computedType = null;
       Type t = type();
       if (t != UnknownType) {
@@ -85,9 +87,9 @@ public class ColumnRef extends Expression<String, String> implements TypedMacro 
            * In a query check all levels as the column might refer to a table in
            * an outer level if it is in a subquery.
            */
-          T2<Relation, Column> relCol = column(qu, this, path);
-          if (relCol != null) {
-            Column column = relCol.b;
+//          T2<Relation, Column> relCol = column(qu, this, path);
+          Column column = column(qu, this, path);
+          if (column != null) {
             computedType = column.type();
             if (computedType == UnknownType
             && !(column.expression() instanceof ColumnRef)) {
@@ -158,24 +160,21 @@ public class ColumnRef extends Expression<String, String> implements TypedMacro 
   }
 
   /**
-   * Expand derived columns to their base expressions.
+   * Expand derived columns to their base expressions and find the qualifier
+   * for unqualified columns.
    */
   @Override
   public Esql<?, ?> expand(Esql<?, ?> e, EsqlPath path)  {
     QueryUpdate qu = QueryUpdate.ancestor(path);
-    T2<Relation, Column> col = column(qu, this, path);
+    Column col = column(qu, this, path);
     if (col != null) {
-      Relation rel = col.a;
-      String alias = rel.alias();
-      Column column = col.b;
-      if (column.derived()) {
-        return new GroupedExpression(
-            context, alias != null       ? qualify(column.expression(), alias)
-                   : qualifier() != null ? qualify(column.expression(), qualifier())
-                   : column.expression());
-//        return new ExpandedDerivedColumnRef(context, alias != null ? alias : qualifier(), name(), expr);
+      if (col.derived()) {
+        return new GroupedExpression(context, col.expression());
       }
-      return alias == null || alias.equals(qualifier()) ? e : qualify(e, alias);
+      if (col.expression() instanceof ColumnRef ref) {
+        String alias = ref.qualifier();
+        return alias == null || alias.equals(qualifier()) ? e : qualify(e, alias);
+      }
     }
     return e;
   }
@@ -185,14 +184,23 @@ public class ColumnRef extends Expression<String, String> implements TypedMacro 
    * this method will move outside of the current select to find surrounding ones if the
    * column cannot be successfully matched in the current selection context.
    */
-  public static T2<Relation, Column> column(QueryUpdate qu,
-                                            ColumnRef ref,
-                                            EsqlPath path) {
-    T2<Relation, Column> column = null;
-    while (column == null && qu != null && qu.tables().exists(path)) {
-      column = qu.tables()
-                 .computeType(path.add(qu.tables()))
-                 .findColumn(ref);
+  public static Column column(QueryUpdate qu,
+                              ColumnRef ref,
+                              EsqlPath path) {
+    Column column = null;
+    while (column == null
+        && qu != null
+        && qu.tables().exists(path)) {
+
+      TableExpr tables = qu.tables();
+      String q = ref.qualifier();
+      if (q != null) {
+        tables = tables.named(q);
+      }
+
+      column = tables.columnList(path).stream()
+                     .filter(c -> c.name().equals(ref.name()))
+                     .findFirst().orElse(null);
       if (column == null) {
         T2<QueryUpdate, EsqlPath> ancestor = path.tail() == null
                                            ? null
@@ -207,6 +215,34 @@ public class ColumnRef extends Expression<String, String> implements TypedMacro 
     }
     return column;
   }
+
+//  /**
+//   * Find the column referred to by this column reference. Since selects may be nested,
+//   * this method will move outside of the current select to find surrounding ones if the
+//   * column cannot be successfully matched in the current selection context.
+//   */
+//  public static T2<Relation, Column> column(QueryUpdate qu,
+//                                            ColumnRef ref,
+//                                            EsqlPath path) {
+//    T2<Relation, Column> column = null;
+//    while (column == null && qu != null && qu.tables().exists(path)) {
+//      column = qu.tables()
+//                 .computeType(path.add(qu.tables()))
+//                 .findColumn(ref);
+//      if (column == null) {
+//        T2<QueryUpdate, EsqlPath> ancestor = path.tail() == null
+//                                           ? null
+//                                           : QueryUpdate.ancestorAndPath(path.tail());
+//        if (ancestor == null) {
+//          qu = null;
+//        } else {
+//          qu = ancestor.a;
+//          path = ancestor.b;
+//        }
+//      }
+//    }
+//    return column;
+//  }
 
   public static ColumnRef from(Expression<?, String> expr) {
     return expr instanceof ColumnRef r ? r
@@ -264,13 +300,9 @@ public class ColumnRef extends Expression<String, String> implements TypedMacro 
     return (q != null ? q + '.' : "") + name();
   }
 
-  public Type type() {
-    return childValue("type");
-  }
-
-  public ColumnRef type(Type type) {
-    return set("type", new Esql<>(context, type));
-  }
+//  public ColumnRef type(Type type) {
+//    return set("type", new Esql<>(context, type));
+//  }
 
   /**
    * Change the qualifier of all column references in an expression to the specified
@@ -304,9 +336,4 @@ public class ColumnRef extends Expression<String, String> implements TypedMacro 
     }
     return metadata;
   }
-
-  /**
-   * The type of the column referred to by this reference.
-   */
-  private transient volatile Type type;
 }

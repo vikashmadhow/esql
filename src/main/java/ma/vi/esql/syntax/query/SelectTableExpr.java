@@ -6,10 +6,11 @@ package ma.vi.esql.syntax.query;
 
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.semantic.type.Selection;
+import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
-import ma.vi.esql.syntax.Macro;
+import ma.vi.esql.syntax.macro.Macro;
 import ma.vi.esql.syntax.expression.ColumnRef;
 import org.pcollections.PMap;
 
@@ -80,7 +81,7 @@ public class SelectTableExpr extends AbstractAliasTableExpr {
 
   @Override
   public Selection computeType(EsqlPath path) {
-    if (type == null) {
+    if (type == Types.UnknownType) {
       Selection sel = select().computeType(path.add(select()));
       Selection t = new Selection(sel.columns().stream()
                                      .map(c -> c.b.expression(new ColumnRef(c.b.context, alias(), c.b.name())))
@@ -96,7 +97,7 @@ public class SelectTableExpr extends AbstractAliasTableExpr {
       }
       context.type(alias(), type);
     }
-    return type;
+    return (Selection)type;
   }
 
   @Override
@@ -123,6 +124,4 @@ public class SelectTableExpr extends AbstractAliasTableExpr {
   public String alias() {
     return childValue("alias");
   }
-
-  private transient volatile Selection type;
 }

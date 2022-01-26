@@ -7,7 +7,7 @@ package ma.vi.esql.function;
 import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.expression.Expression;
-import ma.vi.esql.syntax.expression.FunctionCall;
+import ma.vi.esql.syntax.expression.function.FunctionCall;
 import ma.vi.esql.translation.Translatable;
 
 import java.util.Arrays;

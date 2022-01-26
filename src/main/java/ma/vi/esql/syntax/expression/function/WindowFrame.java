@@ -2,7 +2,7 @@
  * Copyright (c) 2018 Vikash Madhow
  */
 
-package ma.vi.esql.syntax.expression;
+package ma.vi.esql.syntax.expression.function;
 
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.syntax.Context;

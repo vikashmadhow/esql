@@ -15,11 +15,11 @@ import org.pcollections.PMap;
 public abstract class AbstractTranslator implements Translator {
   @SuppressWarnings("unchecked")
   @Override
-  public <R> R translate(Esql<?, R> esql, EsqlPath path, PMap<String, Object> parameters) {
-    if      (esql instanceof Select) return (R)translate((Select)esql, path, parameters);
-    else if (esql instanceof Update) return (R)translate((Update)esql, path, parameters);
-    else if (esql instanceof Delete) return (R)translate((Delete)esql, path, parameters);
-    else if (esql instanceof Insert) return (R)translate((Insert)esql, path, parameters);
+  public <T> T translate(Esql<?, T> esql, EsqlPath path, PMap<String, Object> parameters) {
+    if      (esql instanceof Select) return (T)translate((Select)esql, path, parameters);
+    else if (esql instanceof Update) return (T)translate((Update)esql, path, parameters);
+    else if (esql instanceof Delete) return (T)translate((Delete)esql, path, parameters);
+    else if (esql instanceof Insert) return (T)translate((Insert)esql, path, parameters);
     else                             throw new TranslationException("Translation of " + esql + " to " + target() + " is not supported");
   }
 

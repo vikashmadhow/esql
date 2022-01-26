@@ -5,11 +5,16 @@
 package ma.vi.esql.exec;
 
 import ma.vi.esql.database.Database;
-import ma.vi.esql.syntax.*;
-import ma.vi.esql.syntax.expression.Expression;
+import ma.vi.esql.syntax.Esql;
+import ma.vi.esql.syntax.EsqlPath;
+import ma.vi.esql.syntax.EsqlTransformer;
+import ma.vi.esql.syntax.Parser;
 import ma.vi.esql.syntax.expression.NamedParameter;
 import ma.vi.esql.syntax.expression.literal.Literal;
 import ma.vi.esql.syntax.expression.literal.NullLiteral;
+import ma.vi.esql.syntax.macro.Macro;
+import ma.vi.esql.syntax.macro.TypedMacro;
+import ma.vi.esql.syntax.macro.UntypedMacro;
 import ma.vi.esql.translation.TranslationException;
 
 import java.sql.Connection;
@@ -18,7 +23,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static ma.vi.base.lang.Errors.unchecked;
-import static ma.vi.esql.syntax.Macro.ONGOING_MACRO_EXPANSION;
+import static ma.vi.esql.syntax.macro.Macro.ONGOING_MACRO_EXPANSION;
 
 /**
  * The implementation of {@link EsqlConnection}.
@@ -69,38 +74,39 @@ public class EsqlConnectionImpl implements EsqlConnection {
     return con;
   }
 
-  @Override
+//  @Override
+//  public Result exec(Esql<?, ?> esql, Param... params) {
+//    try {
+//      if (esql instanceof Program) {
+//        return exec((Program)esql, params);
+//      } else if (esql instanceof Expression) {
+//        return exec((Expression<?, ?>)esql, params);
+//      } else {
+//        throw new RuntimeException("Can't execute " + esql);
+//      }
+//    } catch (Exception e) {
+//      throw unchecked(e);
+//    }
+//  }
+//
+//  /**
+//   * Execute the Esql program in order of the statements defined.
+//   *
+//   * @param program The program to execute
+//   * @return The last non-null result produced when executing a statement
+//   * in the program.
+//   */
+//  private Result exec(Program program, Param... params) {
+//    Result result = null;
+//    for (Expression<?, ?> s: program.expressions()) {
+//      result = exec(s, params);
+//    }
+//    return result;
+//  }
+
+//  private Result exec(Expression<?, ?> expression, Param... params) {
   public Result exec(Esql<?, ?> esql, Param... params) {
-    try {
-      if (esql instanceof Program) {
-        return exec((Program)esql, params);
-      } else if (esql instanceof Expression) {
-        return exec((Expression<?, ?>)esql, params);
-      } else {
-        throw new RuntimeException("Can't execute " + esql);
-      }
-    } catch (Exception e) {
-      throw unchecked(e);
-    }
-  }
-
-  /**
-   * Execute the Esql program in order of the statements defined.
-   *
-   * @param program The program to execute
-   * @return The last non-null result produced when executing a statement
-   * in the program.
-   */
-  private Result exec(Program program, Param... params) {
-    Result result = null;
-    for (Expression<?, ?> s: program.expressions()) {
-      result = exec(s, params);
-    }
-    return result;
-  }
-
-  private Result exec(Expression<?, ?> expression, Param... params) {
-    Expression<?, ?> st = expression;
+    Esql<?, ?> st = esql;
 
     /*
      * Substitute parameters into statement.
@@ -110,13 +116,13 @@ public class EsqlConnectionImpl implements EsqlConnection {
       for (Param p: params) {
         parameters.put(p.a, p);
       }
-      Parser parser = new Parser(expression.context.structure);
-      st = (Expression<?, ?>)expression.map((e, p) -> {
+      Parser parser = new Parser(esql.context.structure);
+      st = esql.map((e, p) -> {
         if (e instanceof NamedParameter) {
           String paramName = ((NamedParameter)e).name();
           if (!parameters.containsKey(paramName)) {
-            throw new TranslationException("Parameter named " + paramName + " is present in expression ("
-                                         + expression + ") but has not been supplied.");
+            throw new TranslationException("Parameter named " + paramName
+                                        + " is present but not supplied in " + esql);
           } else {
             Param param = parameters.get(paramName);
             Object value = param.b;
@@ -124,13 +130,13 @@ public class EsqlConnectionImpl implements EsqlConnection {
               return (Esql<?, ?>)value;
 
             } else if (value == null) {
-              return new NullLiteral(expression.context);
+              return new NullLiteral(esql.context);
 
             } else if (param instanceof ExpressionParam) {
               return parser.parseExpression(value.toString());
 
             } else {
-              return Literal.makeLiteral(expression.context, value);
+              return Literal.makeLiteral(esql.context, value);
             }
           }
         }
@@ -139,27 +145,38 @@ public class EsqlConnectionImpl implements EsqlConnection {
     }
 
     /*
-     * Base macro expansion where base-level changes, which does not require any
-     * type information or which are necessary for determing type information, is
-     * performed now.
+     * Base macro expansion for base-level changes not requiring any type information
+     * or necessary for determining type information later (such as expanding `*`
+     * in column lists).
      */
     st = expand(st, UntypedMacro.class);
 
-    // Type derivation -> scoping, symbols, etc.
-
     /*
-     * Expand macros in statement.
+     * Expand typed macros in statement (macros requiring type information to be
+     * present when expanding).
      */
     st = expand(st, TypedMacro.class);
 
     /*
+     * Scope symbols.
+     */
+    st.scope(db.structure(), new EsqlPath(st));
+
+    /*
+     * Type computation.
+     */
+    st.forEach((e, p) -> {
+      e.computeType(p);
+      return true;
+    });
+
+    /*
      * Transform ESQL through registered transformers prior to execution.
      */
-    Esql<?, ?> esql = st;
     for (EsqlTransformer t: db.esqlTransformers()) {
-      esql = t.transform(db, esql);
+      st = t.transform(db, st);
     }
-    return esql.execute(db, con, new EsqlPath(esql));
+    return st.execute(db, con, new EsqlPath(esql));
   }
 
   private static <T extends Esql<?, ?>,

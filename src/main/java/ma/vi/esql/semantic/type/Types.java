@@ -475,6 +475,7 @@ public class Types {
     baseTypeMapping.put("long",     Long.class);
     baseTypeMapping.put("float",    Float.class);
     baseTypeMapping.put("double",   Double.class);
+    baseTypeMapping.put("money",    Double.class);
     baseTypeMapping.put("bool",     Boolean.class);
     baseTypeMapping.put("char",     Character.class);
     baseTypeMapping.put("text",     String.class);

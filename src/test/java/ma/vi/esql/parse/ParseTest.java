@@ -47,11 +47,11 @@ public class ParseTest extends DataTest {
 
                      con.exec(select);
 
-//                     rs.next(); assertEquals(1, (Integer)rs.value("a"));
-//                                assertEquals(2, (Integer)rs.value("b"));
-//                                assertEquals(3, (Integer)rs.value("c"));
-//                     rs.next(); assertEquals(3, (Integer)rs.value("a"));
-//                                assertEquals(4, (Integer)rs.value("b"));
+//                     rs.next(); assertEquals(1,  (Integer)rs.value("a"));
+//                                assertEquals(2,  (Integer)rs.value("b"));
+//                                assertEquals(3,  (Integer)rs.value("c"));
+//                     rs.next(); assertEquals(3,  (Integer)rs.value("a"));
+//                                assertEquals(4,  (Integer)rs.value("b"));
 //                                assertEquals(13, (Integer)rs.value("c"));
                    }
                  }));

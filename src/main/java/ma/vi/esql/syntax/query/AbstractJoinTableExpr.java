@@ -6,10 +6,11 @@ package ma.vi.esql.syntax.query;
 
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.semantic.type.Join;
+import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
-import ma.vi.esql.syntax.Macro;
+import ma.vi.esql.syntax.macro.Macro;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -78,7 +79,7 @@ public abstract class AbstractJoinTableExpr extends TableExpr {
 
   @Override
   public Join computeType(EsqlPath path) {
-    if (type == null) {
+    if (type == Types.UnknownType) {
       Join t = new Join(left().computeType(path.add(left())),
                         right().computeType(path.add(right())));
       if (path.hasAncestor(Macro.OngoingMacroExpansion.class)) {
@@ -87,7 +88,7 @@ public abstract class AbstractJoinTableExpr extends TableExpr {
         type = t;
       }
     }
-    return type;
+    return (Join)type;
   }
 
   @Override
@@ -108,6 +109,4 @@ public abstract class AbstractJoinTableExpr extends TableExpr {
   public TableExpr right() {
     return child("right");
   }
-
-  private transient volatile Join type;
 }

@@ -7,15 +7,12 @@ package ma.vi.esql.syntax.query;
 import ma.vi.base.lang.NotFoundException;
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.database.Structure;
-import ma.vi.esql.semantic.type.AliasedRelation;
-import ma.vi.esql.semantic.type.Relation;
-import ma.vi.esql.semantic.type.Selection;
-import ma.vi.esql.semantic.type.Type;
+import ma.vi.esql.semantic.type.*;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
-import ma.vi.esql.syntax.Macro;
 import ma.vi.esql.syntax.expression.ColumnRef;
+import ma.vi.esql.syntax.macro.Macro;
 import ma.vi.esql.translation.TranslationException;
 import org.pcollections.PMap;
 
@@ -105,7 +102,9 @@ public class SingleTableExpr extends AbstractAliasTableExpr {
         for (Cte cte: with.ctes()) {
           if (cte.name().equals(table)) {
             if (cte.fields() == null || cte.fields().isEmpty()) {
-              return cte.columns();
+              return cte.columns().stream()
+                        .map(c -> c.expression(ColumnRef.qualify(c.expression(), alias())))
+                        .toList();
             } else {
               return cte.columns().stream()
                         .map(c -> new Column(c.context, c.name(),
@@ -122,7 +121,7 @@ public class SingleTableExpr extends AbstractAliasTableExpr {
 
   @Override
   public AliasedRelation computeType(EsqlPath path) {
-    if (type == null) {
+    if (type == Types.UnknownType) {
       String table = tableName();
       Type t = context.type(table);
       if (t == null) {
@@ -157,11 +156,11 @@ public class SingleTableExpr extends AbstractAliasTableExpr {
         context.type(alias(), t);
         return (AliasedRelation)t;
       } else {
-        type = (AliasedRelation)t;
+        type = t;
       }
       context.type(alias(), type);
     }
-    return type;
+    return (AliasedRelation)type;
   }
 
   @Override
@@ -217,6 +216,4 @@ public class SingleTableExpr extends AbstractAliasTableExpr {
   public String tableName() {
     return childValue("table");
   }
-
-  private transient volatile AliasedRelation type;
 }

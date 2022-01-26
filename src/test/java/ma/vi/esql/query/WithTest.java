@@ -52,14 +52,14 @@ public class WithTest extends DataTest {
 
 //                     printResult(rs, 20);
 
-                     rs.next(); assertEquals(1, (Integer)rs.value("a"));
-                                assertEquals(2, (Integer)rs.value("b"));
-                                assertEquals(3, (Integer)rs.value("c"));
-                                assertEquals(2, (Integer)rs.value("x"));
-                     rs.next(); assertEquals(3, (Integer)rs.value("a"));
-                                assertEquals(4, (Integer)rs.value("b"));
+                     rs.next(); assertEquals(1,  (Integer)rs.value("a"));
+                                assertEquals(2,  (Integer)rs.value("b"));
+                                assertEquals(3,  (Integer)rs.value("c"));
+                                assertEquals(2,  (Integer)rs.value("x"));
+                     rs.next(); assertEquals(3,  (Integer)rs.value("a"));
+                                assertEquals(4,  (Integer)rs.value("b"));
                                 assertEquals(13, (Integer)rs.value("c"));
-                                assertEquals(7, (Integer)rs.value("x"));
+                                assertEquals(7,  (Integer)rs.value("x"));
                    }
                  }));
   }

@@ -11,6 +11,7 @@ import ma.vi.esql.syntax.define.*;
 import ma.vi.esql.syntax.expression.*;
 import ma.vi.esql.syntax.expression.arithmetic.*;
 import ma.vi.esql.syntax.expression.comparison.*;
+import ma.vi.esql.syntax.expression.function.*;
 import ma.vi.esql.syntax.expression.literal.BooleanLiteral;
 import ma.vi.esql.syntax.expression.literal.DateLiteral;
 import ma.vi.esql.syntax.expression.literal.FloatingPointLiteral;
@@ -23,6 +24,8 @@ import ma.vi.esql.syntax.expression.literal.*;
 import ma.vi.esql.syntax.expression.logical.And;
 import ma.vi.esql.syntax.expression.logical.Not;
 import ma.vi.esql.syntax.expression.logical.Or;
+import ma.vi.esql.syntax.expression.variable.Assignment;
+import ma.vi.esql.syntax.expression.variable.VariableDecl;
 import ma.vi.esql.syntax.modify.Delete;
 import ma.vi.esql.syntax.modify.Insert;
 import ma.vi.esql.syntax.modify.InsertRow;
@@ -40,6 +43,7 @@ import java.util.*;
 import static java.lang.Boolean.parseBoolean;
 import static java.lang.Long.parseLong;
 import static java.lang.System.Logger.Level.ERROR;
+import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static ma.vi.esql.grammar.EsqlParser.*;
@@ -108,26 +112,6 @@ public class SyntaxAnalyser extends EsqlBaseListener {
     put(ctx, new Esql<>(context, ctx.expr().stream().map(e -> (Expression<?, ?>)get(e)).toList()));
   }
 
-//  @Override
-//  public void exitStatement(StatementContext ctx) {
-//    if (ctx.select() != null) {
-//      put(ctx, get(ctx.select()));
-//
-//    } else if (ctx.modify() != null) {
-//      if (ctx.modify().insert() != null) {
-//        put(ctx, get(ctx.modify().insert()));
-//
-//      } else if (ctx.modify().delete() != null) {
-//        put(ctx, get(ctx.modify().delete()));
-//
-//      } else if (ctx.modify().update() != null) {
-//        put(ctx, get(ctx.modify().update()));
-//      }
-//    } else if (ctx.define() != null) {
-//      put(ctx, get(ctx.define()));
-//    }
-//  }
-
   @Override
   public void exitNoopStatement(NoopStatementContext ctx) {
     put(ctx, get(ctx.noop()));
@@ -136,6 +120,56 @@ public class SyntaxAnalyser extends EsqlBaseListener {
   @Override
   public void exitNoop(NoopContext ctx) {
     put(ctx, new NoOp(context));
+  }
+
+  // general-purpose features
+  ////////////////////////////////////////////////
+  @Override
+  public void exitFunctionDecl(FunctionDeclContext ctx) {
+    put(ctx, new FunctionDecl(context,
+                              ctx.qualifiedName().getText(),
+                              value(ctx.type()),
+                              value(ctx.parameters()),
+                              value(ctx.expressions())));
+  }
+
+  @Override
+  public void exitReturn(ReturnContext ctx) {
+    put(ctx, new Return(context, get(ctx.expr())));
+  }
+
+  @Override
+  public void exitParameters(ParametersContext ctx) {
+    put(ctx, new Esql<>(context,
+                        ctx.parameter() == null
+                      ? emptyList()
+                      : ctx.parameter().stream()
+                           .map(p -> (FunctionParameter)get(p))
+                           .toList()));
+  }
+
+  @Override
+  public void exitParameter(ParameterContext ctx) {
+    put(ctx, new FunctionParameter(context,
+                                   ctx.Identifier().getText(),
+                                   value(ctx.type())));
+  }
+
+  @Override
+  public void exitVarDecl(VarDeclContext ctx) {
+    put(ctx, new VariableDecl(context,
+                              ctx.Identifier().getText(),
+                              ctx.type() == null
+                            ? Types.UnknownType
+                            : value(ctx.type()),
+                              get(ctx.expr())));
+  }
+
+  @Override
+  public void exitAssignment(AssignmentContext ctx) {
+    put(ctx, new Assignment(context,
+                            ctx.Identifier().getText(),
+                            get(ctx.expr())));
   }
 
   // select
@@ -686,7 +720,7 @@ public class SyntaxAnalyser extends EsqlBaseListener {
   }
 
   @Override
-  public void exitColumnExpr(ColumnExprContext ctx) {
+  public void exitColumnRef(ColumnRefContext ctx) {
     ColumnReferenceContext ref = ctx.columnReference();
     String qualifier = null;
     if (ref.qualifier() != null) {
@@ -784,8 +818,8 @@ public class SyntaxAnalyser extends EsqlBaseListener {
             context,
             frame.frameType.getText(),
             new FrameBound(context,
-                preceding.unbounded() != null,
-                preceding.current() != null,
+                           preceding.unbounded() != null,
+                           preceding.current() != null,
                 preceding.IntegerLiteral() == null ? null : Integer.parseInt(preceding.IntegerLiteral().getText())),
             new FrameBound(context,
                 following.unbounded() != null,

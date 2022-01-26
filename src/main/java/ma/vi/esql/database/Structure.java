@@ -9,11 +9,14 @@ import ma.vi.esql.function.Function;
 import ma.vi.esql.function.FunctionParameter;
 import ma.vi.esql.function.date.*;
 import ma.vi.esql.function.string.*;
+import ma.vi.esql.semantic.scope.AbstractScope;
+import ma.vi.esql.semantic.scope.Symbol;
+import ma.vi.esql.semantic.scope.SymbolAlreadyDefinedException;
 import ma.vi.esql.semantic.type.BaseRelation;
 import ma.vi.esql.semantic.type.Sequence;
 import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.syntax.EsqlPath;
-import ma.vi.esql.syntax.expression.FunctionCall;
+import ma.vi.esql.syntax.expression.function.FunctionCall;
 import ma.vi.esql.syntax.macro.Bin;
 import ma.vi.esql.syntax.macro.InMonth;
 import ma.vi.esql.translation.Translatable;
@@ -30,13 +33,15 @@ import static ma.vi.esql.semantic.type.Types.*;
 import static ma.vi.esql.translation.Translatable.Target.*;
 
 /**
- * Holds type information on the objects of interest, such as tables
- * and functions, in the database.
+ * Holds type information on the objects of interest, such as tables and functions,
+ * in the database. This is the top-level scope, known as the system scope, for
+ * program execution.
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public class Structure {
+public class Structure extends AbstractScope {
   public Structure(Database database) {
+    super("SystemScope", null, null);
     this.database = database;
 
     // existence
@@ -372,6 +377,18 @@ public class Structure {
     ///////////////////////////////////
     function(new BinFunction());
     function(new Bin());
+  }
+
+  @Override
+  public int addSymbol(Symbol symbol) throws SymbolAlreadyDefinedException {
+    return 0;
+  }
+
+  @Override
+  public Symbol find(String symbolName) {
+    return relations.containsKey(symbolName)
+         ? relations.get(symbolName)
+         : functions.getOrDefault(symbolName, null);
   }
 
   public Map<String, BaseRelation> relations() {

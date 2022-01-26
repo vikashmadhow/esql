@@ -8,6 +8,7 @@ import ma.vi.base.tuple.T2;
 import ma.vi.esql.semantic.type.Relation;
 import ma.vi.esql.semantic.type.Selection;
 import ma.vi.esql.semantic.type.Type;
+import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
@@ -107,7 +108,7 @@ public class Cte extends QueryUpdate {
    */
   @Override
   public Selection computeType(EsqlPath path) {
-    if (type == null) {
+    if (type == Types.UnknownType) {
       type = query().computeType(path.add(query()));
       type.name(name());
 
@@ -116,7 +117,7 @@ public class Cte extends QueryUpdate {
        */
       List<String> fields = fields();
       if (fields != null && !fields.isEmpty()) {
-        List<T2<Relation, Column>> typeCols = type.columns();
+        List<T2<Relation, Column>> typeCols = ((Selection)type).columns();
         if (typeCols.size() != fields.size()) {
           throw new TranslationException("CTE " + name() + " has different number of fields and columns. Fields "
                                        + "defined are [" + String.join(", ", fields) + "] while columns "
@@ -126,15 +127,18 @@ public class Cte extends QueryUpdate {
         for (int i = 0; i < fields.size(); i++) {
           Column col = typeCols.get(i).b();
           Type type = col.computeType(path.add(col));
-          typeFields.add(col.type(type)
-                            .expression(new ColumnRef(context, name(), fields.get(i)))
+//          typeFields.add(col.type(type)
+//                            .expression(new ColumnRef(context, name(), fields.get(i)))
+//                            .name(fields.get(i)));
+          col.type(type);
+          typeFields.add(col.expression(new ColumnRef(context, name(), fields.get(i)))
                             .name(fields.get(i)));
         }
         type = new Selection(typeFields, type.attributesList(), query().from(), name());
       }
       context.type(name(), type);
     }
-    return type;
+    return (Selection)type;
   }
 
   @Override
@@ -181,6 +185,4 @@ public class Cte extends QueryUpdate {
   public QueryUpdate query() {
     return child("query");
   }
-
-  private transient Selection type;
 }

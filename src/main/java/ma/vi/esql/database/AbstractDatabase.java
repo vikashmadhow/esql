@@ -37,6 +37,7 @@ import static java.util.Collections.*;
 import static java.util.stream.Collectors.joining;
 import static ma.vi.base.string.Escape.escapeSqlString;
 import static ma.vi.esql.builder.Attributes.*;
+import static ma.vi.esql.syntax.define.ConstraintDefinition.ForeignKeyChangeAction.fromInformationSchema;
 import static ma.vi.esql.syntax.define.ConstraintDefinition.Type.fromMarker;
 import static ma.vi.esql.translation.Translatable.Target.*;
 import static org.apache.commons.lang3.StringUtils.repeat;
@@ -260,10 +261,8 @@ public abstract class AbstractDatabase implements Database {
                                                target.a,
                                                targetColumns,
                                                0, 0,
-                                               ConstraintDefinition.ForeignKeyChangeAction.fromInformationSchema(
-                                                   updateRule),
-                                               ConstraintDefinition.ForeignKeyChangeAction.fromInformationSchema(
-                                                   deleteRule));
+                                               fromInformationSchema(updateRule),
+                                               fromInformationSchema(deleteRule));
                 }
             }
             relation.constraint(c);
