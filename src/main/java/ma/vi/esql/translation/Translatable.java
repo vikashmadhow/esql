@@ -58,7 +58,9 @@ public interface Translatable<T> {
    * @param parameters A set of arbitrary parameters to pass to the translator.
    * @return A statement adapted for the specified target system.
    */
-  T translate(Target target, EsqlPath path, PMap<String, Object> parameters);
+  T translate(Target               target,
+              EsqlPath             path,
+              PMap<String, Object> parameters);
 
   /**
    * The value of a translatable is generally its translation. In some

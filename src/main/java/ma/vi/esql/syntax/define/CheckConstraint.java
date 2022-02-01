@@ -63,7 +63,7 @@ public class CheckConstraint extends ConstraintDefinition {
     List<String> columns = new ArrayList<>();
     expression.forEach((esql, path) -> {
       if (esql instanceof ColumnRef) {
-        columns.add(((ColumnRef)esql).name());
+        columns.add(((ColumnRef)esql).columnName());
       }
       return true;
     });

@@ -5,6 +5,8 @@
 package ma.vi.esql.syntax.expression.function;
 
 import ma.vi.base.tuple.T2;
+import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
@@ -18,7 +20,7 @@ import org.pcollections.PMap;
  */
 public class Return extends Expression<String, Return> {
   public Return(Context context, Expression<?, ?> value) {
-    super(context, "FunctionReturn", T2.of("value", value));
+    super(context, "Return", T2.of("value", value));
   }
 
   public Return(Return other) {
@@ -47,6 +49,13 @@ public class Return extends Expression<String, Return> {
   @Override
   public Return trans(Target target, EsqlPath path, PMap<String, Object> parameters) {
     return this;
+  }
+
+  @Override
+  public Object exec(EsqlConnection esqlCon,
+                     EsqlPath       path,
+                     Environment env) {
+    return value().exec(esqlCon, path.add(value()), env);
   }
 
   public Expression<?, ?> value() {

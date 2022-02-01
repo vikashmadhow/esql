@@ -58,7 +58,7 @@ public class BaseRelation extends Relation {
       Column col = column;
       if (col.name() == null) {
         if (col.expression() instanceof ColumnRef ref) {
-          col = col.name(ref.name());
+          col = col.name(ref.columnName());
         } else {
           throw new TranslationException("The derived column " + col + " in the base relation " + name + " requires a name");
         }
@@ -77,7 +77,7 @@ public class BaseRelation extends Relation {
       if (column.derived()
       && !(column.expression() instanceof Literal)
       && (!(column.expression() instanceof ColumnRef)
-       || !((ColumnRef)column.expression()).name().equals(column.name()))) {
+       || !((ColumnRef)column.expression()).columnName().equals(column.name()))) {
         column = column.expression(expandDerived(column.expression(),
                                                  aliasedColumns,
                                                  column.name(),
@@ -142,7 +142,7 @@ public class BaseRelation extends Relation {
 
   @Override
   public T2<Relation, Column> findColumn(ColumnRef ref) {
-    Column column = columnsByAlias.get(ref.name());
+    Column column = columnsByAlias.get(ref.columnName());
     return column == null ? null : T2.of(this, column);
   }
 
@@ -205,7 +205,7 @@ public class BaseRelation extends Relation {
       seen.add(columnName);
       return (Expression<?, String>)derivedExpression.map((e, path) -> {
         if (e instanceof ColumnRef ref) {
-          String colName = ref.name();
+          String colName = ref.columnName();
           Column column = columns.get(colName);
           if (column == null) {
             throw new TranslationException("Unknown column " + colName
@@ -282,7 +282,7 @@ public class BaseRelation extends Relation {
       if (column.name() == null) {
         Expression<?, String> expr = column.expression();
         if (expr instanceof ColumnRef ref) {
-          column = column.name(ref.name());
+          column = column.name(ref.columnName());
         } else {
           throw new TranslationException("The derived column " + column + " in the base relation " + name + " requires a name");
         }
@@ -375,8 +375,8 @@ public class BaseRelation extends Relation {
   public static Expression<?, String> rename(Expression<?, String> expr,
                                              Map<String, String> mapping) {
     return (Expression<?, String>)expr.map(
-              (e, p) -> e instanceof ColumnRef r && mapping.containsKey(r.name())
-                      ? r.name(mapping.get(r.name()))
+              (e, p) -> e instanceof ColumnRef r && mapping.containsKey(r.columnName())
+                      ? r.columnName(mapping.get(r.columnName()))
                       : e);
   }
 
@@ -389,7 +389,7 @@ public class BaseRelation extends Relation {
     for (Column col: columns) {
       Expression<?, String> expr = col.expression();
       if (expr instanceof ColumnRef ref) {
-        String name = ref.name();
+        String name = ref.columnName();
         String alias = col.name();
         if (alias != null && !name.equals(alias)) {
           aliased.put(name, alias);

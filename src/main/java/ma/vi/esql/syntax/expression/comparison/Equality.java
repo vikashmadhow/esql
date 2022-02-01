@@ -5,11 +5,16 @@
 package ma.vi.esql.syntax.expression.comparison;
 
 import ma.vi.base.tuple.T2;
+import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.exec.ExecutionException;
+import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.expression.Expression;
 import org.pcollections.PMap;
+
+import java.util.Objects;
 
 import static ma.vi.base.string.Escape.escapeJsonString;
 import static ma.vi.esql.translation.Translatable.Target.JSON;
@@ -59,5 +64,14 @@ public class Equality extends ComparisonOperator {
       default:
         return super.trans(target, path, parameters);
     }
+  }
+
+  @Override
+  public Object postTransformExec(EsqlConnection esqlCon,
+                                  EsqlPath       path,
+                                  Environment    env) {
+    Object left = expr1().exec(esqlCon, path.add(expr1()), env);
+    Object right = expr2().exec(esqlCon, path.add(expr2()), env);
+    return Objects.equals(left, right);
   }
 }

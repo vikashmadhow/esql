@@ -224,7 +224,7 @@ public class SqlServerTranslator extends AbstractTranslator {
             String alias = column.name();
             if (alias == null) {
               if (colExpr instanceof ColumnRef) {
-                alias = ((ColumnRef)colExpr).name();
+                alias = ((ColumnRef)colExpr).columnName();
               } else {
                 alias = "column";
               }

@@ -7,7 +7,9 @@ package ma.vi.esql.syntax.define;
 import ma.vi.base.collections.Sets;
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.database.Database;
+import ma.vi.esql.exec.EsqlConnection;
 import ma.vi.esql.exec.Result;
+import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.semantic.type.BaseRelation;
 import ma.vi.esql.semantic.type.Relation;
 import ma.vi.esql.semantic.type.Type;
@@ -166,7 +168,7 @@ public class CreateTable extends Define {
       seen.add(columnName);
       return (Expression<?, String>)derivedExpression.map((e, path) -> {
         if (e instanceof ColumnRef ref) {
-          String colName = ref.name();
+          String colName = ref.columnName();
           ColumnDefinition column = columns.get(colName);
           if (column == null) {
             throw new TranslationException("Unknown column " + colName
@@ -219,9 +221,16 @@ public class CreateTable extends Define {
   }
 
   @Override
-  public Result execute(Database db, Connection con, EsqlPath path) {
+  protected Object postTransformExec(EsqlConnection esqlCon,
+                                     EsqlPath       path,
+                                     Environment env) {
     try {
-      // create schema if it does not exist already
+      Database db = esqlCon.database();
+      Connection con = esqlCon.con();
+
+      /*
+       * Create schema if it does not exist already.
+       */
       String tableName = name();
       T2<String, String> splitName = Type.splitName(tableName);
       String schema = splitName.a;
@@ -306,7 +315,7 @@ public class CreateTable extends Define {
           alter = new AlterTable(context,
                                  tableName,
                                  singletonList(new AddTableDefinition(context, metadata())));
-          alter.execute(db, con, path.add(alter));
+          alter.exec(esqlCon, path.add(alter), env);
         }
 
         // add missing columns and alter existing ones if needed
@@ -321,7 +330,7 @@ public class CreateTable extends Define {
             alter = new AlterTable(context,
                                    tableName,
                                    singletonList(new AddTableDefinition(context, column)));
-            alter.execute(db, con, path.add(alter));
+            alter.exec(esqlCon, path.add(alter), env);
           } else {
             /*
              * alter existing field
@@ -366,7 +375,7 @@ public class CreateTable extends Define {
                                                                                              setDefault,
                                                                                              dropDefault,
                                                                                              metadata))));
-              alter.execute(db, con, path.add(alter));
+              alter.exec(esqlCon, path.add(alter), env);
             }
           }
         }
@@ -378,8 +387,8 @@ public class CreateTable extends Define {
             /*
              * A constraint same as this one does not exist;: add it
              */
-            new AlterTable(context, tableName,
-                           singletonList(new AddTableDefinition(context, constraint))).execute(db, con, path);
+            alter = new AlterTable(context, tableName, singletonList(new AddTableDefinition(context, constraint)));
+            alter.exec(esqlCon, path.add(alter), env);
           } else {
             /*
              * There is a similar constraint. For foreign keys check that the cascading
@@ -391,10 +400,11 @@ public class CreateTable extends Define {
               if (!Objects.equals(fk.onDelete(), existing.onDelete())
                   || !Objects.equals(fk.onUpdate(), existing.onUpdate())) {
 
-                new AlterTable(context, tableName,
-                               singletonList(new DropConstraint(context, tableConstraint.name()))).execute(db, con, path);
-                new AlterTable(context, tableName,
-                               singletonList(new AddTableDefinition(context, constraint))).execute(db, con, path);
+                alter = new AlterTable(context, tableName, singletonList(new DropConstraint(context, tableConstraint.name())));
+                alter.exec(esqlCon, path.add(alter), env);
+
+                alter = new AlterTable(context, tableName, singletonList(new AddTableDefinition(context, constraint)));
+                alter.exec(esqlCon, path.add(alter), env);
               }
             }
           }
@@ -415,9 +425,8 @@ public class CreateTable extends Define {
               /*
                * Drop existing field not specified in create command
                */
-              alter = new AlterTable(context, tableName,
-                                     singletonList(new DropColumn(context, columnName)));
-              alter.execute(db, con, path.add(alter));
+              alter = new AlterTable(context, tableName, singletonList(new DropColumn(context, columnName)));
+              alter.exec(esqlCon, path.add(alter), env);
             }
           }
 
@@ -441,17 +450,18 @@ public class CreateTable extends Define {
             }
           }
           for (String c: toDrop) {
-            new AlterTable(context, tableName, singletonList(new DropConstraint(context, c))).execute(db, con, path);
+            alter = new AlterTable(context, tableName, singletonList(new DropConstraint(context, c)));
+            alter.exec(esqlCon, path.add(alter), env);
           }
 
           /*
            * Drop table metadata if no metadata specified in create
            */
           if (metadata() == null
-              || metadata().attributes() == null
-              || metadata().attributes().isEmpty()) {
+           || metadata().attributes() == null
+           || metadata().attributes().isEmpty()) {
             alter = new AlterTable(context, tableName, singletonList(new DropMetadata(context)));
-            alter.execute(db, con, path.add(alter));
+            alter.exec(esqlCon, path.add(alter), env);
           }
         }
       }

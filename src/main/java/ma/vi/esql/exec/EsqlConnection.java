@@ -32,9 +32,9 @@ public interface EsqlConnection extends AutoCloseable {
    *               placeholders in the statement.
    * @return The result produced by the esql command on execution.
    */
-  Result exec(Esql<?, ?> esql, Param... params);
+  <R> R exec(Esql<?, ?> esql, Param... params);
 
-  default Result exec(String esql, Param... params) {
+  default <R> R exec(String esql, Param... params) {
     return exec(new Parser(database().structure()).parse(esql), params);
   }
 

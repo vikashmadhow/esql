@@ -5,15 +5,15 @@
 package ma.vi.esql.syntax;
 
 import ma.vi.base.tuple.T2;
-import ma.vi.esql.database.Database;
+import ma.vi.esql.exec.EsqlConnection;
 import ma.vi.esql.exec.Result;
-import ma.vi.esql.semantic.scope.Allocator;
+import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.semantic.scope.FunctionScope;
 import ma.vi.esql.semantic.scope.Scope;
 import ma.vi.esql.syntax.expression.Expression;
+import ma.vi.esql.syntax.expression.function.Return;
 import org.pcollections.PMap;
 
-import java.sql.Connection;
 import java.util.List;
 
 import static java.util.stream.Collectors.toList;
@@ -53,7 +53,7 @@ public class Program extends Esql<String, List<?>> {
 
   @Override
   public Esql<?, ?> scope(Scope scope, EsqlPath path) {
-    Scope programScope = new FunctionScope("Program Scope", scope, new Allocator());
+    Scope programScope = new FunctionScope(scope);
     super.scope(programScope, path);
     for (Expression<?, ?> e: expressions()) {
       e.scope(programScope, path.add(this));
@@ -69,15 +69,17 @@ public class Program extends Esql<String, List<?>> {
   }
 
   @Override
-  public Result execute(Database db, Connection con, EsqlPath path) {
-    Result result = Result.Nothing;
+  public Object exec(EsqlConnection esqlCon,
+                     EsqlPath       path,
+                     Environment    env) {
+    Object ret = Result.Nothing;
     for (Expression<?, ?> st: expressions()) {
-      Result r = st.execute(db, con, path.add(st));
-      if (r != Result.Nothing) {
-        result = r;
+      ret = st.exec(esqlCon, path.add(st), env);
+      if (st instanceof Return) {
+        return ret;
       }
     }
-    return result;
+    return ret;
   }
 
   public List<? extends Expression<?, ?>> expressions() {

@@ -5,8 +5,12 @@
 package ma.vi.esql.syntax.expression;
 
 import ma.vi.base.tuple.T2;
+import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.exec.ExecutionException;
+import ma.vi.esql.exec.env.Environment;
+import ma.vi.esql.semantic.scope.Scope;
+import ma.vi.esql.semantic.scope.Symbol;
 import ma.vi.esql.semantic.type.BaseRelation;
-import ma.vi.esql.semantic.type.Relation;
 import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.Context;
@@ -15,7 +19,6 @@ import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.define.*;
 import ma.vi.esql.syntax.expression.function.FunctionCall;
 import ma.vi.esql.syntax.macro.TypedMacro;
-import ma.vi.esql.syntax.macro.UntypedMacro;
 import ma.vi.esql.syntax.query.Column;
 import ma.vi.esql.syntax.query.QueryUpdate;
 import ma.vi.esql.syntax.query.TableExpr;
@@ -33,15 +36,16 @@ import static ma.vi.esql.translation.SqlServerTranslator.requireIif;
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public class ColumnRef extends Expression<String, String> implements TypedMacro {
-  public ColumnRef(Context context, String qualifier, String name) {
-    this(context, qualifier, name, UnknownType);
+public class ColumnRef extends    Expression<String, String>
+                       implements TypedMacro, Symbol {
+  public ColumnRef(Context context, String qualifier, String columnName) {
+    this(context, qualifier, columnName, UnknownType);
   }
 
-  public ColumnRef(Context context, String qualifier, String name, Type type) {
+  public ColumnRef(Context context, String qualifier, String columnName, Type type) {
     super(context, "ColumnRef",
           T2.of("qualifier", new Esql<>(context, qualifier)),
-          T2.of("name", new Esql<>(context, name)));
+          T2.of("columnName", new Esql<>(context, columnName)));
     this.type = type == null ? UnknownType : type;
   }
 
@@ -87,7 +91,6 @@ public class ColumnRef extends Expression<String, String> implements TypedMacro 
            * In a query check all levels as the column might refer to a table in
            * an outer level if it is in a subquery.
            */
-//          T2<Relation, Column> relCol = column(qu, this, path);
           Column column = column(qu, this, path);
           if (column != null) {
             computedType = column.type();
@@ -107,7 +110,7 @@ public class ColumnRef extends Expression<String, String> implements TypedMacro 
              * of base relations are loaded on startup and their type set to void
              * for derived columns).
              */
-            Column col = rel.findColumn(name());
+            Column col = rel.findColumn(columnName());
             if (col != null) {
               computedType = col.computeType(path.add(col));
             }
@@ -120,7 +123,7 @@ public class ColumnRef extends Expression<String, String> implements TypedMacro 
           CreateTable create = path.ancestor(CreateTable.class);
           if (create != null) {
             for (ColumnDefinition col : create.columns()) {
-              if (col.name().equals(name())) {
+              if (col.name().equals(columnName())) {
                 if (col instanceof DerivedColumnDefinition) {
                   computedType = col.expression().computeType(path.add(col.expression()));
                 } else {
@@ -138,12 +141,18 @@ public class ColumnRef extends Expression<String, String> implements TypedMacro 
               if (table == null) {
                 throw new TranslationException("Could not find table " + alter.name());
               }
-              Column column = table.column(name());
+              Column column = table.column(columnName());
               if (column == null) {
-                throw new TranslationException("Could not find field " + name() + " in table " + alter.name());
+                throw new TranslationException("Could not find field " + columnName() + " in table " + alter.name());
               }
               computedType = column.computeType(path.add(column));
             }
+          }
+        }
+        if (computedType == null) {
+          Symbol symbol = Scope.findSymbol(qualifiedName(), path);
+          if (symbol != null) {
+            computedType = symbol.type();
           }
         }
       }
@@ -184,9 +193,7 @@ public class ColumnRef extends Expression<String, String> implements TypedMacro 
    * this method will move outside of the current select to find surrounding ones if the
    * column cannot be successfully matched in the current selection context.
    */
-  public static Column column(QueryUpdate qu,
-                              ColumnRef ref,
-                              EsqlPath path) {
+  public static Column column(QueryUpdate qu, ColumnRef ref, EsqlPath path) {
     Column column = null;
     while (column == null
         && qu != null
@@ -199,7 +206,7 @@ public class ColumnRef extends Expression<String, String> implements TypedMacro 
       }
 
       column = tables.columnList(path).stream()
-                     .filter(c -> c.name().equals(ref.name()))
+                     .filter(c -> c.name().equals(ref.columnName()))
                      .findFirst().orElse(null);
       if (column == null) {
         T2<QueryUpdate, EsqlPath> ancestor = path.tail() == null
@@ -263,7 +270,7 @@ public class ColumnRef extends Expression<String, String> implements TypedMacro 
       case JSON             -> '"' + qualifiedName() + '"';
       default               ->
           (sqlServerBool ? "(" : "")
-        + (qualifier() != null ? '"' + qualifier() + "\"." : "") + '"' + name() + "\""
+        + (qualifier() != null ? '"' + qualifier() + "\"." : "") + '"' + columnName() + "\""
         + (sqlServerBool ? "=1)" : "");
     };
   }
@@ -287,22 +294,47 @@ public class ColumnRef extends Expression<String, String> implements TypedMacro 
     return set("qualifier", new Esql<>(context, qualifier));
   }
 
-  public String name() {
-    return childValue("name");
+  public String columnName() {
+    return childValue("columnName");
   }
 
-  public ColumnRef name(String name) {
-    return set("name", new Esql<>(context, name));
+  public ColumnRef columnName(String columnName) {
+    return set("columnName", new Esql<>(context, columnName));
   }
 
   public String qualifiedName() {
     String q = qualifier();
-    return (q != null ? q + '.' : "") + name();
+    return (q != null ? q + '.' : "") + columnName();
   }
 
-//  public ColumnRef type(Type type) {
-//    return set("type", new Esql<>(context, type));
-//  }
+  @Override
+  public String name() {
+    return qualifiedName();
+  }
+
+  @Override
+  public Esql<?, ?> scope(Scope scope, EsqlPath path) {
+    Symbol symbol = scope.findSymbol(name());
+    if (symbol != null) {
+      /*
+       * Symbol for column reference will not be found when it is used in a query
+       * (semantic analysis for query statements do not currently put the symbols
+       * in the query in a symbol table).
+       */
+      super.scope(scope, path);
+    }
+    return this;
+  }
+
+  @Override
+  public Object exec(EsqlConnection esqlCon,
+                     EsqlPath       path,
+                     Environment    env) {
+    if (!env.has(name())) {
+      throw new ExecutionException("Unknown variable " + name() + " in " + env);
+    }
+    return env.get(name());
+  }
 
   /**
    * Change the qualifier of all column references in an expression to the specified

@@ -7,7 +7,9 @@ package ma.vi.esql.syntax.query;
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.database.Database;
 import ma.vi.esql.exec.ColumnMapping;
+import ma.vi.esql.exec.EsqlConnection;
 import ma.vi.esql.exec.Result;
+import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.semantic.type.Relation;
 import ma.vi.esql.semantic.type.Selection;
 import ma.vi.esql.semantic.type.Types;
@@ -389,7 +391,11 @@ public abstract class QueryUpdate extends MetadataContainer<QueryTranslation> {
   }
 
   @Override
-  public Result execute(Database db, Connection con, EsqlPath path) {
+  protected Object postTransformExec(EsqlConnection esqlCon,
+                                     EsqlPath       path,
+                                     Environment env) {
+    Database db = esqlCon.database();
+    Connection con = esqlCon.con();
     QueryTranslation q = translate(db.target(), path);
     try {
       Selection selection = computeType(path.add(this));

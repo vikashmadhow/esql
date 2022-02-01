@@ -7,8 +7,8 @@ package ma.vi.esql.semantic.scope;
 import ma.vi.esql.syntax.EsqlException;
 
 /**
- * An exception thrown during scoping if a symbol is declared when declaration
- * for the same symbol already exists.
+ * An exception thrown during scoping if a symbol is declared when the same
+ * symbol already exists in the current scoping context.
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */

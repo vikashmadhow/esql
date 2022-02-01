@@ -113,9 +113,9 @@ public abstract class Relation extends AbstractType implements Symbol {
     T2<Relation, Column> col = null;
     for (T2<Relation, Column> relCol: columns()) {
       Column c = relCol.b();
-      if (c.name() != null && c.name().equals(ref.name())) {
+      if (c.name() != null && c.name().equals(ref.columnName())) {
         if (col != null) {
-          throw new AmbiguousColumnException("Ambiguous column " + ref.name());
+          throw new AmbiguousColumnException("Ambiguous column " + ref.columnName());
         }
         col = relCol;
       }

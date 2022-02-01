@@ -5,6 +5,10 @@
 package ma.vi.esql.syntax.expression.logical;
 
 import ma.vi.base.tuple.T2;
+import ma.vi.base.util.Numbers;
+import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.exec.ExecutionException;
+import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
@@ -55,7 +59,8 @@ public class And extends ComparisonOperator {
   protected String trans(Target target, EsqlPath path, PMap<String, Object> parameters) {
     switch (target) {
       case JSON, JAVASCRIPT -> {
-        String e = expr1().translate(target, path.add(expr1()), parameters) + " && " + expr2().translate(target, path.add(expr2()), parameters);
+        String e = expr1().translate(target, path.add(expr1()), parameters) + " && "
+                 + expr2().translate(target, path.add(expr2()), parameters);
         return target == JSON ? '"' + escapeJsonString(e) + '"' : e;
       }
       case SQLSERVER -> {
@@ -74,6 +79,22 @@ public class And extends ComparisonOperator {
       default -> {
         return super.trans(target, path, parameters);
       }
+    }
+  }
+
+  @Override
+  public Object postTransformExec(EsqlConnection esqlCon,
+                                  EsqlPath       path,
+                                  Environment    env) {
+    Object left = expr1().exec(esqlCon, path.add(expr1()), env);
+    Object right = expr2().exec(esqlCon, path.add(expr2()), env);
+
+    if (left instanceof Boolean lb
+     && right instanceof Boolean rb) {
+      return lb && rb;
+    } else {
+      throw new ExecutionException("Incompatible types for " + op()
+                                 + ": left " + left + ", right: " + right);
     }
   }
 }

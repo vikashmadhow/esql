@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2021 Vikash Madhow
+ * Copyright (c) 2018-2022 Vikash Madhow
  */
 
 /**
@@ -121,7 +121,7 @@ test {
 group = 'com.vikmad'
 archivesBaseName = 'esql'
 sourceCompatibility = JavaVersion.VERSION_16
-version = "0.7.4"
+version = "0.8.0"
 ext.isReleaseVersion = !version.endsWith("SNAPSHOT")
 
 java {

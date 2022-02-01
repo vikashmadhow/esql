@@ -13,10 +13,10 @@ import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.expression.Cast;
 import ma.vi.esql.syntax.expression.Concatenation;
 import ma.vi.esql.syntax.expression.Expression;
-import ma.vi.esql.syntax.expression.function.FunctionCall;
 import ma.vi.esql.syntax.expression.comparison.Case;
 import ma.vi.esql.syntax.expression.comparison.LessThan;
 import ma.vi.esql.syntax.expression.comparison.Range;
+import ma.vi.esql.syntax.expression.function.FunctionCall;
 import ma.vi.esql.syntax.expression.literal.StringLiteral;
 import ma.vi.esql.translation.TranslationException;
 

@@ -7,7 +7,9 @@ package ma.vi.esql.syntax.define;
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.database.Database;
 import ma.vi.esql.database.Structure;
+import ma.vi.esql.exec.EsqlConnection;
 import ma.vi.esql.exec.Result;
+import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.semantic.type.BaseRelation;
 import ma.vi.esql.semantic.type.Relation;
 import ma.vi.esql.syntax.Context;
@@ -84,7 +86,11 @@ public class AlterTable extends Define {
   }
 
   @Override
-  public Result execute(Database db, Connection con, EsqlPath path) {
+  protected Object postTransformExec(EsqlConnection esqlCon,
+                                     EsqlPath       path,
+                                     Environment env) {
+    Database db = esqlCon.database();
+    Connection con = esqlCon.con();
     String name = name();
     String dbName = dbTableName(name, db.target());
     Structure s = context.structure;
@@ -349,7 +355,7 @@ public class AlterTable extends Define {
             for (ConstraintDefinition c: new ArrayList<>(constraints)) {
               if (c.columns().contains(column.name())) {
                 new AlterTable(context, relation.name(),
-                               singletonList(new DropConstraint(context, c.name()))).execute(db, con, path);
+                               singletonList(new DropConstraint(context, c.name()))).exec(esqlCon, path, env);
               }
             }
           }

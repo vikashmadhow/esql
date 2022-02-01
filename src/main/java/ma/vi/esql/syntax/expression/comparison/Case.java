@@ -5,6 +5,9 @@
 package ma.vi.esql.syntax.expression.comparison;
 
 import ma.vi.base.tuple.T2;
+import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.exec.ExecutionException;
+import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
@@ -160,5 +163,26 @@ public class Case extends MultipleSubExpressions {
         e._toString(st, level, indent);
       }
     }
+  }
+
+  @Override
+  public Object postTransformExec(EsqlConnection esqlCon,
+                                  EsqlPath       path,
+                                  Environment env) {
+    for (Iterator<Expression<?, String>> i = expressions().iterator(); i.hasNext(); ) {
+      Expression<?, String> e = i.next();
+      if (i.hasNext()) {
+        Expression<?, String> expr = i.next();
+        Object cond = expr.exec(esqlCon, path.add(expr), env);
+        if (cond instanceof Boolean b) {
+          if (b) return e.exec(esqlCon, path.add(e), env);
+        } else {
+          throw new ExecutionException("Non-boolean condition: " + expr);
+        }
+      } else {
+        return e.exec(esqlCon, path.add(e), env);
+      }
+    }
+    return null;
   }
 }

@@ -4,6 +4,8 @@
 
 package ma.vi.esql.database;
 
+import ma.vi.base.lang.NotFoundException;
+import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.function.BinFunction;
 import ma.vi.esql.function.Function;
 import ma.vi.esql.function.FunctionParameter;
@@ -39,9 +41,9 @@ import static ma.vi.esql.translation.Translatable.Target.*;
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public class Structure extends AbstractScope {
+public class Structure extends AbstractScope implements Environment {
   public Structure(Database database) {
-    super("SystemScope", null, null);
+    super(null);
     this.database = database;
 
     // existence
@@ -380,15 +382,58 @@ public class Structure extends AbstractScope {
   }
 
   @Override
-  public int addSymbol(Symbol symbol) throws SymbolAlreadyDefinedException {
-    return 0;
-  }
+  public void addSymbol(Symbol symbol) throws SymbolAlreadyDefinedException {}
 
   @Override
-  public Symbol find(String symbolName) {
+  public Symbol findSymbol(String symbolName) {
     return relations.containsKey(symbolName)
          ? relations.get(symbolName)
          : functions.getOrDefault(symbolName, null);
+  }
+
+  @Override
+  public boolean has(String symbol) {
+    return relations.containsKey(symbol)
+        || functions.containsKey(symbol);
+  }
+
+  @Override
+  public Object get(String symbol) throws NotFoundException {
+    if (relations.containsKey(symbol)) {
+      return relations.get(symbol);
+    } else if (functions.containsKey(symbol)) {
+      return functions.get(symbol);
+    } else {
+      throw new NotFoundException("Unknown relation or function: " + symbol);
+    }
+  }
+
+  @Override
+  public void set(String symbol, Object value) throws NotFoundException {
+    throw new UnsupportedOperationException("Values of the system environment "
+                                          + "cannot be reassigned through the "
+                                          + "set method of the environment.");
+  }
+
+  @Override
+  public void add(String symbol, Object value) throws SymbolAlreadyDefinedException {
+    if (value instanceof ma.vi.esql.semantic.type.BaseRelation r) {
+      if (relations.containsKey(symbol)) {
+        throw new SymbolAlreadyDefinedException("A relation named " + symbol + " already exists");
+      } else {
+        relation(r);
+      }
+    }
+    else if (value instanceof Function f) {
+      if (functions.containsKey(symbol)) {
+        throw new SymbolAlreadyDefinedException("A function named " + symbol + " already exists");
+      } else {
+        function(f);
+      }
+    } else {
+      throw new IllegalArgumentException("Only relations and functions can be "
+                                       + "added to the System Environment");
+    }
   }
 
   public Map<String, BaseRelation> relations() {

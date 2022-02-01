@@ -65,7 +65,7 @@ public class Expression<V, T> extends Esql<V, T> {
 
   private Set<String> referredColumns(Expression<?, ?> expr, Set<String> columns) {
     if (expr instanceof ColumnRef) {
-      columns.add(((ColumnRef)expr).name());
+      columns.add(((ColumnRef)expr).columnName());
     }
     for (Esql<?, ?> child: expr.children()) {
       if (child instanceof Expression<?, ?>) {

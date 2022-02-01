@@ -5,6 +5,8 @@
 package ma.vi.esql.exec;
 
 import ma.vi.esql.database.Database;
+import ma.vi.esql.exec.env.Environment;
+import ma.vi.esql.exec.env.FunctionEnvironment;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.EsqlTransformer;
@@ -74,38 +76,7 @@ public class EsqlConnectionImpl implements EsqlConnection {
     return con;
   }
 
-//  @Override
-//  public Result exec(Esql<?, ?> esql, Param... params) {
-//    try {
-//      if (esql instanceof Program) {
-//        return exec((Program)esql, params);
-//      } else if (esql instanceof Expression) {
-//        return exec((Expression<?, ?>)esql, params);
-//      } else {
-//        throw new RuntimeException("Can't execute " + esql);
-//      }
-//    } catch (Exception e) {
-//      throw unchecked(e);
-//    }
-//  }
-//
-//  /**
-//   * Execute the Esql program in order of the statements defined.
-//   *
-//   * @param program The program to execute
-//   * @return The last non-null result produced when executing a statement
-//   * in the program.
-//   */
-//  private Result exec(Program program, Param... params) {
-//    Result result = null;
-//    for (Expression<?, ?> s: program.expressions()) {
-//      result = exec(s, params);
-//    }
-//    return result;
-//  }
-
-//  private Result exec(Expression<?, ?> expression, Param... params) {
-  public Result exec(Esql<?, ?> esql, Param... params) {
+  public <R> R exec(Esql<?, ?> esql, Param... params) {
     Esql<?, ?> st = esql;
 
     /*
@@ -120,10 +91,11 @@ public class EsqlConnectionImpl implements EsqlConnection {
       st = esql.map((e, p) -> {
         if (e instanceof NamedParameter) {
           String paramName = ((NamedParameter)e).name();
-          if (!parameters.containsKey(paramName)) {
-            throw new TranslationException("Parameter named " + paramName
-                                        + " is present but not supplied in " + esql);
-          } else {
+//          if (!parameters.containsKey(paramName)) {
+//            throw new TranslationException("Parameter named " + paramName
+//                                               + " is present but not supplied in " + esql);
+//          } else {
+          if (parameters.containsKey(paramName)) {
             Param param = parameters.get(paramName);
             Object value = param.b;
             if (value instanceof Esql) {
@@ -131,9 +103,6 @@ public class EsqlConnectionImpl implements EsqlConnection {
 
             } else if (value == null) {
               return new NullLiteral(esql.context);
-
-            } else if (param instanceof ExpressionParam) {
-              return parser.parseExpression(value.toString());
 
             } else {
               return Literal.makeLiteral(esql.context, value);
@@ -176,26 +145,30 @@ public class EsqlConnectionImpl implements EsqlConnection {
     for (EsqlTransformer t: db.esqlTransformers()) {
       st = t.transform(db, st);
     }
-    return st.execute(db, con, new EsqlPath(esql));
+
+    Environment env = new FunctionEnvironment();
+    for (Param p: params) env.add(p.a, p.b);
+    return (R)st.exec(this, new EsqlPath(st), env);
   }
 
   private static <T extends Esql<?, ?>,
-                  M extends Macro> T expand(T esql, Class<M> macroType) {
+      M extends Macro> T expand(T esql, Class<M> macroType) {
     T expanded;
     int iteration = 0;
     while ((expanded = (T)esql.map((e, p) -> macroType.isAssignableFrom(e.getClass())
-                                           ? ((Macro)e).expand(e, p.add(ONGOING_MACRO_EXPANSION))
-                                           : e)) != esql) {
+                                             ? ((Macro)e).expand(e, p.add(ONGOING_MACRO_EXPANSION))
+                                             : e)) != esql) {
       esql = expanded;
       iteration++;
       if (iteration > 50) {
         throw new TranslationException(
             "Macro expansion continued for more than 50 iterations and was stopped. "
-          + "A macro could be expanding recursively into other macros. Esql: " + esql);
+                + "A macro could be expanding recursively into other macros. Esql: " + esql);
       }
     }
     return expanded;
   }
+
 
   protected final Database db;
 

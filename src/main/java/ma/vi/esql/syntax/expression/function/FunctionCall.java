@@ -6,10 +6,17 @@ package ma.vi.esql.syntax.expression.function;
 
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.database.Structure;
+import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.exec.ExecutionException;
+import ma.vi.esql.exec.Result;
+import ma.vi.esql.exec.env.Environment;
+import ma.vi.esql.exec.env.FunctionEnvironment;
 import ma.vi.esql.function.Function;
 import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.semantic.type.Types;
-import ma.vi.esql.syntax.*;
+import ma.vi.esql.syntax.Context;
+import ma.vi.esql.syntax.Esql;
+import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.expression.Expression;
 import ma.vi.esql.syntax.macro.Macro;
 import ma.vi.esql.syntax.macro.TypedMacro;
@@ -204,6 +211,39 @@ public class FunctionCall extends Expression<String, String> implements TypedMac
         }
       }
       st.append(')');
+    }
+  }
+
+  @Override
+  public Object exec(EsqlConnection esqlCon,
+                     EsqlPath       path,
+                     Environment    env) {
+    Object f = env.get('!' + functionName());
+    if (f instanceof FunctionDecl func) {
+      Environment funcEnv = new FunctionEnvironment(func.environment());
+      List<FunctionParameter> params = func.parameters();
+      List<Expression<?, ?>> arguments = arguments();
+      if (arguments.size() != params.size()) {
+        throw new ExecutionException("Function " + functionName() + " take "
+                                   + params.size() + " parameters but "
+                                   + arguments.size() + " arguments were provided");
+      }
+      EsqlPath p = path.add(this);
+      for (int i = 0; i < params.size(); i++) {
+        Expression<?, ?> a = arguments().get(i);
+        funcEnv.add(params.get(i).name(), a.exec(esqlCon, p.add(a), env));
+      }
+      Object ret = Result.Nothing;
+      for (Expression<?, ?> st: func.body()) {
+        ret = st.exec(esqlCon, p.add(st), funcEnv);
+        if (st instanceof Return) {
+          return ret;
+        }
+      }
+      return ret;
+    } else {
+      throw new ExecutionException(functionName() + " is not a function in the "
+                                 + "current environment. It is " + f);
     }
   }
 

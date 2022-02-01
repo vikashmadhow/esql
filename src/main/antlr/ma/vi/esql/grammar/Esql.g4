@@ -595,29 +595,6 @@ expr
     | define                                                    #DefineStatement
     | noop                                                      #NoopStatement
 
-//    | Identifier                                                #Reference
-//    | expr '.' Identifier                                       #Selector
-//    | Identifier ':=' expr                                      #Assignment
-//    | 'for' (key=Identifier ',')? value=Identifier 'in' expr 'do'
-//        expressions
-//      'end'                                                     #Iterator
-//    | 'for' init=expr, cond=expr, inc=expr 'do'
-//        expressions
-//      'end'                                                     #ForLoop
-//    | 'while' expr 'do'
-//        expressions
-//      'end'                                                     #WhileLoop
-//    | 'break'                                                   #BreakStatement
-//    | 'continue'                                                #ContinueStatement
-//    | 'if' expr 'then'
-//        expressions
-//      ('elseif' expr 'then' expressions)?
-//      ('else' expressions)?
-//      'end'                                                     #If
-//    | 'def' Identifier '(' (Identifier ':' type)* ')'
-//        expressions
-//      'end'                                                     #Def
-
       /*
        * Parentheses controls the order in which expressions are computed when
        * they are part of larger expressions.
@@ -801,12 +778,43 @@ expr
        */
     | <assoc=right> expr ('if' expr 'else' expr)+               #CaseExpr
 
-    | 'function' qualifiedName '(' parameters? ')' ':' type '{'
+    | 'function' qualifiedName '(' parameters? ')' ':' type
         expressions
-      '}'                                                       #FunctionDecl
+      'end'                                                     #FunctionDecl
+
+//    | 'function' '(' parameters ')' '->' expr                   #LambdaSingleExprDecl
+//    | 'function' '(' parameters ')' '->' '(' expressions ')'    #LambdaMultipleExprDecl
+
     | 'let' Identifier (':' type)? ':=' expr                    #VarDecl
+
     | Identifier ':=' expr                                      #Assignment
+
+//    | 'if' ifCond=expr 'then'
+//         ifExpr=expressions
+//     ('elseif' elseIfCond=expr 'then'
+//         elseIfExpr=expressions)*
+//     ('else'
+//         elseExpr=expressions)?
+//      'end'                                                     #If
+
+    | 'for' (key=Identifier ',')? value=Identifier 'in' expr 'do'
+        expressions
+      'end'
+                                                                #Iterator
+    | 'for' init=expr ',' cond=expr ',' inc=expr 'do'
+        expressions
+      'end'                                                     #For
+
+    | 'while' expr 'do'
+        expressions
+      'end'                                                     #While
+
+    | 'break'                                                   #Break
+    | 'continue'                                                #Continue
+
     | 'return' expr                                             #Return
+
+//    | expr '.' Identifier                                       #Selector
 
       /*
        * A restricted expression that can be used as the middle expression in
@@ -1032,16 +1040,16 @@ baseLiteralList
  * by a minus sign (-) for negative values.
  */
 IntegerLiteral
-    : '-'? Digits
+    : Digits
     ;
 
 /*
  * Floating-Point literals in ESQL consist of a mantissa and an exponent part.
  */
 FloatingPointLiteral
-    : '-'? Digits '.' Digits? ExponentPart?
-    | '-'? '.' Digits ExponentPart?
-    | '-'? Digits ExponentPart
+    : Digits '.' Digits? ExponentPart?
+    | '.' Digits ExponentPart?
+    | Digits ExponentPart
     ;
 
 /**

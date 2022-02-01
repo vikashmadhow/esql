@@ -5,7 +5,11 @@
 package ma.vi.esql.syntax.expression.variable;
 
 import ma.vi.base.tuple.T2;
+import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.exec.Result;
+import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.semantic.scope.Scope;
+import ma.vi.esql.semantic.scope.Symbol;
 import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.Context;
@@ -21,14 +25,14 @@ import static ma.vi.esql.semantic.type.Types.UnknownType;
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public class VariableDecl extends Expression<String, VariableDecl> {
+public class VariableDecl extends    Expression<String, VariableDecl>
+                          implements Symbol {
   public VariableDecl(Context context,
                       String name,
                       Type type,
                       Expression<?, ?> value) {
     super(context, "VariableDecl",
           T2.of("name",  new Esql<>(context, name)),
-//          T2.of("type",  new Esql<>(context, type)),
           T2.of("value", value));
     this.type = type == null ? UnknownType : type;
   }
@@ -65,12 +69,21 @@ public class VariableDecl extends Expression<String, VariableDecl> {
     if (type() == Types.UnknownType) {
       type = value().computeType(path.add(value()));
     }
+    scope.addSymbol(this);
     return this;
   }
 
   @Override
   public VariableDecl trans(Target target, EsqlPath path, PMap<String, Object> parameters) {
     return this;
+  }
+
+  @Override
+  protected Object postTransformExec(EsqlConnection esqlCon,
+                                     EsqlPath       path,
+                                     Environment    env) {
+    env.add(name(), value().exec(esqlCon, path.add(value()), env));
+    return Result.Nothing;
   }
 
   public String name() {

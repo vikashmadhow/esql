@@ -7,23 +7,26 @@ package ma.vi.esql.syntax;
 import ma.vi.base.lang.NotFoundException;
 import ma.vi.base.tuple.T1;
 import ma.vi.base.tuple.T2;
-import ma.vi.esql.database.Database;
+import ma.vi.esql.exec.EsqlConnection;
 import ma.vi.esql.exec.Result;
+import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.semantic.scope.Scope;
 import ma.vi.esql.semantic.type.Type;
+import ma.vi.esql.syntax.macro.Macro;
 import ma.vi.esql.translation.Translatable;
+import ma.vi.esql.translation.TranslationException;
 import ma.vi.esql.translation.TranslatorFactory;
 import org.pcollections.HashPMap;
 import org.pcollections.IntTreePMap;
 import org.pcollections.PMap;
 
 import java.lang.reflect.ParameterizedType;
-import java.sql.Connection;
 import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Predicate;
 
 import static ma.vi.esql.semantic.type.Types.UnknownType;
+import static ma.vi.esql.syntax.macro.Macro.ONGOING_MACRO_EXPANSION;
 import static org.apache.commons.lang3.StringUtils.repeat;
 
 /**
@@ -550,9 +553,104 @@ public class Esql<V, T> implements Copy<Esql<V, T>>, Translatable<T> {
   /**
    * Executes this ESQL node and returns its result. The default returns
    * {@link Result#Nothing}.
+   * @return
    */
-  public Result execute(Database db, Connection con, EsqlPath path) {
+  public Object exec(EsqlConnection esqlCon,
+                     EsqlPath       path,
+                     Environment    env) {
+    Esql<?, ?> esql = preExecTransform(esqlCon, path, env);
+    return esql.postTransformExec(esqlCon, path.replaceHead(esql), env);
+  }
+
+  protected Esql<?, ?> preExecTransform(EsqlConnection esqlCon,
+                                        EsqlPath       path,
+                                        Environment    env) {
+//    /*
+//     * Substitute parameters.
+//     */
+//    Esql<?, ?> esql = map((e, p) -> {
+//      if (e instanceof NamedParameter) {
+//        String paramName = ((NamedParameter)e).name();
+//        if (!env.has(paramName)) {
+//          throw new TranslationException("Parameter named " + paramName
+//                                       + " is present but not supplied in "
+//                                       + this + "(env: " + env + ")");
+//        } else {
+//          Object value = env.get(paramName);
+//          if (value instanceof Esql<?, ?>) {
+//            return (Esql<?, ?>)value;
+//
+//          } else if (value == null) {
+//            return new NullLiteral(context);
+//
+//          } else {
+//            return Literal.makeLiteral(context, value);
+//          }
+//        }
+//      }
+//      return e;
+//    });
+//
+//    /*
+//     * Base macro expansion for base-level changes not requiring any type information
+//     * or necessary for determining type information later (such as expanding `*`
+//     * in column lists).
+//     */
+//    esql = expand(esql, UntypedMacro.class);
+//
+//    /*
+//     * Expand typed macros in statement (macros requiring type information to be
+//     * present when expanding).
+//     */
+//    esql = expand(esql, TypedMacro.class);
+//
+//    Database db = esqlCon.database();
+//
+//    /*
+//     * Scope symbols.
+//     */
+//    esql.scope(new FunctionScope(db.structure()), new EsqlPath(esql));
+//
+//    /*
+//     * Type computation.
+//     */
+//    esql.forEach((e, p) -> {
+//      e.computeType(p);
+//      return true;
+//    });
+//
+//    /*
+//     * Transform ESQL through registered transformers prior to execution.
+//     */
+//    for (EsqlTransformer t: db.esqlTransformers()) {
+//      esql = t.transform(db, esql);
+//    }
+//    return esql;
+    return this;
+  }
+
+  protected Object postTransformExec(EsqlConnection esqlCon,
+                                     EsqlPath       path,
+                                     Environment    env) {
     return Result.Nothing;
+  }
+
+  private static <T extends Esql<?, ?>,
+                  M extends Macro> T expand(T esql, Class<M> macroType) {
+    T expanded;
+    int iteration = 0;
+    while ((expanded = (T)esql.map((e, p) -> macroType.isAssignableFrom(e.getClass())
+                                             ? ((Macro)e).expand(e, p.add(ONGOING_MACRO_EXPANSION))
+                                             : e)) != esql) {
+      esql = expanded;
+      iteration++;
+      if (iteration > 50) {
+        throw new TranslationException(
+            "Macro expansion continued for more than 50 iterations and was stopped. "
+          + "A macro could be expanding recursively into other macros. Esql: " + esql);
+      }
+    }
+    return expanded;
   }
 
   @Override
@@ -584,18 +682,25 @@ public class Esql<V, T> implements Copy<Esql<V, T>>, Translatable<T> {
       st.append(" {\n");
       Map<String, Integer> childrenNames = childrenNames();
       for (Map.Entry<String, Integer> e: childrenNames.entrySet()) {
-        Esql<?, ?> child = children.get(e.getValue());
-        if (child != null) {
-          st.append(repeat(" ", level * indent))
-            .append(e.getKey())
-            .append(": ");
-          child._toString(st, level + 1, indent);
-          st.append("\n");
+        st.append(repeat(" ", level * indent))
+          .append(e.getKey())
+          .append(": ");
+        int index = e.getValue();
+        if (index >= 0 && index < children.size()) {
+          Esql<?, ?> child = children.get(e.getValue());
+          if (child != null) {
+            child._toString(st, level + 1, indent);
+          }
         }
+        st.append("\n");
       }
       st.append(repeat(" ", (level > 0 ? level-1 : 0) * indent))
         .append("}");
     }
+  }
+
+  public Scope scope() {
+    return scope;
   }
 
   /**

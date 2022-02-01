@@ -7,7 +7,9 @@ package ma.vi.esql.syntax.define;
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.database.Database;
 import ma.vi.esql.database.Structure;
+import ma.vi.esql.exec.EsqlConnection;
 import ma.vi.esql.exec.Result;
+import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.semantic.type.BaseRelation;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
@@ -61,14 +63,17 @@ public class DropTable extends Define {
 
   /**
    * Drops a table, removing dependent tables in cascade, if necessary.
+   * @return
    */
   @Override
-  public Result execute(Database db, Connection con, EsqlPath path) {
+  protected Object postTransformExec(EsqlConnection esqlCon,
+                                     EsqlPath       path,
+                                     Environment env) {
     try {
       /*
        * Execute drop cascading to dependents and updating internal structures.
        */
-      cascadeDrop(this, con, db.structure(), db.target());
+      cascadeDrop(this, esqlCon);
       return Result.Nothing;
     } catch (SQLException e) {
       throw new RuntimeException(e);
@@ -76,20 +81,25 @@ public class DropTable extends Define {
   }
 
   private static void cascadeDrop(DropTable drop,
-                                  Connection con,
-                                  Structure structure,
-                                  Target target) throws SQLException {
+                                  EsqlConnection esqlCon) throws SQLException {
+    Database db = esqlCon.database();
+    Structure structure = db.structure();
     BaseRelation table = structure.relation(drop.name());
     if (table != null) {
       for (ForeignKeyConstraint constraint: table.dependentConstraints()) {
-        cascadeDrop(new DropTable(drop.context, constraint.table()), con, structure, target);
+        cascadeDrop(new DropTable(drop.context, constraint.table()), esqlCon);
       }
 
-      // drop in database
-      String dropSql = drop.translate(target);
+      /*
+       * Drop in database.
+       */
+      Connection con = esqlCon.con();
+      String dropSql = drop.translate(db.target());
       con.createStatement().executeUpdate(dropSql);
 
-      // remove from information tables and cached structure
+      /*
+       * Remove from information tables and cached structure.
+       */
       structure.database.dropTable(con, table.id());
       structure.remove(table);
     }

@@ -46,7 +46,9 @@ public class NamedParameter extends Expression<String, String> {
   }
 
   @Override
-  protected String trans(Target target, EsqlPath path, PMap<String, Object> parameters) {
+  protected String trans(Target               target,
+                         EsqlPath             path,
+                         PMap<String, Object> parameters) {
     return ':' + name();
   }
 

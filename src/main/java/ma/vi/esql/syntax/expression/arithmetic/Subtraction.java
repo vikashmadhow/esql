@@ -5,8 +5,13 @@
 package ma.vi.esql.syntax.expression.arithmetic;
 
 import ma.vi.base.tuple.T2;
+import ma.vi.base.util.Numbers;
+import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.exec.ExecutionException;
+import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
+import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.expression.Expression;
 
 /**
@@ -43,5 +48,25 @@ public class Subtraction extends ArithmeticOperator {
   @Override
   public Subtraction copy(String value, T2<String, ? extends Esql<?, ?>>... children) {
     return new Subtraction(this, value, children);
+  }
+
+  @Override
+  public Object postTransformExec(EsqlConnection esqlCon,
+                                  EsqlPath       path,
+                                  Environment    env) {
+    Object left = expr1().exec(esqlCon, path.add(expr1()), env);
+    Object right = expr2().exec(esqlCon, path.add(expr2()), env);
+
+    if (left instanceof Number ln
+     && right instanceof Number rn) {
+      if (Numbers.isReal(ln) || Numbers.isReal(rn)) {
+        return ln.doubleValue() - rn.doubleValue();
+      } else {
+        return ln.longValue() - rn.longValue();
+      }
+    } else {
+      throw new ExecutionException("Incompatible types for " + op()
+                                 + ": left " + left + ", right: " + right);
+    }
   }
 }

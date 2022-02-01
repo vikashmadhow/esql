@@ -127,7 +127,7 @@ public class Select extends QueryUpdate {
     expression.forEach((e, p) -> {
       if (e instanceof ColumnRef ref) {
         if (!addedInnerCols.containsKey(ref.qualifiedName())) {
-          String alias = Strings.makeUnique(new HashSet<>(addedInnerCols.values()), ref.name());
+          String alias = Strings.makeUnique(new HashSet<>(addedInnerCols.values()), ref.columnName());
           innerCols.add(new Column(context, alias, ref.copy(), ref.type(), null));
           addedInnerCols.put(ref.qualifiedName(), alias);
         }
@@ -143,7 +143,7 @@ public class Select extends QueryUpdate {
         String qualifiedName = ref.qualifiedName();
         ref = ref.qualifier(innerSelectAlias);
         return addedInnerCols.containsKey(qualifiedName)
-                  ? ref.name(addedInnerCols.get(qualifiedName))
+                  ? ref.columnName(addedInnerCols.get(qualifiedName))
                   : ref;
       }
       return e;

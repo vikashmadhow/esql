@@ -5,6 +5,10 @@
 package ma.vi.esql.syntax.expression.variable;
 
 import ma.vi.base.tuple.T2;
+import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.exec.ExecutionException;
+import ma.vi.esql.exec.Result;
+import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
@@ -51,6 +55,17 @@ public class Assignment extends Expression<String, Assignment> {
   @Override
   public Assignment trans(Target target, EsqlPath path, PMap<String, Object> parameters) {
     return this;
+  }
+
+  @Override
+  protected Object postTransformExec(EsqlConnection esqlCon,
+                                     EsqlPath       path,
+                                     Environment env) {
+    if (!env.has(name())) {
+      throw new ExecutionException("Unknown variable " + name() + " in " + env);
+    }
+    env.set(name(), value().exec(esqlCon, path.add(value()), env));
+    return Result.Nothing;
   }
 
   public String name() {

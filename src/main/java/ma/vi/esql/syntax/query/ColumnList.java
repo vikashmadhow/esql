@@ -118,24 +118,24 @@ public class ColumnList extends Esql<String, String> implements UntypedMacro {
         /*
          * Get expansion (metadata columns along with column) for referred column.
          */
-        boolean renamed = !ref.name().equals(column.name());
+        boolean renamed = !ref.columnName().equals(column.name());
         if (renamed) {
-          aliased.put(ref.name(), column.name());
+          aliased.put(ref.columnName(), column.name());
         }
         String qualifier = ref.qualifier();
         List<Column> columnList = columnLists.computeIfAbsent(qualifier == null ? "/" : qualifier,
                                                               q -> from.named(q.equals("/") ? null : q)
                                                                        .columnList(path))
                                              .stream()
-                                             .filter(c -> c.name().equals(ref.name())
-                                                       || c.name().startsWith(ref.name() + '/'))
+                                             .filter(c -> c.name().equals(ref.columnName())
+                                                       || c.name().startsWith(ref.columnName() + '/'))
                                              .toList();
-        if (columnList.stream().filter(c -> c.name().equals(ref.name())).count() > 1) {
+        if (columnList.stream().filter(c -> c.name().equals(ref.columnName())).count() > 1) {
           throw new AmbiguousColumnException("Ambiguous column " + ref + " exists in "
                                            + "multiple relations in " + from);
         }
         for (Column col: columnList) {
-          if (col.name().equals(ref.name())) {
+          if (col.name().equals(ref.columnName())) {
             Column c = new Column(col.context,
                                   column.name(),
                                   qualifier != null ? qualify(col.expression(), qualifier)
@@ -150,7 +150,7 @@ public class ColumnList extends Esql<String, String> implements UntypedMacro {
              * Add metadata column, renaming if aliased.
              */
             String newName = renamed
-                           ? column.name() + col.name().substring(ref.name().length())
+                           ? column.name() + col.name().substring(ref.columnName().length())
                            : col.name();
             if (!colsMap.containsKey(newName)) {
               Column c = new Column(col.context,
@@ -259,203 +259,6 @@ public class ColumnList extends Esql<String, String> implements UntypedMacro {
     }
     return changed;
   }
-
-//  /**
-//   * Expands star columns (*) to the individual columns of the referred table
-//   * when it is part of the column list of a query, set column names when not
-//   * specified and disambiguate duplicate column names.
-//   */
-//  @Override
-//  public Esql<?, ?> expand(Esql<?, ?> esql, EsqlPath path) {
-//    QueryUpdate query = path.ancestor(QueryUpdate.class);
-//    TableExpr from = query.tables();
-//    Relation fromType = from.computeType(path.add(from));
-//
-//    boolean expandColumns = !query.grouped() && !path.hasAncestor(SelectExpression.class);
-//    if (expandColumns) {
-//      Cte cte = path.ancestor(Cte.class);
-//      if (cte != null && cte.fields() != null && !cte.fields().isEmpty()) {
-//        expandColumns = false;
-//      }
-//    }
-//
-//    boolean changed = false;
-//    int colIndex = 1;
-//
-//    Set<String> existingColNames = columns().stream().map(Column::name).collect(toSet());
-//    Set<String> resolvedColNames = new HashSet<>();
-//    Map<String, String> aliased = new HashMap<>();
-//    Map<String, Column> resolvedColumns = new LinkedHashMap<>();
-//    for (Column column: columns()) {
-//      if (column instanceof StarColumn all) {
-//        changed = true;
-//        String qualifier = all.qualifier();
-//        for (T2<Relation, Column> relCol: fromType.columns()) {
-//          /*
-//           * Ensure each column has a name, and it is unique in the column list.
-//           */
-//          Column col = relCol.b;
-//          String colName = col.name();
-//          if (colName == null) {
-//            T2<String, Integer> newName = makeUnique("column", resolvedColNames, colIndex, true);
-//            colName = newName.a;
-//            colIndex = newName.b;
-//
-//          } else {
-//            int pos = colName.indexOf('/');
-//            if (pos == -1) {
-//              /*
-//               * Normal column (not metadata).
-//               */
-//              if (resolvedColNames.contains(colName)) {
-//                T2<String, Integer> newName = makeUnique(colName, resolvedColNames, colIndex, false);
-//                colName = newName.a;
-//                colIndex = newName.b;
-//                aliased.put(col.name(), colName);
-//              }
-//            } else if (pos > 0) {
-//              /*
-//               * Column metadata
-//               */
-//              String columnName = colName.substring(0, pos);
-//              if (aliased.containsKey(columnName)) {
-//                /*
-//                 * replace column name with replacement if the column name was changed
-//                 */
-//                String aliasName = aliased.get(columnName);
-//                colName = aliasName + colName.substring(pos);
-//              }
-//            }
-//          }
-//
-//          if (!resolvedColumns.containsKey(colName)) {
-//            /*
-//             * Qualify column expressions (needed for derived columns) and metadata
-//             * expressions when selecting from base relations. For non-base relations,
-//             * the selected expression is a column reference to the underlying column
-//             * name.
-//             */
-//            Relation rel = relCol.a;
-//            if (rel instanceof BaseRelation
-//            || (rel instanceof AliasedRelation ar && ar.relation instanceof BaseRelation)) {
-//              Expression<?, String> expr = col.expression();
-//              if (qualifier != null) {
-//                expr = qualify(expr, qualifier);
-//              } else if (rel.alias() != null) {
-//                expr = qualify(expr, rel.alias());
-//              }
-//              Metadata metadata = null;
-//              if (col.metadata() != null) {
-//                List<Attribute> attributes = new ArrayList<>();
-//                for (Attribute attr: col.metadata().attributes().values()) {
-//                  attributes.add(new Attribute(context, attr.name(), qualify(attr.attributeValue(), qualifier)));
-//                }
-//                metadata = new Metadata(context, attributes);
-//              }
-//              col = new Column(context, colName, expr, metadata);
-//            } else {
-//              col = new Column(context,
-//                               colName,
-//                               new ColumnRef(context, qualifier != null ? qualifier : rel.alias(), col.name()),
-//                               null);
-//            }
-//
-//            /*
-//             * For table metadata (starting with '/') not disambiguation is performed,
-//             * only consider first encounter.
-//             */
-//            resolvedColumns.put(colName, col);
-//            resolvedColNames.add(colName);
-//          }
-//        }
-//      } else {
-//        ColumnRef ref = ColumnRef.from(column.expression());
-//        Column changedCol = column;
-//        if (column.name() == null) {
-//          changed = true;
-//          String prefix = ref != null ? ref.name() : "column";
-//          T2<String, Integer> newName = makeUnique(prefix, resolvedColNames, colIndex, ref == null);
-//          colIndex = newName.b;
-//          changedCol = column.name(newName.a);
-//
-//        } else {
-//          String colName = column.name();
-//          if (!resolvedColNames.contains(colName)) {
-//            resolvedColNames.add(colName);
-//          } else {
-//            changed = true;
-//            T2<String, Integer> newName = makeUnique(colName, resolvedColNames, colIndex, false);
-//            colIndex = newName.b;
-//            changedCol = column.name(newName.a);
-//          }
-//        }
-//        resolvedColumns.put(changedCol.name(), changedCol);
-//        resolvedColNames.add(changedCol.name());
-//
-//        if (ref != null && !ref.name().equals(changedCol.name())) {
-//          aliased.put(ref.name(), changedCol.name());
-//        }
-//
-//        Map<String, Column> metadataCols = new LinkedHashMap<>();
-//        if (expandColumns) {
-//          /*
-//           * Get column metadata from relation.
-//           */
-//          if (ref != null && !ref.name().contains("/")) {
-//            for (T2<Relation, Column> relCol: fromType.columns(ref.name())) {
-//              Relation rel = relCol.a;
-//              if (Objects.equals(rel.alias(), ref.qualifier())) {
-//                Column col = relCol.b;
-//                if (!col.name().equals(ref.name())) {
-//                  metadataCols.put(col.name(), col);
-//                }
-//              }
-//            }
-//          }
-//        }
-//        if (column.metadata() != null && !column.metadata().attributes().isEmpty()) {
-//          /*
-//           * Override with explicit column metadata in column list.
-//           */
-//          for (Attribute att: column.metadata().attributes().values()) {
-//            for (Column col: columnsForAttribute(att, changedCol.name() + '/', aliased)) {
-//              metadataCols.put(col.name(), ref != null && ref.qualifier() != null
-//                                         ? qualify(col, ref.qualifier())
-//                                         : col);
-//            }
-//          }
-//        }
-//        if (!metadataCols.isEmpty()) {
-//          for (Map.Entry<String, Column> col: metadataCols.entrySet()) {
-//            if (!existingColNames.contains(col.getKey())) {
-//               changed = true;
-//               resolvedColumns.put(col.getKey(), col.getValue());
-//               resolvedColNames.add(col.getKey());
-//            }
-//          }
-//        }
-//      }
-//    }
-//    if (expandColumns && !columns().isEmpty()) {
-//      /*
-//       * Add relation metadata if the column list is not empty (which would be
-//       * the case in general for the returning clause of a modifying statement;
-//       * in those cases adding the relation metadata would result in the modifying
-//       * statement to returning data when that is clearly contrary to the intention
-//       * of the statement).
-//       */
-//      for (T2<Relation, Column> relCol: fromType.columns().stream()
-//                                                .filter(c -> c.b.name().startsWith("/")).toList()) {
-//        Column col = relCol.b;
-//        if (!existingColNames.contains(col.name())) {
-//          changed = true;
-//          resolvedColumns.put(col.name(), col);
-//        }
-//      }
-//    }
-//    return changed ? new ColumnList(context, new ArrayList<>(resolvedColumns.values()))
-//                   : esql;
-//  }
 
   /**
    * Produces a unique name within the set of names by repeatedly incrementing an

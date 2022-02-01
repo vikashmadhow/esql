@@ -44,7 +44,7 @@ public class Column extends MetadataContainer<String> { // implements TypedMacro
             Stream.of(
               new T2[]{
                 T2.of("name",       new Esql<>(context, name != null ? name
-                                                         : expression instanceof ColumnRef r ? r.name()
+                                                         : expression instanceof ColumnRef r ? r.columnName()
                                                          : null)),
                 T2.of("expression", expression),
 //                T2.of("type",       new Esql<>(context, type)),
@@ -166,7 +166,7 @@ public class Column extends MetadataContainer<String> { // implements TypedMacro
   public boolean derived() {
     if (name() != null
      && expression() instanceof ColumnRef ref
-     && name().equals(ref.name())) {
+     && name().equals(ref.columnName())) {
       return false;
 
     } else if (metadata() != null) {

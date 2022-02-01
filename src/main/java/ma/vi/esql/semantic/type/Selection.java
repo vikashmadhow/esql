@@ -78,7 +78,7 @@ public class Selection extends Relation {
 
   @Override
   public T2<Relation, Column> findColumn(ColumnRef ref) {
-    Column column = columnsByAlias.get(ref.name());
+    Column column = columnsByAlias.get(ref.columnName());
     return column == null ? null : T2.of(this, column);
   }
 

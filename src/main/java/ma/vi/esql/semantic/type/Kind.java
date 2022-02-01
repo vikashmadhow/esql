@@ -6,7 +6,6 @@ package ma.vi.esql.semantic.type;
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 public interface Kind extends Type {
-
   class InternalKind extends InternalType implements Kind {
     public InternalKind(String name) {
       super(name);
@@ -18,8 +17,8 @@ public interface Kind extends Type {
     }
   }
 
-  Kind BASE = new InternalKind("Base");
-  Kind ARRAY = new InternalKind("Array");
+  Kind BASE      = new InternalKind("Base");
+  Kind ARRAY     = new InternalKind("Array");
   Kind COMPOSITE = new InternalKind("Composite");
-  Kind FUNCTION = new InternalKind("Function");
+  Kind FUNCTION  = new InternalKind("Function");
 }

@@ -7,12 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Planned]
 ### To add
 - General-purpose language:
-  - Variable definitions and assignments
-  - Symbol table and scoping rules
-  - General typing
-  - Conditional statements
+  - If statements
   - Iteration and loops
-  - Functions
 - Array operations.
 - JSON operations.
 - Support for creating and using sequences.
@@ -53,10 +49,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Test performance.
 
 ### To fix
-- Fix ancestorDistance which does not seem to work on ESQLPath. Currently, this 
-  function is not used anywhere, thus this is low-priority.
 - Apply result and column metadata overloading in column list expansion (currently,
-  the overridden metadata are not being considered). 
+  the overridden metadata are not being considered). (create tests for metadata 
+  overriding)
+
+## [0.8.0] - 2022-02-01
+### Added
+- Function and variable scoping.
+- A global scope is created as a child of the System scope (structure) for every 
+  program that is executed. This global scope hold all top-level variable and 
+  function declarations.
+- General-purpose language support:
+  - Variable definitions and assignments.
+  - Symbol table and scoping rules.
+  - General typing.
+  - Functions.
+- Literals parsing tests.
+- Expressions parsing tests.
+- Execution now uses environment bindings which is a foundation for the support 
+  of lambda expressions.
+- Custom date and time literals parsing is faster and fix cases where milliseconds
+  were being ignored.
+
+### Fixed
+- Fixed `ancestorDistance` method in `EsqlPath`.
+- Negative numbers are now parsed as the negation operation on a number (or 
+  expression) instead of being parsed as token in the lexer. When parsed by the
+  lexer `n-1` produces two tokens: `n` and `-1` which is obviously wrong. Now 
+  only the pattern for positive integers is defined as a lexical rule with negative
+  numbers treated as the negation operator applied on a positive number.
 
 ## [0.7.4] - 2022-01-26
 ### Added

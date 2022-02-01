@@ -1,7 +1,8 @@
 package ma.vi.esql.semantic.scope;
 
 import ma.vi.esql.semantic.type.Type;
-import ma.vi.esql.semantic.type.Types;
+
+import static ma.vi.esql.semantic.type.Types.UnknownType;
 
 /**
  * @author Vikash Madhow (vikash.madhow@gmail.com)
@@ -9,6 +10,17 @@ import ma.vi.esql.semantic.type.Types;
 public interface Symbol {
   String name();
   default Type type() {
-    return Types.UnknownType;
+    return UnknownType;
+  }
+
+  static Symbol of(String name) {
+    return of(name, UnknownType);
+  }
+
+  static Symbol of(String name, Type type) {
+    return new Symbol() {
+      @Override public String name() { return name; }
+      @Override public Type   type() { return type; }
+    };
   }
 }

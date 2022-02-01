@@ -5,12 +5,14 @@
 package ma.vi.esql.syntax.expression.function;
 
 import ma.vi.base.tuple.T2;
-import ma.vi.esql.database.Database;
+import ma.vi.esql.exec.EsqlConnection;
 import ma.vi.esql.exec.Result;
-import ma.vi.esql.semantic.scope.Allocator;
+import ma.vi.esql.exec.env.AbstractEnvironment;
+import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.semantic.scope.FunctionScope;
 import ma.vi.esql.semantic.scope.Scope;
 import ma.vi.esql.semantic.scope.Symbol;
+import ma.vi.esql.semantic.type.Kind;
 import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
@@ -18,7 +20,6 @@ import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.expression.Expression;
 import org.pcollections.PMap;
 
-import java.sql.Connection;
 import java.util.List;
 
 /**
@@ -64,15 +65,15 @@ public class FunctionDecl extends Expression<String, FunctionDecl> implements Sy
 
   @Override
   public Esql<?, ?> scope(Scope scope, EsqlPath path) {
-    scope.addSymbol(this);
-    Scope functionScope = new FunctionScope("Function " + name() + " Scope",
-                                            scope, new Allocator());
+    scope.addSymbol(Symbol.of('!' + name(), Kind.FUNCTION));
+    Scope functionScope = new FunctionScope(scope);
     super.scope(functionScope, path);
     for (FunctionParameter param: parameters()) {
       functionScope.addSymbol(param);
     }
+    EsqlPath p = path.add(this);
     for (Expression<?, ?> e: body()) {
-      e.scope(functionScope, path.add(this));
+      e.scope(functionScope, p);
     }
     return this;
   }
@@ -83,15 +84,16 @@ public class FunctionDecl extends Expression<String, FunctionDecl> implements Sy
   }
 
   @Override
-  public Result execute(Database db, Connection con, EsqlPath path) {
-    Result result = Result.Nothing;
-    for (Expression<?, ?> st: body()) {
-      Result r = st.execute(db, con, path.add(st));
-      if (r != Result.Nothing) {
-        result = r;
-      }
-    }
-    return result;
+  public Object exec(EsqlConnection esqlCon,
+                     EsqlPath       path,
+                     Environment env) {
+    env.add('!' + name(), set("environment", new Esql<>(context, env)));
+    return Result.Nothing;
+  }
+
+  @Override
+  public FunctionScope scope() {
+    return (FunctionScope)scope;
   }
 
   public String name() {
@@ -108,5 +110,9 @@ public class FunctionDecl extends Expression<String, FunctionDecl> implements Sy
 
   public List<? extends Expression<?, ?>> body() {
     return get("body").children();
+  }
+
+  public AbstractEnvironment environment() {
+    return childValue("environment");
   }
 }

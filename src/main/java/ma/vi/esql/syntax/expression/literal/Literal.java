@@ -5,9 +5,12 @@
 package ma.vi.esql.syntax.expression.literal;
 
 import ma.vi.base.tuple.T2;
+import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.semantic.type.*;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
+import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.expression.Expression;
 import ma.vi.esql.translation.TranslationException;
 import org.json.JSONArray;
@@ -67,6 +70,13 @@ public abstract class Literal<V> extends Expression<V, String> {
    */
   @Override
   public abstract Literal<V> copy(V value, T2<String, ? extends Esql<?, ?>>... children);
+
+  @Override
+  public Object exec(EsqlConnection esqlCon,
+                     EsqlPath path,
+                     Environment env) {
+    return value(Target.ESQL, path);
+  }
 
   public static Literal<?> makeLiteral(Context context, String value, Type type) {
     if (value == null) {

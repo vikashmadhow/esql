@@ -5,8 +5,12 @@
 package ma.vi.esql.syntax.expression.arithmetic;
 
 import ma.vi.base.tuple.T2;
+import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.exec.ExecutionException;
+import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
+import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.expression.Expression;
 
 /**
@@ -43,5 +47,26 @@ public class Division extends ArithmeticOperator {
   @Override
   public Division copy(String value, T2<String, ? extends Esql<?, ?>>... children) {
     return new Division(this, value, children);
+  }
+
+  @Override
+  public Object postTransformExec(EsqlConnection esqlCon,
+                                  EsqlPath       path,
+                                  Environment    env) {
+    Object left = expr1().exec(esqlCon, path.add(expr1()), env);
+    Object right = expr2().exec(esqlCon, path.add(expr2()), env);
+
+    if (left instanceof Number ln
+     && right instanceof Number rn) {
+      double divisor = rn.doubleValue();
+      if (divisor == 0) {
+        throw new ArithmeticException("Division by 0");
+      } else {
+        return ln.doubleValue() / rn.doubleValue();
+      }
+    } else {
+      throw new ExecutionException("Incompatible types for " + op()
+                                 + ": left " + left + ", right: " + right);
+    }
   }
 }
