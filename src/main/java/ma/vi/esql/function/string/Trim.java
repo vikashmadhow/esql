@@ -57,7 +57,7 @@ public class Trim extends Function {
   public Object exec(EsqlConnection esqlCon,
                      EsqlPath       path,
                      Environment    env) {
-    String text = (String)env.get("text");
+    String text = env.get("text");
     return text == null ? null : text.trim();
   }
 }

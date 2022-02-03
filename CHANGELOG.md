@@ -34,6 +34,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Configure extensions (e.g. specify lookup schema) through parameters.
 - Replace all visual tests (printResult) with assertions.
 - Implement `explicit` in select (no expanded columns when explicit keyword used).
+- String indexing in ESQL functions should be 1-based to be coherent with SQL 
+  (instead of 0-based currently as in Java).
 
 ### To test
 - Test composition of select statements (union, intersect, except).
@@ -52,6 +54,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Apply result and column metadata overloading in column list expansion (currently,
   the overridden metadata are not being considered). (create tests for metadata 
   overriding)
+
+## [0.8.2] - 2022-02-03
+### Added
+- Support for passing named arguments to functions.
+- Support for default values in function parameters.
+- Pass null or the default value to parameters of functions for which an argument
+  was not provided.
+- Computation and tests for `ltrim` and `rtrim`.
+- Computation and tests for `lpad` and `rpad`.
 
 ## [0.8.1] - 2022-02-03
 ### Added

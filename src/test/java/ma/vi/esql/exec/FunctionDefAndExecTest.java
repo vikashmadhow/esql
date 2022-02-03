@@ -98,7 +98,7 @@ public class FunctionDefAndExecTest extends DataTest {
   }
 
   @TestFactory
-  Stream<DynamicTest> execPredefinedFunctions() {
+  Stream<DynamicTest> execTrim() {
     return Stream.of(databases)
                  .map(db -> dynamicTest(db.target().toString(), () -> {
                    Parser p = new Parser(db.structure());
@@ -107,6 +107,53 @@ public class FunctionDefAndExecTest extends DataTest {
                      assertEquals("abc", con.exec("trim(`   abc  `)"));
                      assertNull(con.exec("trim(null)"));
                      assertThrows(ExecutionException.class, () -> con.exec("trim(1)"));
+
+                     assertEquals("   abc", con.exec("rtrim('   abc  ')"));
+                     assertEquals("   abc", con.exec("rtrim(`   abc  `)"));
+                     assertNull(con.exec("rtrim(null)"));
+                     assertThrows(ExecutionException.class, () -> con.exec("rtrim(1)"));
+
+                     assertEquals("abc  ", con.exec("ltrim('   abc  ')"));
+                     assertEquals("abc  ", con.exec("ltrim(`   abc  `)"));
+                     assertNull(con.exec("ltrim(null)"));
+                     assertThrows(ExecutionException.class, () -> con.exec("ltrim(1)"));
+                   }
+                 }));
+  }
+
+  @TestFactory
+  Stream<DynamicTest> execPad() {
+    return Stream.of(databases)
+                 .map(db -> dynamicTest(db.target().toString(), () -> {
+                   Parser p = new Parser(db.structure());
+                   try (EsqlConnection con = db.esql(db.pooledConnection())) {
+                     assertEquals("abc", con.exec("lpad('abc', 0)"));
+                     assertEquals("   abc", con.exec("lpad('abc', 6)"));
+                     assertEquals("%%%abc", con.exec("lpad('abc', 6, '%')"));
+                     assertEquals("abc", con.exec("lpad('abc', 0, '#')"));
+                     assertEquals("%%%%%%%abc", con.exec("lpad(pad='%', 'abc', 10)"));
+                     assertEquals("%%%%%%%abc", con.exec("lpad(pad='%', length=10, 'abc')"));
+                     assertEquals("%%%%%%%abc", con.exec("lpad(length=10, pad='%', text='abc')"));
+
+                     assertNull(con.exec("lpad(null)"));
+
+                     assertThrows(ExecutionException.class, () -> con.exec("lpad(1)"));
+                     assertThrows(ExecutionException.class, () -> con.exec("lpad('a', 's')"));
+                     assertThrows(ExecutionException.class, () -> con.exec("lpad('a', 3, 0)"));
+
+                     assertEquals("abc", con.exec("rpad('abc', 0)"));
+                     assertEquals("abc   ", con.exec("rpad('abc', 6)"));
+                     assertEquals("abc%%%", con.exec("rpad('abc', 6, '%')"));
+                     assertEquals("abc", con.exec("rpad('abc', 0, '#')"));
+                     assertEquals("abc%%%%%%%", con.exec("rpad(pad='%', 'abc', 10)"));
+                     assertEquals("abc%%%%%%%", con.exec("rpad(pad='%', length=10, 'abc')"));
+                     assertEquals("abc%%%%%%%", con.exec("rpad(length=10, pad='%', text='abc')"));
+
+                     assertNull(con.exec("rpad(null)"));
+
+                     assertThrows(ExecutionException.class, () -> con.exec("rpad(1)"));
+                     assertThrows(ExecutionException.class, () -> con.exec("rpad('a', 's')"));
+                     assertThrows(ExecutionException.class, () -> con.exec("rpad('a', 3, 0)"));
                    }
                  }));
   }

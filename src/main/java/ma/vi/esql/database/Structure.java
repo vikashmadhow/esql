@@ -398,11 +398,11 @@ public class Structure extends AbstractScope implements Environment {
   }
 
   @Override
-  public Object get(String symbol) throws NotFoundException {
+  public <R> R get(String symbol) throws NotFoundException {
     if (relations.containsKey(symbol)) {
-      return relations.get(symbol);
+      return (R)relations.get(symbol);
     } else if (functions.containsKey(symbol)) {
-      return functions.get(symbol);
+      return (R)functions.get(symbol);
     } else {
       throw new NotFoundException("Unknown relation or function: " + symbol);
     }

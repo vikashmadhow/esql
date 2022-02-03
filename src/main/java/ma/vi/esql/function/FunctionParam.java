@@ -5,26 +5,18 @@
 package ma.vi.esql.function;
 
 import ma.vi.esql.semantic.type.Type;
+import ma.vi.esql.syntax.expression.Expression;
 
 /**
  * The definition of a function parameter.
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public class FunctionParam {
+public record FunctionParam(String           name,
+                            Type             type,
+                            boolean          variadic,
+                            Expression<?, ?> defaultValue) {
   public FunctionParam(String name, Type type) {
     this(name, type, false, null);
   }
-
-  public FunctionParam(String name, Type type, boolean variadic, String defaultValue) {
-    this.name = name;
-    this.type = type;
-    this.variadic = variadic;
-    this.defaultValue = defaultValue;
-  }
-
-  public final String name;
-  public final Type type;
-  public final boolean variadic;
-  public final String defaultValue;
 }

@@ -23,9 +23,9 @@ public abstract class AbstractEnvironment implements Environment {
   }
 
   @Override
-  public Object get(String symbol) throws NotFoundException {
+  public <R> R get(String symbol) throws NotFoundException {
     if (values.containsKey(symbol)) {
-      return values.get(symbol);
+      return (R)values.get(symbol);
     } else if (parent != null) {
       return parent.get(symbol);
     } else {

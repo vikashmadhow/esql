@@ -10,6 +10,7 @@ import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
+import ma.vi.esql.syntax.expression.Expression;
 import org.pcollections.PMap;
 
 /**
@@ -18,8 +19,13 @@ import org.pcollections.PMap;
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 public class FunctionParameter extends Esql<String, String> implements Symbol {
-  public FunctionParameter(Context context, String name, Type type) {
-    super(context, name, T2.of("type", new Esql<>(context, type)));
+  public FunctionParameter(Context          context,
+                           String           name,
+                           Type             type,
+                           Expression<?, ?> defaultValue) {
+    super(context, name,
+          T2.of("type", new Esql<>(context, type)),
+          T2.of("defaultValue", defaultValue));
     this.type = type;
   }
 
@@ -73,5 +79,9 @@ public class FunctionParameter extends Esql<String, String> implements Symbol {
   @Override
   public Type type() {
     return childValue("type");
+  }
+
+  public Expression<?, ?> defaultValue() {
+    return child("defaultValue");
   }
 }

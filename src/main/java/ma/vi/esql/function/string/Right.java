@@ -26,7 +26,7 @@ import static ma.vi.esql.translation.Translatable.Target.JAVASCRIPT;
 public class Right extends Function {
   public Right() {
     super("right", Types.IntType,
-          asList(new FunctionParam("s", Types.StringType),
+          asList(new FunctionParam("text",  Types.StringType),
                  new FunctionParam("count", Types.IntType)));
   }
 

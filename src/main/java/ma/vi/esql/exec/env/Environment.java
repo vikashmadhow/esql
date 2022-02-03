@@ -16,7 +16,7 @@ public interface Environment {
 
   void add(String symbol, Object value) throws SymbolAlreadyDefinedException;
 
-  Object get(String symbol) throws NotFoundException;
+  <R> R get(String symbol) throws NotFoundException;
 
   void set(String symbol, Object value) throws NotFoundException;
 

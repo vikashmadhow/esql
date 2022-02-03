@@ -152,7 +152,8 @@ public class SyntaxAnalyser extends EsqlBaseListener {
   public void exitParameter(ParameterContext ctx) {
     put(ctx, new FunctionParameter(context,
                                    ctx.Identifier().getText(),
-                                   value(ctx.type())));
+                                   value(ctx.type()),
+                                   ctx.expr() == null ? null : get(ctx.expr())));
   }
 
   @Override

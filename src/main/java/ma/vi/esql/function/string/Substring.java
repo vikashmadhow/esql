@@ -26,9 +26,9 @@ import static ma.vi.esql.translation.Translatable.Target.POSTGRESQL;
 public class Substring extends Function {
   public Substring() {
     super("substring", Types.StringType,
-          asList(new FunctionParam("s", Types.StringType),
-            new FunctionParam("from", Types.IntType),
-            new FunctionParam("count", Types.IntType)));
+          asList(new FunctionParam("text", Types.StringType),
+                 new FunctionParam("from", Types.IntType),
+                 new FunctionParam("count", Types.IntType)));
   }
 
   @Override

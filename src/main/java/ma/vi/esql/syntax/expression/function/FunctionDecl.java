@@ -111,7 +111,10 @@ public class FunctionDecl extends Expression<String, FunctionDecl> implements Sy
 
   public List<FunctionParam> params() {
     return parameters().stream()
-                       .map(p -> new FunctionParam(p.name(), p.type()))
+                       .map(p -> new FunctionParam(p.name(),
+                                                   p.type(),
+                                                   false,
+                                                   p.defaultValue()))
                        .toList();
   }
 

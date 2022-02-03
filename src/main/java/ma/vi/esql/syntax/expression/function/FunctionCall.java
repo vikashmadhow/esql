@@ -24,6 +24,7 @@ import ma.vi.esql.syntax.macro.TypedMacro;
 import ma.vi.esql.syntax.query.Order;
 import org.pcollections.PMap;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static java.util.stream.Collectors.joining;
@@ -224,10 +225,13 @@ public class FunctionCall extends Expression<String, String> implements TypedMac
       Environment funcEnv;
       EsqlPath funcPath = path.add(this);
       if (f instanceof FunctionDecl func) {
+        /*
+         * User-defined function.
+         */
         funcEnv = new FunctionEnvironment(func.environment());
         setArgs(functionName(),
-                func.params(),
-                arguments(),
+                new ArrayList<>(func.params()),
+                new ArrayList<>(arguments()),
                 esqlCon,
                 funcPath,
                 env,
@@ -243,11 +247,14 @@ public class FunctionCall extends Expression<String, String> implements TypedMac
         return ret;
 
       } else {
+        /*
+         * Internal pre-defined function.
+         */
         Function func = (Function)f;
         funcEnv = new FunctionEnvironment(env);
         setArgs(functionName(),
-                func.parameters(),
-                arguments(),
+                new ArrayList<>(func.parameters()),
+                new ArrayList<>(arguments()),
                 esqlCon,
                 funcPath,
                 env,
@@ -268,22 +275,62 @@ public class FunctionCall extends Expression<String, String> implements TypedMac
                               EsqlPath               path,
                               Environment            computeIn,
                               Environment            setIn) {
-    if (arguments.size() != params.size()) {
+    if (arguments.size() > params.size()) {
       throw new ExecutionException("Function " + functionName + " take "
                                  + params.size() + " parameters but "
-                                 + arguments.size() + " arguments were provided");
+                                 + arguments.size() + " arguments were provided.");
     }
-    for (int i = 0; i < params.size(); i++) {
-      FunctionParam param = params.get(i);
-      Expression<?, ?> a = arguments.get(i);
-      Object value = a.exec(esqlCon, path.add(a), computeIn);
-      if (!Types.instanceOf(value, param.type)) {
-        throw new ExecutionException(
-            "Param " + param.name + " is of type " + param.type + " but a value "
-          + "(" + value + ") of type " + value.getClass().getSimpleName()
-          + " was provided.");
+
+    int i = 0;
+    while (i < params.size()) {
+      if (i >= arguments.size()) {
+        /*
+         * If there are more parameters than provided arguments, set the values
+         * of the excess parameters to their default value or null.
+         */
+        FunctionParam param = params.get(i);
+        setIn.add(param.name(), param.defaultValue() == null
+                              ? null
+                              : param.defaultValue().exec(esqlCon,
+                                                          path.add(param.defaultValue()),
+                                                          computeIn));
+        i++;
+      } else {
+        /*
+         * For named arguments match with parameters with the same name; otherwise
+         * match to current parameter position and move right.
+         */
+        Expression<?, ?> arg = arguments.get(i);
+        FunctionParam param = null;
+        if (arg instanceof NamedArgument na) {
+          for (int j = i; j < params.size(); j++) {
+            param = params.get(j);
+            if (param.name().equals(na.name())) {
+              param = params.remove(j);
+              break;
+            }
+          }
+          if (param == null) {
+            throw new ExecutionException(
+                "Function " + functionName + " does not take a parameter named "
+              + na.name() + " or an argument for the same parameter has been "
+              + "specified more than once.");
+          }
+          arguments.remove(i);
+          arg = na.arg();
+        } else {
+          param = params.get(i);
+          i++;
+        }
+        Object value = arg.exec(esqlCon, path.add(arg), computeIn);
+        if (!Types.instanceOf(value, param.type())) {
+          throw new ExecutionException(
+              "Param " + param.name() + " is of type " + param.type() + " but a "
+            + "value (" + value + ") of type " + value.getClass().getSimpleName()
+            + " was provided.");
+        }
+        setIn.add(param.name(), value);
       }
-      setIn.add(param.name, value);
     }
   }
 

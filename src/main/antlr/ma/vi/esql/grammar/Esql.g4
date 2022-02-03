@@ -854,10 +854,11 @@ simpleExpr
 
 
 /**
- * A function parameter is a name followed by colon (:) and its type.
+ * A function parameter is a name followed by colon (:) and its type, with an
+ * optional default value expression.
  */
 parameter
-  :  Identifier ':' type
+  :  Identifier ':' type ('=' expr)?
   ;
 
 parameters

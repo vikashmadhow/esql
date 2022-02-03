@@ -26,7 +26,7 @@ public class Concat extends Function {
   public Concat() {
     super("concat", Types.StringType,
           asList(new FunctionParam("a", Types.StringType),
-            new FunctionParam("b", Types.StringType)));
+                 new FunctionParam("b", Types.StringType)));
   }
 
   @Override

@@ -25,9 +25,9 @@ import static ma.vi.esql.translation.Translatable.Target.*;
 public class IndexOf extends Function {
   public IndexOf() {
     super("indexof", Types.IntType,
-          Arrays.asList(new FunctionParam("substr_to_find", Types.StringType),
-            new FunctionParam("str_to_search", Types.StringType),
-            new FunctionParam("start_position_optional", Types.IntType)));
+          Arrays.asList(new FunctionParam("text", Types.StringType),
+                        new FunctionParam("in",   Types.StringType),
+                        new FunctionParam("from", Types.IntType)));
   }
 
   @Override

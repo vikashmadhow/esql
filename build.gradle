@@ -121,7 +121,7 @@ test {
 group = 'com.vikmad'
 archivesBaseName = 'esql'
 sourceCompatibility = JavaVersion.VERSION_16
-version = "0.8.1"
+version = "0.8.2"
 ext.isReleaseVersion = !version.endsWith("SNAPSHOT")
 
 java {

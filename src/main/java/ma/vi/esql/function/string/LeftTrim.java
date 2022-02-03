@@ -4,6 +4,8 @@
 
 package ma.vi.esql.function.string;
 
+import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.function.Function;
 import ma.vi.esql.function.FunctionParam;
 import ma.vi.esql.semantic.type.Types;
@@ -38,5 +40,13 @@ public class LeftTrim extends Function {
       // ESQL and all databases
       return name + '(' + args.get(0).translate(target, path.add(args.get(0))) + ')';
     }
+  }
+
+  @Override
+  public Object exec(EsqlConnection esqlCon,
+                     EsqlPath       path,
+                     Environment    env) {
+    String text = env.get("text");
+    return text == null ? null : text.stripLeading();
   }
 }
