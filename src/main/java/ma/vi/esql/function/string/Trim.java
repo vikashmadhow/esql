@@ -4,8 +4,10 @@
 
 package ma.vi.esql.function.string;
 
+import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.function.Function;
-import ma.vi.esql.function.FunctionParameter;
+import ma.vi.esql.function.FunctionParam;
 import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.expression.Expression;
@@ -26,7 +28,7 @@ import static ma.vi.esql.translation.Translatable.Target.SQLSERVER;
 public class Trim extends Function {
   public Trim() {
     super("trim", Types.StringType,
-        singletonList(new FunctionParameter("text", Types.StringType)));
+          singletonList(new FunctionParam("text", Types.StringType)));
   }
 
   @Override
@@ -44,8 +46,18 @@ public class Trim extends Function {
       return name + "(nchar(0x09) + nchar(0x20) + nchar(0x0D) + nchar(0x0A) from "
           + args.get(0).translate(target, path.add(args.get(0))) + ')';
     } else {
-      // ESQL and all other databases
+      /*
+       * ESQL and all other databases
+       */
       return name + '(' + args.get(0).translate(target, path.add(args.get(0))) + ')';
     }
+  }
+
+  @Override
+  public Object exec(EsqlConnection esqlCon,
+                     EsqlPath       path,
+                     Environment    env) {
+    String text = (String)env.get("text");
+    return text == null ? null : text.trim();
   }
 }

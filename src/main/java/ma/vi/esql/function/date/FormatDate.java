@@ -5,7 +5,7 @@
 package ma.vi.esql.function.date;
 
 import ma.vi.esql.function.Function;
-import ma.vi.esql.function.FunctionParameter;
+import ma.vi.esql.function.FunctionParam;
 import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.expression.Expression;
@@ -50,8 +50,8 @@ import static ma.vi.esql.translation.Translatable.Target.*;
 public class FormatDate extends Function {
   public FormatDate() {
     super("format", Types.StringType,
-          Arrays.asList(new FunctionParameter("date", Types.DatetimeType),
-            new FunctionParameter("format", Types.StringType)));
+          Arrays.asList(new FunctionParam("date", Types.DatetimeType),
+            new FunctionParam("format", Types.StringType)));
   }
 
   @Override

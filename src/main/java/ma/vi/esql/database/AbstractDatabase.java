@@ -716,7 +716,7 @@ public abstract class AbstractDatabase implements Database {
                 "        source_columns, target_relation_id, target_columns, " +
                 "        forward_cost, reverse_cost, on_update, on_delete " +
                 "   from _core.constraints"))) {
-          while (rs.next()) {
+          while (rs.toNext()) {
             loadConstraints(context, structure, p, rs);
           }
         }
@@ -1143,7 +1143,7 @@ public abstract class AbstractDatabase implements Database {
       Parser p = new Parser(structure());
       EsqlConnection econ = esql(con);
       try (Result rs = econ.exec(p.parse("select _id from _core.relations where name='" + table.name() + "'"))) {
-        if (!rs.next()) {
+        if (!rs.toNext()) {
           /*
            * Add table, its columns and constraints
            */
@@ -1193,7 +1193,7 @@ public abstract class AbstractDatabase implements Database {
       Parser p = new Parser(structure());
       EsqlConnection econ = esql(con);
       try (Result rs = econ.exec(p.parse("select _id from _core.relations where name='" + table.name() + "'"))) {
-        if (rs.next()) {
+        if (rs.toNext()) {
           /*
            * Update table, its columns and constraints
            */

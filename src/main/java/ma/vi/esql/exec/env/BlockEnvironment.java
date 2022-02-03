@@ -20,15 +20,15 @@ public class BlockEnvironment extends AbstractEnvironment {
      * Go up until we reach a functional environment. Symbols defined outside of
      * the containing function can safely be shadowed in the current block.
      */
-    AbstractEnvironment env = this;
+    Environment env = this;
     while (env != null) {
-      if (env.values.containsKey(symbol)) {
+      if (env.has(symbol)) {
         throw new SymbolAlreadyDefinedException(symbol + " is already defined");
       }
       if (env instanceof FunctionEnvironment) {
         break;
       }
-      env = env.parent;
+      env = env.parent();
     }
     values.put(symbol, value);
   }

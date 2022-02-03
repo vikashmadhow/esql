@@ -69,6 +69,32 @@ public class Types {
   }
 
   /**
+   * Returns true if the value is of the specified type.
+   */
+  public static boolean instanceOf(Object value, Type type) {
+    return (value == null)
+        || (type == StringType        && value instanceof CharSequence)
+        || (type == TextType          && value instanceof CharSequence)
+        || (type == ByteType          && value instanceof Number)
+        || (type == ShortType         && value instanceof Number)
+        || (type == IntType           && value instanceof Number)
+        || (type == LongType          && value instanceof Number)
+        || (type == FloatType         && value instanceof Number)
+        || (type == DoubleType        && value instanceof Number)
+        || (type == MoneyType         && value instanceof Number)
+        || (type == UuidType          && value instanceof UUID)
+        || (type == BoolType          && value instanceof Boolean)
+        || (type == DateType          && value instanceof Date)
+        || (type == TimeType          && value instanceof Date)
+        || (type == DatetimeType      && value instanceof Date)
+        || (type == CharType          && value instanceof Character)
+        || (type == JsonType          && value instanceof CharSequence)
+        || (type == BytesType         && value.getClass().isArray())
+        || (type == IntervalType      && value instanceof Interval)
+        || (type instanceof ArrayType && value.getClass().isArray());
+  }
+
+  /**
    * Returns the ESQL type to use for the Java type.
    */
   public static Type typeOf(Class<?> javaType) {

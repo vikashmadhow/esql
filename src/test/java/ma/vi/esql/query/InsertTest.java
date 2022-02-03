@@ -48,7 +48,7 @@ public class InsertTest extends DataTest {
                        con.exec(insert);
                      }
                      Result rs = con.exec("select count(*) from S");
-                     rs.next();
+                     rs.toNext();
                      assertEquals(((Number)rs.get(1).value()).intValue(), 20);
                    }
                  }));
@@ -70,23 +70,23 @@ public class InsertTest extends DataTest {
                             + "(u'" + id2 + "', false),"
                             + "(u'" + id3 + "', null)");
                      Result rs = con.exec("select e from S where _id=u'" + id1 + "'");
-                     assertTrue(rs.next());
+                     assertTrue(rs.toNext());
                      assertEquals(rs.get("e").value(), true);
 
                      rs = con.exec("select e from S where _id=u'" + id2 + "'");
-                     assertTrue(rs.next());
+                     assertTrue(rs.toNext());
                      assertEquals(rs.get("e").value(), false);
 
                      rs = con.exec("select _id, e from S where e");
-                     assertTrue(rs.next());
+                     assertTrue(rs.toNext());
                      assertEquals(rs.get("_id").value(), id1);
 
                      rs = con.exec("select _id, coalesce(e, false) from S where coalesce(e, false)=true");
-                     assertTrue(rs.next());
+                     assertTrue(rs.toNext());
                      assertEquals(rs.get("_id").value(), id1);
 
                      rs = con.exec("select not e from S where _id=u'" + id2 + "' and not e");
-                     assertTrue(rs.next());
+                     assertTrue(rs.toNext());
                      assertEquals(rs.get(1).value(), true);
                    }
                  }));
@@ -111,8 +111,8 @@ public class InsertTest extends DataTest {
                      Result rs = con.exec("select _id, a, b, e, h, j from S");
                      Set<List<String>> stringArray = new HashSet<>();
                      Set<List<Integer>> intArray = new HashSet<>();
-                     rs.next(); stringArray.add(Arrays.asList(rs.value("h"))); intArray.add(Arrays.asList(rs.value("j")));
-                     rs.next(); stringArray.add(Arrays.asList(rs.value("h"))); intArray.add(Arrays.asList(rs.value("j")));
+                     rs.toNext(); stringArray.add(Arrays.asList(rs.value("h"))); intArray.add(Arrays.asList(rs.value("j")));
+                     rs.toNext(); stringArray.add(Arrays.asList(rs.value("h"))); intArray.add(Arrays.asList(rs.value("j")));
 
                      assertEquals(Set.of(Arrays.asList("Four", "Quatre"),
                                          Arrays.asList("Nine", "Neuf", "X")), stringArray);
@@ -142,10 +142,10 @@ public class InsertTest extends DataTest {
 
                      Result rs = con.exec("select _id, a, b, e, h, j from S order by a");
 
-                     rs.next(); assertEquals(rs.get("a").value(), 1);
-                     rs.next(); assertEquals(rs.get("a").value(), 6);
-                     rs.next(); assertEquals(rs.get("a").value(), 7);
-                     rs.next(); assertEquals(rs.get("a").value(), 7);
+                     rs.toNext(); assertEquals(rs.get("a").value(), 1);
+                     rs.toNext(); assertEquals(rs.get("a").value(), 6);
+                     rs.toNext(); assertEquals(rs.get("a").value(), 7);
+                     rs.toNext(); assertEquals(rs.get("a").value(), 7);
                    }
                  }));
   }
@@ -172,23 +172,23 @@ public class InsertTest extends DataTest {
                               """);
 
                      Result rs = con.exec("select _id from S order by a");
-                     rs.next(); UUID id1 = rs.value(1);
-                     rs.next(); UUID id2 = rs.value(1);
+                     rs.toNext(); UUID id1 = rs.value(1);
+                     rs.toNext(); UUID id2 = rs.value(1);
 
                      rs = con.exec("select a, b, x, y, s_id from a.b.T order by a");
-                     rs.next(); assertEquals((Integer)rs.value(1), 1);
+                     rs.toNext(); assertEquals((Integer)rs.value(1), 1);
                                 assertEquals((Integer)rs.value(2), 2);
                                 assertEquals((Integer)rs.value(3), 3);
                                 assertEquals((Integer)rs.value(4), 4);
                                 assertEquals(rs.value(5), id1);
 
-                     rs.next(); assertEquals((Integer)rs.value(1), 2);
+                     rs.toNext(); assertEquals((Integer)rs.value(1), 2);
                                 assertEquals((Integer)rs.value(2), 2);
                                 assertEquals((Integer)rs.value(3), 2);
                                 assertEquals((Integer)rs.value(4), 2);
                                 assertNull(rs.value(5));
 
-                     rs.next(); assertEquals((Integer)rs.value(1), 7);
+                     rs.toNext(); assertEquals((Integer)rs.value(1), 7);
                                 assertEquals((Integer)rs.value(2), 8);
                                 assertEquals((Integer)rs.value(3), 9);
                                 assertEquals((Integer)rs.value(4), 10);

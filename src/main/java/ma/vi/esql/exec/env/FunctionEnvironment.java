@@ -10,7 +10,7 @@ public class FunctionEnvironment extends AbstractEnvironment {
     this(null);
   }
 
-  public FunctionEnvironment(AbstractEnvironment parent) {
+  public FunctionEnvironment(Environment parent) {
     super(parent);
   }
 

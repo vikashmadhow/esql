@@ -5,7 +5,7 @@
 package ma.vi.esql.function.string;
 
 import ma.vi.esql.function.Function;
-import ma.vi.esql.function.FunctionParameter;
+import ma.vi.esql.function.FunctionParam;
 import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.expression.Expression;
@@ -26,9 +26,9 @@ import static ma.vi.esql.translation.Translatable.Target.POSTGRESQL;
 public class Substring extends Function {
   public Substring() {
     super("substring", Types.StringType,
-          asList(new FunctionParameter("s", Types.StringType),
-            new FunctionParameter("from", Types.IntType),
-            new FunctionParameter("count", Types.IntType)));
+          asList(new FunctionParam("s", Types.StringType),
+            new FunctionParam("from", Types.IntType),
+            new FunctionParam("count", Types.IntType)));
   }
 
   @Override

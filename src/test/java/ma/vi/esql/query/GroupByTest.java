@@ -65,9 +65,9 @@ public class GroupByTest extends DataTest {
                        + " order by 1 desc");
 
 //                     printResult(rs, 10);
-                     rs.next(); assertEquals(12, (Integer)rs.value(1));
+                     rs.toNext(); assertEquals(12, (Integer)rs.value(1));
                                 assertEquals(16, (Long)rs.value(2));
-                     rs.next(); assertEquals(2, (Integer)rs.value(1));
+                     rs.toNext(); assertEquals(2, (Integer)rs.value(1));
                                 assertEquals(3, (Long)rs.value(2));
                    }
                  }));

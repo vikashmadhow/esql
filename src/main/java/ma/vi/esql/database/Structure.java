@@ -8,7 +8,7 @@ import ma.vi.base.lang.NotFoundException;
 import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.function.BinFunction;
 import ma.vi.esql.function.Function;
-import ma.vi.esql.function.FunctionParameter;
+import ma.vi.esql.function.FunctionParam;
 import ma.vi.esql.function.date.*;
 import ma.vi.esql.function.string.*;
 import ma.vi.esql.semantic.scope.AbstractScope;
@@ -49,70 +49,70 @@ public class Structure extends AbstractScope implements Environment {
     // existence
     /////////////////////////////////////
     function(new Function("exists", BoolType,
-                          singletonList(new FunctionParameter("exists", Relation)),
+                          singletonList(new FunctionParam("exists", Relation)),
                           false, null));
 
     // aggregates
     //////////////////////////
     function(new Function("count", LongType,
-                          singletonList(new FunctionParameter("count", TopType)),
+                          singletonList(new FunctionParam("count", TopType)),
                           true, null));
 
     function(new Function("sum", AsPromotedNumericParameterType,
-                          singletonList(new FunctionParameter("sum", NumberType)),
+                          singletonList(new FunctionParam("sum", NumberType)),
                           true, null));
 
     function(new Function("avg", FractionalType,
-                          singletonList(new FunctionParameter("avg", NumberType)),
+                          singletonList(new FunctionParam("avg", NumberType)),
                           true, null));
 
     function(new Function("var_pop", FractionalType,
-                          singletonList(new FunctionParameter("var", NumberType)),
+                          singletonList(new FunctionParam("var", NumberType)),
                           true,
                           Map.of(POSTGRESQL, "var_pop",
                                  HSQLDB, "var_pop",
                                  SQLSERVER, "varp")));
 
     function(new Function("var_samp", FractionalType,
-                          singletonList(new FunctionParameter("var", NumberType)),
+                          singletonList(new FunctionParam("var", NumberType)),
                           true,
                           Map.of(POSTGRESQL, "var_samp",
                                  HSQLDB, "var_samp",
                                  SQLSERVER, "var")));
 
     function(new Function("stddev_pop", FractionalType,
-                          singletonList(new FunctionParameter("stddev", NumberType)),
+                          singletonList(new FunctionParam("stddev", NumberType)),
                           true,
                           Map.of(POSTGRESQL, "stddev_pop",
                                  HSQLDB, "stddev_pop",
                                  SQLSERVER, "stddevp")));
 
     function(new Function("stddev_samp", FractionalType,
-                          singletonList(new FunctionParameter("stddev", NumberType)),
+                          singletonList(new FunctionParam("stddev", NumberType)),
                           true,
                           Map.of(POSTGRESQL, "stddev_samp",
                                  HSQLDB, "stddev_samp",
                                  SQLSERVER, "stddev")));
 
     function(new Function("max", AsParameterType,
-                          singletonList(new FunctionParameter("max", TopType)),
+                          singletonList(new FunctionParam("max", TopType)),
                           true, null));
 
     function(new Function("min", AsParameterType,
-                          singletonList(new FunctionParameter("min", TopType)),
+                          singletonList(new FunctionParam("min", TopType)),
                           true, null));
 
     function(new Function("string_agg", TextType,
-                          asList(new FunctionParameter("val", TopType),
-                                 new FunctionParameter("delimiter", TextType)),
+                          asList(new FunctionParam("val", TopType),
+                                 new FunctionParam("delimiter", TextType)),
                           true,
                           Map.of(POSTGRESQL, "string_agg",
                                  HSQLDB, "group_concat",
                                  SQLSERVER, "string_agg")));
 
     function(new Function("array_agg", TextType,
-                          asList(new FunctionParameter("val", TopType),
-                                 new FunctionParameter("delimiter", TextType)),
+                          asList(new FunctionParam("val", TopType),
+                                 new FunctionParam("delimiter", TextType)),
                           true,
                           Map.of(POSTGRESQL, "array_agg",
                                  HSQLDB, "array_agg",
@@ -123,84 +123,84 @@ public class Structure extends AbstractScope implements Environment {
 
     // trigonometric
     function(new Function("acos", FloatType,
-                          singletonList(new FunctionParameter("p", NumberType))));
+                          singletonList(new FunctionParam("p", NumberType))));
 
     function(new Function("asin", FloatType,
-                          singletonList(new FunctionParameter("p", NumberType))));
+                          singletonList(new FunctionParam("p", NumberType))));
 
     function(new Function("atan", FloatType,
-                          singletonList(new FunctionParameter("p", NumberType))));
+                          singletonList(new FunctionParam("p", NumberType))));
 
     function(new Function("atan2", FractionalType,
-                          singletonList(new FunctionParameter("stddev", NumberType)),
+                          singletonList(new FunctionParam("stddev", NumberType)),
                           false,
                           Map.of(POSTGRESQL, "atan2",
                                  HSQLDB, "atan2",
                                  SQLSERVER, "atn2")));
 
     function(new Function("cos", FloatType,
-                          singletonList(new FunctionParameter("p", NumberType))));
+                          singletonList(new FunctionParam("p", NumberType))));
 
     function(new Function("sin", FloatType,
-                          singletonList(new FunctionParameter("p", NumberType))));
+                          singletonList(new FunctionParam("p", NumberType))));
 
     function(new Function("tan", FloatType,
-                          singletonList(new FunctionParameter("p", NumberType))));
+                          singletonList(new FunctionParam("p", NumberType))));
 
     function(new Function("cot", FloatType,
-                          singletonList(new FunctionParameter("p", NumberType))));
+                          singletonList(new FunctionParam("p", NumberType))));
 
     function(new Function("degrees", FloatType,
-                          singletonList(new FunctionParameter("p", NumberType))));
+                          singletonList(new FunctionParam("p", NumberType))));
 
     function(new Function("radians", FloatType,
-                          singletonList(new FunctionParameter("p", NumberType))));
+                          singletonList(new FunctionParam("p", NumberType))));
 
     // number manipulation
     function(new Function("abs", AsParameterType,
-                          singletonList(new FunctionParameter("abs", NumberType))));
+                          singletonList(new FunctionParam("abs", NumberType))));
 
     function(new Function("ceil", LongType,
-                          singletonList(new FunctionParameter("p", NumberType))));
+                          singletonList(new FunctionParam("p", NumberType))));
 
     function(new Function("floor", LongType,
-                          singletonList(new FunctionParameter("p", NumberType))));
+                          singletonList(new FunctionParam("p", NumberType))));
 
     function(new Function("round", LongType,
-                          Arrays.asList(new FunctionParameter("p", NumberType),
-                                        new FunctionParameter("p", IntType))));
+                          Arrays.asList(new FunctionParam("p", NumberType),
+                                        new FunctionParam("p", IntType))));
 
     function(new Function("sign", IntType,
-                          singletonList(new FunctionParameter("p", NumberType))));
+                          singletonList(new FunctionParam("p", NumberType))));
 
     // logarithmic
     function(new Function("ln", FloatType,
-                          singletonList(new FunctionParameter("p", NumberType)),
+                          singletonList(new FunctionParam("p", NumberType)),
                           false,
                           Map.of(POSTGRESQL, "ln",
                                  HSQLDB, "ln",
                                  SQLSERVER, "log")));
 
     function(new Function("log", FloatType,
-                          singletonList(new FunctionParameter("p", NumberType)),
+                          singletonList(new FunctionParam("p", NumberType)),
                           false,
                           Map.of(POSTGRESQL, "log",
                                  HSQLDB, "log10",
                                  SQLSERVER, "log10")));
 
     function(new Function("floormod", NumberType,
-                          Arrays.asList(new FunctionParameter("dividend", NumberType),
-                                        new FunctionParameter("divider", NumberType)),
+                          Arrays.asList(new FunctionParam("dividend", NumberType),
+                                        new FunctionParam("divider", NumberType)),
                           false,
                           Map.of(POSTGRESQL, "_core.floormod",
                                  SQLSERVER, "_core.floormod")));
 
     function(new Function("exp", FloatType,
-                          singletonList(new FunctionParameter("p", NumberType))));
+                          singletonList(new FunctionParam("p", NumberType))));
 
     // other misc mathematical
     function(new Function("sqrt", DoubleType,
-                          singletonList(new FunctionParameter("p", NumberType))));
+                          singletonList(new FunctionParam("p", NumberType))));
 
     function(new Function("pi", FloatType, emptyList()));
 
@@ -211,7 +211,7 @@ public class Structure extends AbstractScope implements Environment {
                                  SQLSERVER, "rand")));
 
     function(new Function("random", StringType,
-                          singletonList(new FunctionParameter("length", IntType)),
+                          singletonList(new FunctionParam("length", IntType)),
                           false,
                           Map.of(POSTGRESQL, "_core.randomstr",
                                  SQLSERVER, "_core.randomstr")));
@@ -232,18 +232,18 @@ public class Structure extends AbstractScope implements Environment {
     function(new Length());
 
     function(new Function("ascii", IntType,
-                          singletonList(new FunctionParameter("p", StringType))));
+                          singletonList(new FunctionParam("p", StringType))));
 
     function(new Concat());
 
     function(new Function("concatws", StringType,
-                          singletonList(new FunctionParameter("p", StringType)),
+                          singletonList(new FunctionParam("p", StringType)),
                           false,
                           Map.of(POSTGRESQL, "concat_ws",
                                  SQLSERVER, "concat_ws")));
 
     function(new Function("chr", IntType,
-                          singletonList(new FunctionParameter("p", StringType)),
+                          singletonList(new FunctionParam("p", StringType)),
                           false,
                           Map.of(POSTGRESQL, "chr",
                                  SQLSERVER, "char")));
@@ -255,16 +255,16 @@ public class Structure extends AbstractScope implements Environment {
     function(new RightPad());
 
     function(new Function("reverse", StringType,
-                          singletonList(new FunctionParameter("p", StringType))));
+                          singletonList(new FunctionParam("p", StringType))));
 
     function(new Function("replace", StringType,
-                          asList(new FunctionParameter("s", StringType),
-                                 new FunctionParameter("search_for", StringType),
-                                 new FunctionParameter("replace_with", StringType))));
+                          asList(new FunctionParam("s", StringType),
+                                 new FunctionParam("search_for", StringType),
+                                 new FunctionParam("replace_with", StringType))));
 
     function(new Function("repeat", StringType,
-                          asList(new FunctionParameter("s", StringType),
-                                 new FunctionParameter("times", IntType)),
+                          asList(new FunctionParam("s", StringType),
+                                 new FunctionParam("times", IntType)),
                           false,
                           Map.of(POSTGRESQL, "repeat",
                                  SQLSERVER, "replicate")));
@@ -272,9 +272,9 @@ public class Structure extends AbstractScope implements Environment {
     function(new Substring());
 
     function(new Function("translate", StringType,
-                          asList(new FunctionParameter("s", StringType),
-                                 new FunctionParameter("from", StringType),
-                                 new FunctionParameter("to", StringType))));
+                          asList(new FunctionParam("s", StringType),
+                                 new FunctionParam("from", StringType),
+                                 new FunctionParam("to", StringType))));
 
     function(new Left());
     function(new Right());
@@ -285,13 +285,13 @@ public class Structure extends AbstractScope implements Environment {
     // Obfuscation
     /////////////////////////////////
     function(new Function("obfuscate", StringType,
-                          singletonList(new FunctionParameter("p", StringType)),
+                          singletonList(new FunctionParam("p", StringType)),
                           false,
                           Map.of(POSTGRESQL, "_core.obfuscate",
                                  SQLSERVER, "_core.obfuscate")));
 
     function(new Function("unobfuscate", StringType,
-                          singletonList(new FunctionParameter("p", StringType)),
+                          singletonList(new FunctionParam("p", StringType)),
                           false,
                           Map.of(POSTGRESQL, "_core.unobfuscate",
                                  SQLSERVER, "_core.unobfuscate")));
@@ -313,9 +313,9 @@ public class Structure extends AbstractScope implements Environment {
     function(new AddIntervals());
 
     function(new Function("newdate", DateType,
-                          asList(new FunctionParameter("y", IntType),
-                                 new FunctionParameter("m", IntType),
-                                 new FunctionParameter("d", IntType)),
+                          asList(new FunctionParam("y", IntType),
+                                 new FunctionParam("m", IntType),
+                                 new FunctionParam("d", IntType)),
                           false,
                           Map.of(POSTGRESQL, "make_date",
                                  SQLSERVER,  "datefromparts",
@@ -434,6 +434,11 @@ public class Structure extends AbstractScope implements Environment {
       throw new IllegalArgumentException("Only relations and functions can be "
                                        + "added to the System Environment");
     }
+  }
+
+  @Override
+  public Environment parent() {
+    return null;
   }
 
   public Map<String, BaseRelation> relations() {

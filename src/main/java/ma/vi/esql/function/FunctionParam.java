@@ -11,12 +11,12 @@ import ma.vi.esql.semantic.type.Type;
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public class FunctionParameter {
-  public FunctionParameter(String name, Type type) {
+public class FunctionParam {
+  public FunctionParam(String name, Type type) {
     this(name, type, false, null);
   }
 
-  public FunctionParameter(String name, Type type, boolean variadic, String defaultValue) {
+  public FunctionParam(String name, Type type, boolean variadic, String defaultValue) {
     this.name = name;
     this.type = type;
     this.variadic = variadic;

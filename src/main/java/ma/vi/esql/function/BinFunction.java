@@ -32,8 +32,8 @@ import static ma.vi.esql.translation.Translatable.Target.SQLSERVER;
 public class BinFunction extends Function {
   public BinFunction() {
     super("binf", Types.TextType,
-          Arrays.asList(new FunctionParameter("val", Types.TextType),
-            new FunctionParameter("ranges", Types.TextType)));
+          Arrays.asList(new FunctionParam("val", Types.TextType),
+            new FunctionParam("ranges", Types.TextType)));
   }
 
   @Override

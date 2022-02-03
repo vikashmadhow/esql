@@ -15,7 +15,6 @@ import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.expression.Expression;
 
 import java.util.Date;
-import java.util.Objects;
 
 /**
  * The greater-than operator in ESQL.

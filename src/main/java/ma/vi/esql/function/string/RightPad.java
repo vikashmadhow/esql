@@ -5,7 +5,7 @@
 package ma.vi.esql.function.string;
 
 import ma.vi.esql.function.Function;
-import ma.vi.esql.function.FunctionParameter;
+import ma.vi.esql.function.FunctionParam;
 import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.expression.Expression;
@@ -25,9 +25,9 @@ import static ma.vi.esql.translation.Translatable.Target.*;
 public class RightPad extends Function {
   public RightPad() {
     super("rpad", Types.StringType,
-          Arrays.asList(new FunctionParameter("str", Types.StringType),
-            new FunctionParameter("length", Types.IntType),
-            new FunctionParameter("pad", Types.StringType)));
+          Arrays.asList(new FunctionParam("str", Types.StringType),
+            new FunctionParam("length", Types.IntType),
+            new FunctionParam("pad", Types.StringType)));
   }
 
   @Override

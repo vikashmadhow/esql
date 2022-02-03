@@ -9,6 +9,7 @@ import ma.vi.esql.exec.EsqlConnection;
 import ma.vi.esql.exec.Result;
 import ma.vi.esql.exec.env.AbstractEnvironment;
 import ma.vi.esql.exec.env.Environment;
+import ma.vi.esql.function.FunctionParam;
 import ma.vi.esql.semantic.scope.FunctionScope;
 import ma.vi.esql.semantic.scope.Scope;
 import ma.vi.esql.semantic.scope.Symbol;
@@ -65,7 +66,7 @@ public class FunctionDecl extends Expression<String, FunctionDecl> implements Sy
 
   @Override
   public Esql<?, ?> scope(Scope scope, EsqlPath path) {
-    scope.addSymbol(Symbol.of('!' + name(), Kind.FUNCTION));
+    scope.addSymbol(Symbol.of(name(), Kind.FUNCTION));
     Scope functionScope = new FunctionScope(scope);
     super.scope(functionScope, path);
     for (FunctionParameter param: parameters()) {
@@ -87,7 +88,7 @@ public class FunctionDecl extends Expression<String, FunctionDecl> implements Sy
   public Object exec(EsqlConnection esqlCon,
                      EsqlPath       path,
                      Environment env) {
-    env.add('!' + name(), set("environment", new Esql<>(context, env)));
+    env.add(name(), set("environment", new Esql<>(context, env)));
     return Result.Nothing;
   }
 
@@ -106,6 +107,12 @@ public class FunctionDecl extends Expression<String, FunctionDecl> implements Sy
 
   public List<FunctionParameter> parameters() {
     return get("parameters").children();
+  }
+
+  public List<FunctionParam> params() {
+    return parameters().stream()
+                       .map(p -> new FunctionParam(p.name(), p.type()))
+                       .toList();
   }
 
   public List<? extends Expression<?, ?>> body() {

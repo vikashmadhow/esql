@@ -138,16 +138,16 @@ public class UpdateTest extends DataTest {
                                   + "select newid(), a, 2, u'" + id2 + "' from S ");
 
                      Result rs = con.exec("select _id, a, b, s_id from a.b.T order by b, a");
-                     rs.next(); assertEquals(rs.get("a").value(), 1);
+                     rs.toNext(); assertEquals(rs.get("a").value(), 1);
                                 assertEquals(rs.get("b").value(), 1);
                                 assertEquals(rs.get("s_id").value(), id1);
-                     rs.next(); assertEquals(rs.get("a").value(), 6);
+                     rs.toNext(); assertEquals(rs.get("a").value(), 6);
                                 assertEquals(rs.get("b").value(), 1);
                                 assertEquals(rs.get("s_id").value(), id1);
-                     rs.next(); assertEquals(rs.get("a").value(), 1);
+                     rs.toNext(); assertEquals(rs.get("a").value(), 1);
                                 assertEquals(rs.get("b").value(), 2);
                                 assertEquals(rs.get("s_id").value(), id2);
-                     rs.next(); assertEquals(rs.get("a").value(), 6);
+                     rs.toNext(); assertEquals(rs.get("a").value(), 6);
                                 assertEquals(rs.get("b").value(), 2);
                                 assertEquals(rs.get("s_id").value(), id2);
 
@@ -165,7 +165,7 @@ public class UpdateTest extends DataTest {
                                     "   set s.a=t.a + t.b" +
                                     " where t.a=6 and t.b=2");
                        rs = con.exec("select sum(a) from S");
-                       rs.next();
+                       rs.toNext();
                        assertEquals(9L, ((Number)rs.get(1).value()).longValue());
                      }
                    }

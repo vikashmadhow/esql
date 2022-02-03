@@ -5,7 +5,7 @@
 package ma.vi.esql.function.date;
 
 import ma.vi.esql.function.Function;
-import ma.vi.esql.function.FunctionParameter;
+import ma.vi.esql.function.FunctionParam;
 import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.expression.Expression;
@@ -26,8 +26,8 @@ import static ma.vi.esql.translation.Translatable.Target.SQLSERVER;
 public class AddDays extends Function {
   public AddDays() {
     super("adddays", Types.IntType,
-          Arrays.asList(new FunctionParameter("s1", Types.DatetimeType),
-                        new FunctionParameter("s2", Types.IntType)));
+          Arrays.asList(new FunctionParam("s1", Types.DatetimeType),
+                        new FunctionParam("s2", Types.IntType)));
   }
 
   @Override

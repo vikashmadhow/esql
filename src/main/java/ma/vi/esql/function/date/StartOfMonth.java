@@ -5,7 +5,7 @@
 package ma.vi.esql.function.date;
 
 import ma.vi.esql.function.Function;
-import ma.vi.esql.function.FunctionParameter;
+import ma.vi.esql.function.FunctionParam;
 import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.expression.Expression;
@@ -26,7 +26,7 @@ public class StartOfMonth extends Function {
   public StartOfMonth() {
     super("startofmonth",
           Types.DateType,
-        singletonList(new FunctionParameter("s", Types.DateType)));
+        singletonList(new FunctionParam("s", Types.DateType)));
   }
 
   @Override

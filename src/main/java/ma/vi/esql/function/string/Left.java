@@ -5,7 +5,7 @@
 package ma.vi.esql.function.string;
 
 import ma.vi.esql.function.Function;
-import ma.vi.esql.function.FunctionParameter;
+import ma.vi.esql.function.FunctionParam;
 import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.expression.Expression;
@@ -25,9 +25,9 @@ import static ma.vi.esql.translation.Translatable.Target.JAVASCRIPT;
  */
 public class Left extends Function {
   public Left() {
-    super("leftstr", Types.StringType,
-          asList(new FunctionParameter("s", Types.StringType),
-            new FunctionParameter("count", Types.IntType)));
+    super("left", Types.StringType,
+          asList(new FunctionParam("s", Types.StringType),
+                 new FunctionParam("count", Types.IntType)));
   }
 
   @Override
@@ -40,7 +40,7 @@ public class Left extends Function {
 
     } else if (target == ESQL) {
       // ESQL
-      return "leftstr("
+      return "left("
           + args.get(0).translate(target, path.add(args.get(0))) + ", "
           + args.get(1).translate(target, path.add(args.get(1))) + ')';
     } else {

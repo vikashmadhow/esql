@@ -5,7 +5,7 @@
 package ma.vi.esql.function.string;
 
 import ma.vi.esql.function.Function;
-import ma.vi.esql.function.FunctionParameter;
+import ma.vi.esql.function.FunctionParam;
 import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.expression.Expression;
@@ -25,9 +25,9 @@ import static ma.vi.esql.translation.Translatable.Target.*;
 public class IndexOf extends Function {
   public IndexOf() {
     super("indexof", Types.IntType,
-          Arrays.asList(new FunctionParameter("substr_to_find", Types.StringType),
-            new FunctionParameter("str_to_search", Types.StringType),
-            new FunctionParameter("start_position_optional", Types.IntType)));
+          Arrays.asList(new FunctionParam("substr_to_find", Types.StringType),
+            new FunctionParam("str_to_search", Types.StringType),
+            new FunctionParam("start_position_optional", Types.IntType)));
   }
 
   @Override

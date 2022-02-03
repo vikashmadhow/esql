@@ -5,7 +5,7 @@
 package ma.vi.esql.function.date;
 
 import ma.vi.esql.function.Function;
-import ma.vi.esql.function.FunctionParameter;
+import ma.vi.esql.function.FunctionParam;
 import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.expression.Expression;
@@ -30,8 +30,8 @@ import static ma.vi.esql.translation.Translatable.Target.SQLSERVER;
 public class AddIntervalToDate extends Function {
   public AddIntervalToDate() {
     super("incdate", Types.DatetimeType,
-          Arrays.asList(new FunctionParameter("date", Types.DatetimeType),
-                        new FunctionParameter("interval", Types.IntervalType)));
+          Arrays.asList(new FunctionParam("date", Types.DatetimeType),
+                        new FunctionParam("interval", Types.IntervalType)));
   }
 
   @Override

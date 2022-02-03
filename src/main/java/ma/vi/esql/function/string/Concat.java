@@ -5,7 +5,7 @@
 package ma.vi.esql.function.string;
 
 import ma.vi.esql.function.Function;
-import ma.vi.esql.function.FunctionParameter;
+import ma.vi.esql.function.FunctionParam;
 import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.expression.Expression;
@@ -25,8 +25,8 @@ import static ma.vi.esql.translation.Translatable.Target.JAVASCRIPT;
 public class Concat extends Function {
   public Concat() {
     super("concat", Types.StringType,
-          asList(new FunctionParameter("a", Types.StringType),
-            new FunctionParameter("b", Types.StringType)));
+          asList(new FunctionParam("a", Types.StringType),
+            new FunctionParam("b", Types.StringType)));
   }
 
   @Override

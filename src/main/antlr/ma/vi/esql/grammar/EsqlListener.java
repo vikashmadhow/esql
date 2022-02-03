@@ -568,6 +568,18 @@ public interface EsqlListener extends ParseTreeListener {
 	 */
 	void exitBetweenExpr(EsqlParser.BetweenExprContext ctx);
 	/**
+	 * Enter a parse tree produced by the {@code RightOfString}
+	 * labeled alternative in {@link EsqlParser#expr}.
+	 * @param ctx the parse tree
+	 */
+	void enterRightOfString(EsqlParser.RightOfStringContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code RightOfString}
+	 * labeled alternative in {@link EsqlParser#expr}.
+	 * @param ctx the parse tree
+	 */
+	void exitRightOfString(EsqlParser.RightOfStringContext ctx);
+	/**
 	 * Enter a parse tree produced by the {@code ILikeExpr}
 	 * labeled alternative in {@link EsqlParser#expr}.
 	 * @param ctx the parse tree
@@ -784,6 +796,18 @@ public interface EsqlListener extends ParseTreeListener {
 	 */
 	void exitMultiplicationExpr(EsqlParser.MultiplicationExprContext ctx);
 	/**
+	 * Enter a parse tree produced by the {@code LeftOfString}
+	 * labeled alternative in {@link EsqlParser#expr}.
+	 * @param ctx the parse tree
+	 */
+	void enterLeftOfString(EsqlParser.LeftOfStringContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code LeftOfString}
+	 * labeled alternative in {@link EsqlParser#expr}.
+	 * @param ctx the parse tree
+	 */
+	void exitLeftOfString(EsqlParser.LeftOfStringContext ctx);
+	/**
 	 * Enter a parse tree produced by the {@code UncomputedExpr}
 	 * labeled alternative in {@link EsqlParser#expr}.
 	 * @param ctx the parse tree
@@ -975,6 +999,18 @@ public interface EsqlListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitColumnRef(EsqlParser.ColumnRefContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code If}
+	 * labeled alternative in {@link EsqlParser#expr}.
+	 * @param ctx the parse tree
+	 */
+	void enterIf(EsqlParser.IfContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code If}
+	 * labeled alternative in {@link EsqlParser#expr}.
+	 * @param ctx the parse tree
+	 */
+	void exitIf(EsqlParser.IfContext ctx);
 	/**
 	 * Enter a parse tree produced by the {@code CaseExpr}
 	 * labeled alternative in {@link EsqlParser#expr}.

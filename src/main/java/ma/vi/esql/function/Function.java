@@ -4,6 +4,8 @@
 
 package ma.vi.esql.function;
 
+import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.semantic.scope.Symbol;
 import ma.vi.esql.semantic.type.AbstractType;
 import ma.vi.esql.semantic.type.Kind;
@@ -17,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 
 import static java.util.Collections.emptyList;
+import static java.util.Collections.unmodifiableList;
 import static java.util.stream.Collectors.joining;
 import static ma.vi.esql.translation.Translatable.Target.HSQLDB;
 
@@ -28,13 +31,13 @@ import static ma.vi.esql.translation.Translatable.Target.HSQLDB;
 public class Function extends AbstractType implements Symbol {
   public Function(String name,
                   Type returnType,
-                  List<FunctionParameter> parameters) {
+                  List<FunctionParam> parameters) {
     this(name, returnType, parameters, false, null);
   }
 
   public Function(String name,
                   Type returnType,
-                  List<FunctionParameter> parameters,
+                  List<FunctionParam> parameters,
                   boolean aggregate,
                   Map<Translatable.Target, String> translations) {
     super(name);
@@ -91,6 +94,12 @@ public class Function extends AbstractType implements Symbol {
     return functionName;
   }
 
+  public Object exec(EsqlConnection esqlCon,
+                     EsqlPath       path,
+                     Environment    env) {
+    return null;
+  }
+
   @Override
   public Kind kind() {
     return Kind.FUNCTION;
@@ -101,8 +110,12 @@ public class Function extends AbstractType implements Symbol {
     return false;
   }
 
-  public final Type returnType;
-  public final List<FunctionParameter> parameters;
-  public final boolean aggregate;
-  public final Map<Translatable.Target, String> translations;
+  public List<FunctionParam> parameters() {
+    return unmodifiableList(parameters);
+  }
+
+  public  final Type returnType;
+  private final List<FunctionParam> parameters;
+  public  final boolean aggregate;
+  public  final Map<Translatable.Target, String> translations;
 }

@@ -13,14 +13,13 @@ public abstract class AbstractEnvironment implements Environment {
     this(null);
   }
 
-  public AbstractEnvironment(AbstractEnvironment parent) {
+  public AbstractEnvironment(Environment parent) {
     this.parent = parent;
   }
 
   @Override
   public boolean has(String symbol) {
-    return values.containsKey(symbol)
-        || (parent != null && parent.has(symbol));
+    return values.containsKey(symbol);
   }
 
   @Override
@@ -45,6 +44,12 @@ public abstract class AbstractEnvironment implements Environment {
     }
   }
 
+  @Override
+  public Environment parent() {
+    return parent;
+  }
+
   protected final Map<String, Object> values = new HashMap<>();
-  protected final AbstractEnvironment parent;
+
+  protected final Environment parent;
 }

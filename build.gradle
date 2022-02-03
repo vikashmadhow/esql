@@ -101,14 +101,15 @@ dependencies {
   implementation("org.mariadb.jdbc:mariadb-java-client:2.7.3")
   implementation("mysql:mysql-connector-java:8.0.25")
   implementation('org.hsqldb:hsqldb:2.6.1')
-  implementation("com.zaxxer:HikariCP:5.0.0")
+  implementation("com.zaxxer:HikariCP:5.0.1")
 //  implementation("cubrid:cubrid-jdbc:10.2.2.8874")
 
   api('org.pcollections:pcollections:3.1.4')
 
   // Use JUnit test framework
-  testImplementation(platform('org.junit:junit-bom:5.7.0'))
-  testImplementation('org.junit.jupiter:junit-jupiter:5.7.0')
+  testImplementation(platform('org.junit:junit-bom:5.8.2'))
+  testImplementation('org.junit.jupiter:junit-jupiter:5.8.2')
+  testImplementation('org.hamcrest:hamcrest:2.2')
 }
 
 test {

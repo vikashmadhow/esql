@@ -12,6 +12,7 @@ import ma.vi.esql.exec.Result;
 import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.exec.env.FunctionEnvironment;
 import ma.vi.esql.function.Function;
+import ma.vi.esql.function.FunctionParam;
 import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.Context;
@@ -218,32 +219,71 @@ public class FunctionCall extends Expression<String, String> implements TypedMac
   public Object exec(EsqlConnection esqlCon,
                      EsqlPath       path,
                      Environment    env) {
-    Object f = env.get('!' + functionName());
-    if (f instanceof FunctionDecl func) {
-      Environment funcEnv = new FunctionEnvironment(func.environment());
-      List<FunctionParameter> params = func.parameters();
-      List<Expression<?, ?>> arguments = arguments();
-      if (arguments.size() != params.size()) {
-        throw new ExecutionException("Function " + functionName() + " take "
-                                   + params.size() + " parameters but "
-                                   + arguments.size() + " arguments were provided");
-      }
-      EsqlPath p = path.add(this);
-      for (int i = 0; i < params.size(); i++) {
-        Expression<?, ?> a = arguments().get(i);
-        funcEnv.add(params.get(i).name(), a.exec(esqlCon, p.add(a), env));
-      }
-      Object ret = Result.Nothing;
-      for (Expression<?, ?> st: func.body()) {
-        ret = st.exec(esqlCon, p.add(st), funcEnv);
-        if (st instanceof Return) {
-          return ret;
+    Object f = env.get(functionName());
+    if (f instanceof FunctionDecl || f instanceof Function) {
+      Environment funcEnv;
+      EsqlPath funcPath = path.add(this);
+      if (f instanceof FunctionDecl func) {
+        funcEnv = new FunctionEnvironment(func.environment());
+        setArgs(functionName(),
+                func.params(),
+                arguments(),
+                esqlCon,
+                funcPath,
+                env,
+                funcEnv);
+
+        Object ret = Result.Nothing;
+        for (Expression<?, ?> st: func.body()) {
+          ret = st.exec(esqlCon, funcPath.add(st), funcEnv);
+          if (st instanceof Return) {
+            return ret;
+          }
         }
+        return ret;
+
+      } else {
+        Function func = (Function)f;
+        funcEnv = new FunctionEnvironment(env);
+        setArgs(functionName(),
+                func.parameters(),
+                arguments(),
+                esqlCon,
+                funcPath,
+                env,
+                funcEnv);
+        
+        return func.exec(esqlCon, funcPath, funcEnv);
       }
-      return ret;
     } else {
       throw new ExecutionException(functionName() + " is not a function in the "
                                  + "current environment. It is " + f);
+    }
+  }
+
+  private static void setArgs(String                 functionName,
+                              List<FunctionParam>    params,
+                              List<Expression<?, ?>> arguments,
+                              EsqlConnection         esqlCon,
+                              EsqlPath               path,
+                              Environment            computeIn,
+                              Environment            setIn) {
+    if (arguments.size() != params.size()) {
+      throw new ExecutionException("Function " + functionName + " take "
+                                 + params.size() + " parameters but "
+                                 + arguments.size() + " arguments were provided");
+    }
+    for (int i = 0; i < params.size(); i++) {
+      FunctionParam param = params.get(i);
+      Expression<?, ?> a = arguments.get(i);
+      Object value = a.exec(esqlCon, path.add(a), computeIn);
+      if (!Types.instanceOf(value, param.type)) {
+        throw new ExecutionException(
+            "Param " + param.name + " is of type " + param.type + " but a value "
+          + "(" + value + ") of type " + value.getClass().getSimpleName()
+          + " was provided.");
+      }
+      setIn.add(param.name, value);
     }
   }
 

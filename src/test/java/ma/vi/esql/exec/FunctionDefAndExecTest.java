@@ -8,16 +8,16 @@ import ma.vi.esql.DataTest;
 import ma.vi.esql.syntax.Parser;
 import ma.vi.esql.syntax.Program;
 import ma.vi.esql.syntax.expression.Expression;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
 
 import java.util.stream.Stream;
 
 import static ma.vi.esql.syntax.Parser.Rules.EXPRESSION;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.DynamicTest.dynamicTest;
 
-public class UserDefFunctionTest extends DataTest {
+public class FunctionDefAndExecTest extends DataTest {
   @TestFactory
   Stream<DynamicTest> noParamFuncParseTest() {
     return Stream.of(databases)
@@ -72,7 +72,7 @@ public class UserDefFunctionTest extends DataTest {
                              return y;
                              """);
                      long value = con.exec(prog);
-                     Assertions.assertEquals(105L, value);
+                     assertEquals(105L, value);
 
                    }
                  }));
@@ -92,7 +92,21 @@ public class UserDefFunctionTest extends DataTest {
                              """);
                      long value = con.exec(prog);
                      System.out.println(prog);
-                     Assertions.assertEquals(120L, value);
+                     assertEquals(120L, value);
+                   }
+                 }));
+  }
+
+  @TestFactory
+  Stream<DynamicTest> execPredefinedFunctions() {
+    return Stream.of(databases)
+                 .map(db -> dynamicTest(db.target().toString(), () -> {
+                   Parser p = new Parser(db.structure());
+                   try (EsqlConnection con = db.esql(db.pooledConnection())) {
+                     assertEquals("abc", con.exec("trim('   abc  ')"));
+                     assertEquals("abc", con.exec("trim(`   abc  `)"));
+                     assertNull(con.exec("trim(null)"));
+                     assertThrows(ExecutionException.class, () -> con.exec("trim(1)"));
                    }
                  }));
   }

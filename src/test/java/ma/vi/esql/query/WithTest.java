@@ -52,11 +52,11 @@ public class WithTest extends DataTest {
 
 //                     printResult(rs, 20);
 
-                     rs.next(); assertEquals(1,  (Integer)rs.value("a"));
+                     rs.toNext(); assertEquals(1, (Integer)rs.value("a"));
                                 assertEquals(2,  (Integer)rs.value("b"));
                                 assertEquals(3,  (Integer)rs.value("c"));
                                 assertEquals(2,  (Integer)rs.value("x"));
-                     rs.next(); assertEquals(3,  (Integer)rs.value("a"));
+                     rs.toNext(); assertEquals(3, (Integer)rs.value("a"));
                                 assertEquals(4,  (Integer)rs.value("b"));
                                 assertEquals(13, (Integer)rs.value("c"));
                                 assertEquals(7,  (Integer)rs.value("x"));
@@ -115,45 +115,45 @@ public class WithTest extends DataTest {
 
 //                     printResult(rs, 40);
 
-                     rs.next(); assertEquals(root, rs.value("id"));
+                     rs.toNext(); assertEquals(root, rs.value("id"));
                                 assertNull(rs.value("parent"));
                                 assertEquals("root", rs.value("name"));
-                     rs.next(); assertEquals(a, rs.value("id"));
+                     rs.toNext(); assertEquals(a, rs.value("id"));
                                 assertEquals(root, rs.value("parent"));
                                 assertEquals("root/a", rs.value("name"));
-                     rs.next(); assertNotNull(rs.value("id"));
+                     rs.toNext(); assertNotNull(rs.value("id"));
                                 assertEquals(a, rs.value("parent"));
                                 assertEquals("root/a/a_child1", rs.value("name"));
-                     rs.next(); assertNotNull(rs.value("id"));
+                     rs.toNext(); assertNotNull(rs.value("id"));
                                 assertEquals(a, rs.value("parent"));
                                 assertEquals("root/a/a_child2", rs.value("name"));
-                     rs.next(); assertNotNull(rs.value("id"));
+                     rs.toNext(); assertNotNull(rs.value("id"));
                                 assertEquals(a, rs.value("parent"));
                                 assertEquals("root/a/a_child3", rs.value("name"));
 
-                     rs.next(); assertEquals(b, rs.value("id"));
+                     rs.toNext(); assertEquals(b, rs.value("id"));
                                 assertEquals(root, rs.value("parent"));
                                 assertEquals("root/b", rs.value("name"));
-                     rs.next(); assertNotNull(rs.value("id"));
+                     rs.toNext(); assertNotNull(rs.value("id"));
                                 assertEquals(b, rs.value("parent"));
                                 assertEquals("root/b/b_child1", rs.value("name"));
-                     rs.next(); assertNotNull(rs.value("id"));
+                     rs.toNext(); assertNotNull(rs.value("id"));
                                 assertEquals(b, rs.value("parent"));
                                 assertEquals("root/b/b_child2", rs.value("name"));
 
-                     rs.next(); assertEquals(c, rs.value("id"));
+                     rs.toNext(); assertEquals(c, rs.value("id"));
                                 assertEquals(root, rs.value("parent"));
                                 assertEquals("root/c", rs.value("name"));
-                     rs.next(); assertNotNull(rs.value("id"));
+                     rs.toNext(); assertNotNull(rs.value("id"));
                                 assertEquals(c, rs.value("parent"));
                                 assertEquals("root/c/c_child1", rs.value("name"));
-                     rs.next(); assertNotNull(rs.value("id"));
+                     rs.toNext(); assertNotNull(rs.value("id"));
                                 assertEquals(c, rs.value("parent"));
                                 assertEquals("root/c/c_child2", rs.value("name"));
-                     rs.next(); assertNotNull(rs.value("id"));
+                     rs.toNext(); assertNotNull(rs.value("id"));
                                 assertEquals(c, rs.value("parent"));
                                 assertEquals("root/c/c_child3", rs.value("name"));
-                     rs.next(); assertNotNull(rs.value("id"));
+                     rs.toNext(); assertNotNull(rs.value("id"));
                                 assertEquals(c, rs.value("parent"));
                                 assertEquals("root/c/c_child4", rs.value("name"));
                    }

@@ -33,7 +33,9 @@ import static java.util.stream.Collectors.toMap;
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public class Result implements AutoCloseable {
+public class Result implements Iterator<Result.Row>,
+                               Iterable<Result.Row>,
+                               AutoCloseable {
   /**
    * Construct a Result object.
    *
@@ -58,15 +60,39 @@ public class Result implements AutoCloseable {
                                                  LinkedHashMap::new));
   }
 
-  /**
-   * Returns the number of columns in the result.
-   */
-  public int columnsCount() {
-    return query.columns() == null ? 0 : query.columns().size();
+  @Override
+  public boolean hasNext() {
+    return !endReached
+        && (nextRow != null || toNext());
   }
 
-  public List<ColumnMapping> columns() {
-    return unmodifiableList(query.columns());
+  public boolean hasPrevious() {
+    return !startReached
+        && (previousRow != null || toPrevious());
+  }
+
+  @Override
+  public Row next() {
+    if (nextRow == null && !toNext()) {
+      throw new NoSuchElementException("At end of result, no next row");
+    }
+    Row row = nextRow;
+    nextRow = null;
+    return row;
+  }
+
+  public Row previous() {
+    if (previousRow == null && !toPrevious()) {
+      throw new NoSuchElementException("At beginning of result, no previous row");
+    }
+    Row row = previousRow;
+    previousRow = null;
+    return row;
+  }
+
+  @Override
+  public Iterator<Row> iterator() {
+    return this;
   }
 
   /**
@@ -75,9 +101,16 @@ public class Result implements AutoCloseable {
    * positioned before any row and this method must be called to load the
    * first row, if there's any.
    */
-  public boolean next() {
+  public boolean toNext() {
     try {
-      return rs != null && rs.next();
+      boolean next = rs != null && rs.next();
+      if (next) {
+        startReached = false;
+        nextRow = new Row();
+      } else {
+        endReached = true;
+      }
+      return next;
     } catch (SQLException sqle) {
       throw Errors.unchecked(sqle);
     }
@@ -87,12 +120,30 @@ public class Result implements AutoCloseable {
    * Loads the previous row in the result if there are any and returns true,
    * returns false if there are no previous rows available.
    */
-  public boolean previous() {
+  public boolean toPrevious() {
     try {
-      return rs != null && rs.previous();
+      boolean previous = rs != null && rs.previous();
+      if (previous) {
+        endReached = false;
+        previousRow = new Row();
+      } else {
+        startReached = true;
+      }
+      return previous;
     } catch (SQLException sqle) {
       throw Errors.unchecked(sqle);
     }
+  }
+
+  /**
+   * Returns the number of columns in the result.
+   */
+  public int columnsCount() {
+    return query.columns() == null ? 0 : query.columns().size();
+  }
+
+  public List<ColumnMapping> columns() {
+    return unmodifiableList(query.columns());
   }
 
   /**
@@ -121,11 +172,11 @@ public class Result implements AutoCloseable {
   /**
    * Returns the column with the specified name of the current row.
    */
-  public <T> ResultColumn<T> get(String field) {
-    if (!columnNameToIndex.containsKey(field)) {
-      throw new RuntimeException("No such field: " + field);
+  public <T> ResultColumn<T> get(String column) {
+    if (!columnNameToIndex.containsKey(column)) {
+      throw new RuntimeException("No such column: " + column);
     }
-    return get(columnNameToIndex.get(field));
+    return get(columnNameToIndex.get(column));
   }
 
   /**
@@ -140,11 +191,11 @@ public class Result implements AutoCloseable {
    * Returns the value of the column (without its metadata) with the specified
    * name of the current row.
    */
-  public <T> T value(String colName) {
-    if (!columnNameToIndex.containsKey(colName)) {
-      throw new RuntimeException("No such column: " + colName);
+  public <T> T value(String column) {
+    if (!columnNameToIndex.containsKey(column)) {
+      throw new RuntimeException("No such column: " + column);
     }
-    return value(columnNameToIndex.get(colName));
+    return value(columnNameToIndex.get(column));
   }
 
   /**
@@ -157,11 +208,11 @@ public class Result implements AutoCloseable {
   /**
    * Returns the column definition with the specified name in the result.
    */
-  public ColumnMapping column(String field) {
-    if (!columnNameToIndex.containsKey(field)) {
-      throw new RuntimeException("No such field: " + field);
+  public ColumnMapping column(String column) {
+    if (!columnNameToIndex.containsKey(column)) {
+      throw new RuntimeException("No such column: " + column);
     }
-    return column(columnNameToIndex.get(field));
+    return column(columnNameToIndex.get(column));
   }
 
   /**
@@ -169,73 +220,12 @@ public class Result implements AutoCloseable {
    * contains its value as well its metadata attribute values).
    */
   public Map<String, ResultColumn<?>> row() {
-    Map<String, ResultColumn<?>> row = new HashMap<>();
+    Map<String, ResultColumn<?>> row = new LinkedHashMap<>();
     for (int i = 1; i <= columnsCount(); i++) {
       ResultColumn<Object> col = get(i);
       row.put(col.column().name(), col);
     }
     return row;
-  }
-
-  /**
-   * Converts and normalize the value `v` based on the expected value type.
-   */
-  private <T> T convert(Object v, int fieldIndex, Type valueType) throws SQLException {
-    if (v == null) {
-      return null;
-    } else {
-      if (valueType == Types.BoolType && v instanceof Number) {
-        /*
-         * Numeric to boolean conversion for SQL Server.
-         */
-        v = ((Number)v).intValue() == 1 ? Boolean.TRUE : Boolean.FALSE;
-
-      } else if (valueType == Types.IntervalType) {
-        /*
-         * Interval support.
-         */
-        if (v instanceof PGInterval i) {
-          final int microseconds = (int)(i.getSeconds() * 1_000_000.0);
-          final int milliseconds = (microseconds + ((microseconds < 0) ? -500 : 500)) / 1000;
-          v = new Interval(i.getYears(), i.getMonths(), 0, i.getDays(),
-                           i.getHours(), i.getMinutes(), 0, milliseconds);
-
-        } else if (v instanceof String) {
-          v = new Interval((String)v);
-        } else {
-          throw new DataException("Interval is in the wrong type: " + v.getClass());
-        }
-      } else if (valueType == Types.UuidType && v instanceof String) {
-        /*
-         * Normalization of UUID type to Java UUID. Postgresql produces UUID but
-         * SQL server returns only a string.
-         */
-        v = UUID.fromString((String)v);
-
-      } else if (valueType instanceof ArrayType arrayType) {
-        /*
-         * Array support.
-         */
-        v = db.getArray(rs, fieldIndex, Types.classOf(arrayType.componentType.name()));
-
-      } else if (v instanceof String && Strings.isUUID((String)v)) {
-        /*
-         * UUID as a string. Normalize to prevent matching errors.
-         */
-        v = UUID.fromString((String)v);
-
-      } else if (v instanceof Number n) {
-        /*
-         * Numeric normalization.
-         */
-        Class<?> targetClass = Types.classOf(valueType.name());
-        if (Number.class.isAssignableFrom(targetClass)
-         && !n.getClass().equals(targetClass)) {
-          v = Numbers.convert(n, targetClass);
-        }
-      }
-      return (T)v;
-    }
   }
 
   /**
@@ -260,11 +250,85 @@ public class Result implements AutoCloseable {
     }
   }
 
+  /**
+   * Converts and normalize the value `v` based on the expected value type.
+   */
+  private <T> T convert(Object value,
+                        int    index,
+                        Type   type) throws SQLException {
+    if (value == null) {
+      return null;
+    } else {
+      if (type == Types.BoolType && value instanceof Number) {
+        /*
+         * Numeric to boolean conversion for SQL Server.
+         */
+        value = ((Number)value).intValue() == 1 ? Boolean.TRUE : Boolean.FALSE;
+
+      } else if (type == Types.IntervalType) {
+        /*
+         * Interval support.
+         */
+        if (value instanceof PGInterval i) {
+          final int microseconds = (int)(i.getSeconds() * 1_000_000.0);
+          final int milliseconds = (microseconds + ((microseconds < 0) ? -500 : 500)) / 1000;
+          value = new Interval(i.getYears(), i.getMonths(), 0, i.getDays(),
+                               i.getHours(), i.getMinutes(), 0, milliseconds);
+
+        } else if (value instanceof String) {
+          value = new Interval((String)value);
+        } else {
+          throw new DataException("Interval is in the wrong type: " + value.getClass());
+        }
+      } else if (type == Types.UuidType && value instanceof String) {
+        /*
+         * Normalization of UUID type to Java UUID. Postgresql produces UUID but
+         * SQL server returns only a string.
+         */
+        value = UUID.fromString((String)value);
+
+      } else if (type instanceof ArrayType arrayType) {
+        /*
+         * Array support.
+         */
+        value = db.getArray(rs, index, Types.classOf(arrayType.componentType.name()));
+
+      } else if (value instanceof String && Strings.isUUID((String)value)) {
+        /*
+         * UUID as a string. Normalize to prevent matching errors.
+         */
+        value = UUID.fromString((String)value);
+
+      } else if (value instanceof Number n) {
+        /*
+         * Numeric normalization.
+         */
+        Class<?> targetClass = Types.classOf(type.name());
+        if (Number.class.isAssignableFrom(targetClass)
+         && !n.getClass().equals(targetClass)) {
+          value = Numbers.convert(n, targetClass);
+        }
+      }
+      return (T)value;
+    }
+  }
+
   @Override
   public void close() {
     if (rs != null) {
       Errors.unchecked(rs::close);
     }
+  }
+
+  public class Row {
+    public int                 columnsCount()        { return Result.this.columnsCount(); }
+    public List<ColumnMapping> columns()             { return Result.this.columns();      }
+    public <T> ResultColumn<T> get(int column)       { return Result.this.get(column);    }
+    public <T> ResultColumn<T> get(String column)    { return Result.this.get(column);    }
+    public <T> T               value(int index)      { return Result.this.value(index);   }
+    public <T> T               value(String column)  { return Result.this.value(column);  }
+    public ColumnMapping       column(int index)     { return Result.this.column(index);  }
+    public ColumnMapping       column(String column) { return Result.this.column(column); }
   }
 
   /**
@@ -295,4 +359,10 @@ public class Result implements AutoCloseable {
    * Maps column names to their position in the underlying resultset.
    */
   private final Map<String, Integer> columnNameToIndex;
+
+  private Row nextRow;
+  private Row previousRow;
+
+  private boolean endReached;
+  private boolean startReached = true;
 }

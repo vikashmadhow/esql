@@ -313,7 +313,8 @@ public class SyntaxAnalyser extends EsqlBaseListener {
   @Override
   public void exitJoinTableExpr(JoinTableExprContext ctx) {
     put(ctx, new JoinTableExpr(context,
-                               ctx.JoinType() == null ? null : ctx.JoinType().getText(),
+//                               ctx.JoinType() == null ? null : ctx.JoinType().getText(),
+                               ctx.joinType == null ? null : ctx.joinType.getText(),
                                ctx.lateral() != null,
                                get(ctx.left),
                                get(ctx.right),
@@ -335,6 +336,20 @@ public class SyntaxAnalyser extends EsqlBaseListener {
   @Override
   public void exitOrderBy(OrderByContext ctx) {
     put(ctx, new Order(context, get(ctx.expr()), ctx.direction() == null ? null : ctx.direction().getText()));
+  }
+
+  @Override
+  public void exitLeftOfString(LeftOfStringContext ctx) {
+    put(ctx, new FunctionCall(context,
+                              "left",
+                              Arrays.asList(get(ctx.str), get(ctx.count))));
+  }
+
+  @Override
+  public void exitRightOfString(RightOfStringContext ctx) {
+    put(ctx, new FunctionCall(context,
+                              "right",
+                              Arrays.asList(get(ctx.str), get(ctx.count))));
   }
 
   @Override

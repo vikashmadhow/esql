@@ -10,7 +10,6 @@ import ma.vi.esql.exec.env.FunctionEnvironment;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.EsqlTransformer;
-import ma.vi.esql.syntax.Parser;
 import ma.vi.esql.syntax.expression.NamedParameter;
 import ma.vi.esql.syntax.expression.literal.Literal;
 import ma.vi.esql.syntax.expression.literal.NullLiteral;
@@ -87,7 +86,7 @@ public class EsqlConnectionImpl implements EsqlConnection {
       for (Param p: params) {
         parameters.put(p.a, p);
       }
-      Parser parser = new Parser(esql.context.structure);
+      // Parser parser = new Parser(esql.context.structure);
       st = esql.map((e, p) -> {
         if (e instanceof NamedParameter) {
           String paramName = ((NamedParameter)e).name();
@@ -146,24 +145,24 @@ public class EsqlConnectionImpl implements EsqlConnection {
       st = t.transform(db, st);
     }
 
-    Environment env = new FunctionEnvironment();
+    Environment env = new FunctionEnvironment(db.structure());
     for (Param p: params) env.add(p.a, p.b);
     return (R)st.exec(this, new EsqlPath(st), env);
   }
 
   private static <T extends Esql<?, ?>,
-      M extends Macro> T expand(T esql, Class<M> macroType) {
+                  M extends Macro> T expand(T esql, Class<M> macroType) {
     T expanded;
     int iteration = 0;
     while ((expanded = (T)esql.map((e, p) -> macroType.isAssignableFrom(e.getClass())
-                                             ? ((Macro)e).expand(e, p.add(ONGOING_MACRO_EXPANSION))
-                                             : e)) != esql) {
+                                           ? ((Macro)e).expand(e, p.add(ONGOING_MACRO_EXPANSION))
+                                           : e)) != esql) {
       esql = expanded;
       iteration++;
       if (iteration > 50) {
         throw new TranslationException(
             "Macro expansion continued for more than 50 iterations and was stopped. "
-                + "A macro could be expanding recursively into other macros. Esql: " + esql);
+          + "A macro could be expanding recursively into other macros. Esql: " + esql);
       }
     }
     return expanded;

@@ -5,7 +5,7 @@
 package ma.vi.esql.function.date;
 
 import ma.vi.esql.function.Function;
-import ma.vi.esql.function.FunctionParameter;
+import ma.vi.esql.function.FunctionParam;
 import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.expression.Expression;
@@ -26,7 +26,7 @@ import static ma.vi.esql.translation.Translatable.Target.*;
 public class DatePart extends Function {
   public DatePart(String name, Part part) {
     super(name, Types.IntType,
-          singletonList(new FunctionParameter("s", Types.DatetimeType)));
+          singletonList(new FunctionParam("s", Types.DatetimeType)));
     this.part = part;
   }
 

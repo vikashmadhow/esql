@@ -5,6 +5,8 @@
 package ma.vi.esql.syntax.expression;
 
 import ma.vi.base.tuple.T2;
+import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
@@ -47,6 +49,13 @@ public class GroupedExpression extends SingleSubExpression {
   @Override
   protected String trans(Target target, EsqlPath path, PMap<String, Object> parameters) {
     return "(" + String.valueOf(expr().translate(target, path.add(expr()), parameters)) + ")";
+  }
+
+  @Override
+  public Object postTransformExec(EsqlConnection esqlCon,
+                                  EsqlPath path,
+                                  Environment env) {
+    return expr().exec(esqlCon, path.add(expr()), env);
   }
 
   @Override

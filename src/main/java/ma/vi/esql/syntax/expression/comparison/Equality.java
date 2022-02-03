@@ -6,7 +6,6 @@ package ma.vi.esql.syntax.expression.comparison;
 
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.exec.EsqlConnection;
-import ma.vi.esql.exec.ExecutionException;
 import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;

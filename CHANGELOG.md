@@ -53,12 +53,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the overridden metadata are not being considered). (create tests for metadata 
   overriding)
 
+## [0.8.1] - 2022-02-03
+### Added
+- Grammar modified to parse `left` and `right` as function calls (in addition to
+  their use in join types) when they are followed by an opening brace, two arguments
+  (string and an integer number of characters) and a closing brace.
+- Support for calling predefined functions (such as trim) in an ESQL program.
+- `Result` now implements `Iterator` and `Iterable` interfaces. The `next` method
+  in `Result` was renamed to `toNext` as its signature conflicted with that of 
+  the `next` method in `Iterator`. Result can now be iterated using the Java 
+  for-each loop. The existing resulting scrolling mechanism (based on Java ResultSet)
+  is still available and the iterator mechanism is thin wrapper around it; this
+  allows the result to be read with either mechanism separately or even combined.
+
+### Testing
+- Computing value of expressions:
+  - literals.
+  - arithmetic expressions and sub-expressions groupings with braces.
+  - strings repeat and concatenation.
+  - comparisons.
+  - logical operators.
+  - conditionals (`a if c1 else b if c2 else...`).
+  - some pre-defined functions (trim).
+- Function parsing.
+- Simple function execution.
+- Recursive function execution (factorial).
+
 ## [0.8.0] - 2022-02-01
 ### Added
 - Function and variable scoping.
-- A global scope is created as a child of the System scope (structure) for every 
-  program that is executed. This global scope hold all top-level variable and 
-  function declarations.
+- A global environment is created as a child of the System environment (structure) 
+  for every program that is executed. This global scope hold all top-level variable 
+  and function declarations.
 - General-purpose language support:
   - Variable definitions and assignments.
   - Symbol table and scoping rules.
@@ -129,7 +155,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - TypedMacro are then expanded: types are not available (or can be computed).
     All previous macros (except for ColumnList) are of this kind.
 - Column and ColumnRef now carries type information which could simplify type 
-  inference and propagation
+  inference and propagation.
 - The general structure of variable scopes and symbols has been added (continuing
   semantic analysis work in preparation to adding general purpose language features).
 - Original query is now kept in the QueryTranslation to improve error management.

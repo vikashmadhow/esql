@@ -5,7 +5,7 @@
 package ma.vi.esql.function.date;
 
 import ma.vi.esql.function.Function;
-import ma.vi.esql.function.FunctionParameter;
+import ma.vi.esql.function.FunctionParam;
 import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.expression.Expression;
@@ -26,12 +26,12 @@ import static ma.vi.esql.translation.Translatable.Target.SQLSERVER;
 public class NewDateTime extends Function {
   public NewDateTime() {
     super("newdatetime", Types.DatetimeType,
-        Arrays.asList(new FunctionParameter("y", Types.IntType),
-            new FunctionParameter("m", Types.IntType),
-            new FunctionParameter("d", Types.IntType),
-            new FunctionParameter("h", Types.IntType),
-            new FunctionParameter("mi",Types.IntType),
-            new FunctionParameter("s", Types.FloatType)));
+        Arrays.asList(new FunctionParam("y", Types.IntType),
+            new FunctionParam("m", Types.IntType),
+            new FunctionParam("d", Types.IntType),
+            new FunctionParam("h", Types.IntType),
+            new FunctionParam("mi", Types.IntType),
+            new FunctionParam("s", Types.FloatType)));
   }
 
   @Override

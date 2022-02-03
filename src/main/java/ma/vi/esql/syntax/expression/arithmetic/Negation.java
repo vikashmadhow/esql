@@ -63,8 +63,8 @@ public class Negation extends SingleSubExpression {
 
   @Override
   public Object postTransformExec(EsqlConnection esqlCon,
-                                  EsqlPath path,
-                                  Environment env) {
+                                  EsqlPath       path,
+                                  Environment    env) {
     Object expr = expr().exec(esqlCon, path.add(expr()), env);
     if (expr instanceof Number num) {
       if (Numbers.isReal(num)) {

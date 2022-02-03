@@ -24,6 +24,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestFactory;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Stream;
 
 import static ma.vi.esql.syntax.Parser.Rules.SELECT;
@@ -56,7 +57,7 @@ public class SelectTest extends DataTest {
 
                      Result rs = con.exec(select);
 //                     printResult(rs, 20, true);
-                     rs.next();
+                     rs.toNext();
                      ResultColumn<Integer> c1 = rs.get(1);
                      ResultColumn<Integer> c2 = rs.get(2);
                      assertEquals(1,     c1.value());
@@ -67,7 +68,7 @@ public class SelectTest extends DataTest {
                      assertEquals(2,     c2.value());
                      assertEquals(false, c2.metadata().get("m1"));
 
-                     rs.next(); c1 = rs.get(1); c2 = rs.get(2);
+                     rs.toNext(); c1 = rs.get(1); c2 = rs.get(2);
                      assertEquals(6,     c1.value());
                      assertEquals(true,  c1.metadata().get("m1"));
                      assertEquals(10L,   c1.metadata().get("m2"));
@@ -98,7 +99,7 @@ public class SelectTest extends DataTest {
 
                      Result rs = con.exec(select);
                      // printResult(rs, 30, true);
-                     rs.next();
+                     rs.toNext();
                      ResultColumn<Integer> c1 = rs.get(1);
                      ResultColumn<Integer> c2 = rs.get(2);
                      assertEquals(1,     c1.value());
@@ -111,7 +112,7 @@ public class SelectTest extends DataTest {
                      assertEquals(2,     c2.value());
                      assertEquals(false, c2.metadata().get("m1"));
 
-                     rs.next(); c1 = rs.get(1); c2 = rs.get(2);
+                     rs.toNext(); c1 = rs.get(1); c2 = rs.get(2);
                      assertEquals(6,     c1.value());
                      assertEquals(true,  c1.metadata().get("m1"));
                      assertEquals(10L,   c1.metadata().get("m2"));
@@ -144,9 +145,9 @@ public class SelectTest extends DataTest {
                                + "from x:(select a, b "
                                        + "from s:S order by s.a asc) order by x.a asc)", SELECT);
                      Result rs = con.exec(select);
-                     rs.next(); assertEquals(1, (Integer)rs.value(1));
+                     rs.toNext(); assertEquals(1, (Integer)rs.value(1));
                                 assertEquals(2, (Integer)rs.value(2));
-                     rs.next(); assertEquals(6, (Integer)rs.value(1));
+                     rs.toNext(); assertEquals(6, (Integer)rs.value(1));
                                 assertEquals(7, (Integer)rs.value(2));
                    }
                  }));
@@ -172,9 +173,9 @@ public class SelectTest extends DataTest {
                                        + "from s:S order by s.a asc) order by x.a asc)" +
                              "where exists(select * from S)", SELECT);
                      Result rs = con.exec(select);
-                     rs.next(); assertEquals(1, (Integer)rs.value(1));
+                     rs.toNext(); assertEquals(1, (Integer)rs.value(1));
                                 assertEquals(2, (Integer)rs.value(2));
-                     rs.next(); assertEquals(6, (Integer)rs.value(1));
+                     rs.toNext(); assertEquals(6, (Integer)rs.value(1));
                                 assertEquals(7, (Integer)rs.value(2));
                    }
                  }));
@@ -199,9 +200,9 @@ public class SelectTest extends DataTest {
                                + "from x:(select a, c "
                                        + "from s:S order by s.a asc) order by x.a asc)", SELECT);
                      Result rs = con.exec(select);
-                     rs.next(); assertEquals(1,  (Integer)rs.value(1));
+                     rs.toNext(); assertEquals(1, (Integer)rs.value(1));
                                 assertEquals(3,  (Integer)rs.value(2));
-                     rs.next(); assertEquals(6,  (Integer)rs.value(1));
+                     rs.toNext(); assertEquals(6, (Integer)rs.value(1));
                                 assertEquals(13, (Integer)rs.value(2));
                    }
                  }));
@@ -226,10 +227,45 @@ public class SelectTest extends DataTest {
                                + "from x:(select a, c "
                                        + "from s:S order by s.a asc)) order by x.a asc", SELECT);
                      Result rs = con.exec(select);
-                     rs.next(); assertEquals(1,  (Integer)rs.value(1));
-                                assertEquals(3,  (Integer)rs.value(2));
-                     rs.next(); assertEquals(6,  (Integer)rs.value(1));
-                                assertEquals(13, (Integer)rs.value(2));
+                     rs.toNext(); assertEquals(1,  (Integer)rs.value(1));
+                                  assertEquals(3,  (Integer)rs.value(2));
+                     rs.toNext(); assertEquals(6,  (Integer)rs.value(1));
+                                  assertEquals(13, (Integer)rs.value(2));
+                   }
+                 }));
+  }
+
+  @TestFactory
+  Stream<DynamicTest> iterationOverSelectResult() {
+    return Stream.of(databases)
+                 .map(db -> dynamicTest(db.target().toString(), () -> {
+                   System.out.println(db.target());
+                   Parser p = new Parser(db.structure());
+                   try (EsqlConnection con = db.esql(db.pooledConnection())) {
+                     con.exec("delete t from t:a.b.T");
+                     con.exec("delete s from s:S");
+                     con.exec("insert into S(_id, a, b, e, h, j) values "
+                            + "(newid(), 1, 2, true, text['Four', 'Quatre'], int[1, 2, 3]),"
+                            + "(newid(), 6, 7, false, text['Nine', 'Neuf', 'X'], int[5, 6, 7, 8])");
+
+                     Select select = p.parse(
+                         "select * "
+                       + "from x:(select * "
+                               + "from x:(select a, c "
+                                       + "from s:S order by s.a asc)) order by x.a asc", SELECT);
+
+                     int i = 0;
+                     for (Result.Row r: (Result)con.exec(select)) {
+                       if (i == 0) {
+                         assertEquals(1, (Integer)r.value(1));
+                         assertEquals(3, (Integer)r.value(2));
+                       } else {
+                         assertEquals(6,  (Integer)r.value(1));
+                         assertEquals(13, (Integer)r.value(2));
+                       }
+                       i++;
+                     }
+                     assertEquals(2, i);
                    }
                  }));
   }
@@ -247,13 +283,21 @@ public class SelectTest extends DataTest {
                             + "(newid(), 1, 2, true, text['Four', 'Quatre'], int[1, 2, 3]),"
                             + "(newid(), 6, 7, false, text['Nine', 'Neuf', 'X'], int[5, 6, 7, 8])");
 
-                     Select select = p.parse("select * from x:(select * from S) where a >= 3", SELECT);
+                     Select select = p.parse("select * from x:(select * from S) where a >= 3 order by a", SELECT);
                      Result rs = con.exec(select);
-                     printResult(rs, 20);
-//                     rs.next(); assertEquals(1,  (Integer)rs.value(1));
-//                                assertEquals(3,  (Integer)rs.value(2));
-//                     rs.next(); assertEquals(6,  (Integer)rs.value(1));
-//                                assertEquals(13, (Integer)rs.value(2));
+                     rs.next(); assertInstanceOf(UUID.class, rs.value("_id"));
+                                assertEquals(6,  (Integer)rs.value("a"));
+                                assertEquals(7,  (Integer)rs.value("b"));
+                                assertEquals(13, (Integer)rs.value("c"));
+                                assertEquals(20, (Integer)rs.value("d"));
+                                assertEquals(false, rs.value("e"));
+                                assertEquals(6,  (Integer)rs.value("f"));
+                                assertEquals(13, (Integer)rs.value("g"));
+                                assertArrayEquals(new String[]{"Nine", "Neuf", "X"}, rs.value("h"));
+                                assertEquals("Aie", rs.value("i"));
+                                assertArrayEquals(new Integer[]{5,6,7,8}, rs.value("j"));
+                                assertNull(rs.value("k"));
+                                assertNull(rs.value("l"));
                    }
                  }));
   }
@@ -273,10 +317,10 @@ public class SelectTest extends DataTest {
 
                      Select select = p.parse("select a, c from x:(select a, c from s:S order by s.a asc)", SELECT);
                      Result rs = con.exec(select);
-                     rs.next(); assertEquals(1, (Integer)rs.value(1));
-                                assertEquals(3, (Integer)rs.value(2));
-                     rs.next(); assertEquals(6, (Integer)rs.value(1));
-                                assertEquals(13, (Integer)rs.value(2));
+                     rs.toNext(); assertEquals(1, (Integer)rs.value(1));
+                                  assertEquals(3, (Integer)rs.value(2));
+                     rs.toNext(); assertEquals(6, (Integer)rs.value(1));
+                                  assertEquals(13, (Integer)rs.value(2));
                    }
                  }));
   }
@@ -346,7 +390,7 @@ public class SelectTest extends DataTest {
                                                    left join a.b.T on s._id=T.s_id
                                                    join x:a.b.X on x.t_id=T._id
                                                   times y:b.Y
-                                                  where leftstr(s.i, 2)='PI'
+                                                  where left(s.i, 2)='PI'
                                                   order by s.a desc,
                                                            y.b,
                                                            T.b asc""", SELECT);
@@ -361,7 +405,7 @@ public class SelectTest extends DataTest {
                                       .leftJoin("a.b.T", null, "s._id = T.s_id", false)
                                       .join("a.b.X", "x", "x.t_id = T._id", false)
                                       .times("b.Y", "y")
-                                      .where("leftstr(s.i, 2)='PI'")
+                                      .where("left(s.i, 2)='PI'")
                                       .orderBy("s.a", "desc")
                                       .orderBy("y.b")
                                       .orderBy("T.b", "asc")

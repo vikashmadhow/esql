@@ -5,7 +5,7 @@
 package ma.vi.esql.function.date;
 
 import ma.vi.esql.function.Function;
-import ma.vi.esql.function.FunctionParameter;
+import ma.vi.esql.function.FunctionParam;
 import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.expression.Expression;
@@ -26,9 +26,9 @@ import static ma.vi.esql.translation.Translatable.Target.SQLSERVER;
 public class NewTime extends Function {
   public NewTime() {
     super("newtime", Types.TimeType,
-          Arrays.asList(new FunctionParameter("h", Types.IntType),
-            new FunctionParameter("mi", Types.IntType),
-            new FunctionParameter("s", Types.FloatType)));
+          Arrays.asList(new FunctionParam("h", Types.IntType),
+            new FunctionParam("mi", Types.IntType),
+            new FunctionParam("s", Types.FloatType)));
   }
 
   @Override

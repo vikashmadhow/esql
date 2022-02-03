@@ -215,7 +215,7 @@ public class DataTest {
 
   public static void printResult(Result rs, int columnWidth, boolean showMetadata) {
     boolean first = true;
-    while(rs.next()) {
+    while(rs.toNext()) {
       if (first) {
         System.out.println('+' + repeat(repeat('-', columnWidth) + '+', rs.columnsCount()));
         System.out.print('|');

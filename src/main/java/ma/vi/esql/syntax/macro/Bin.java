@@ -5,7 +5,7 @@
 package ma.vi.esql.syntax.macro;
 
 import ma.vi.esql.function.Function;
-import ma.vi.esql.function.FunctionParameter;
+import ma.vi.esql.function.FunctionParam;
 import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
@@ -53,9 +53,9 @@ import static org.apache.commons.lang3.StringUtils.leftPad;
 public class Bin extends Function implements TypedMacro {
   public Bin() {
     super("bin", Types.TextType,
-          Arrays.asList(new FunctionParameter("val", Types.TextType),
-                        new FunctionParameter("name", Types.TextType),
-                        new FunctionParameter("intervals", Types.TextType)));
+          Arrays.asList(new FunctionParam("val", Types.TextType),
+                        new FunctionParam("name", Types.TextType),
+                        new FunctionParam("intervals", Types.TextType)));
   }
 
   @Override

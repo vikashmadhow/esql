@@ -5,7 +5,7 @@
 package ma.vi.esql.function.date;
 
 import ma.vi.esql.function.Function;
-import ma.vi.esql.function.FunctionParameter;
+import ma.vi.esql.function.FunctionParam;
 import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.expression.Expression;
@@ -30,8 +30,8 @@ import static ma.vi.esql.translation.Translatable.Target.SQLSERVER;
 public class AddIntervals extends Function {
   public AddIntervals() {
     super("addintervals", Types.StringType,
-          Arrays.asList(new FunctionParameter("interval1", Types.StringType),
-            new FunctionParameter("interval2", Types.StringType)));
+          Arrays.asList(new FunctionParam("interval1", Types.StringType),
+            new FunctionParam("interval2", Types.StringType)));
   }
 
   @Override

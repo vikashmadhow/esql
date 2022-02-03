@@ -39,24 +39,24 @@ public class WindowFunctionTest extends DataTest {
                           order by b desc
                          """);
 
-                     rs.next(); assertEquals(1,  (Integer)rs.value("a"));
+                     rs.toNext(); assertEquals(1, (Integer)rs.value("a"));
                                 assertEquals(12, (Integer)rs.value("b"));
                                 assertEquals(22, (Long)rs.value("s"));
-                     rs.next(); assertEquals(1,  (Integer)rs.value("a"));
+                     rs.toNext(); assertEquals(1, (Integer)rs.value("a"));
                                 assertEquals(10, (Integer)rs.value("b"));
                                 assertEquals(22, (Long)rs.value("s"));
 
-                     rs.next(); assertEquals(2,  (Integer)rs.value("a"));
+                     rs.toNext(); assertEquals(2, (Integer)rs.value("a"));
                                 assertEquals(8,  (Integer)rs.value("b"));
                                 assertEquals(14, (Long)rs.value("s"));
-                     rs.next(); assertEquals(2,  (Integer)rs.value("a"));
+                     rs.toNext(); assertEquals(2, (Integer)rs.value("a"));
                                 assertEquals(6,  (Integer)rs.value("b"));
                                 assertEquals(14, (Long)rs.value("s"));
 
-                     rs.next(); assertEquals(3,  (Integer)rs.value("a"));
+                     rs.toNext(); assertEquals(3, (Integer)rs.value("a"));
                                 assertEquals(4,  (Integer)rs.value("b"));
                                 assertEquals(6,  (Long)rs.value("s"));
-                     rs.next(); assertEquals(3,  (Integer)rs.value("a"));
+                     rs.toNext(); assertEquals(3, (Integer)rs.value("a"));
                                 assertEquals(2,  (Integer)rs.value("b"));
                                 assertEquals(6,  (Long)rs.value("s"));
                    }

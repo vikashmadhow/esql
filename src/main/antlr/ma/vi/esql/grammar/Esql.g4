@@ -328,7 +328,7 @@ tableExpr
     | alias ':' '(' select ')'                                   #SelectTableExpr
     | alias metadata? dynamicColumns ':' '(' rows ')'            #DynamicTableExpr
     | left=tableExpr 'times' right=tableExpr                     #CrossProductTableExpr
-    | left=tableExpr JoinType? 'join' lateral?
+    | left=tableExpr (joinType='left'|'right'|'full')? 'join' lateral?
       right=tableExpr 'on' expr                                  #JoinTableExpr
     ;
 
@@ -353,11 +353,11 @@ nameWithMetadata
  * built with these respective keywords before the `join` keyword in a table
  * expression; when none of those are provided, an inner join is assumed.
  */
-JoinType
-    : 'left'
-    | 'right'
-    | 'full'
-    ;
+//JoinType
+//    : 'left'
+//    | 'right'
+//    | 'full'
+//    ;
 
 lateral
     : 'lateral';
@@ -596,6 +596,15 @@ expr
     | noop                                                      #NoopStatement
 
       /*
+       * `left` and `right` are keywords used in table joins. These two specical
+       * rules allow them to be parsed as function calls when they are followed
+       * by an opening brace, two arguments and a closing brace. Without these
+       * two rules the parser will fail to parse as function calls.
+       */
+    | 'left'  '(' str=expr ',' count=expr ')'                   #LeftOfString
+    | 'right' '(' str=expr ',' count=expr ')'                   #RightOfString
+
+      /*
        * Parentheses controls the order in which expressions are computed when
        * they are part of larger expressions.
        */
@@ -789,13 +798,13 @@ expr
 
     | Identifier ':=' expr                                      #Assignment
 
-//    | 'if' ifCond=expr 'then'
-//         ifExpr=expressions
-//     ('elseif' elseIfCond=expr 'then'
-//         elseIfExpr=expressions)*
-//     ('else'
-//         elseExpr=expressions)?
-//      'end'                                                     #If
+    | 'if' ifCond=expr 'then'
+         ifExpr=expressions
+     ('elseif' elseIfCond=expr 'then'
+         elseIfExpr=expressions)*
+     ('else'
+         elseExpr=expressions)?
+      'end'                                                     #If
 
     | 'for' (key=Identifier ',')? value=Identifier 'in' expr 'do'
         expressions
