@@ -13,6 +13,16 @@ import ma.vi.esql.syntax.EsqlException;
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 public class ExecutionException extends EsqlException {
+  public ExecutionException(String message) {
+    super(message);
+    this.esql = null;
+  }
+
+  public ExecutionException(String message, Throwable cause) {
+    super(message, cause);
+    this.esql = null;
+  }
+
   public ExecutionException(Esql<?, ?> esql, String message) {
     super(message + (esql.line != 0
                   ? " (on line " + esql.line + ")"

@@ -11,7 +11,7 @@ import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.semantic.scope.FunctionScope;
 import ma.vi.esql.semantic.scope.Scope;
 import ma.vi.esql.syntax.expression.Expression;
-import ma.vi.esql.syntax.expression.function.Return;
+import ma.vi.esql.exec.function.Return;
 import org.pcollections.PMap;
 
 import java.util.List;

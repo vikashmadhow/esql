@@ -17,7 +17,7 @@ import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.define.*;
-import ma.vi.esql.syntax.expression.function.FunctionCall;
+import ma.vi.esql.exec.function.FunctionCall;
 import ma.vi.esql.syntax.macro.TypedMacro;
 import ma.vi.esql.syntax.query.Column;
 import ma.vi.esql.syntax.query.QueryUpdate;

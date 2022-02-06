@@ -63,7 +63,11 @@ public class Case extends MultipleSubExpressions {
   }
 
   @Override
-  protected String trans(Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
+  protected String trans(Target               target,
+                         EsqlConnection       esqlCon,
+                         EsqlPath             path,
+                         PMap<String, Object> parameters,
+                         Environment          env) {
     switch (target) {
       case JSON, JAVASCRIPT -> {
         StringBuilder est = new StringBuilder();
@@ -166,9 +170,10 @@ public class Case extends MultipleSubExpressions {
   }
 
   @Override
-  public Object postTransformExec(Target target, EsqlConnection esqlCon,
-                                  EsqlPath path,
-                                  Environment env) {
+  public Object postTransformExec(Target         target,
+                                  EsqlConnection esqlCon,
+                                  EsqlPath       path,
+                                  Environment    env) {
     for (Iterator<Expression<?, String>> i = expressions().iterator(); i.hasNext(); ) {
       Expression<?, String> e = i.next();
       if (i.hasNext()) {

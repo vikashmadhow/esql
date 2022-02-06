@@ -11,7 +11,7 @@ import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
-import ma.vi.esql.syntax.expression.function.FunctionCall;
+import ma.vi.esql.exec.function.FunctionCall;
 import org.pcollections.PMap;
 
 import java.util.List;

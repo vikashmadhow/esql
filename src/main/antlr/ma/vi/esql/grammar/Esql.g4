@@ -651,7 +651,7 @@ expr
       '(' distinct? (arguments | star='*')? ')'
       window?                                                   #FunctionInvocation
 
-    | on=expr '[' member=expr ']'                               #Selector
+    | on=expr '[' expressionList ']'                            #Selector
 
 //      /*
 //       * Coalesce is a '?'-separated list of expressions returning the value of
@@ -802,20 +802,17 @@ expr
 
     | Identifier ':=' expr                                      #Assignment
 
-    | 'if' ifCond=expr 'then'
-         ifExpr=expressions
-     ('elseif' elseIfCond=expr 'then'
-         elseIfExpr=expressions)*
-     ('else'
-         elseExpr=expressions)?
+    | 'if' imply
+       elseIf*
+     ('else'   expressions)?
       'end'                                                     #If
 
     | 'for' (key=Identifier ',')? value=Identifier 'in' expr 'do'
-        expressions
+        expressions?
       'end'                                                     #ForEach
 
-    | 'for' init=expr ',' cond=expr ',' inc=expr 'do'
-        expressions
+    | 'for' init=expr ',' condition=expr ',' step=expr 'do'
+        expressions?
       'end'                                                     #For
 
     | 'while' expr 'do'
@@ -834,6 +831,14 @@ expr
        */
     | simpleExpr                                                #SimpleExpression
     ;
+
+imply
+  : expr 'then' expressions
+  ;
+
+elseIf
+  : 'elseif' imply
+  ;
 
 /**
  * An expression which excludes certain combinations of expression and can be

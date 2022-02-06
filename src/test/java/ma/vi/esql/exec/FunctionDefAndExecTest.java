@@ -133,6 +133,140 @@ public class FunctionDefAndExecTest extends DataTest {
   }
 
   @TestFactory
+  Stream<DynamicTest> readFromSelectWithComplexSelection() {
+    return Stream.of(databases)
+                 .map(db -> dynamicTest(db.target().toString(), () -> {
+                   Parser p = new Parser(db.structure());
+                   try (EsqlConnection con = db.esql(db.pooledConnection())) {
+                     Program prog = p.parse("""
+                                            delete t from t:a.b.T;
+                                            delete s from s:S;
+                                            insert into S(_id, a, b, e, h, j) values
+                                                         (newid(), 1, @b1, true, ['Four', 'Quatre']text, [1, 2, 3]int),
+                                                         (newid(), 6, @b2, false, ['Nine', 'Neuf', 'X']text, [5, 6, 7, 8]int);
+                                            let i := 1;
+                                            for r in select * from S do
+                                              for let c := 1,
+                                                  c <= r['columnsCount'],
+                                                  c := c + 1 do
+                                                let col := r['get'][c];
+                                                print(col['column']['name'] + ': ' + col['value']);
+                                                print('Counter: ' + i);
+                                                i := i + 1;
+                                              end;
+                                            end;
+                                            """);
+                     con.exec(prog, Param.of("b1", 6), Param.of("b2", 1));
+                     System.out.println(prog);
+                   }
+                 }));
+  }
+
+  @TestFactory
+  Stream<DynamicTest> whileLoop() {
+    return Stream.of(databases)
+                 .map(db -> dynamicTest(db.target().toString(), () -> {
+                   Parser p = new Parser(db.structure());
+                   try (EsqlConnection con = db.esql(db.pooledConnection())) {
+                     Program prog = p.parse("""
+                                            delete t from t:a.b.T;
+                                            delete s from s:S;
+                                            insert into S(_id, a, b, e, h, j) values
+                                                         (newid(), 1, @b1, true, ['Four', 'Quatre']text, [1, 2, 3]int),
+                                                         (newid(), 6, @b2, false, ['Nine', 'Neuf', 'X']text, [5, 6, 7, 8]int);
+                                            let i := 1;
+                                            for r in select * from S do
+                                              let c := 1;
+                                              while c <= r['columnsCount'] do
+                                                let col := r['get'][c];
+                                                print(col['column']['name'] + ': ' + col['value'] + ', counter: ' + i);
+                                                i := i + 1;
+                                                c := c + 1;
+                                              end;
+                                              print('  ------------------------  ');
+                                            end;
+                                            """);
+                     con.exec(prog, Param.of("b1", 6), Param.of("b2", 1));
+                     System.out.println(prog);
+                   }
+                 }));
+  }
+
+  @TestFactory
+  Stream<DynamicTest> ifContinueBreak() {
+    return Stream.of(databases)
+                 .map(db -> dynamicTest(db.target().toString(), () -> {
+                   Parser p = new Parser(db.structure());
+                   try (EsqlConnection con = db.esql(db.pooledConnection())) {
+                     Program prog = p.parse("""
+                                            delete t from t:a.b.T;
+                                            delete s from s:S;
+                                            insert into S(_id, a, b, e, h, j) values
+                                                         (newid(), 1, @b1, true, ['Four', 'Quatre']text, [1, 2, 3]int),
+                                                         (newid(), 6, @b2, false, ['Nine', 'Neuf', 'X']text, [5, 6, 7, 8]int),
+                                                         (newid(), 7, @b2, false, ['A', 'B', 'C']text, [2, 7, 9]int),
+                                                         (newid(), 7, @b2, true, ['D', 'E']text, [11]int);
+                                            let i := 1;
+                                            for r in select * from S do
+                                              let c := 1;
+                                              while c <= r['columnsCount'] do
+                                                if i <= 1 then
+                                                  print('Aie');
+                                                  if c = 1 then
+                                                    print('SEE!');
+                                                  end;
+                                                
+                                                elseif i <= 2 then
+                                                  print('Aie Aie');
+                                                  print('Muchacho');
+                                                  if c != 1 then
+                                                    print('NO SEE!');
+                                                  else
+                                                    print('Me SEE!');
+                                                  end;
+                                                  
+                                                elseif i = 3 then
+                                                  print('Aie Aie Aie');
+                                                  print('Muchacho!');
+                                                  
+                                                elseif i = 4 then
+                                                  print('Aie Aie Aie Aie');
+                                                  i := 6;
+                                                  continue;
+                                                  
+                                                elseif i = 5 then
+                                                  print('Aie Aie Aie Aie Aie');
+                                                  print('Stop Muchacho');
+                                                  break;
+                                                  
+                                                elseif i = 6 then
+                                                  print('Aie Aie Aie Aie Aie Aie');
+                                                  print('Please stop Muchacho');
+                                                  i := i + 1;
+                                                  break;
+                                                  
+                                                else
+                                                  print('Megusta, but you''ll get us killed');
+                                                  i := 1;
+                                                  continue;
+                                                end;
+                                                
+                                                let col := r['get'][c];
+                                                print(col['column']['name'] + ': ' + col['value'] + ', counter: ' + i);
+                                                  
+                                                i := i + 1;
+                                                c := c + 1;
+                                              end;
+                                              print('  ------------------------  ');
+                                            end;
+                                            """);
+                     con.exec(prog, Param.of("b1", 6), Param.of("b2", 1));
+                     System.out.println(prog);
+                   }
+                 }));
+  }
+
+  @TestFactory
   Stream<DynamicTest> errorLine() {
     return Stream.of(databases)
                  .map(db -> dynamicTest(db.target().toString(), () -> {

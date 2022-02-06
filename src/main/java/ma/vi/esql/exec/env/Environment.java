@@ -15,7 +15,7 @@ public interface Environment {
 
   default boolean knows(String symbol) {
     return has(symbol)
-        || (parent() != null && parent().has(symbol));
+        || (parent() != null && parent().knows(symbol));
   }
 
   void add(String symbol, Object value) throws SymbolAlreadyDefinedException;

@@ -1060,6 +1060,26 @@ public interface EsqlListener extends ParseTreeListener {
 	 */
 	void exitNegationExpr(EsqlParser.NegationExprContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link EsqlParser#imply}.
+	 * @param ctx the parse tree
+	 */
+	void enterImply(EsqlParser.ImplyContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link EsqlParser#imply}.
+	 * @param ctx the parse tree
+	 */
+	void exitImply(EsqlParser.ImplyContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link EsqlParser#elseIf}.
+	 * @param ctx the parse tree
+	 */
+	void enterElseIf(EsqlParser.ElseIfContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link EsqlParser#elseIf}.
+	 * @param ctx the parse tree
+	 */
+	void exitElseIf(EsqlParser.ElseIfContext ctx);
+	/**
 	 * Enter a parse tree produced by the {@code SimpleConcatenationExpr}
 	 * labeled alternative in {@link EsqlParser#simpleExpr}.
 	 * @param ctx the parse tree

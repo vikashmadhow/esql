@@ -6,13 +6,13 @@ package ma.vi.esql.syntax.query;
 
 import ma.vi.base.string.Strings;
 import ma.vi.base.tuple.T2;
-import ma.vi.esql.function.Function;
+import ma.vi.esql.exec.function.Function;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.define.Metadata;
 import ma.vi.esql.syntax.expression.ColumnRef;
 import ma.vi.esql.syntax.expression.Expression;
-import ma.vi.esql.syntax.expression.function.FunctionCall;
+import ma.vi.esql.exec.function.FunctionCall;
 
 import java.util.HashSet;
 import java.util.List;

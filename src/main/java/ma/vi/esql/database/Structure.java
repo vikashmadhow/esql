@@ -6,12 +6,13 @@ package ma.vi.esql.database;
 
 import ma.vi.base.lang.NotFoundException;
 import ma.vi.esql.exec.env.Environment;
-import ma.vi.esql.function.BinFunction;
-import ma.vi.esql.function.Function;
-import ma.vi.esql.function.FunctionParam;
-import ma.vi.esql.function.date.*;
-import ma.vi.esql.function.debug.Print;
-import ma.vi.esql.function.string.*;
+import ma.vi.esql.exec.function.Function;
+import ma.vi.esql.exec.function.FunctionCall;
+import ma.vi.esql.exec.function.FunctionParam;
+import ma.vi.esql.exec.function.date.*;
+import ma.vi.esql.exec.function.debug.Print;
+import ma.vi.esql.exec.function.stat.BinFunction;
+import ma.vi.esql.exec.function.string.*;
 import ma.vi.esql.semantic.scope.AbstractScope;
 import ma.vi.esql.semantic.scope.Symbol;
 import ma.vi.esql.semantic.scope.SymbolAlreadyDefinedException;
@@ -19,9 +20,8 @@ import ma.vi.esql.semantic.type.BaseRelation;
 import ma.vi.esql.semantic.type.Sequence;
 import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.syntax.EsqlPath;
-import ma.vi.esql.syntax.expression.function.FunctionCall;
-import ma.vi.esql.syntax.macro.Bin;
-import ma.vi.esql.syntax.macro.InMonth;
+import ma.vi.esql.exec.function.stat.Bin;
+import ma.vi.esql.exec.function.date.InMonth;
 import ma.vi.esql.translation.Translatable;
 import ma.vi.esql.translation.TranslationException;
 
@@ -31,7 +31,7 @@ import java.util.concurrent.ConcurrentMap;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.*;
-import static ma.vi.esql.function.date.DatePart.Part.*;
+import static ma.vi.esql.exec.function.date.DatePart.Part.*;
 import static ma.vi.esql.semantic.type.Types.*;
 import static ma.vi.esql.translation.Translatable.Target.*;
 

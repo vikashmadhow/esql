@@ -10,7 +10,7 @@ import ma.vi.esql.exec.env.ProgramEnvironment;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.EsqlTransformer;
-import ma.vi.esql.syntax.expression.function.NamedParameter;
+import ma.vi.esql.exec.function.NamedParameter;
 import ma.vi.esql.syntax.expression.literal.Literal;
 import ma.vi.esql.syntax.expression.literal.NullLiteral;
 import ma.vi.esql.syntax.macro.Macro;

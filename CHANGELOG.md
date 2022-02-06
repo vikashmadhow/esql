@@ -6,9 +6,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Planned]
 ### To add
-- General-purpose language:
-  - If statements
-  - Iteration and loops
 - Array operations.
 - JSON operations.
 - Support for creating and using sequences.
@@ -33,11 +30,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   content of a table which will then be merged with the existing data through a 
   merge statement and/or a set of insert and update statements.
 - Configure extensions (e.g. specify lookup schema) through parameters.
-- Replace all visual tests (printResult) with assertions.
+- Replace visual tests (printResult) with assertions, where possible.
 - Implement `explicit` in select (no expanded columns when explicit keyword used).
-- String indexing in ESQL functions should be 1-based to be coherent with SQL 
-  (instead of 0-based currently as in Java).
-- 1-based array access everywhere.
 - `pkey` macro expands to the primary key columns of a table.
 - `fkey` macro expands to the columns of a foreign key between two tables.
 
@@ -59,7 +53,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the overridden metadata are not being considered). (create tests for metadata 
   overriding)
 
-## [0.8.3]
+## [0.8.3] - 2022-02-06
 ### Added
 - `print` function to print debug messages to console.
 - Named argument now uses `@` instead of `:` prefix as the ':' conflicts in some
@@ -68,11 +62,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   and inserts it into the containing expression.
 - Signature of `translate` and `exec` methods changed to allow them to work 
   together, as this is required to properly implement the eval construct.
+- Show line number where error occurred in ESQL program.
 - General-purpose language:
   - Selector construct added to grammar: `a[b]...` selects member `b` in `a`.
   - For-each loop over list, iterables, maps, arrays and results, with binding
     for both key and value where applicable.
-- Show line number where error occurred in ESQL program.
+  - General for loop (for init, condition, step do body end).
+  - While loop.
+  - If-elseif(s)-else conditional. 
+  - Break keyword to break from the innermost loop.
+  - Continue keyword to continue to the next iteration of the innermost loop.
+- Selectors now take a list of members instead of just one, allowing for more
+  complex selection.
+- Selectors can now select and invoke arbitrary methods on an object with dynamic
+  dispatch selecting the most specialised method to invoke based the actual types
+  of the passed parameters.
+- Automatic numeric conversion to match method signatures in selectors.
+- 1-based array access, as for databases (and unlike Java) in list and arrays
+  in Esql.
+- Package restructured to improve clarity and coherence.
 
 ## [0.8.2] - 2022-02-03
 ### Added

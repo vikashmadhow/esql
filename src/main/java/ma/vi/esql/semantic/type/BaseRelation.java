@@ -31,13 +31,13 @@ import static ma.vi.esql.semantic.type.Types.UnknownType;
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 public class BaseRelation extends Relation {
-  public BaseRelation(Context context,
-                      UUID id,
-                      String name,
-                      String displayName,
-                      String description,
-                      List<Attribute> attributes,
-                      List<Column> columns,
+  public BaseRelation(Context                    context,
+                      UUID                       id,
+                      String                     name,
+                      String                     displayName,
+                      String                     description,
+                      List<Attribute>            attributes,
+                      List<Column>               columns,
                       List<ConstraintDefinition> constraints) {
     super(name);
     this.context = context;

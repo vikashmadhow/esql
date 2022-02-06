@@ -169,6 +169,10 @@ public class Result implements Iterator<Result.Row>,
     }
   }
 
+  public boolean hasColumn(String column) {
+    return columnNameToIndex.containsKey(column);
+  }
+
   /**
    * Returns the column with the specified name of the current row.
    */
@@ -183,8 +187,8 @@ public class Result implements Iterator<Result.Row>,
    * Returns the value of the column (without its metadata) at the specified
    * index of the current row.
    */
-  public <T> T value(int index) {
-    return (T)get(index).value();
+  public <T> T value(int column) {
+    return (T)get(column).value();
   }
 
   /**
@@ -201,8 +205,8 @@ public class Result implements Iterator<Result.Row>,
   /**
    * Returns the column definition at the specified index in the result.
    */
-  public ColumnMapping column(int index) {
-    return query.columns().get(index - 1);
+  public ColumnMapping column(int column) {
+    return query.columns().get(column - 1);
   }
 
   /**
@@ -321,14 +325,15 @@ public class Result implements Iterator<Result.Row>,
   }
 
   public class Row {
-    public int                 columnsCount()        { return Result.this.columnsCount(); }
-    public List<ColumnMapping> columns()             { return Result.this.columns();      }
-    public <T> ResultColumn<T> get(int column)       { return Result.this.get(column);    }
-    public <T> ResultColumn<T> get(String column)    { return Result.this.get(column);    }
-    public <T> T               value(int index)      { return Result.this.value(index);   }
-    public <T> T               value(String column)  { return Result.this.value(column);  }
-    public ColumnMapping       column(int index)     { return Result.this.column(index);  }
-    public ColumnMapping       column(String column) { return Result.this.column(column); }
+    public int                 columnsCount()              { return Result.this.columnsCount();    }
+    public List<ColumnMapping> columns     ()              { return Result.this.columns();         }
+    public boolean             hasColumn   (String column) { return Result.this.hasColumn(column); }
+    public <T> ResultColumn<T> get         (int    column) { return Result.this.get(column);       }
+    public <T> ResultColumn<T> get         (String column) { return Result.this.get(column);       }
+    public <T> T               value       (int    column) { return Result.this.value(column);     }
+    public <T> T               value       (String column) { return Result.this.value(column);     }
+    public ColumnMapping       column      (int    column) { return Result.this.column(column);    }
+    public ColumnMapping       column      (String column) { return Result.this.column(column);    }
   }
 
   /**

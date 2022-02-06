@@ -4,6 +4,17 @@
 
 package ma.vi.esql.syntax;
 
+import ma.vi.esql.exec.conditional.Break;
+import ma.vi.esql.exec.conditional.Continue;
+import ma.vi.esql.exec.conditional.If;
+import ma.vi.esql.exec.conditional.Imply;
+import ma.vi.esql.exec.function.*;
+import ma.vi.esql.exec.loop.For;
+import ma.vi.esql.exec.loop.ForEach;
+import ma.vi.esql.exec.loop.While;
+import ma.vi.esql.exec.variable.Assignment;
+import ma.vi.esql.exec.variable.Selector;
+import ma.vi.esql.exec.variable.VariableDecl;
 import ma.vi.esql.grammar.EsqlBaseListener;
 import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.semantic.type.Types;
@@ -11,7 +22,6 @@ import ma.vi.esql.syntax.define.*;
 import ma.vi.esql.syntax.expression.*;
 import ma.vi.esql.syntax.expression.arithmetic.*;
 import ma.vi.esql.syntax.expression.comparison.*;
-import ma.vi.esql.syntax.expression.function.*;
 import ma.vi.esql.syntax.expression.literal.BooleanLiteral;
 import ma.vi.esql.syntax.expression.literal.DateLiteral;
 import ma.vi.esql.syntax.expression.literal.FloatingPointLiteral;
@@ -24,10 +34,6 @@ import ma.vi.esql.syntax.expression.literal.*;
 import ma.vi.esql.syntax.expression.logical.And;
 import ma.vi.esql.syntax.expression.logical.Not;
 import ma.vi.esql.syntax.expression.logical.Or;
-import ma.vi.esql.syntax.expression.variable.Assignment;
-import ma.vi.esql.syntax.expression.variable.Selector;
-import ma.vi.esql.syntax.expression.variable.VariableDecl;
-import ma.vi.esql.syntax.loop.ForEach;
 import ma.vi.esql.syntax.modify.Delete;
 import ma.vi.esql.syntax.modify.Insert;
 import ma.vi.esql.syntax.modify.InsertRow;
@@ -142,7 +148,7 @@ public class SyntaxAnalyser extends EsqlBaseListener {
 
   @Override
   public void exitSelector(SelectorContext ctx) {
-    put(ctx, new Selector(context, get(ctx.on), get(ctx.member)));
+    put(ctx, new Selector(context, get(ctx.on), value(ctx.expressionList())));
   }
 
   @Override
@@ -151,7 +157,60 @@ public class SyntaxAnalyser extends EsqlBaseListener {
                          ctx.key != null ? ctx.key.getText() : null,
                          ctx.value.getText(),
                          get(ctx.expr()),
-                         value(ctx.expressions())));
+                         ctx.expressions() != null ? value(ctx.expressions())
+                                                   : emptyList()));
+  }
+
+  @Override
+  public void exitFor(ForContext ctx) {
+    put(ctx, new For(context,
+                     get(ctx.init),
+                     get(ctx.condition),
+                     get(ctx.step),
+                     ctx.expressions() != null ? value(ctx.expressions())
+                                               : emptyList()));
+  }
+
+  @Override
+  public void exitWhile(WhileContext ctx) {
+    put(ctx, new While(context,
+                       get(ctx.expr()),
+                       ctx.expressions() != null ? value(ctx.expressions())
+                                                 : emptyList()));
+  }
+
+  @Override
+  public void exitIf(IfContext ctx) {
+    put(ctx, new If(context, get(ctx.imply()),
+                             ctx.elseIf() != null
+                               ? ctx.elseIf().stream()
+                                    .map(e -> (Imply)get(e)).toList()
+                               : null,
+                             ctx.expressions() != null
+                               ? value(ctx.expressions())
+                               : emptyList()));
+  }
+
+  @Override
+  public void exitImply(ImplyContext ctx) {
+    put(ctx, new Imply(context,
+                       get(ctx.expr()),
+                       value(ctx.expressions())));
+  }
+
+  @Override
+  public void exitElseIf(ElseIfContext ctx) {
+    put(ctx, get(ctx.imply()));
+  }
+
+  @Override
+  public void exitBreak(BreakContext ctx) {
+    put(ctx, new Break(context));
+  }
+
+  @Override
+  public void exitContinue(ContinueContext ctx) {
+    put(ctx, new Continue(context));
   }
 
   @Override
