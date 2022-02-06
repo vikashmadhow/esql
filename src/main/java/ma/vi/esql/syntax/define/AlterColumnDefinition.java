@@ -5,6 +5,8 @@
 package ma.vi.esql.syntax.define;
 
 import ma.vi.base.tuple.T2;
+import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
@@ -63,14 +65,14 @@ public class AlterColumnDefinition extends Define {
   }
 
   @Override
-  protected String trans(Target target, EsqlPath path, PMap<String, Object> parameters) {
+  protected String trans(Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
     return (toName() == null ? "" : toName() + ' ')
-         + (toType() == null ? "" : computeType(path.add(this)).translate(target, path, parameters) + ' ')
+         + (toType() == null ? "" : computeType(path.add(this)).translate(target, esqlCon, path, parameters, env) + ' ')
          + (setNotNull() ? "null " : "")
          + (dropNotNull() ? "not null " : "")
-         + (setDefault() != null ? "default " + setDefault().translate(target, path.add(setDefault()), parameters) + ' ' : "")
+         + (setDefault() != null ? "default " + setDefault().translate(target, esqlCon, path.add(setDefault()), parameters, env) + ' ' : "")
          + (dropDefault() ? "no default " : "")
-         + (target == ESQL ? (metadata() != null ? metadata().translate(target, path.add(metadata()), parameters) : "") : "");
+         + (target == ESQL ? (metadata() != null ? metadata().translate(target, esqlCon, path.add(metadata()), parameters, env) : "") : "");
   }
 
   public String toName() {

@@ -4,11 +4,12 @@
 
 package ma.vi.esql.function;
 
+import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.expression.Expression;
 import ma.vi.esql.syntax.expression.function.FunctionCall;
-import ma.vi.esql.translation.Translatable;
 
 import java.util.Arrays;
 import java.util.Iterator;
@@ -37,22 +38,22 @@ public class BinFunction extends Function {
   }
 
   @Override
-  public String translate(FunctionCall call, Translatable.Target target, EsqlPath path) {
+  public String translate(FunctionCall call, Target target, EsqlConnection esqlCon, EsqlPath path, Environment env) {
     List<Expression<?, ?>> args = call.arguments();
     Iterator<Expression<?, ?>> i = args.iterator();
     Expression<?, ?> value = i.next();
 
     if (target == POSTGRESQL) {
-      StringBuilder func = new StringBuilder("_core.range((" + value.translate(target, path.add(value)) + ")::double precision");
+      StringBuilder func = new StringBuilder("_core.range((" + value.translate(target, esqlCon, path.add(value), env) + ")::double precision");
       while (i.hasNext()) {
         Expression<?, ?> v = i.next();
-        func.append(", (").append(v.translate(target, path.add(v))).append(")::int");
+        func.append(", (").append(v.translate(target, esqlCon, path.add(v), env)).append(")::int");
       }
       func.append(')');
       return func.toString();
 
     } else if (target == SQLSERVER) {
-      StringBuilder func = new StringBuilder("_core.range(cast(" + value.translate(target, path.add(value)) + " as float)");
+      StringBuilder func = new StringBuilder("_core.range(cast(" + value.translate(target, esqlCon, path.add(value), env) + " as float)");
       boolean first = true;
       while (i.hasNext()) {
         if (first) {
@@ -62,16 +63,16 @@ public class BinFunction extends Function {
           func.append(',');
         }
         Expression<?, ?> v = i.next();
-        func.append(v.translate(target, path.add(v)));
+        func.append(v.translate(target, esqlCon, path.add(v), env));
       }
       func.append("')");
       return func.toString();
 
     } else {
-      StringBuilder func = new StringBuilder("binf(" + value.translate(target, path.add(value)));
+      StringBuilder func = new StringBuilder("binf(" + value.translate(target, esqlCon, path.add(value), env));
       while (i.hasNext()) {
         Expression<?, ?> v = i.next();
-        func.append(", ").append(v.translate(target, path.add(v)));
+        func.append(", ").append(v.translate(target, esqlCon, path.add(v), env));
       }
       func.append(')');
       return func.toString();

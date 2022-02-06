@@ -5,6 +5,8 @@
 package ma.vi.esql.syntax.expression.comparison;
 
 import ma.vi.base.tuple.T2;
+import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.Context;
@@ -59,14 +61,14 @@ public class IsNull extends SingleSubExpression {
   }
 
   @Override
-  protected String trans(Target target, EsqlPath path, PMap<String, Object> parameters) {
+  protected String trans(Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
     switch (target) {
       case JSON:
       case JAVASCRIPT:
-        String e = expr().translate(target, path.add(expr()), parameters) + (not() ? " !== null" : " === null");
+        String e = expr().translate(target, esqlCon, path.add(expr()), parameters, env) + (not() ? " !== null" : " === null");
         return target == JSON ? '"' + escapeJsonString(e) + '"' : e;
       default:
-        return expr().translate(target, path.add(expr()), parameters) + " is" + (not() ? " not" : "") + " null";
+        return expr().translate(target, esqlCon, path.add(expr()), parameters, env) + " is" + (not() ? " not" : "") + " null";
     }
   }
 

@@ -5,6 +5,8 @@
 package ma.vi.esql.syntax;
 
 import ma.vi.base.tuple.T2;
+import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.exec.env.Environment;
 import org.pcollections.PMap;
 
 import java.util.List;
@@ -47,7 +49,7 @@ public class NoOp extends Esql<String, Void> {
   }
 
   @Override
-  public Void trans(Target target, EsqlPath path, PMap<String, Object> parameters) {
+  public Void trans(Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
     return null;
   }
 }

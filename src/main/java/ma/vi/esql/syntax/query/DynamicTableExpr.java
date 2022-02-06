@@ -5,6 +5,8 @@
 package ma.vi.esql.syntax.query;
 
 import ma.vi.base.tuple.T2;
+import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.semantic.type.Selection;
 import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.syntax.Context;
@@ -154,15 +156,15 @@ public class DynamicTableExpr extends AbstractAliasTableExpr {
 
   @Override
   protected String trans(Target target,
-                         EsqlPath path,
-                         PMap<String, Object> parameters) {
+                         EsqlConnection esqlCon, EsqlPath path,
+                         PMap<String, Object> parameters, Environment env) {
     return "(values "
          + rows().stream()
-                 .map(r -> r.translate(target, path.add(r), parameters))
+                 .map(r -> r.translate(target, esqlCon, path.add(r), parameters, env))
                  .collect(joining(", "))
          + ") as \"" + alias() + '"'
          + "(" + columns().stream()
-                          .map(c -> c.translate(target, path.add(c), parameters))
+                          .map(c -> c.translate(target, esqlCon, path.add(c), parameters, env))
                           .collect(joining(", "))
          + ")";
   }

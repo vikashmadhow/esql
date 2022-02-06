@@ -31,6 +31,8 @@ import static java.sql.ResultSet.TYPE_SCROLL_INSENSITIVE;
 import static java.util.Collections.unmodifiableList;
 import static java.util.Collections.unmodifiableMap;
 import static ma.vi.base.string.Strings.random;
+import static ma.vi.esql.database.Database.NULL_DB;
+import static ma.vi.esql.exec.EsqlConnection.NULL_CONNECTION;
 import static ma.vi.esql.translation.SqlServerTranslator.ADD_IIF;
 
 /**
@@ -188,7 +190,7 @@ public abstract class QueryUpdate extends MetadataContainer<QueryTranslation> {
         query.append(", ");
       }
       Column column = c.b;
-      query.append(column.translate(target, path.add(column), ADD_IIF));
+      query.append(column.translate(target, null, path.add(column), ADD_IIF, null));
       String colName = column.name();
       columnMappings.put(colName, new ColumnMapping(itemIndex,
                                                     column,
@@ -217,7 +219,7 @@ public abstract class QueryUpdate extends MetadataContainer<QueryTranslation> {
         Expression<?, String> attributeValue = column.b.expression();
         if (optimiseAttributesLoading && (attributeValue instanceof Literal
                                        || attributeValue instanceof UncomputedExpression)) {
-          resultAttributes.put(attrName, attributeValue.value(target, path));
+          resultAttributes.put(attrName, attributeValue.exec(target, NULL_CONNECTION, path, NULL_DB.structure()));
         } else if (addAttributes) {
           itemIndex += 1;
           if (itemIndex > 1) {
@@ -247,7 +249,7 @@ public abstract class QueryUpdate extends MetadataContainer<QueryTranslation> {
         Expression<?, String> attributeValue = col.b.expression();
         if (optimiseAttributesLoading &&  (attributeValue instanceof Literal
                                         || attributeValue instanceof UncomputedExpression)) {
-          mapping.attributes().put(attrName, attributeValue.value(target, path));
+          mapping.attributes().put(attrName, attributeValue.exec(target, NULL_CONNECTION, path, NULL_DB.structure()));
         } else if (addAttributes) {
           itemIndex += 1;
           query.append(", ");
@@ -270,7 +272,7 @@ public abstract class QueryUpdate extends MetadataContainer<QueryTranslation> {
                                   Target target,
                                   EsqlPath path,
                                   String alias) {
-    query.append(expression.translate(target, path.add(expression), ADD_IIF));
+    query.append(expression.translate(target, null, path.add(expression), ADD_IIF, null));
     if (alias != null) {
       query.append(" \"").append(alias).append('"');
     }
@@ -391,12 +393,12 @@ public abstract class QueryUpdate extends MetadataContainer<QueryTranslation> {
   }
 
   @Override
-  protected Object postTransformExec(EsqlConnection esqlCon,
-                                     EsqlPath       path,
+  protected Object postTransformExec(Target target, EsqlConnection esqlCon,
+                                     EsqlPath path,
                                      Environment env) {
     Database db = esqlCon.database();
     Connection con = esqlCon.con();
-    QueryTranslation q = translate(db.target(), path);
+    QueryTranslation q = translate(db.target(), esqlCon, path, env);
     try {
       Selection selection = computeType(path.add(this));
       if (!selection.columns().isEmpty()) {

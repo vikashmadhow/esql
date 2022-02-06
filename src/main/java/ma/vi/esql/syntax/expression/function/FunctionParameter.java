@@ -5,6 +5,8 @@
 package ma.vi.esql.syntax.expression.function;
 
 import ma.vi.base.tuple.T2;
+import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.semantic.scope.Symbol;
 import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.syntax.Context;
@@ -54,15 +56,15 @@ public class FunctionParameter extends Esql<String, String> implements Symbol {
   }
 
   @Override
-  protected String trans(Target target, EsqlPath path, PMap<String, Object> parameters) {
+  protected String trans(Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
     return switch (target) {
-      case ESQL -> name() + " : " + type().translate(target, path, parameters);
+      case ESQL -> name() + " : " + type().translate(target, esqlCon, path, parameters, env);
       case JSON, JAVASCRIPT -> name();
       default ->
         /*
          * for databases drop name as it is not supported in most cases
          */
-        type().translate(target, path, parameters) + ' ' + name();
+        type().translate(target, esqlCon, path, parameters, env) + ' ' + name();
     };
   }
 

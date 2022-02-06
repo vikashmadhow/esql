@@ -98,7 +98,7 @@ dependencies {
   implementation("com.vikmad:base:latest.release")
 
   implementation("org.postgresql:postgresql:42.3.1")
-  implementation('com.microsoft.sqlserver:mssql-jdbc:9.4.1.jre16')
+  implementation('com.microsoft.sqlserver:mssql-jdbc:10.2.0.jre17')
   implementation("org.mariadb.jdbc:mariadb-java-client:2.7.3")
   implementation("mysql:mysql-connector-java:8.0.25")
   implementation('org.hsqldb:hsqldb:2.6.1')
@@ -116,12 +116,13 @@ test {
   testLogging {
     events "passed", "skipped", "failed"
   }
+  jvmArgs("--enable-preview")
 }
 
 group = 'com.vikmad'
 archivesBaseName = 'esql'
-sourceCompatibility = JavaVersion.VERSION_16
-version = "0.8.2"
+sourceCompatibility = JavaVersion.VERSION_17
+version = "0.8.3"
 ext.isReleaseVersion = !version.endsWith("SNAPSHOT")
 
 java {
@@ -132,6 +133,12 @@ java {
 
 tasks.withType(Jar) {
   duplicatesStrategy = DuplicatesStrategy.INCLUDE
+}
+
+compileJava {
+  doFirst {
+    options.compilerArgs = ['--enable-preview']
+  }
 }
 
 //compileJava {

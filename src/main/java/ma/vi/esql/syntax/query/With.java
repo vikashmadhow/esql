@@ -5,6 +5,8 @@
 package ma.vi.esql.syntax.query;
 
 import ma.vi.base.tuple.T2;
+import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.semantic.type.Selection;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
@@ -63,7 +65,7 @@ public class With extends QueryUpdate {
   }
 
   @Override
-  public QueryTranslation trans(Target target, EsqlPath path, PMap<String, Object> parameters) {
+  public QueryTranslation trans(Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
     StringBuilder st = new StringBuilder("with ");
     if (recursive() && (target == POSTGRESQL || target == HSQLDB)) {
       st.append("recursive ");
@@ -73,10 +75,10 @@ public class With extends QueryUpdate {
     for (Cte cte: ctes()) {
       if (first) { first = false; }
       else       { st.append(", "); }
-      st.append(cte.translate(target, path.add(cte), parameters).translation());
+      st.append(cte.translate(target, esqlCon, path.add(cte), parameters, env).translation());
     }
 
-    QueryTranslation q = query().translate(target, path.add(query()), parameters);
+    QueryTranslation q = query().translate(target, esqlCon, path.add(query()), parameters, env);
     st.append(' ').append(q.translation());
     return new QueryTranslation(this, st.toString(),
                                 q.columns(),

@@ -34,8 +34,11 @@ public class Types {
 
   public static Type findTypeOf(String typeName) {
     typeName = typeName.trim();
-    if (typeName.endsWith("[]")) {
-      return typeOf(typeName.substring(0, typeName.length() - 2)).array();
+    if (typeName.startsWith("[")) {
+      int pos = typeName.indexOf(']');
+      return pos != -1
+           ? typeOf(typeName.substring(pos + 1)).array()
+           : null;
     } else {
       String typeNameLower = typeName.toLowerCase();
       if (typeNameLower.startsWith("character")) {
@@ -73,6 +76,7 @@ public class Types {
    */
   public static boolean instanceOf(Object value, Type type) {
     return (value == null)
+        || (type == TopType)
         || (type == StringType        && value instanceof CharSequence)
         || (type == TextType          && value instanceof CharSequence)
         || (type == ByteType          && value instanceof Number)
@@ -562,8 +566,8 @@ public class Types {
     postgresqlTypeMapping.put("uuid",             "uuid");
     postgresqlTypeMapping.put("json",             "json");
     postgresqlTypeMapping.put("jsonb",            "json");
-    postgresqlTypeMapping.put("array",            "text[]");
-    postgresqlTypeMapping.put("anyarray",         "text[]");
+    postgresqlTypeMapping.put("array",            "[]text");
+    postgresqlTypeMapping.put("anyarray",         "[]text");
     postgresqlTypeMapping.put("name",             "text");
     postgresqlTypeMapping.put("regproc",          "long");
     postgresqlTypeMapping.put("pg_node_tree",     "text");
@@ -616,7 +620,7 @@ public class Types {
     hsqldbTypeMapping.put("timestamp",     "datetime");
     hsqldbTypeMapping.put("interval",      "interval");
     hsqldbTypeMapping.put("uuid",          "uuid");
-    hsqldbTypeMapping.put("array",         "text[]");
+    hsqldbTypeMapping.put("array",         "[]text");
 
     mariadbTypeMapping.put("tinyint",       "byte");
     mariadbTypeMapping.put("smallint",      "short");
@@ -645,9 +649,9 @@ public class Types {
     mariadbTypeMapping.put("interval",      "interval");
     mariadbTypeMapping.put("uuid",          "uuid");
     mariadbTypeMapping.put("json",          "json");
-    mariadbTypeMapping.put("array",         "text[]");
-    mariadbTypeMapping.put("set",           "text[]");
-    mariadbTypeMapping.put("enum",          "text[]");
+    mariadbTypeMapping.put("array",         "[]text");
+    mariadbTypeMapping.put("set",           "[]text");
+    mariadbTypeMapping.put("enum",          "[]text");
 
     typeSynonyms.put("varchar",                     "text");
     typeSynonyms.put("boolean",                     "bool");

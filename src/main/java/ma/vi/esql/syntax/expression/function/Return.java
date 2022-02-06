@@ -47,15 +47,15 @@ public class Return extends Expression<String, Return> {
   }
 
   @Override
-  public Return trans(Target target, EsqlPath path, PMap<String, Object> parameters) {
+  public Return trans(Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
     return this;
   }
 
   @Override
-  public Object exec(EsqlConnection esqlCon,
-                     EsqlPath       path,
+  public Object exec(Target target, EsqlConnection esqlCon,
+                     EsqlPath path,
                      Environment env) {
-    return value().exec(esqlCon, path.add(value()), env);
+    return value().exec(target, esqlCon, path.add(value()), env);
   }
 
   public Expression<?, ?> value() {

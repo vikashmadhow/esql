@@ -4,13 +4,14 @@
 
 package ma.vi.esql.function.string;
 
+import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.function.Function;
 import ma.vi.esql.function.FunctionParam;
 import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.expression.Expression;
 import ma.vi.esql.syntax.expression.function.FunctionCall;
-import ma.vi.esql.translation.Translatable;
 
 import java.util.List;
 
@@ -30,17 +31,17 @@ public class Length extends Function {
   }
 
   @Override
-  public String translate(FunctionCall call, Translatable.Target target, EsqlPath path) {
+  public String translate(FunctionCall call, Target target, EsqlConnection esqlCon, EsqlPath path, Environment env) {
     List<Expression<?, ?>> args = call.arguments();
     if (target == SQLSERVER) {
-      return "len(" + args.get(0).translate(target, path.add(args.get(0))) + ')';
+      return "len(" + args.get(0).translate(target, esqlCon, path.add(args.get(0)), env) + ')';
 
     } else if (target == JAVASCRIPT) {
-      return "(" + args.get(0).translate(target, path.add(args.get(0))) + ").length";
+      return "(" + args.get(0).translate(target, esqlCon, path.add(args.get(0)), env) + ").length";
 
     } else {
       // Postgres, ESQL and everything else
-      return name + '(' + args.get(0).translate(target, path.add(args.get(0))) + ')';
+      return name + '(' + args.get(0).translate(target, esqlCon, path.add(args.get(0)), env) + ')';
     }
   }
 }

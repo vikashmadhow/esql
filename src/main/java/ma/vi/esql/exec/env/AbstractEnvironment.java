@@ -14,7 +14,17 @@ public abstract class AbstractEnvironment implements Environment {
   }
 
   public AbstractEnvironment(Environment parent) {
+    this(null, parent);
+  }
+
+  public AbstractEnvironment(String name, Environment parent) {
+    this.name = name != null ? name : "Environment";
     this.parent = parent;
+  }
+
+  @Override
+  public String name() {
+    return name;
   }
 
   @Override
@@ -45,6 +55,11 @@ public abstract class AbstractEnvironment implements Environment {
   }
 
   @Override
+  public String toString() {
+    return name;
+  }
+
+  @Override
   public Environment parent() {
     return parent;
   }
@@ -52,4 +67,6 @@ public abstract class AbstractEnvironment implements Environment {
   protected final Map<String, Object> values = new HashMap<>();
 
   protected final Environment parent;
+
+  public final String name;
 }

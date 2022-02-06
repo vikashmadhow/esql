@@ -5,6 +5,8 @@
 package ma.vi.esql.syntax.query;
 
 import ma.vi.base.tuple.T2;
+import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
@@ -58,24 +60,24 @@ public class JoinTableExpr extends AbstractJoinTableExpr {
   }
 
   @Override
-  protected String trans(Target target, EsqlPath path, PMap<String, Object> parameters) {
+  protected String trans(Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
     if (lateral()) {
       if (target == Target.SQLSERVER) {
-        return left().translate(target, path.add(left()), parameters)
+        return left().translate(target, esqlCon, path.add(left()), parameters, env)
              + " outer apply "
-             + right().translate(target, path.add(right()), parameters);
+             + right().translate(target, esqlCon, path.add(right()), parameters, env);
       } else {
-        return left().translate(target, path.add(left()), parameters)
+        return left().translate(target, esqlCon, path.add(left()), parameters, env)
              + (joinType() == null ? " join " : ' ' + joinType() + " join ")
              + "lateral "
-             + right().translate(target, path.add(right()), parameters) + " on "
-             + on().translate(target, path.add(on()), parameters);
+             + right().translate(target, esqlCon, path.add(right()), parameters, env) + " on "
+             + on().translate(target, esqlCon, path.add(on()), parameters, env);
       }
     } else {
-      return left().translate(target, path.add(left()), parameters)
+      return left().translate(target, esqlCon, path.add(left()), parameters, env)
            + (joinType() == null ? " join " : ' ' + joinType() + " join ")
-           + right().translate(target, path.add(right()), parameters) + " on "
-           + on().translate(target, path.add(on()), parameters);
+           + right().translate(target, esqlCon, path.add(right()), parameters, env) + " on "
+           + on().translate(target, esqlCon, path.add(on()), parameters, env);
     }
   }
 

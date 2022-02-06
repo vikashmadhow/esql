@@ -5,6 +5,8 @@
 package ma.vi.esql.syntax.expression;
 
 import ma.vi.base.tuple.T2;
+import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
@@ -60,17 +62,17 @@ public class SelectExpression extends Expression<String, String> {
   }
 
   @Override
-  protected String trans(Target target, EsqlPath path, PMap<String, Object> parameters) {
+  protected String trans(Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
     if (target == Target.ESQL) {
       Select sel = select();
       StringBuilder st = new StringBuilder();
-      st.append("(from ").append(sel.tables().translate(target, path.add(sel.tables()), parameters)).append(" select ");
+      st.append("(from ").append(sel.tables().translate(target, esqlCon, path.add(sel.tables()), parameters, env)).append(" select ");
       if (sel.distinct()) {
         st.append("distinct ");
         List<Expression<?, String>> distinctOn = sel.distinctOn();
         if (distinctOn != null && !distinctOn.isEmpty()) {
           st.append("on (")
-            .append(distinctOn.stream().map(e -> e.translate(target, path.add(e), parameters)).collect(joining(", ")))
+            .append(distinctOn.stream().map(e -> e.translate(target, esqlCon, path.add(e), parameters, env)).collect(joining(", ")))
             .append(") ");
         }
       }
@@ -79,27 +81,27 @@ public class SelectExpression extends Expression<String, String> {
       if (col.name() != null) {
         st.append(col.name()).append(':');
       }
-      st.append(col.expression().translate(target, path.add(col.expression()), parameters));
+      st.append(col.expression().translate(target, esqlCon, path.add(col.expression()), parameters, env));
 
       if (sel.where() != null) {
-        st.append(" where ").append(sel.where().translate(target, path.add(sel.where()), parameters));
+        st.append(" where ").append(sel.where().translate(target, esqlCon, path.add(sel.where()), parameters, env));
       }
       if (sel.orderBy() != null && !sel.orderBy().isEmpty()) {
         st.append(" order by ")
           .append(sel.orderBy().stream()
-                     .map(e -> e.translate(target, path.add(e), parameters))
+                     .map(e -> e.translate(target, esqlCon, path.add(e), parameters, env))
                      .collect(joining(", ")));
       }
       if (sel.offset() != null) {
-        st.append(" offset ").append(sel.offset().translate(target, path.add(sel.offset()), parameters));
+        st.append(" offset ").append(sel.offset().translate(target, esqlCon, path.add(sel.offset()), parameters, env));
       }
-      if (sel.limit() != null) {
-        st.append(" limit ").append(sel.limit().translate(target, path.add(sel.limit()), parameters));
-      }
+//      if (sel.limit() != null) {
+//        st.append(" limit ").append(sel.limit().translate(target, esqlCon, path.add(sel.limit()), parameters, env));
+//      }
       st.append(')');
       return st.toString();
     } else {
-      return "(" + select().translate(target, path.add(select()), parameters.plusAll(DONT_ADD_IIF)).translation() + ")";
+      return "(" + select().translate(target, esqlCon, path.add(select()), parameters.plusAll(DONT_ADD_IIF), env).translation() + ")";
     }
   }
 

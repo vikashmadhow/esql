@@ -5,6 +5,8 @@
 package ma.vi.esql.semantic.type;
 
 import ma.vi.base.tuple.T2;
+import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.semantic.scope.Symbol;
 import ma.vi.esql.syntax.Copy;
 import ma.vi.esql.syntax.EsqlPath;
@@ -87,7 +89,7 @@ public interface Type extends Symbol, Copy<Type>, Translatable<String> {
   }
 
   @Override
-  default String translate(Target target, EsqlPath path, PMap<String, Object> parameters) {
+  default String translate(Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
     return name();
   }
 

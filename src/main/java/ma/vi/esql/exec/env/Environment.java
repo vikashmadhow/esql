@@ -7,6 +7,10 @@ import ma.vi.esql.semantic.scope.SymbolAlreadyDefinedException;
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 public interface Environment {
+  default String name() {
+    return "Environment";
+  }
+
   boolean has(String symbol);
 
   default boolean knows(String symbol) {

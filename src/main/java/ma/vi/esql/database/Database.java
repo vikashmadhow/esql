@@ -17,6 +17,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -287,4 +288,130 @@ public interface Database {
   void constraint(Connection con, UUID tableId, ConstraintDefinition constraint);
 
   void dropConstraint(Connection con, UUID tableId, String constraintName);
+
+  Database NULL_DB = new Database() {
+    @Override
+    public void init(Map<String, Object> config) {}
+
+    @Override
+    public Map<String, Object> config() {
+      return Collections.emptyMap();
+    }
+
+    @Override
+    public Structure structure() {
+      return new Structure(this);
+    }
+
+    @Override
+    public void postInit(Connection con, Structure structure) {}
+
+    @Override
+    public Translatable.Target target() {
+      return Translatable.Target.ESQL;
+    }
+
+    @Override
+    public void addEsqlTransformer(EsqlTransformer transformer) {}
+
+    @Override
+    public boolean removeEsqlTransformer(EsqlTransformer transformer) {
+      return false;
+    }
+
+    @Override
+    public List<EsqlTransformer> esqlTransformers() {
+      return Collections.emptyList();
+    }
+
+    @Override
+    public Connection pooledConnection(boolean autoCommit, int isolationLevel, String username, String password) {
+      return null;
+    }
+
+    @Override
+    public Connection rawConnection(boolean autoCommit, int isolationLevel, String username, String password) {
+      return null;
+    }
+
+    @Override
+    public <T> T[] getArray(ResultSet rs, String index, Class<T> componentType) throws SQLException {
+      return null;
+    }
+
+    @Override
+    public <T> T[] getArray(ResultSet rs, int index, Class<T> componentType) throws SQLException {
+      return null;
+    }
+
+    @Override
+    public void setArray(PreparedStatement ps, int paramIndex, Object array) throws SQLException {
+    }
+
+    @Override
+    public void addTable(Connection con, BaseRelation table) {
+    }
+
+    @Override
+    public UUID tableId(Connection con, String tableName) {
+      return null;
+    }
+
+    @Override
+    public BaseRelation updateTable(Connection con, BaseRelation table) {
+      return null;
+    }
+
+    @Override
+    public void renameTable(Connection con, UUID tableId, String name) {
+    }
+
+    @Override
+    public void clearTableMetadata(Connection con, UUID tableId) {
+    }
+
+    @Override
+    public void tableMetadata(Connection con, UUID tableId, Metadata metadata) {
+    }
+
+    @Override
+    public void dropTable(Connection con, UUID tableId) {
+    }
+
+    @Override
+    public void column(Connection con, UUID tableId, Column column) {
+    }
+
+    @Override
+    public void columnName(Connection con, UUID columnId, String name) {
+    }
+
+    @Override
+    public void columnType(Connection con, UUID columnId, String type) {
+    }
+
+    @Override
+    public void defaultValue(Connection con, UUID columnId, String defaultValue) {
+    }
+
+    @Override
+    public void notNull(Connection con, UUID columnId, String notNull) {
+    }
+
+    @Override
+    public void columnMetadata(Connection con, UUID columnId, Metadata metadata) {
+    }
+
+    @Override
+    public void dropColumn(Connection con, UUID columnId) {
+    }
+
+    @Override
+    public void constraint(Connection con, UUID tableId, ConstraintDefinition constraint) {
+    }
+
+    @Override
+    public void dropConstraint(Connection con, UUID tableId, String constraintName) {
+    }
+  };
 }

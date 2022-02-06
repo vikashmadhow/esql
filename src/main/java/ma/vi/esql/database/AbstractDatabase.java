@@ -37,6 +37,7 @@ import static java.util.Collections.*;
 import static java.util.stream.Collectors.joining;
 import static ma.vi.base.string.Escape.escapeSqlString;
 import static ma.vi.esql.builder.Attributes.*;
+import static ma.vi.esql.exec.EsqlConnection.NULL_CONNECTION;
 import static ma.vi.esql.syntax.define.ConstraintDefinition.ForeignKeyChangeAction.fromInformationSchema;
 import static ma.vi.esql.syntax.define.ConstraintDefinition.Type.fromMarker;
 import static ma.vi.esql.translation.Translatable.Target.*;
@@ -395,9 +396,9 @@ public abstract class AbstractDatabase implements Database {
                            "relation_id         uuid    not null, " +
                            "type                char    not null, " +
                            "check_expr          text, " +
-                           "source_columns      string[]," +
+                           "source_columns      []string," +
                            "target_relation_id  uuid," +
-                           "target_columns      string[]," +
+                           "target_columns      []string," +
                            "forward_cost        int     not null default 1," +
                            "reverse_cost        int     not null default 2," +
                            "on_update           char," +
@@ -421,8 +422,8 @@ public abstract class AbstractDatabase implements Database {
                            "name                    string  not null, " +
                            "relation_id             uuid    not null, " +
                            "unique_index            bool, " +
-                           "columns                 int[]," +
-                           "expressions             text[]," +
+                           "columns                 []int," +
+                           "expressions             []text," +
                            "partial_index_condition text," +
 
                            "constraint _core_indices_pk        primary key(_id), " +
@@ -496,9 +497,9 @@ public abstract class AbstractDatabase implements Database {
                 "('" + constraints.column("relation_id").id()         + "', '" + constraintsId + "', 'relation_id',         3, 'uuid',     true), " +
                 "('" + constraints.column("type").id()                + "', '" + constraintsId + "', 'type',                4, 'char',     true), " +
                 "('" + constraints.column("check_expr").id()          + "', '" + constraintsId + "', 'check_expr',          5, 'text',     false), " +
-                "('" + constraints.column("source_columns").id()      + "', '" + constraintsId + "', 'source_columns',      6, 'string[]', false), " +
+                "('" + constraints.column("source_columns").id()      + "', '" + constraintsId + "', 'source_columns',      6, '[]string', false), " +
                 "('" + constraints.column("target_relation_id").id()  + "', '" + constraintsId + "', 'target_relation_id',  7, 'uuid',     false), " +
-                "('" + constraints.column("target_columns").id()      + "', '" + constraintsId + "', 'target_columns',      8, 'string[]', false), " +
+                "('" + constraints.column("target_columns").id()      + "', '" + constraintsId + "', 'target_columns',      8, '[]string', false), " +
                 "('" + constraints.column("forward_cost").id()        + "', '" + constraintsId + "', 'forward_cost',        9, 'int',      true), " +
                 "('" + constraints.column("reverse_cost").id()        + "', '" + constraintsId + "', 'reverse_cost',       10, 'int',      true), " +
                 "('" + constraints.column("on_update").id()           + "', '" + constraintsId + "', 'on_update',          11, 'char',     false), " +
@@ -515,8 +516,8 @@ public abstract class AbstractDatabase implements Database {
                 "('" + indices.column("name").id()                    + "', '" + indicesId + "', 'name',                    2, 'string', true), " +
                 "('" + indices.column("relation_id").id()             + "', '" + indicesId + "', 'relation_id',             3, 'uuid',   true), " +
                 "('" + indices.column("unique_index").id()            + "', '" + indicesId + "', 'unique_index',            4, 'bool',   false), " +
-                "('" + indices.column("columns").id()                 + "', '" + indicesId + "', 'columns',                 5, 'int[]',  false), " +
-                "('" + indices.column("expressions").id()             + "', '" + indicesId + "', 'expressions',             6, 'text[]', false), " +
+                "('" + indices.column("columns").id()                 + "', '" + indicesId + "', 'columns',                 5, '[]int',  false), " +
+                "('" + indices.column("expressions").id()             + "', '" + indicesId + "', 'expressions',             6, '[]text', false), " +
                 "('" + indices.column("partial_index_condition").id() + "', '" + indicesId + "', 'partial_index_condition', 7, 'text',   false)"));
 
 //      // add columns as children of relations
@@ -1060,12 +1061,12 @@ public abstract class AbstractDatabase implements Database {
 //    }
   }
 
-//    private int[] intArrayFrom(String array) {
+//    private []int intArrayFrom(String array) {
 //        if (array == null || array.trim().length() == 0) {
-//            return new int[0];
+//            return new [0]int;
 //        } else {
 //            String a[] = array.substring(1, array.length() - 1).split(",");
-//            int[] values = new int[a.length];
+//            []int values = new [a.length]int;
 //            for (int i=0; i < a.length; i++) {
 //                values[i] = Integer.parseInt(a[i]);
 //            }
@@ -1296,7 +1297,10 @@ public abstract class AbstractDatabase implements Database {
        * Check if the CAN_DELETE attribute is set on this field and save
        * its value, which controls whether this field can later be dropped.
        */
-      Boolean canDelete = column.metadata() == null ? null : column.metadata().evaluateAttribute(CAN_DELETE);
+      Boolean canDelete = column.metadata() == null ? null : column.metadata().evaluateAttribute(CAN_DELETE,
+                                                                                                 econ,
+                                                                                                 new EsqlPath(column.metadata()),
+                                                                                                 econ.database().structure());
       UUID columnId = column.id();
       if (columnId == null) {
         Map<String, Attribute> attributes = new LinkedHashMap<>();
@@ -1536,7 +1540,7 @@ public abstract class AbstractDatabase implements Database {
         Parser p = new Parser(structure());
         Insert insert = p.parse("insert into _core.relation_attributes" +
                                     "(_id, relation_id, attribute, value) values" +
-                                    "(newid(), :relation, :name, :value)", "insert");
+                                    "(newid(), @relation, @name, @value)", "insert");
         for (Attribute attr: metadata.attributes().values()) {
           Expression<?, String> value = attr.attributeValue();
           econ.exec(insert,
@@ -1588,28 +1592,28 @@ public abstract class AbstractDatabase implements Database {
       "insert into _core.columns("
           + "  _id, _can_delete, relation_id, name, "
           + "  derived_column, type, not_null, expression, seq) "
-          + "values(:id, :canDelete, :relation, :name, "
-          + "       :derivedColumn, :type, :nonNull, :expression, "
-          + "       coalesce(from _core.columns select max(seq) where relation_id=:relation, 0) + 1)";
+          + "values(@id, @canDelete, @relation, @name, "
+          + "       @derivedColumn, @type, @nonNull, @expression, "
+          + "       coalesce(from _core.columns select max(seq) where relation_id=@relation, 0) + 1)";
 
   private static final String INSERT_COLUMN_ATTRIBUTE =
       "insert into _core.column_attributes("
           + "  _id, column_id, attribute, value) "
-          + "values(newid(), :columnId, :name, :value)";
+          + "values(newid(), @columnId, @name, @value)";
 
   private static final String INSERT_TABLE_ATTRIBUTE =
       "insert into _core.relation_attributes"
           + "(_id, relation_id, attribute, value) "
-          + "values(newid(), :tableId, :name, :value)";
+          + "values(newid(), @tableId, @name, @value)";
 
   private static final String INSERT_CONSTRAINT =
       "insert into _core.constraints"
           + "(_id, name, relation_id, type, check_expr, source_columns, "
           + "target_relation_id, target_columns, forward_cost, reverse_cost, "
           + "on_update, on_delete) values"
-          + "(newid(), :name, :relation, :type, :checkExpr, :sourceColumns, "
-          + " :targetRelation, :targetColumns, :forwardCost, :reverseCost, "
-          + " :onUpdate, :onDelete)";
+          + "(newid(), @name, @relation, @type, @checkExpr, @sourceColumns, "
+          + " @targetRelation, @targetColumns, @forwardCost, @reverseCost, "
+          + " @onUpdate, @onDelete)";
 
   private static final System.Logger log = System.getLogger(AbstractDatabase.class.getName());
 

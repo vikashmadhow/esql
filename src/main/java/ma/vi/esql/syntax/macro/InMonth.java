@@ -4,6 +4,8 @@
 
 package ma.vi.esql.syntax.macro;
 
+import ma.vi.esql.database.Database;
+import ma.vi.esql.exec.EsqlConnection;
 import ma.vi.esql.function.Function;
 import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.Context;
@@ -25,6 +27,8 @@ import java.util.List;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
+import static ma.vi.esql.database.Database.NULL_DB;
+import static ma.vi.esql.exec.EsqlConnection.NULL_CONNECTION;
 import static ma.vi.esql.translation.Translatable.Target.ESQL;
 
 /**
@@ -46,7 +50,7 @@ public class InMonth extends Function implements TypedMacro {
     List<Expression<?, ?>> arguments = call.arguments();
 
     if (arguments.isEmpty()) {
-      throw new TranslationException("inmonth function needs at 3 arguments (the date to check "
+      throw new TranslationException(esql, "inmonth function needs at 3 arguments (the date to check "
                                    + "and the month and year that the date must fall in)");
     }
 
@@ -58,8 +62,8 @@ public class InMonth extends Function implements TypedMacro {
     Expression<?, ?> year = arguments.get(2);
 
     if (month instanceof IntegerLiteral && year instanceof IntegerLiteral) {
-      String prefix = year.translate(ESQL, path.add(year)).toString() + '-'
-                    + StringUtils.leftPad(month.translate(ESQL, path.add(month)).toString(), 2, '0') + '-';
+      String prefix = year.translate(ESQL, NULL_CONNECTION, path.add(year), NULL_DB.structure()).toString() + '-'
+                    + StringUtils.leftPad(month.translate(ESQL, NULL_CONNECTION, path.add(month), NULL_DB.structure()).toString(), 2, '0') + '-';
       String startDate = prefix + "01";
       LocalDate end = LocalDate.of(((IntegerLiteral)year).value.intValue(),
                                    ((IntegerLiteral)month).value.intValue(), 1);

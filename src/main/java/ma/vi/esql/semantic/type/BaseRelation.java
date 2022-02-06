@@ -60,7 +60,7 @@ public class BaseRelation extends Relation {
         if (col.expression() instanceof ColumnRef ref) {
           col = col.name(ref.columnName());
         } else {
-          throw new TranslationException("The derived column " + col + " in the base relation " + name + " requires a name");
+          throw new TranslationException(col, "The derived column " + col + " in the base relation " + name + " requires a name");
         }
       }
       aliasedColumns.put(col.name(), col);
@@ -208,7 +208,7 @@ public class BaseRelation extends Relation {
           String colName = ref.columnName();
           Column column = columns.get(colName);
           if (column == null) {
-            throw new TranslationException("Unknown column " + colName
+            throw new TranslationException(derivedExpression, "Unknown column " + colName
                                         + " in derived expression " + derivedExpression);
           } else if (seen.contains(colName)) {
             Set<String> otherColumns = seen.stream()
@@ -284,7 +284,7 @@ public class BaseRelation extends Relation {
         if (expr instanceof ColumnRef ref) {
           column = column.name(ref.columnName());
         } else {
-          throw new TranslationException("The derived column " + column + " in the base relation " + name + " requires a name");
+          throw new TranslationException(column, "The derived column " + column + " in the base relation " + name + " requires a name");
         }
       }
       this.columns.add(column);

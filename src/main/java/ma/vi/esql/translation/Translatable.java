@@ -4,6 +4,8 @@
 
 package ma.vi.esql.translation;
 
+import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.syntax.EsqlPath;
 import org.pcollections.HashPMap;
 import org.pcollections.IntTreePMap;
@@ -45,22 +47,33 @@ public interface Translatable<T> {
    */
   T translate(Target target);
 
-  default T translate(Target target, EsqlPath path) {
-    return translate(target, path, HashPMap.empty(IntTreePMap.empty()));
+  default T translate(Target         target,
+                      EsqlConnection esqlCon,
+                      EsqlPath       path,
+                      Environment    env) {
+    return translate(target,
+                     esqlCon,
+                     path,
+                     HashPMap.empty(IntTreePMap.empty()),
+                     env);
   }
 
   /**
    * Translate the statement for running on the specified target.
    *
    * @param target The target system to compile to.
+   * @param esqlCon
    * @param path The path of the object being translated from the
    *             root of program tree.
    * @param parameters A set of arbitrary parameters to pass to the translator.
+   * @param env
    * @return A statement adapted for the specified target system.
    */
   T translate(Target               target,
+              EsqlConnection       esqlCon,
               EsqlPath             path,
-              PMap<String, Object> parameters);
+              PMap<String, Object> parameters,
+              Environment          env);
 
   /**
    * The value of a translatable is generally its translation. In some
@@ -68,7 +81,14 @@ public interface Translatable<T> {
    * For example, a string translation will keep quotes around the text,
    * while its value will remove it.
    */
-  default Object value(Target target, EsqlPath path) {
-    return translate(target, path, HashPMap.empty(IntTreePMap.empty()));
+  default Object exec(Target         target,
+                      EsqlConnection esqlCon,
+                      EsqlPath       path,
+                      Environment    env) {
+    return translate(target,
+                     esqlCon,
+                     path,
+                     HashPMap.empty(IntTreePMap.empty()),
+                     env);
   }
 }

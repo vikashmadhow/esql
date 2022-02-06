@@ -5,6 +5,8 @@
 package ma.vi.esql.syntax.define;
 
 import ma.vi.base.tuple.T2;
+import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
@@ -69,10 +71,10 @@ public class Attribute extends Esql<String, String> {
   }
 
   @Override
-  protected String trans(Target target, EsqlPath path, PMap<String, Object> parameters) {
+  protected String trans(Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
     return name() + ": " + (attributeValue() == null
                               ? "null"
-                              : attributeValue().translate(target, path.add(attributeValue()), parameters));
+                              : attributeValue().translate(target, esqlCon, path.add(attributeValue()), parameters, env));
   }
 
   @Override

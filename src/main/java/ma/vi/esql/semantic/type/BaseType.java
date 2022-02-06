@@ -4,6 +4,8 @@
 
 package ma.vi.esql.semantic.type;
 
+import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.syntax.EsqlPath;
 import org.pcollections.PMap;
 
@@ -40,7 +42,7 @@ public class BaseType extends AbstractType {
   }
 
   @Override
-  public String translate(Target target, EsqlPath path, PMap<String, Object> parameters) {
+  public String translate(Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
     return target == Target.ESQL             ? name() :
             translations.containsKey(target) ? translations.get(target) : translations.get(Target.ALL);
   }

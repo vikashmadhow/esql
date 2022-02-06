@@ -5,12 +5,15 @@
 package ma.vi.esql.syntax.query;
 
 import ma.vi.base.tuple.T2;
+import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.semantic.type.AmbiguousColumnException;
 import ma.vi.esql.semantic.type.BaseRelation;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.define.Attribute;
+import ma.vi.esql.syntax.define.Define;
 import ma.vi.esql.syntax.expression.ColumnRef;
 import ma.vi.esql.syntax.expression.SelectExpression;
 import ma.vi.esql.syntax.macro.UntypedMacro;
@@ -64,122 +67,99 @@ public class ColumnList extends Esql<String, String> implements UntypedMacro {
    */
   @Override
   public Esql<?, ?> expand(Esql<?, ?> esql, EsqlPath path) {
-    QueryUpdate query = path.ancestor(QueryUpdate.class);
-    TableExpr from = query.tables();
+    if (!path.hasAncestor(Define.class)) {
+      QueryUpdate query = path.ancestor(QueryUpdate.class);
+      TableExpr from = query.tables();
 
-    boolean expandColumns = !query.grouped() && !path.hasAncestor(SelectExpression.class);
-    if (expandColumns) {
-      Cte cte = path.ancestor(Cte.class);
-      if (cte != null && cte.fields() != null && !cte.fields().isEmpty()) {
-        expandColumns = false;
+      boolean expandColumns = !query.grouped() && !path.hasAncestor(SelectExpression.class);
+      if (expandColumns) {
+        Cte cte = path.ancestor(Cte.class);
+        if (cte != null && cte.fields() != null && !cte.fields().isEmpty()) {
+          expandColumns = false;
+        }
       }
-    }
 
-    String fromAlias = null;
-    if (from instanceof AbstractAliasTableExpr aliased) {
-      fromAlias = aliased.alias();
-    }
+      String fromAlias = null;
+      if (from instanceof AbstractAliasTableExpr aliased) {
+        fromAlias = aliased.alias();
+      }
 
-    boolean changed = false;
-    List<Column> cols = new ArrayList<>();
-    Map<String, Column> colsMap = new HashMap<>();
-    Map<String, List<Column>> columnLists = new HashMap<>();
-    Map<String, String> aliased = new HashMap<>();
-    for (Column column: columns()) {
-      if (column instanceof StarColumn all) {
-        changed = true;
-        String qualifier = all.qualifier();
-        List<Column> columnList = columnLists.computeIfAbsent(qualifier == null ? "/" : qualifier,
-                                                              q -> from.named(q.equals("/") ? null : q)
-                                                                       .columnList(path));
-        if (qualifier != null || fromAlias != null) {
-          for (Column col: columnList) {
-            Column c = new Column(col.context,
-                                  col.name(),
-                                  qualifier != null ? qualify(col.expression(), qualifier)
-                                : fromAlias != null ? qualify(col.expression(), fromAlias)
-                                : col.expression(),
-                                  col.type(),
-                                  null);
-            cols.add(c);
-            colsMap.put(c.name(), c);
-          }
-        } else {
-          cols.addAll(columnList);
-          colsMap.putAll(columnList.stream()
-                                   .collect(toMap(Column::name,
-                                                  identity(),
-                                                  (c1, c2) -> c2)));
-        }
-      } else if (expandColumns
-              && column.name() != null
-              && column.name().indexOf('/') == -1
-              && column.expression() instanceof ColumnRef ref) {
-        /*
-         * Get expansion (metadata columns along with column) for referred column.
-         */
-        boolean renamed = !ref.columnName().equals(column.name());
-        if (renamed) {
-          aliased.put(ref.columnName(), column.name());
-        }
-        String qualifier = ref.qualifier();
-        List<Column> columnList = columnLists.computeIfAbsent(qualifier == null ? "/" : qualifier,
-                                                              q -> from.named(q.equals("/") ? null : q)
-                                                                       .columnList(path))
-                                             .stream()
-                                             .filter(c -> c.name().equals(ref.columnName())
-                                                       || c.name().startsWith(ref.columnName() + '/'))
-                                             .toList();
-        if (columnList.stream().filter(c -> c.name().equals(ref.columnName())).count() > 1) {
-          throw new AmbiguousColumnException("Ambiguous column " + ref + " exists in "
-                                           + "multiple relations in " + from);
-        }
-        for (Column col: columnList) {
-          if (col.name().equals(ref.columnName())) {
-            Column c = new Column(col.context,
-                                  column.name(),
-                                  qualifier != null ? qualify(col.expression(), qualifier)
-                                                    : col.expression(),
-                                  col.type(),
-                                  null);
-            cols.add(c);
-            colsMap.put(c.name(), c);
-
-          } else {
-            /*
-             * Add metadata column, renaming if aliased.
-             */
-            String newName = renamed
-                           ? column.name() + col.name().substring(ref.columnName().length())
-                           : col.name();
-            if (!colsMap.containsKey(newName)) {
+      boolean changed = false;
+      List<Column> cols = new ArrayList<>();
+      Map<String, Column> colsMap = new HashMap<>();
+      Map<String, List<Column>> columnLists = new HashMap<>();
+      Map<String, String> aliased = new HashMap<>();
+      for (Column column: columns()) {
+        if (column instanceof StarColumn all) {
+          changed = true;
+          String qualifier = all.qualifier();
+          List<Column> columnList = columnLists.computeIfAbsent(qualifier == null ? "/" : qualifier,
+                                                                q -> from.named(q.equals("/") ? null : q)
+                                                                         .columnList(path));
+          if (qualifier != null || fromAlias != null) {
+            for (Column col: columnList) {
               Column c = new Column(col.context,
-                                    newName,
+                                    col.name(),
+                                    qualifier != null ? qualify(col.expression(), qualifier)
+                                  : fromAlias != null ? qualify(col.expression(), fromAlias)
+                                  : col.expression(),
+                                    col.type(),
+                                    null);
+              cols.add(c);
+              colsMap.put(c.name(), c);
+            }
+          } else {
+            cols.addAll(columnList);
+            colsMap.putAll(columnList.stream()
+                                     .collect(toMap(Column::name,
+                                                    identity(),
+                                                    (c1, c2) -> c2)));
+          }
+        } else if (column.name() != null
+                && column.name().indexOf('/') == -1
+                && column.expression() instanceof ColumnRef ref) {
+          /*
+           * Get expansion (metadata columns along with column) for referred column.
+           */
+          boolean renamed = !ref.columnName().equals(column.name());
+          if (renamed) {
+            aliased.put(ref.columnName(), column.name());
+          }
+          String qualifier = ref.qualifier();
+          List<Column> columnList = columnLists.computeIfAbsent(qualifier == null ? "/" : qualifier,
+                                                                q -> from.named(q.equals("/") ? null : q)
+                                                                         .columnList(path))
+                                               .stream()
+                                               .filter(c -> c.name().equals(ref.columnName())
+                                                         || c.name().startsWith(ref.columnName() + '/'))
+                                               .toList();
+          if (columnList.stream().filter(c -> c.name().equals(ref.columnName())).count() > 1) {
+            throw new AmbiguousColumnException("Ambiguous column " + ref + " exists in "
+                                             + "multiple relations in " + from);
+          }
+          for (Column col: columnList) {
+            if (col.name().equals(ref.columnName())) {
+              Column c = new Column(col.context,
+                                    column.name(),
                                     qualifier != null ? qualify(col.expression(), qualifier)
                                                       : col.expression(),
                                     col.type(),
                                     null);
               cols.add(c);
               colsMap.put(c.name(), c);
-            }
-          }
-        }
 
-        /*
-         * Override with explicit metadata columns.
-         */
-        if (column.metadata() != null && !column.metadata().attributes().isEmpty()) {
-          for (Attribute att: column.metadata().attributes().values()) {
-            for (Column col: BaseRelation.columnsForAttribute(att, column.name() + '/', aliased)) {
-              if (!colsMap.containsKey(col.name())
-               || !colsMap.get(col.name()).expression().equals(col.expression())) {
-                if (colsMap.containsKey(col.name())) {
-                  cols.removeIf(c -> col.name().equals(c.name()));
-                }
+            } else if (expandColumns) {
+              /*
+               * Add metadata column, renaming if aliased.
+               */
+              String newName = renamed
+                             ? column.name() + col.name().substring(ref.columnName().length())
+                             : col.name();
+              if (!colsMap.containsKey(newName)) {
                 Column c = new Column(col.context,
-                                      col.name(),
+                                      newName,
                                       qualifier != null ? qualify(col.expression(), qualifier)
-                                                      : col.expression(),
+                                                        : col.expression(),
                                       col.type(),
                                       null);
                 cols.add(c);
@@ -187,23 +167,51 @@ public class ColumnList extends Esql<String, String> implements UntypedMacro {
               }
             }
           }
-        }
-      } else if (column.name() == null || !colsMap.containsKey(column.name())) {
-        cols.add(column);
-        if (column.name() != null) {
-          colsMap.put(column.name(), column);
+
+          /*
+           * Override with explicit metadata columns.
+           */
+          if (expandColumns
+           && column.metadata() != null
+           && !column.metadata().attributes().isEmpty()) {
+            for (Attribute att: column.metadata().attributes().values()) {
+              for (Column col: BaseRelation.columnsForAttribute(att, column.name() + '/', aliased)) {
+                if (!colsMap.containsKey(col.name())
+                 || !colsMap.get(col.name()).expression().equals(col.expression())) {
+                  if (colsMap.containsKey(col.name())) {
+                    cols.removeIf(c -> col.name().equals(c.name()));
+                  }
+                  Column c = new Column(col.context,
+                                        col.name(),
+                                        qualifier != null ? qualify(col.expression(), qualifier)
+                                                        : col.expression(),
+                                        col.type(),
+                                        null);
+                  cols.add(c);
+                  colsMap.put(c.name(), c);
+                }
+              }
+            }
+          }
+        } else if (column.name() == null
+                || !colsMap.containsKey(column.name())) {
+          cols.add(column);
+          if (column.name() != null) {
+            colsMap.put(column.name(), column);
+          }
         }
       }
+      changed |= cols.size() != columns().size()
+             || !cols.stream()
+                     .map(Column::name)
+                     .collect(toSet()).equals(columns().stream()
+                                                       .map(Column::name)
+                                                       .collect(toSet()));
+      List<Column> targetCols = new ArrayList<>();
+      changed |= disambiguateNames(cols, targetCols);
+      return changed ? new ColumnList(context, targetCols) : esql;
     }
-    changed |= cols.size() != columns().size()
-           || !cols.stream()
-                   .map(Column::name)
-                   .collect(toSet()).equals(columns().stream()
-                                                     .map(Column::name)
-                                                     .collect(toSet()));
-    List<Column> targetCols = new ArrayList<>();
-    changed |= disambiguateNames(cols, targetCols);
-    return changed ? new ColumnList(context, targetCols) : esql;
+    return esql;
   }
 
   public static boolean disambiguateNames(List<Column> sourceColumns, List<Column> targetColumns) {
@@ -289,9 +297,9 @@ public class ColumnList extends Esql<String, String> implements UntypedMacro {
   }
 
   @Override
-  protected String trans(Target target, EsqlPath path, PMap<String, Object> parameters) {
+  protected String trans(Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
     return columns().stream()
-                    .map(c -> c.trans(target, path, parameters))
+                    .map(c -> c.trans(target, null, path, parameters, null))
                     .collect(joining(", "));
   }
 

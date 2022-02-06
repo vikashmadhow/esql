@@ -12,7 +12,6 @@ import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.expression.Expression;
 import ma.vi.esql.syntax.expression.function.FunctionCall;
-import ma.vi.esql.translation.Translatable;
 
 import java.util.List;
 
@@ -32,10 +31,10 @@ public class Trim extends Function {
   }
 
   @Override
-  public String translate(FunctionCall call, Translatable.Target target, EsqlPath path) {
+  public String translate(FunctionCall call, Target target, EsqlConnection esqlCon, EsqlPath path, Environment env) {
     List<Expression<?, ?>> args = call.arguments();
     if (target == JAVASCRIPT) {
-      return "(" + args.get(0).translate(target, path.add(args.get(0))) + ").trim()";
+      return "(" + args.get(0).translate(target, esqlCon, path.add(args.get(0)), env) + ").trim()";
 
     } else if (target == SQLSERVER) {
       /*
@@ -44,19 +43,19 @@ public class Trim extends Function {
        * remove.
        */
       return name + "(nchar(0x09) + nchar(0x20) + nchar(0x0D) + nchar(0x0A) from "
-          + args.get(0).translate(target, path.add(args.get(0))) + ')';
+          + args.get(0).translate(target, esqlCon, path.add(args.get(0)), env) + ')';
     } else {
       /*
        * ESQL and all other databases
        */
-      return name + '(' + args.get(0).translate(target, path.add(args.get(0))) + ')';
+      return name + '(' + args.get(0).translate(target, esqlCon, path.add(args.get(0)), env) + ')';
     }
   }
 
   @Override
-  public Object exec(EsqlConnection esqlCon,
-                     EsqlPath       path,
-                     Environment    env) {
+  public Object exec(Target target, EsqlConnection esqlCon,
+                     EsqlPath path,
+                     Environment env) {
     String text = env.get("text");
     return text == null ? null : text.trim();
   }

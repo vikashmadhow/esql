@@ -5,6 +5,8 @@
 package ma.vi.esql.syntax.expression.comparison;
 
 import ma.vi.base.tuple.T2;
+import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.Context;
@@ -69,23 +71,23 @@ public class Range extends Expression<String, String> {
 
   @Override
   protected String trans(Target target,
-                         EsqlPath path,
-                         PMap<String, Object> parameters) {
+                         EsqlConnection esqlCon, EsqlPath path,
+                         PMap<String, Object> parameters, Environment env) {
     switch (target) {
       case JSON, JAVASCRIPT -> {
-        String compareEx = compareExpression().translate(target, path.add(compareExpression()), parameters);
-        String e = '(' + leftExpression().translate(target, path.add(leftExpression()), parameters) + ' '
+        String compareEx = compareExpression().translate(target, esqlCon, path.add(compareExpression()), parameters, env);
+        String e = '(' + leftExpression().translate(target, esqlCon, path.add(leftExpression()), parameters, env) + ' '
                  + leftCompare() + ' ' + compareEx + " && " + compareEx + ' ' + rightCompare() + ' '
-                 + rightExpression().translate(target, path.add(rightExpression()), parameters) + ')';
+                 + rightExpression().translate(target, esqlCon, path.add(rightExpression()), parameters, env) + ')';
         return target == JSON ? '"' + escapeJsonString(e) + '"' : e;
       }
       default -> {
         boolean sqlServerBool = target == Target.SQLSERVER && requireIif(path, parameters);
-        String compareEx = compareExpression().translate(target, path.add(compareExpression()), parameters);
+        String compareEx = compareExpression().translate(target, esqlCon, path.add(compareExpression()), parameters, env);
         return (sqlServerBool ? "iif" : "") + '('
-             + leftExpression().translate(target, path.add(leftExpression()), parameters) + ' ' + leftCompare() + ' '
+             + leftExpression().translate(target, esqlCon, path.add(leftExpression()), parameters, env) + ' ' + leftCompare() + ' '
              + compareEx + " and " + compareEx + ' ' + rightCompare() + ' '
-             + rightExpression().translate(target, path.add(rightExpression()), parameters)
+             + rightExpression().translate(target, esqlCon, path.add(rightExpression()), parameters, env)
              + (sqlServerBool ? ", 1, 0" : "") + ')';
       }
     }

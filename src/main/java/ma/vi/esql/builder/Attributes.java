@@ -334,7 +334,7 @@ public class Attributes {
    * Groups with the same name can be
    * shown together as tabs, panes, etc. The group name may also contain a
    * colon followed by a suffix which provides additional information on
-   * how to display the group data. For example ':tabular' will displays
+   * how to display the group data. For example ':tabular' will display
    * the group columns as a table.
    */
   public static final String GROUP = "group";

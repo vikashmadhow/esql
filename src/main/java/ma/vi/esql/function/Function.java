@@ -53,7 +53,11 @@ public class Function extends AbstractType implements Symbol {
     return this;
   }
 
-  public String translate(FunctionCall call, Translatable.Target target, EsqlPath path) {
+  public String translate(FunctionCall   call,
+                          Target         target,
+                          EsqlConnection esqlCon,
+                          EsqlPath       path,
+                          Environment    env) {
     String functionName = translatedFunctionName(call, target, path);
     StringBuilder st = new StringBuilder(functionName).append('(');
     if (call.distinct()) {
@@ -62,7 +66,7 @@ public class Function extends AbstractType implements Symbol {
       if (distinctOn != null && !distinctOn.isEmpty()) {
         st.append(target != HSQLDB ? "on (" : "(")
           .append(distinctOn.stream()
-                            .map(e -> e.translate(target, path.add(e)))
+                            .map(e -> e.translate(target, esqlCon, path.add(e), env))
                             .collect(joining(", ")))
           .append(") ");
       }
@@ -78,7 +82,7 @@ public class Function extends AbstractType implements Symbol {
         } else {
           st.append(", ");
         }
-        st.append(e.translate(target, path.add(e)).toString());
+        st.append(e.translate(target, esqlCon, path.add(e), env).toString());
       }
     }
     return st.append(')').toString();
@@ -94,9 +98,9 @@ public class Function extends AbstractType implements Symbol {
     return functionName;
   }
 
-  public Object exec(EsqlConnection esqlCon,
-                     EsqlPath       path,
-                     Environment    env) {
+  public Object exec(Target target, EsqlConnection esqlCon,
+                     EsqlPath path,
+                     Environment env) {
     return null;
   }
 

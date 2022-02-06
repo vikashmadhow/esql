@@ -10,8 +10,12 @@ public class BlockEnvironment extends AbstractEnvironment {
     this(null);
   }
 
-  public BlockEnvironment(AbstractEnvironment parent) {
+  public BlockEnvironment(Environment parent) {
     super(parent);
+  }
+
+  public BlockEnvironment(String name, Environment parent) {
+    super(name, parent);
   }
 
   @Override

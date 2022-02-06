@@ -5,6 +5,8 @@
 package ma.vi.esql.syntax.define;
 
 import ma.vi.base.tuple.T2;
+import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
@@ -88,9 +90,13 @@ public class DerivedColumnDefinition extends ColumnDefinition {
   }
 
   @Override
-  protected String trans(Target target, EsqlPath path, PMap<String, Object> parameters) {
+  protected String trans(Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
     if (target == Target.ESQL) {
-      StringBuilder st = new StringBuilder("derived \"" + name() + "\" " + expression().translate(target, path.add(expression()), parameters));
+      StringBuilder st = new StringBuilder("derived \"" + name() + "\" " + expression().translate(target,
+                                                                                                  esqlCon,
+                                                                                                  path.add(expression()),
+                                                                                                  parameters,
+                                                                                                  env));
       addMetadata(st, target);
       return st.toString();
     }

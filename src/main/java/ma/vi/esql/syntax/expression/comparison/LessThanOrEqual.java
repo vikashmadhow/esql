@@ -53,11 +53,11 @@ public class LessThanOrEqual extends ComparisonOperator {
   }
 
   @Override
-  public Object postTransformExec(EsqlConnection esqlCon,
+  public Object postTransformExec(Target target, EsqlConnection esqlCon,
                                   EsqlPath path,
                                   Environment env) {
-    Object left = expr1().exec(esqlCon, path.add(expr1()), env);
-    Object right = expr2().exec(esqlCon, path.add(expr2()), env);
+    Object left = expr1().exec(target, esqlCon, path.add(expr1()), env);
+    Object right = expr2().exec(target, esqlCon, path.add(expr2()), env);
 
     if (left instanceof Number ln
      && right instanceof Number rn) {
@@ -79,8 +79,8 @@ public class LessThanOrEqual extends ComparisonOperator {
       return b2 || b1.equals(b2);
 
     } else {
-      throw new ExecutionException("Incompatible types for " + op()
-                                 + ": left " + left + ", right: " + right);
+      throw new ExecutionException(this, "Incompatible types for " + op()
+                                       + ": left " + left + ", right: " + right);
     }
   }
 }

@@ -5,6 +5,8 @@
 package ma.vi.esql.syntax.query;
 
 import ma.vi.base.tuple.T2;
+import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.semantic.type.Selection;
 import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.Context;
@@ -101,8 +103,8 @@ public class SelectTableExpr extends AbstractAliasTableExpr {
   }
 
   @Override
-  protected String trans(Target target, EsqlPath path, PMap<String, Object> parameters) {
-    return '(' + select().translate(target, path.add(select()), parameters).translation() + ") \"" + alias() + '"';
+  protected String trans(Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
+    return '(' + select().translate(target, esqlCon, path.add(select()), parameters, env).translation() + ") \"" + alias() + '"';
   }
 
   @Override

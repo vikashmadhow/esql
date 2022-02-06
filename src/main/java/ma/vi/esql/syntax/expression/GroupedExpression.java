@@ -47,15 +47,15 @@ public class GroupedExpression extends SingleSubExpression {
   }
 
   @Override
-  protected String trans(Target target, EsqlPath path, PMap<String, Object> parameters) {
-    return "(" + String.valueOf(expr().translate(target, path.add(expr()), parameters)) + ")";
+  protected String trans(Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
+    return "(" + String.valueOf(expr().translate(target, esqlCon, path.add(expr()), parameters, env)) + ")";
   }
 
   @Override
-  public Object postTransformExec(EsqlConnection esqlCon,
+  public Object postTransformExec(Target target, EsqlConnection esqlCon,
                                   EsqlPath path,
                                   Environment env) {
-    return expr().exec(esqlCon, path.add(expr()), env);
+    return expr().exec(target, esqlCon, path.add(expr()), env);
   }
 
   @Override

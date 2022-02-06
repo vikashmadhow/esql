@@ -62,19 +62,19 @@ public class Program extends Esql<String, List<?>> {
   }
 
   @Override
-  public List<?> trans(Target target, EsqlPath path, PMap<String, Object> parameters) {
+  public List<?> trans(Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
     return expressions().stream()
-                        .map(s -> s.translate(target, path.add(s), parameters))
+                        .map(s -> s.translate(target, esqlCon, path.add(s), parameters, env))
                         .collect(toList());
   }
 
   @Override
-  public Object exec(EsqlConnection esqlCon,
-                     EsqlPath       path,
-                     Environment    env) {
+  public Object exec(Target target, EsqlConnection esqlCon,
+                     EsqlPath path,
+                     Environment env) {
     Object ret = Result.Nothing;
     for (Expression<?, ?> st: expressions()) {
-      ret = st.exec(esqlCon, path.add(st), env);
+      ret = st.exec(target, esqlCon, path.add(st), env);
       if (st instanceof Return) {
         return ret;
       }

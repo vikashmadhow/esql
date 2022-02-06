@@ -5,6 +5,8 @@
 package ma.vi.esql.syntax.expression;
 
 import ma.vi.base.tuple.T2;
+import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
@@ -62,9 +64,9 @@ public class ExpandedDerivedColumnRef extends Expression<String, String> {
 
   @Override
   protected String trans(Target target,
-                         EsqlPath path,
-                         PMap<String, Object> parameters) {
-    return expansion().translate(target, path.add(expansion()), parameters);
+                         EsqlConnection esqlCon, EsqlPath path,
+                         PMap<String, Object> parameters, Environment env) {
+    return expansion().translate(target, esqlCon, path.add(expansion()), parameters, env);
   }
 
   @Override

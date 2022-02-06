@@ -637,6 +637,22 @@ expr
        */
     | literal                                                   #LiteralExpr
 
+      /*
+       * A function call consists of the function name (which can be qualified)
+       * followed by an optional comma-separated list of zero or more
+       * expressions as arguments to the function (or a single select to cover
+       * certain special function such as exists which check whether a select
+       * has returned one or more rows), followed optionally by a window
+       * characterisation (applicable only to window functions). The start of
+       * the argument list may contain a `distinct` definition which is
+       * applicable to certain aggregate functions (such as `count`).
+       */
+    | qualifiedName
+      '(' distinct? (arguments | star='*')? ')'
+      window?                                                   #FunctionInvocation
+
+    | on=expr '[' member=expr ']'                               #Selector
+
 //      /*
 //       * Coalesce is a '?'-separated list of expressions returning the value of
 //       * the first non-null expression in the list. E.g. `x?0` is evaluated as
@@ -674,11 +690,13 @@ expr
     | left=expr op=('+' | '-') right=expr                       #AdditionExpr
 
       /*
-       * A named parameter consists of a name preceded with a colon (:). Values
-       * for named parameters must be provided when a statement containing them
-       * is executed.
+       * A named parameter consists of a name preceded with a dollar sign ($).
+       * Values for named parameters must be provided when a statement containing
+       * them is executed.
        */
-    | ':' Identifier                                            #NamedParameter
+    | '@' Identifier                                            #NamedParameter
+
+    | '@(' expr ')'                                             #Evaluate
 
       /*
        * A single-column, single-row only select used as an expression.
@@ -689,20 +707,6 @@ expr
        * The inverse of a boolean expression.
        */
     | Not expr                                                  #NotExpr
-
-      /*
-       * A function call consists of the function name (which can be qualified)
-       * followed by an optional comma-separated list of zero or more
-       * expressions as arguments to the function (or a single select to cover
-       * certain special function such as exists which check whether a select
-       * has returned one or more rows), followed optionally by a window
-       * characterisation (applicable only to window functions). The start of
-       * the argument list may contain a `distinct` definition which is
-       * applicable to certain aggregate functions (such as `count`).
-       */
-    | qualifiedName
-      '(' distinct? (arguments | star='*')? ')'
-      window?                                                   #FunctionInvocation
 
       /*
        * Two-sided comparison similar to what is present in the Python language
@@ -808,8 +812,8 @@ expr
 
     | 'for' (key=Identifier ',')? value=Identifier 'in' expr 'do'
         expressions
-      'end'
-                                                                #Iterator
+      'end'                                                     #ForEach
+
     | 'for' init=expr ',' cond=expr ',' inc=expr 'do'
         expressions
       'end'                                                     #For
@@ -819,11 +823,10 @@ expr
       'end'                                                     #While
 
     | 'break'                                                   #Break
+
     | 'continue'                                                #Continue
 
     | 'return' expr                                             #Return
-
-//    | expr '.' Identifier                                       #Selector
 
       /*
        * A restricted expression that can be used as the middle expression in
@@ -1008,11 +1011,11 @@ positionalArgument
  *    string['a', 'b', 'c']
  */
 literal
-    : baseLiteral                           #BasicLiterals
-    | NullLiteral                           #Null
-    | Identifier '[' baseLiteralList? ']'   #BaseArrayLiteral
-    | '[' literalList? ']'                  #JsonArrayLiteral       // valid only in metadata expression
-    | '{' attributeList? '}'                #JsonObjectLiteral      // valid only in metadata expression
+    : baseLiteral                               #BasicLiterals
+    | NullLiteral                               #Null
+    | '[' baseLiteralList? ']' (Identifier)?    #BaseArrayLiteral
+    | '[' literalList? ']'                      #JsonArrayLiteral       // valid only in metadata expression
+    | '{' attributeList? '}'                    #JsonObjectLiteral      // valid only in metadata expression
     ;
 
 /**
@@ -1503,7 +1506,7 @@ dropTable
  */
 type
      : Identifier                       #Base       // A base type is simply an identifier
-     | type '[' IntegerLiteral? ']'     #Array      // Array of arrays are supported by multiple by following with
+     | '[' IntegerLiteral? ']' type     #Array      // Array of arrays are supported by multiple by following with
                                                     // a type with any number of '['']'
      ;
 

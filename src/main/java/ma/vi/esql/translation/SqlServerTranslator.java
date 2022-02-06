@@ -2,6 +2,8 @@ package ma.vi.esql.translation;
 
 import ma.vi.base.string.Strings;
 import ma.vi.base.tuple.T2;
+import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.function.Function;
 import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.syntax.Context;
@@ -37,7 +39,7 @@ public class SqlServerTranslator extends AbstractTranslator {
   }
 
   @Override
-  protected QueryTranslation translate(Select select, EsqlPath path, PMap<String, Object> parameters) {
+  protected QueryTranslation translate(Select select, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
     /*
      * If group by expression list contains numbers, those refer to the column expressions
      * in the expressions list. This is not supported in SQL server, so replace the
@@ -56,7 +58,7 @@ public class SqlServerTranslator extends AbstractTranslator {
           groupExpressionsChanged = true;
           int colPos = i.value.intValue();
           if (select.columns().size() < colPos) {
-            throw new TranslationException("Group " + colPos + " does not exist in the columns list of the query");
+            throw new TranslationException(select, "Group " + colPos + " does not exist in the columns list of the query");
           } else {
             newGroupExpressions.add(select.columns().get(colPos - 1).expression().copy());
           }
@@ -89,13 +91,13 @@ public class SqlServerTranslator extends AbstractTranslator {
       st.append(columns);
       st.append(", ").append("row_number() over (partition by ");
       String partition = distinctOn.stream()
-                                   .map(e -> e.translate(target(), path.add(e), parameters))
+                                   .map(e -> e.translate(target(), esqlCon, path.add(e), parameters, env))
                                    .collect(joining(", "));
       st.append(partition);
       st.append(" order by ");
       if (select.orderBy() != null && !select.orderBy().isEmpty()) {
         st.append(select.orderBy().stream()
-                        .map(e -> e.translate(target(), path.add(e), parameters))
+                        .map(e -> e.translate(target(), esqlCon, path.add(e), parameters, env))
                         .collect(joining(", ")));
       } else {
         st.append(partition);
@@ -104,30 +106,30 @@ public class SqlServerTranslator extends AbstractTranslator {
 
       if (select.tables() != null) {
         st.append(" from ").append(select.tables().translate(target(),
-                                                             path.add(select.tables()),
-                                                             parameters.plusAll(DONT_ADD_IIF)));
+                                                             null, path.add(select.tables()),
+                                                             parameters.plusAll(DONT_ADD_IIF), null));
       }
       if (select.where() != null) {
         st.append(" where ").append(select.where().translate(target(),
-                                                             path.add(select.where()),
-                                                             parameters.plusAll(DONT_ADD_IIF)));
+                                                             null, path.add(select.where()),
+                                                             parameters.plusAll(DONT_ADD_IIF), null));
       }
       if (select.groupBy() != null) {
         st.append(select.groupBy().translate(target(),
-                                             path.add(select.groupBy()),
-                                             parameters.plusAll(ADD_IIF)));
+                                             null, path.add(select.groupBy()),
+                                             parameters.plusAll(ADD_IIF), null));
       }
       if (select.having() != null) {
         st.append(" having ").append(select.having().translate(target(),
-                                                               path.add(select.having()),
-                                                               parameters.plusAll(DONT_ADD_IIF)));
+                                                               null, path.add(select.having()),
+                                                               parameters.plusAll(DONT_ADD_IIF), null));
       }
       if (select.orderBy() != null && !select.orderBy().isEmpty()) {
         st.append(" order by ")
           .append(select.orderBy().stream()
                         .map(e -> e.translate(target(),
-                                              path.add(e),
-                                              parameters.plusAll(ADD_IIF)))
+                                              null, path.add(e),
+                                              parameters.plusAll(ADD_IIF), null))
                         .collect(joining(", ")));
         if (select.offset() == null && select.limit() == null) {
           /*
@@ -139,8 +141,8 @@ public class SqlServerTranslator extends AbstractTranslator {
       if (select.offset() != null) {
         st.append(" offset ")
           .append(select.offset().translate(target(),
-                                            path.add(select.offset()),
-                                            parameters.plusAll(ADD_IIF)))
+                                            null, path.add(select.offset()),
+                                            parameters.plusAll(ADD_IIF), null))
           .append(" rows");
       }
       if (select.limit() != null) {
@@ -149,19 +151,33 @@ public class SqlServerTranslator extends AbstractTranslator {
           st.append(" offset 0 rows");
         }
         st.append(" fetch next ")
-          .append(select.limit().translate(target(), path.add(select.limit()), parameters))
+          .append(select.limit().translate(target(), esqlCon, path.add(select.limit()), parameters, env))
           .append(" rows only");
       }
       String query = "select " + subquery + ".*"
           + "  from (" + st + ") " + subquery
           + " where " + subquery + "." + rank + "=1";
-//      if (offset() == null && limit() == null && orderBy() != null && !orderBy().isEmpty()) {
-//        query += " order by "
-//            + orderBy().stream()
-//                       .map(e -> e.translate(target))
-//                       .collect(joining(", "));
-//      }
-      return new QueryTranslation(select, query,
+      if (select.offset() != null || select.limit() != null) {
+        query += " order by 1";
+      }
+      if (select.offset() != null) {
+        query += " offset "
+              +  select.offset().translate(target(),
+                                            null, path.add(select.offset()),
+                                            parameters.plusAll(ADD_IIF), null)
+              + " rows";
+      }
+      if (select.limit() != null) {
+        if (select.offset() == null) {
+          // offset clause is mandatory with SQL Server when limit is specified
+          query += " offset 0 rows";
+        }
+        query += " fetch next "
+              +  select.limit().translate(target(), esqlCon, path.add(select.limit()), parameters, env)
+              +  " rows only";
+      }
+      return new QueryTranslation(select,
+                                  query,
                                   q.columns(),
                                   q.resultAttributeIndices(),
                                   q.resultAttributes());
@@ -213,13 +229,11 @@ public class SqlServerTranslator extends AbstractTranslator {
              * to the inner query.
              */
             Expression<?, String> remapped = select.remapExpression(colExpr, addedInnerCols, innerCols, innerSelectAlias);
-            outerCols.add(new Column(
-                select.context,
-                column.name(),
-                remapped,
-                column.type(),
-                column.metadata()
-            ));
+            outerCols.add(new Column(select.context,
+                                     column.name(),
+                                     remapped,
+                                     column.type(),
+                                     column.metadata()));
           } else {
             String alias = column.name();
             if (alias == null) {
@@ -238,13 +252,11 @@ public class SqlServerTranslator extends AbstractTranslator {
                 column.metadata()
             ));
             ColumnRef outerCol = new ColumnRef(select.context, innerSelectAlias, alias);
-            outerCols.add(new Column(
-                select.context,
-                column.name(),
-                outerCol,
-                column.type(),
-                column.metadata()
-            ));
+            outerCols.add(new Column(select.context,
+                                     column.name(),
+                                     outerCol,
+                                     column.type(),
+                                     column.metadata()));
             if (groups.contains(colExpr)) {
               outerGroups.add(outerCol);
             }
@@ -293,7 +305,7 @@ public class SqlServerTranslator extends AbstractTranslator {
             null,
             null
         );
-        return outerSelect.translate(target(), path.add(outerSelect), parameters);
+        return outerSelect.translate(target(), esqlCon, path.add(outerSelect), parameters, env);
 
       } else {
         StringBuilder st = new StringBuilder("select ");
@@ -304,30 +316,30 @@ public class SqlServerTranslator extends AbstractTranslator {
         QueryTranslation q = select.constructResult(st, target(), path, null, parameters);
         if (select.tables() != null) {
           st.append(" from ").append(select.tables().translate(target(),
-                                                               path.add(select.tables()),
-                                                               parameters.plusAll(DONT_ADD_IIF)));
+                                                               null, path.add(select.tables()),
+                                                               parameters.plusAll(DONT_ADD_IIF), null));
         }
         if (select.where() != null) {
           st.append(" where ").append(select.where().translate(target(),
-                                                               path.add(select.where()),
-                                                               parameters.plusAll(DONT_ADD_IIF)));
+                                                               null, path.add(select.where()),
+                                                               parameters.plusAll(DONT_ADD_IIF), null));
         }
         if (select.groupBy() != null) {
           st.append(select.groupBy().translate(target(),
-                                               path.add(select.groupBy()),
-                                               parameters.plusAll(ADD_IIF)));
+                                               null, path.add(select.groupBy()),
+                                               parameters.plusAll(ADD_IIF), null));
         }
         if (select.having() != null) {
           st.append(" having ").append(select.having().translate(target(),
-                                                                 path.add(select.having()),
-                                                                 parameters.plusAll(DONT_ADD_IIF)));
+                                                                 null, path.add(select.having()),
+                                                                 parameters.plusAll(DONT_ADD_IIF), null));
         }
         if (select.orderBy() != null && !select.orderBy().isEmpty()) {
           st.append(" order by ")
             .append(select.orderBy().stream()
                           .map(e -> e.translate(target(),
-                                                path.add(e),
-                                                parameters.plusAll(ADD_IIF)))
+                                                null, path.add(e),
+                                                parameters.plusAll(ADD_IIF), null))
                           .collect(joining(", ")));
           if (subSelect && select.offset() == null && select.limit() == null) {
             /*
@@ -336,10 +348,14 @@ public class SqlServerTranslator extends AbstractTranslator {
             st.append(" offset 0 rows");
           }
         }
+        if ((select.offset() != null  || select.limit() != null) &&
+            (select.orderBy() == null || select.orderBy().isEmpty())) {
+          st.append(" order by 1");
+        }
         if (select.offset() != null) {
           st.append(" offset ").append(select.offset().translate(target(),
-                                                                 path.add(select.offset()),
-                                                                 parameters)).append(" rows");
+                                                                 null, path.add(select.offset()),
+                                                                 parameters, null)).append(" rows");
         }
         if (select.limit() != null) {
           if (select.offset() == null) {
@@ -347,10 +363,11 @@ public class SqlServerTranslator extends AbstractTranslator {
             st.append(" offset 0 rows");
           }
           st.append(" fetch next ").append(select.limit().translate(target(),
-                                                                    path.add(select.limit()),
-                                                                    parameters)).append(" rows only");
+                                                                    null, path.add(select.limit()),
+                                                                    parameters, null)).append(" rows only");
         }
-        return new QueryTranslation(select, st.toString(),
+        return new QueryTranslation(select,
+                                    st.toString(),
                                     q.columns(),
                                     q.resultAttributeIndices(),
                                     q.resultAttributes());
@@ -360,8 +377,8 @@ public class SqlServerTranslator extends AbstractTranslator {
 
   @Override
   protected QueryTranslation translate(Update update,
-                                       EsqlPath path,
-                                       PMap<String, Object> parameters) {
+                                       EsqlConnection esqlCon, EsqlPath path,
+                                       PMap<String, Object> parameters, Environment env) {
     StringBuilder st = new StringBuilder("update ");
 
     TableExpr from = update.tables();
@@ -375,13 +392,13 @@ public class SqlServerTranslator extends AbstractTranslator {
       q = update.constructResult(st, target(), path, "inserted", parameters);
     }
     st.append(" from ").append(from.translate(target(),
-                                              path.add(from),
-                                              parameters.plusAll(DONT_ADD_IIF)));
+                                              null, path.add(from),
+                                              parameters.plusAll(DONT_ADD_IIF), null));
 
     if (update.where() != null) {
       st.append(" where ").append(update.where().translate(target(),
-                                                           path.add(update.where()),
-                                                           parameters.plusAll(DONT_ADD_IIF)));
+                                                           null, path.add(update.where()),
+                                                           parameters.plusAll(DONT_ADD_IIF), null));
     }
     if (q == null) {
       return new QueryTranslation(update, st.toString(), emptyList(), emptyList(), emptyMap());
@@ -394,7 +411,7 @@ public class SqlServerTranslator extends AbstractTranslator {
   }
 
   @Override
-  protected QueryTranslation translate(Delete delete, EsqlPath path, PMap<String, Object> parameters) {
+  protected QueryTranslation translate(Delete delete, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
     StringBuilder st = new StringBuilder("delete ").append((delete.deleteTableAlias()));
     QueryTranslation q = null;
 
@@ -404,13 +421,13 @@ public class SqlServerTranslator extends AbstractTranslator {
       q = delete.constructResult(st, target(), path, "deleted", parameters);
     }
     st.append(" from ").append(from.translate(target(),
-                                              path.add(from),
-                                              parameters.plusAll(DONT_ADD_IIF)));
+                                              null, path.add(from),
+                                              parameters.plusAll(DONT_ADD_IIF), null));
 
     if (delete.where() != null) {
       st.append(" where ").append(delete.where().translate(target(),
-                                                           path.add(delete.where()),
-                                                           parameters.plusAll(DONT_ADD_IIF)));
+                                                           null, path.add(delete.where()),
+                                                           parameters.plusAll(DONT_ADD_IIF), null));
     }
     if (q == null) {
       return new QueryTranslation(delete, st.toString(), emptyList(), emptyList(), emptyMap());
@@ -423,11 +440,11 @@ public class SqlServerTranslator extends AbstractTranslator {
   }
 
   @Override
-  protected QueryTranslation translate(Insert insert, EsqlPath path, PMap<String, Object> parameters) {
+  protected QueryTranslation translate(Insert insert, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
     StringBuilder st = new StringBuilder("insert into ");
     TableExpr table = insert.tables();
     if (!(table instanceof SingleTableExpr)) {
-      throw new TranslationException("Insert only works with single tables. A " + table.getClass().getSimpleName()
+      throw new TranslationException(insert, "Insert only works with single tables. A " + table.getClass().getSimpleName()
                                          + " was found instead.");
     }
     st.append(Type.dbTableName(((SingleTableExpr)table).tableName(), target()));
@@ -450,8 +467,8 @@ public class SqlServerTranslator extends AbstractTranslator {
     if (rows != null && !rows.isEmpty()) {
       st.append(rows.stream()
                     .map(row -> row.translate(target(),
-                                              path.add(row),
-                                              parameters.plusAll(DONT_ADD_IIF)))
+                                              null, path.add(row),
+                                              parameters.plusAll(DONT_ADD_IIF), null))
                     .collect(joining(", ", " values", "")));
 
     } else if (insert.defaultValues()) {
@@ -459,8 +476,8 @@ public class SqlServerTranslator extends AbstractTranslator {
 
     } else {
       st.append(' ').append(insert.select().translate(target(),
-                                                      path.add(insert.select()),
-                                                      parameters.plus("addAttributes", false)).translation());
+                                                      null, path.add(insert.select()),
+                                                      parameters.plus("addAttributes", false), null).translation());
     }
 
     if (q == null) {

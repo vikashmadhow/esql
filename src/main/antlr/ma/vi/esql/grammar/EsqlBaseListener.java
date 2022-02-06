@@ -630,6 +630,18 @@ public class EsqlBaseListener implements EsqlListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterEvaluate(EsqlParser.EvaluateContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitEvaluate(EsqlParser.EvaluateContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterBetweenExpr(EsqlParser.BetweenExprContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -721,6 +733,18 @@ public class EsqlBaseListener implements EsqlListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitSimpleExpression(EsqlParser.SimpleExpressionContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterForEach(EsqlParser.ForEachContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitForEach(EsqlParser.ForEachContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -822,18 +846,6 @@ public class EsqlBaseListener implements EsqlListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterIterator(EsqlParser.IteratorContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitIterator(EsqlParser.IteratorContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
 	@Override public void enterLiteralExpr(EsqlParser.LiteralExprContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -865,6 +877,18 @@ public class EsqlBaseListener implements EsqlListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitMultiplicationExpr(EsqlParser.MultiplicationExprContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterSelector(EsqlParser.SelectorContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitSelector(EsqlParser.SelectorContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -1974,18 +1998,6 @@ public class EsqlBaseListener implements EsqlListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterArray(EsqlParser.ArrayContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitArray(EsqlParser.ArrayContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
 	@Override public void enterBase(EsqlParser.BaseContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -1993,6 +2005,18 @@ public class EsqlBaseListener implements EsqlListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitBase(EsqlParser.BaseContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterArray(EsqlParser.ArrayContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitArray(EsqlParser.ArrayContext ctx) { }
 
 	/**
 	 * {@inheritDoc}

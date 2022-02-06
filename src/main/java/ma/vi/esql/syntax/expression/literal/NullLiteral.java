@@ -5,12 +5,13 @@
 package ma.vi.esql.syntax.expression.literal;
 
 import ma.vi.base.tuple.T2;
+import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
-import ma.vi.esql.translation.Translatable;
 import org.pcollections.PMap;
 
 /**
@@ -53,7 +54,7 @@ public class NullLiteral extends Literal<String> {
   }
 
   @Override
-  protected String trans(Target target, EsqlPath path, PMap<String, Object> parameters) {
+  protected String trans(Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
     return "null";
   }
 
@@ -63,7 +64,7 @@ public class NullLiteral extends Literal<String> {
   }
 
   @Override
-  public Object value(Translatable.Target target, EsqlPath path) {
+  public Object exec(Target target, EsqlConnection esqlCon, EsqlPath path, Environment env) {
     return null;
   }
 }

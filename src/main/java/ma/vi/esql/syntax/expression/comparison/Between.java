@@ -5,6 +5,8 @@
 package ma.vi.esql.syntax.expression.comparison;
 
 import ma.vi.base.tuple.T2;
+import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.Context;
@@ -64,20 +66,20 @@ public class Between extends Expression<String, String> {
   }
 
   @Override
-  protected String trans(Target target, EsqlPath path, PMap<String, Object> parameters) {
+  protected String trans(Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
     switch (target) {
       case JSON, JAVASCRIPT:
-        Object compareEx = compare().translate(target, path.add(compare()), parameters);
+        Object compareEx = compare().translate(target, esqlCon, path.add(compare()), parameters, env);
         String e = (not() ? "!" : "") + '('
-                 + compareEx + " >= " + from().translate(target, path.add(from()), parameters) + " && "
-                 + compareEx + " <= " + to().translate(target, path.add(to()), parameters) + ')';
+                 + compareEx + " >= " + from().translate(target, esqlCon, path.add(from()), parameters, env) + " && "
+                 + compareEx + " <= " + to().translate(target, esqlCon, path.add(to()), parameters, env) + ')';
         return target == JSON ? '"' + escapeJsonString(e) + '"' : e;
 
       default:
-        return compare().translate(target, path.add(compare()), parameters)
+        return compare().translate(target, esqlCon, path.add(compare()), parameters, env)
              + (not() ? " not" : "") + " between "
-             + from().translate(target, path.add(from()), parameters) + " and "
-             + to().translate(target, path.add(to()), parameters);
+             + from().translate(target, esqlCon, path.add(from()), parameters, env) + " and "
+             + to().translate(target, esqlCon, path.add(to()), parameters, env);
     }
   }
 

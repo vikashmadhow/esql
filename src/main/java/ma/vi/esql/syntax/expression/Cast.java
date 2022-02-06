@@ -5,6 +5,8 @@
 package ma.vi.esql.syntax.expression;
 
 import ma.vi.base.tuple.T2;
+import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
@@ -53,15 +55,16 @@ public class Cast extends Expression<String, String> {
   }
 
   @Override
-  protected String trans(Target target, EsqlPath path, PMap<String, Object> parameters) {
+  protected String trans(Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
     return switch (target) {
-      case ESQL       -> toType().translate(target, path, parameters)
-                           + '<' + expr().translate(target, path.add(expr()), parameters) + '>';
-      case POSTGRESQL -> '(' + expr().translate(target, path.add(expr()), parameters) + ")::"
-                             + toType().translate(target, path, parameters);
+      case ESQL       -> toType().translate(target, esqlCon, path, parameters, env)
+                           + '<' + expr().translate(target, esqlCon, path.add(expr()), parameters, env) + '>';
+      case POSTGRESQL -> '(' + expr().translate(target, esqlCon, path.add(expr()), parameters, env) + ")::"
+                             + toType().translate(target, esqlCon, path, parameters, env);
       case JSON,
-           JAVASCRIPT -> expr().translate(target, path.add(expr()), parameters);    // ignore cast for Javascript
-      default         -> "cast(" + expr().translate(target, path.add(expr()), parameters) + " as " + toType().translate(target, path, parameters) + ')';
+           JAVASCRIPT -> expr().translate(target, esqlCon, path.add(expr()), parameters, env);    // ignore cast for Javascript
+      default         -> "cast(" + expr().translate(target, esqlCon, path.add(expr()), parameters, env)
+                       + " as " + toType().translate(target, esqlCon, path, parameters, env) + ')';
     };
   }
 

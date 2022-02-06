@@ -5,6 +5,8 @@
 package ma.vi.esql.syntax.define;
 
 import ma.vi.base.tuple.T2;
+import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
@@ -77,26 +79,30 @@ public class ColumnDefinition extends TableDefinition {
   }
 
   @Override
-  protected String trans(Target target, EsqlPath path, PMap<String, Object> parameters) {
+  protected String trans(Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
     if (target == ESQL) {
       StringBuilder st = new StringBuilder('"' + name() + "\" "
-                                               + type().translate(target, path, parameters)
+                                               + type().translate(target, esqlCon, path, parameters, env)
                                                + (notNull() ? " not null" : "")
-                                               + (expression() != null ? " default " + expression().translate(target, path.add(expression()), parameters) : ""));
+                                               + (expression() != null ? " default " + expression().translate(target,
+                                                                                                              esqlCon,
+                                                                                                              path.add(expression()),
+                                                                                                              parameters,
+                                                                                                              env) : ""));
       addMetadata(st, target);
       return st.toString();
 
     } else if (target== HSQLDB) {
       return '"' + name() + "\" "
-          + type().translate(target, path, parameters)
-          + (expression() != null ? " default " + expression().translate(target, path.add(expression()), parameters) : "")
+          + type().translate(target, esqlCon, path, parameters, env)
+          + (expression() != null ? " default " + expression().translate(target, esqlCon, path.add(expression()), parameters, env) : "")
           + (notNull() ? " not null" : "");
 
     } else {
       return '"' + name() + "\" "
-           + type().translate(target, path, parameters)
+           + type().translate(target, esqlCon, path, parameters, env)
            + (notNull() ? " not null" : "")
-           + (expression() != null ? " default " + expression().translate(target, path.add(expression()), parameters) : "");
+           + (expression() != null ? " default " + expression().translate(target, esqlCon, path.add(expression()), parameters, env) : "");
     }
   }
 

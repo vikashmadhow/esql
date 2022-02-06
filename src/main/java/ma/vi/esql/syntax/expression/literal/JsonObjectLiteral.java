@@ -5,13 +5,14 @@
 package ma.vi.esql.syntax.expression.literal;
 
 import ma.vi.base.tuple.T2;
+import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.define.Attribute;
-import ma.vi.esql.translation.Translatable;
 import org.json.JSONObject;
 import org.pcollections.PMap;
 
@@ -62,9 +63,9 @@ public class JsonObjectLiteral extends Literal<List<Attribute>> {
   }
 
   @Override
-  protected String trans(Target target, EsqlPath path, PMap<String, Object> parameters) {
+  protected String trans(Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
     String t = members().stream()
-                        .map(e -> e.translate(target, path.add(e), parameters))
+                        .map(e -> e.translate(target, esqlCon, path.add(e), parameters, env))
                         .collect(joining(",", "{", "}"));
     if (path.tail() != null && path.tail().hasAncestor(JsonArrayLiteral.class, JsonObjectLiteral.class)) {
       return t;
@@ -78,10 +79,10 @@ public class JsonObjectLiteral extends Literal<List<Attribute>> {
   }
 
   @Override
-  public JSONObject value(Translatable.Target target, EsqlPath path) {
+  public JSONObject exec(Target target, EsqlConnection esqlCon, EsqlPath path, Environment env) {
     JSONObject object = new JSONObject();
     for (Attribute member: members()) {
-      object.put(member.name(), member.attributeValue().value(target, path));
+      object.put(member.name(), member.attributeValue().exec(target, esqlCon, path, env));
     }
     return object;
   }

@@ -2,17 +2,23 @@
  * Copyright (c) 2020 Vikash Madhow
  */
 
-package ma.vi.esql.syntax.expression;
+package ma.vi.esql.syntax.expression.function;
 
 import ma.vi.base.tuple.T2;
+import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
+import ma.vi.esql.syntax.expression.Expression;
+import ma.vi.esql.syntax.expression.literal.Literal;
+import ma.vi.esql.translation.TranslationException;
 import org.pcollections.PMap;
 
 /**
- * A named parameter in ESQL consists of a name preceded with a colon (:).
- * Values for named parameters must be provided when the statement is executed.
+ * A named parameter in ESQL consists of a name preceded with the '@' character.
+ * Values for named parameters must be provided when a statement containing them
+ * is executed.
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
@@ -47,14 +53,31 @@ public class NamedParameter extends Expression<String, String> {
 
   @Override
   protected String trans(Target               target,
+                         EsqlConnection       esqlCon,
                          EsqlPath             path,
-                         PMap<String, Object> parameters) {
-    return ':' + name();
+                         PMap<String, Object> parameters,
+                         Environment          env) {
+    Object value = exec(target, esqlCon, path, env);
+    return Literal.makeLiteral(context, value)
+                  .translate(target, esqlCon, path, parameters, env);
+  }
+
+  @Override
+  protected Object postTransformExec(Target         target,
+                                     EsqlConnection esqlCon,
+                                     EsqlPath       path,
+                                     Environment    env) {
+    if (env.knows(name())) {
+      return env.get(name());
+    } else {
+      throw new TranslationException(this, "A value for named parameter " + name()
+                                   + " has not been provided.");
+    }
   }
 
   @Override
   public void _toString(StringBuilder st, int level, int indent) {
-    st.append(':').append(name());
+    st.append('@').append(name());
   }
 
   public String name() {

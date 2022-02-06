@@ -5,6 +5,8 @@
 package ma.vi.esql.syntax.expression;
 
 import ma.vi.base.tuple.T2;
+import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
@@ -52,7 +54,7 @@ public class Coalesce extends MultipleSubExpressions {
   }
 
   @Override
-  protected String trans(Target target, EsqlPath path, PMap<String, Object> parameters) {
+  protected String trans(Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
     switch (target) {
       case JSON, JAVASCRIPT -> {
         StringBuilder st = new StringBuilder();
@@ -60,7 +62,7 @@ public class Coalesce extends MultipleSubExpressions {
           if (st.length() > 0) {
             st.append(" || ");
           }
-          String t = e.translate(target, path.add(e), parameters);
+          String t = e.translate(target, esqlCon, path.add(e), parameters, env);
           st.append("((" + t + ") || (" + t + ") === 0 || (" + t + ") === '' ? " + t + " : null)");
         }
         String translation = "(" + st + ")";
@@ -73,7 +75,7 @@ public class Coalesce extends MultipleSubExpressions {
       case ESQL -> {
         StringBuilder st = new StringBuilder();
         for (Expression<?, String> e: expressions()) {
-          st.append(st.length() == 0 ? "" : "?").append(e.translate(target, path.add(e), parameters));
+          st.append(st.length() == 0 ? "" : "?").append(e.translate(target, esqlCon, path.add(e), parameters, env));
         }
         return st.toString();
       }
@@ -92,7 +94,7 @@ public class Coalesce extends MultipleSubExpressions {
         for (Expression<?, String> e: expressions()) {
           if (first) { first = false;   }
           else       { st.append(", "); }
-          st.append(e.translate(target, path.add(e), parameters));
+          st.append(e.translate(target, esqlCon, path.add(e), parameters, env));
         }
         st.append(')');
         if (sqlServerBool) {

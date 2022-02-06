@@ -5,13 +5,14 @@
 package ma.vi.esql.syntax.expression.literal;
 
 import ma.vi.base.tuple.T2;
+import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.semantic.type.Interval;
 import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
-import ma.vi.esql.translation.Translatable;
 import org.pcollections.PMap;
 
 import static ma.vi.base.string.Escape.escapeJsonString;
@@ -57,7 +58,7 @@ public class IntervalLiteral extends BaseLiteral<String> {
   }
 
   @Override
-  protected String trans(Target target, EsqlPath path, PMap<String, Object> parameters) {
+  protected String trans(Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
     switch (target) {
       case POSTGRESQL:
         return '\'' + value + "'::interval";
@@ -77,7 +78,7 @@ public class IntervalLiteral extends BaseLiteral<String> {
   }
 
   @Override
-  public Object value(Translatable.Target target, EsqlPath path) {
-    return target == JSON ? translate(target, path.add(this)) : new Interval(value);
+  public Object exec(Target target, EsqlConnection esqlCon, EsqlPath path, Environment env) {
+    return target == JSON ? translate(target, esqlCon, path.add(this), env) : new Interval(value);
   }
 }

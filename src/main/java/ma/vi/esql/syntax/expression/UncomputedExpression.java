@@ -5,6 +5,8 @@
 package ma.vi.esql.syntax.expression;
 
 import ma.vi.base.tuple.T2;
+import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.Context;
@@ -58,11 +60,11 @@ public class UncomputedExpression extends SingleSubExpression {
   }
 
   @Override
-  protected String trans(Target target, EsqlPath path, PMap<String, Object> parameters) {
+  protected String trans(Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
     return switch (target) {
-      case JAVASCRIPT -> '`' + expr().translate(target, path.add(expr()), parameters) + '`';
-      case ESQL       -> "$(" + expr().translate(target, path.add(expr()), parameters) + ')';
-      default         -> '\'' + expr().translate(Target.ESQL, path.add(expr()), parameters).replace("'", "''") + '\'';
+      case JAVASCRIPT -> '`' + expr().translate(target, esqlCon, path.add(expr()), parameters, env) + '`';
+      case ESQL       -> "$(" + expr().translate(target, esqlCon, path.add(expr()), parameters, env) + ')';
+      default         -> '\'' + expr().translate(Target.ESQL, esqlCon, path.add(expr()), parameters, env).replace("'", "''") + '\'';
     };
   }
 

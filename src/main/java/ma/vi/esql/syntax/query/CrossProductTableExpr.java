@@ -5,6 +5,8 @@
 package ma.vi.esql.syntax.query;
 
 import ma.vi.base.tuple.T2;
+import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
@@ -47,10 +49,10 @@ public class CrossProductTableExpr extends AbstractJoinTableExpr {
   }
 
   @Override
-  protected String trans(Target target, EsqlPath path, PMap<String, Object> parameters) {
-    return left().translate(target, path.add(left()), parameters)
+  protected String trans(Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
+    return left().translate(target, esqlCon, path.add(left()), parameters, env)
          + (target == ESQL ? " times " : " cross join ")
-         + right().translate(target, path.add(right()), parameters);
+         + right().translate(target, esqlCon, path.add(right()), parameters, env);
   }
 
   @Override

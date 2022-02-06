@@ -8,7 +8,6 @@ import ma.vi.base.lang.NotFoundException;
 import ma.vi.base.tuple.T1;
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.exec.EsqlConnection;
-import ma.vi.esql.exec.Result;
 import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.semantic.scope.Scope;
 import ma.vi.esql.semantic.type.Type;
@@ -123,27 +122,33 @@ public class Esql<V, T> implements Copy<Esql<V, T>>, Translatable<T> {
       boolean hasDuplicateNames = useIndexAsChildrenNames != null && useIndexAsChildrenNames;
       if (!hasDuplicateNames) {
         for (Esql<?, ?> c: children) {
-          if (c.value == null || childrenNames.containsKey(c.value.toString())) {
-            hasDuplicateNames = true;
-            break;
+          if (c != null) {
+            if (c.value == null || childrenNames.containsKey(c.value.toString())) {
+              hasDuplicateNames = true;
+              break;
+            }
+            childrenNames.put(c.value.toString(), index);
+            index++;
           }
-          childrenNames.put(c.value.toString(), index);
-          index++;
         }
       }
       index = 0;
       if (hasDuplicateNames) {
         childrenNames.clear();
         for (Esql<?, ?> c: children) {
-          childrenNames.put(String.valueOf(index), index);
-          this.children.add(c);
-          index++;
+          if (c != null) {
+            childrenNames.put(String.valueOf(index), index);
+            this.children.add(c);
+            index++;
+          }
         }
       } else {
         for (Esql<?, ?> c: children) {
-          childrenNames.put(c.value.toString(), index);
-          this.children.add(c);
-          index++;
+          if (c != null) {
+            childrenNames.put(c.value.toString(), index);
+            this.children.add(c);
+            index++;
+          }
         }
       }
     }
@@ -520,16 +525,24 @@ public class Esql<V, T> implements Copy<Esql<V, T>>, Translatable<T> {
 
   @Override
   public final T translate(Target target) {
-    return translate(target, new EsqlPath(this), HashPMap.empty(IntTreePMap.empty()));
+    return translate(target, null, new EsqlPath(this), HashPMap.empty(IntTreePMap.empty()), null);
   }
 
   @Override
-  public final T translate(Target target, EsqlPath path, PMap<String, Object> parameters) {
-    return trans(target, path, parameters);
+  public final T translate(Target               target,
+                           EsqlConnection       esqlCon,
+                           EsqlPath             path,
+                           PMap<String, Object> parameters,
+                           Environment          env) {
+    return trans(target, null, path, parameters, null);
   }
 
-  protected T trans(Target target, EsqlPath path, PMap<String, Object> parameters) {
-    return TranslatorFactory.get(target).translate(this, path, parameters);
+  protected T trans(Target               target,
+                    EsqlConnection       esqlCon,
+                    EsqlPath             path,
+                    PMap<String, Object> parameters,
+                    Environment          env) {
+    return TranslatorFactory.get(target).translate(this, esqlCon, path, parameters, env);
   }
 
   /**
@@ -551,88 +564,29 @@ public class Esql<V, T> implements Copy<Esql<V, T>>, Translatable<T> {
   }
 
   /**
-   * Executes this ESQL node and returns its result. The default returns
-   * {@link Result#Nothing}.
-   * @return
+   * Executes this ESQL node and returns its result. The default returns null.
    */
-  public Object exec(EsqlConnection esqlCon,
+  @Override
+  public Object exec(Target         target,
+                     EsqlConnection esqlCon,
                      EsqlPath       path,
                      Environment    env) {
-    Esql<?, ?> esql = preExecTransform(esqlCon, path, env);
-    return esql.postTransformExec(esqlCon, path.replaceHead(esql), env);
+    Esql<?, ?> esql = preExecTransform(target, esqlCon, path, env);
+    return esql.postTransformExec(target, esqlCon, path.replaceHead(esql), env);
   }
 
-  protected Esql<?, ?> preExecTransform(EsqlConnection esqlCon,
+  protected Esql<?, ?> preExecTransform(Target         target,
+                                        EsqlConnection esqlCon,
                                         EsqlPath       path,
                                         Environment    env) {
-//    /*
-//     * Substitute parameters.
-//     */
-//    Esql<?, ?> esql = map((e, p) -> {
-//      if (e instanceof NamedParameter) {
-//        String paramName = ((NamedParameter)e).name();
-//        if (!env.has(paramName)) {
-//          throw new TranslationException("Parameter named " + paramName
-//                                       + " is present but not supplied in "
-//                                       + this + "(env: " + env + ")");
-//        } else {
-//          Object value = env.get(paramName);
-//          if (value instanceof Esql<?, ?>) {
-//            return (Esql<?, ?>)value;
-//
-//          } else if (value == null) {
-//            return new NullLiteral(context);
-//
-//          } else {
-//            return Literal.makeLiteral(context, value);
-//          }
-//        }
-//      }
-//      return e;
-//    });
-//
-//    /*
-//     * Base macro expansion for base-level changes not requiring any type information
-//     * or necessary for determining type information later (such as expanding `*`
-//     * in column lists).
-//     */
-//    esql = expand(esql, UntypedMacro.class);
-//
-//    /*
-//     * Expand typed macros in statement (macros requiring type information to be
-//     * present when expanding).
-//     */
-//    esql = expand(esql, TypedMacro.class);
-//
-//    Database db = esqlCon.database();
-//
-//    /*
-//     * Scope symbols.
-//     */
-//    esql.scope(new FunctionScope(db.structure()), new EsqlPath(esql));
-//
-//    /*
-//     * Type computation.
-//     */
-//    esql.forEach((e, p) -> {
-//      e.computeType(p);
-//      return true;
-//    });
-//
-//    /*
-//     * Transform ESQL through registered transformers prior to execution.
-//     */
-//    for (EsqlTransformer t: db.esqlTransformers()) {
-//      esql = t.transform(db, esql);
-//    }
-//    return esql;
     return this;
   }
 
-  protected Object postTransformExec(EsqlConnection esqlCon,
+  protected Object postTransformExec(Target         target,
+                                     EsqlConnection esqlCon,
                                      EsqlPath       path,
                                      Environment    env) {
-    return Result.Nothing;
+    return null;
   }
 
   private static <T extends Esql<?, ?>,
@@ -730,6 +684,12 @@ public class Esql<V, T> implements Copy<Esql<V, T>>, Translatable<T> {
    * initially and resolved during scoping and type computation.
    */
   protected transient Type type = UnknownType;
+
+  /**
+   * The line number where this node was defined in the input; used for debugging
+   * purposes only.
+   */
+  public int line;
 
   private static final String VALUE_OF_TYPE_ESQL_ERROR = """
       Value of an ESQL object is not allowed to be of ESQL type. All ESQL parameters \

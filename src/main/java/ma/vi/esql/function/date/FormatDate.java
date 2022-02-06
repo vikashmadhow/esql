@@ -4,13 +4,14 @@
 
 package ma.vi.esql.function.date;
 
+import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.function.Function;
 import ma.vi.esql.function.FunctionParam;
 import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.expression.Expression;
 import ma.vi.esql.syntax.expression.function.FunctionCall;
-import ma.vi.esql.translation.Translatable;
 
 import java.util.Arrays;
 import java.util.List;
@@ -55,13 +56,13 @@ public class FormatDate extends Function {
   }
 
   @Override
-  public String translate(FunctionCall call, Translatable.Target target, EsqlPath path) {
+  public String translate(FunctionCall call, Target target, EsqlConnection esqlCon, EsqlPath path, Environment env) {
     List<Expression<?, ?>> args = call.arguments();
     Expression<?, ?> date = args.get(0);
 
     String format = null;
     if (args.size() >= 2) {
-      format = args.get(1).value(ESQL, path).toString();
+      format = args.get(1).exec(target, esqlCon, path, env).toString();
     }
     if (target == POSTGRESQL) {
       if (format == null) {
@@ -89,7 +90,7 @@ public class FormatDate extends Function {
                        .replace("ms", "MS");
       }
 
-      return "to_char(" + date.translate(target, path.add(date)) + ", '"
+      return "to_char(" + date.translate(target, esqlCon, path.add(date), env) + ", '"
           + format + "')";
 
     } else if (target == SQLSERVER) {
@@ -120,10 +121,10 @@ public class FormatDate extends Function {
                        .replace("pm", "tt");
       }
 
-      return "format(" + date.translate(target, path.add(date)) + ", '" + format + "')";
+      return "format(" + date.translate(target, esqlCon, path.add(date), env) + ", '" + format + "')";
     } else {
-      return "format(" + date.translate(target, path.add(date))
-          + (format == null ? "" : ", " + args.get(1).translate(target, path.add(args.get(1)))) + ')';
+      return "format(" + date.translate(target, esqlCon, path.add(date), env)
+          + (format == null ? "" : ", " + args.get(1).translate(target, esqlCon, path.add(args.get(1)), env)) + ')';
     }
   }
 }

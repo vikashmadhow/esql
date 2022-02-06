@@ -4,13 +4,14 @@
 
 package ma.vi.esql.function.date;
 
+import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.function.Function;
 import ma.vi.esql.function.FunctionParam;
 import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.expression.Expression;
 import ma.vi.esql.syntax.expression.function.FunctionCall;
-import ma.vi.esql.translation.Translatable;
 
 import java.util.Arrays;
 import java.util.List;
@@ -32,19 +33,19 @@ public class NewTime extends Function {
   }
 
   @Override
-  public String translate(FunctionCall call, Translatable.Target target, EsqlPath path) {
+  public String translate(FunctionCall call, Target target, EsqlConnection esqlCon, EsqlPath path, Environment env) {
     List<Expression<?, ?>> args = call.arguments();
     if (target == POSTGRESQL) {
       return "make_time("
-          + args.get(0).translate(target, path.add(args.get(0))) + ", "
-          + args.get(1).translate(target, path.add(args.get(1))) + ", "
-          + args.get(2).translate(target, path.add(args.get(2))) + ')';
+          + args.get(0).translate(target, esqlCon, path.add(args.get(0)), env) + ", "
+          + args.get(1).translate(target, esqlCon, path.add(args.get(1)), env) + ", "
+          + args.get(2).translate(target, esqlCon, path.add(args.get(2)), env) + ')';
 
     } else if (target == SQLSERVER) {
       // precision and fractional second values must agree in SQL Server
       int fractional = 0;
       int precision = 0;
-      String seconds = args.get(5).translate(target, path.add(args.get(5))).toString();
+      String seconds = args.get(5).translate(target, esqlCon, path.add(args.get(5)), env).toString();
       int pos = seconds.indexOf('.');
       if (pos != -1) {
         String fraction = seconds.substring(pos + 1);
@@ -59,17 +60,17 @@ public class NewTime extends Function {
         precision = fraction.length();
       }
       return "timefromparts("
-          + args.get(0).translate(target, path.add(args.get(0))) + ", "
-          + args.get(1).translate(target, path.add(args.get(1))) + ", "
+          + args.get(0).translate(target, esqlCon, path.add(args.get(0)), env) + ", "
+          + args.get(1).translate(target, esqlCon, path.add(args.get(1)), env) + ", "
           + seconds + ", "
           + fractional + ", "
           + precision + ')';
 
     } else {
       return name + '('
-          + args.get(0).translate(target, path.add(args.get(0))) + ", "
-          + args.get(1).translate(target, path.add(args.get(1))) + ", "
-          + args.get(2).translate(target, path.add(args.get(2))) + ')';
+          + args.get(0).translate(target, esqlCon, path.add(args.get(0)), env) + ", "
+          + args.get(1).translate(target, esqlCon, path.add(args.get(1)), env) + ", "
+          + args.get(2).translate(target, esqlCon, path.add(args.get(2)), env) + ')';
     }
   }
 }

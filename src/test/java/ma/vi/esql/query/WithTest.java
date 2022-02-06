@@ -33,8 +33,8 @@ public class WithTest extends DataTest {
 
                      UUID id1 = randomUUID(), id2 = randomUUID();
                      con.exec("insert into S(_id, a, b, e, h, j) values "
-                                  + "(u'" + id1 + "', 1, 2, true, text['Four', 'Quatre'], int[1, 2, 3]),"
-                                  + "(u'" + id2 + "', 6, 7, false, text['Nine', 'Neuf', 'X'], int[5, 6, 7, 8])");
+                                  + "(u'" + id1 + "', 1, 2, true, ['Four', 'Quatre']text, [1, 2, 3]int),"
+                                  + "(u'" + id2 + "', 6, 7, false, ['Nine', 'Neuf', 'X']text, [5, 6, 7, 8]int)");
 
                      con.exec("insert into a.b.T(_id, a, b, s_id) values"
                                   + "(newid(), 1, 2, u'" + id1 + "'), "
@@ -84,7 +84,7 @@ public class WithTest extends DataTest {
                      UUID c = randomUUID();
 
                      Parser p = new Parser(db.structure());
-                     Insert insert = p.parse("insert into x.R values(:id, :parent, :name)", INSERT);
+                     Insert insert = p.parse("insert into x.R values(@id, @parent, @name)", INSERT);
                      con.exec(insert, of("id", root), of("parent", null), of("name", "root"));
 
                      con.exec(insert, of("id", a), of("parent", root), of("name", "a"));

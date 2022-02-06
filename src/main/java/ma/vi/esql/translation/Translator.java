@@ -1,5 +1,7 @@
 package ma.vi.esql.translation;
 
+import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.define.Attribute;
@@ -46,7 +48,11 @@ public interface Translator {
   /**
    * Call to translate an Esql node.
    */
-  <R> R translate(Esql<?, R> esql, EsqlPath path, PMap<String, Object> parameters);
+  <R> R translate(Esql<?, R>            esql,
+                  EsqlConnection        esqlCon,
+                  EsqlPath              path,
+                  PMap<String, Object>  parameters,
+                  Environment           env);
 
   /**
    * Static translation utility functions.
@@ -79,7 +85,7 @@ public interface Translator {
         if (target != ESQL) st.append('"');
         st.append(columnName);
         if (target != ESQL) st.append('"');
-        st.append('=').append(set.attributeValue().translate(target, path));
+        st.append('=').append(set.attributeValue().translate(target, null, path, null));
       }
     }
   }

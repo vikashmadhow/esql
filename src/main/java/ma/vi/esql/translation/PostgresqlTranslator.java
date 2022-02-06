@@ -1,6 +1,8 @@
 package ma.vi.esql.translation;
 
 import ma.vi.base.tuple.T1;
+import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.define.Attribute;
@@ -32,15 +34,15 @@ public class PostgresqlTranslator extends AbstractTranslator {
 
   @Override
   protected QueryTranslation translate(Select select,
-                                       EsqlPath path,
-                                       PMap<String, Object> parameters) {
+                                       EsqlConnection esqlCon, EsqlPath path,
+                                       PMap<String, Object> parameters, Environment env) {
     StringBuilder st = new StringBuilder("select ");
     if (select.distinct()) {
       st.append("distinct ");
       List<Expression<?, String>> distinctOn = select.distinctOn();
       if (distinctOn != null && !distinctOn.isEmpty()) {
         st.append("on (")
-          .append(distinctOn.stream().map(e -> e.translate(target(), path.add(e), parameters)).collect(joining(", ")))
+          .append(distinctOn.stream().map(e -> e.translate(target(), esqlCon, path.add(e), parameters, env)).collect(joining(", ")))
           .append(") ");
       }
     }
@@ -48,28 +50,28 @@ public class PostgresqlTranslator extends AbstractTranslator {
     // add output clause
     QueryTranslation q = select.constructResult(st, target(), path, null, parameters);
     if (select.tables() != null) {
-      st.append(" from ").append(select.tables().translate(target(), path.add(select.tables()), parameters));
+      st.append(" from ").append(select.tables().translate(target(), esqlCon, path.add(select.tables()), parameters, env));
     }
     if (select.where() != null) {
-      st.append(" where ").append(select.where().translate(target(), path.add(select.where()), parameters));
+      st.append(" where ").append(select.where().translate(target(), esqlCon, path.add(select.where()), parameters, env));
     }
     if (select.groupBy() != null) {
-      st.append(select.groupBy().translate(target(), path.add(select.groupBy()), parameters));
+      st.append(select.groupBy().translate(target(), esqlCon, path.add(select.groupBy()), parameters, env));
     }
     if (select.having() != null) {
-      st.append(" having ").append(select.having().translate(target(), path.add(select.having()), parameters));
+      st.append(" having ").append(select.having().translate(target(), esqlCon, path.add(select.having()), parameters, env));
     }
     if (select.orderBy() != null && !select.orderBy().isEmpty()) {
       st.append(" order by ")
         .append(select.orderBy().stream()
-                      .map(e -> e.translate(target(), path.add(e), parameters))
+                      .map(e -> e.translate(target(), esqlCon, path.add(e), parameters, env))
                       .collect(joining(", ")));
     }
     if (select.offset() != null) {
-      st.append(" offset ").append(select.offset().translate(target(), path.add(select.offset()), parameters));
+      st.append(" offset ").append(select.offset().translate(target(), esqlCon, path.add(select.offset()), parameters, env));
     }
     if (select.limit() != null) {
-      st.append(" limit ").append(select.limit().translate(target(), path.add(select.limit()), parameters));
+      st.append(" limit ").append(select.limit().translate(target(), esqlCon, path.add(select.limit()), parameters, env));
     }
     return new QueryTranslation(select, st.toString(),
                                 q.columns(),
@@ -78,14 +80,14 @@ public class PostgresqlTranslator extends AbstractTranslator {
   }
 
   @Override
-  protected QueryTranslation translate(Update update, EsqlPath path, PMap<String, Object> parameters) {
+  protected QueryTranslation translate(Update update, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
     TableExpr from = update.tables();
     if (from instanceof SingleTableExpr) {
       StringBuilder st = new StringBuilder("update ");
-      st.append(from.translate(target(), path.add(from), parameters));
+      st.append(from.translate(target(), esqlCon, path.add(from), parameters, env));
       Util.addSet(st, update.set(), target(), false, path);
       if (update.where() != null) {
-        st.append(" where ").append(update.where().translate(target(), path.add(update.where()), parameters));
+        st.append(" where ").append(update.where().translate(target(), esqlCon, path.add(update.where()), parameters, env));
       }
       QueryTranslation q = null;
       if (update.columns() != null && !update.columns().isEmpty()) {
@@ -149,21 +151,21 @@ public class PostgresqlTranslator extends AbstractTranslator {
       List<Attribute> set = new ArrayList<>(update.set().attributes().values());
       st.append("select \"").append(update.updateTableAlias()).append("\".ctid, ")
         .append(set.stream()
-                   .map(a -> a.attributeValue().translate(target(), path.add(a.attributeValue()), parameters))
+                   .map(a -> a.attributeValue().translate(target(), esqlCon, path.add(a.attributeValue()), parameters, env))
                    .collect(joining(", ")))
-        .append(" from ").append(from.translate(target(), path.add(from), parameters));
+        .append(" from ").append(from.translate(target(), esqlCon, path.add(from), parameters, env));
 
       if (update.where() != null) {
-        st.append(" where ").append(update.where().translate(target(), path.add(update.where()), parameters));
+        st.append(" where ").append(update.where().translate(target(), esqlCon, path.add(update.where()), parameters, env));
       }
       st.append(") update ");
 
       SingleTableExpr updateTable = findSingleTable((AbstractJoinTableExpr)from,
                                                     update.updateTableAlias());
       if (updateTable == null) {
-        throw new TranslationException("Could not find table with alias " + update.updateTableAlias());
+        throw new TranslationException(update, "Could not find table with alias " + update.updateTableAlias());
       }
-      st.append(updateTable.translate(target(), path.add(updateTable), parameters));
+      st.append(updateTable.translate(target(), esqlCon, path.add(updateTable), parameters, env));
 
       st.append(" set ");
       boolean first = true;
@@ -196,19 +198,19 @@ public class PostgresqlTranslator extends AbstractTranslator {
                                     q.resultAttributes());
       }
     } else {
-      throw new TranslationException("Wrong table type to update: " + from);
+      throw new TranslationException(update, "Wrong table type to update: " + from);
     }
   }
 
   @Override
   protected QueryTranslation translate(Delete delete,
-                                       EsqlPath path,
-                                       PMap<String, Object> parameters) {
+                                       EsqlConnection esqlCon, EsqlPath path,
+                                       PMap<String, Object> parameters, Environment env) {
     StringBuilder st = new StringBuilder("delete ");
 
     TableExpr from = delete.tables();
     if (from instanceof SingleTableExpr) {
-      st.append(" from ").append(from.translate(target(), path.add(from), parameters));
+      st.append(" from ").append(from.translate(target(), esqlCon, path.add(from), parameters, env));
 
     } else if (from instanceof AbstractJoinTableExpr) {
       /*
@@ -255,20 +257,20 @@ public class PostgresqlTranslator extends AbstractTranslator {
       }, null, path.add(delete));
 
       if (deleteTable.a == null) {
-        throw new TranslationException("Could not find table with alias " + singleTableAlias);
+        throw new TranslationException(delete, "Could not find table with alias " + singleTableAlias);
       }
       if (deleteJoin.a instanceof JoinTableExpr join) {
         delete = delete.where(join.on(), false);
       }
-      st.append(" from ").append(deleteTable.a.translate(target(), path.add(deleteTable.a), parameters));
-      st.append(" using ").append(from.translate(target(), path.add(from), parameters));
+      st.append(" from ").append(deleteTable.a.translate(target(), esqlCon, path.add(deleteTable.a), parameters, env));
+      st.append(" using ").append(from.translate(target(), esqlCon, path.add(from), parameters, env));
 
     } else {
-      throw new TranslationException("Wrong table type to delete: " + from);
+      throw new TranslationException(delete, "Wrong table type to delete: " + from);
     }
 
     if (delete.where() != null) {
-      st.append(" where ").append(delete.where().translate(target(), path.add(delete.where()), parameters));
+      st.append(" where ").append(delete.where().translate(target(), esqlCon, path.add(delete.where()), parameters, env));
     }
 
     if (delete.columns() != null && !delete.columns().isEmpty()) {
@@ -284,11 +286,11 @@ public class PostgresqlTranslator extends AbstractTranslator {
   }
 
   @Override
-  protected QueryTranslation translate(Insert insert, EsqlPath path, PMap<String, Object> parameters) {
+  protected QueryTranslation translate(Insert insert, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
     StringBuilder st = new StringBuilder("insert into ");
     TableExpr table = insert.tables();
     if (!(table instanceof SingleTableExpr)) {
-      throw new TranslationException("Insert only works with single tables. A " + table.getClass().getSimpleName()
+      throw new TranslationException(insert, "Insert only works with single tables. A " + table.getClass().getSimpleName()
                                          + " was found instead.");
     }
     st.append(Type.dbTableName(((SingleTableExpr)table).tableName(), target()));
@@ -303,7 +305,7 @@ public class PostgresqlTranslator extends AbstractTranslator {
     List<InsertRow> rows = insert.rows();
     if (rows != null && !rows.isEmpty()) {
       st.append(rows.stream()
-                    .map(row -> row.translate(target(), path.add(row), parameters))
+                    .map(row -> row.translate(target(), esqlCon, path.add(row), parameters, env))
                     .collect(joining(", ", " values", "")));
 
     } else if (insert.defaultValues()) {
@@ -311,8 +313,8 @@ public class PostgresqlTranslator extends AbstractTranslator {
 
     } else {
       st.append(' ').append(insert.select().translate(target(),
-                                                      path.add(insert.select()),
-                                                      parameters.plus("addAttributes", false)).translation());
+                                                      null, path.add(insert.select()),
+                                                      parameters.plus("addAttributes", false), null).translation());
     }
 
     QueryTranslation q = null;

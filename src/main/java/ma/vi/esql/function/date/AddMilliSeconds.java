@@ -4,6 +4,8 @@
 
 package ma.vi.esql.function.date;
 
+import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.function.Function;
 import ma.vi.esql.function.FunctionParam;
 import ma.vi.esql.semantic.type.Types;
@@ -30,7 +32,7 @@ public class AddMilliSeconds extends Function {
   }
 
   @Override
-  public String translate(FunctionCall call, Target target, EsqlPath path) {
+  public String translate(FunctionCall call, Target target, EsqlConnection esqlCon, EsqlPath path, Environment env) {
     List<Expression<?, ?>> args = call.arguments();
     if (target == POSTGRESQL) {
       return args.get(0).translate(target)

@@ -5,6 +5,8 @@
 package ma.vi.esql.syntax.expression.comparison;
 
 import ma.vi.base.tuple.T2;
+import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.Context;
@@ -61,11 +63,11 @@ public class ComparisonOperator extends BinaryOperator {
 
   @Override
   protected String trans(Target target,
-                         EsqlPath path,
-                         PMap<String, Object> parameters) {
+                         EsqlConnection esqlCon, EsqlPath path,
+                         PMap<String, Object> parameters, Environment env) {
     boolean sqlServerBool = target == Target.SQLSERVER && requireIif(path, parameters);
     return (sqlServerBool ? "iif" : "") + '('
-         + super.trans(target, path, parameters)
+         + super.trans(target, esqlCon, path, parameters, env)
          + (sqlServerBool ? ", 1, 0" : "") + ')';
   }
 }

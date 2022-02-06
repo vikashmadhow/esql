@@ -5,6 +5,8 @@
 package ma.vi.esql.syntax.query;
 
 import ma.vi.base.tuple.T2;
+import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
@@ -59,14 +61,14 @@ public class GroupBy extends Esql<String, String> {
   }
 
   @Override
-  protected String trans(Target target, EsqlPath path, PMap<String, Object> parameters) {
+  protected String trans(Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
     Type type = groupType();
     return " group by "
          + (type == Type.Rollup ? "rollup(" :
             type == Type.Cube   ?   "cube(" : "")
 
          + groupBy().stream()
-                    .map(a -> a.translate(target, path.add(a), parameters))
+                    .map(a -> a.translate(target, esqlCon, path.add(a), parameters, env))
                     .collect(joining(", "))
 
          + (type != Type.Simple ? ")" : "");

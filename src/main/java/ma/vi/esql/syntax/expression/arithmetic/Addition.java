@@ -14,6 +14,8 @@ import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.expression.Expression;
 
+import java.util.Arrays;
+
 /**
  * An addition in ESQL.
  *
@@ -51,11 +53,11 @@ public class Addition extends ArithmeticOperator {
   }
 
   @Override
-  public Object postTransformExec(EsqlConnection esqlCon,
-                                  EsqlPath       path,
-                                  Environment    env) {
-    Object left = expr1().exec(esqlCon, path.add(expr1()), env);
-    Object right = expr2().exec(esqlCon, path.add(expr2()), env);
+  public Object postTransformExec(Target target, EsqlConnection esqlCon,
+                                  EsqlPath path,
+                                  Environment env) {
+    Object left = expr1().exec(target, esqlCon, path.add(expr1()), env);
+    Object right = expr2().exec(target, esqlCon, path.add(expr2()), env);
 
     if (left instanceof Number ln
      && right instanceof Number rn) {
@@ -66,10 +68,16 @@ public class Addition extends ArithmeticOperator {
       }
     } else if (left instanceof String
             || right instanceof String) {
-      return left + String.valueOf(right);
+      String leftStr = left == null              ? "null"
+                     : left.getClass().isArray() ? Arrays.toString((Object[])left)
+                     : left.toString();
+      String rightStr = right == null              ? "null"
+                      : right.getClass().isArray() ? Arrays.toString((Object[])right)
+                      : right.toString();
+      return leftStr + rightStr;
     } else {
-      throw new ExecutionException("Incompatible types for " + op()
-                                 + ": left " + left + ", right: " + right);
+      throw new ExecutionException(this, "Incompatible types for " + op()
+                                       + ": left " + left + ", right: " + right);
     }
   }
 }

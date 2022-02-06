@@ -25,7 +25,9 @@ import ma.vi.esql.syntax.expression.logical.And;
 import ma.vi.esql.syntax.expression.logical.Not;
 import ma.vi.esql.syntax.expression.logical.Or;
 import ma.vi.esql.syntax.expression.variable.Assignment;
+import ma.vi.esql.syntax.expression.variable.Selector;
 import ma.vi.esql.syntax.expression.variable.VariableDecl;
+import ma.vi.esql.syntax.loop.ForEach;
 import ma.vi.esql.syntax.modify.Delete;
 import ma.vi.esql.syntax.modify.Insert;
 import ma.vi.esql.syntax.modify.InsertRow;
@@ -136,6 +138,20 @@ public class SyntaxAnalyser extends EsqlBaseListener {
   @Override
   public void exitReturn(ReturnContext ctx) {
     put(ctx, new Return(context, get(ctx.expr())));
+  }
+
+  @Override
+  public void exitSelector(SelectorContext ctx) {
+    put(ctx, new Selector(context, get(ctx.on), get(ctx.member)));
+  }
+
+  @Override
+  public void exitForEach(ForEachContext ctx) {
+    put(ctx, new ForEach(context,
+                         ctx.key != null ? ctx.key.getText() : null,
+                         ctx.value.getText(),
+                         get(ctx.expr()),
+                         value(ctx.expressions())));
   }
 
   @Override
@@ -591,12 +607,45 @@ public class SyntaxAnalyser extends EsqlBaseListener {
 
   @Override
   public void exitBaseArrayLiteral(BaseArrayLiteralContext ctx) {
-    String componentType = ctx.Identifier().getText();
+    List<BaseLiteral<?>> items = value(ctx.baseLiteralList());
+    String componentType = null;
+    if (ctx.Identifier() == null && items != null && !items.isEmpty()) {
+      /*
+       * Determine type of base array.
+       */
+      for (BaseLiteral<?> item: items) {
+        String itemType = switch(item) {
+          case IntegerLiteral       t -> Types.LongType.name();
+          case FloatingPointLiteral t -> Types.DoubleType.name();
+          case StringLiteral        t -> Types.TextType.name();
+          case BooleanLiteral       t -> Types.BoolType.name();
+          case DateLiteral          t -> Types.DatetimeType.name();
+          case UuidLiteral          t -> Types.UuidType.name();
+          case IntervalLiteral      t -> Types.IntervalType.name();
+          default                     -> null;
+        };
+        if (itemType != null) {
+          if (componentType != null && !componentType.equals(itemType)) {
+            throw new SyntaxException("An array literal can only contain one type of elements. "
+                                    + "Both elements of type " + componentType + " and " + itemType
+                                    + " were given in the same array: " + ctx.getText() + '.');
+          }
+          componentType = itemType;
+        }
+      }
+    } else {
+      componentType = ctx.Identifier().getText();
+    }
+    if (componentType == null) {
+      throw new SyntaxException("The element type of the array " + ctx.getText()
+                              + " was not specified and could not be automatically "
+                              + "determined.");
+    }
     Type type = Types.findTypeOf(componentType);
     if (type == null) {
-      error(ctx, "Unknown type " + componentType + " for array literal");
+      error(ctx, "Unknown type " + componentType + " for array literal: " + ctx.getText() + '.');
     }
-    put(ctx, new BaseArrayLiteral(context, type, value(ctx.baseLiteralList())));
+    put(ctx, new BaseArrayLiteral(context, type, items));
   }
 
   @Override
@@ -779,12 +828,12 @@ public class SyntaxAnalyser extends EsqlBaseListener {
                           true,
                           singletonList(new Column(context, colName, get(ctx.col), Types.UnknownType, null)),
                           get(ctx.tableExpr()),
-                          ctx.where == null ? null : get(ctx.where),
+                          ctx.where != null ? get(ctx.where) : null,
                           null,
                           null,
-                          ctx.orderByList() == null ? null : value(ctx.orderByList()),
-                          ctx.offset == null ? null : get(ctx.offset),
-                          null);
+                          ctx.orderByList() != null ? value(ctx.orderByList())  : null,
+                          ctx.offset != null ? get(ctx.offset) : null,
+                          new IntegerLiteral(context, 1L));
     put(ctx, new SelectExpression(context, s));
   }
 
@@ -1301,6 +1350,11 @@ public class SyntaxAnalyser extends EsqlBaseListener {
   }
 
   @Override
+  public void exitEvaluate(EvaluateContext ctx) {
+    put(ctx, new Evaluate(context, get(ctx.expr())));
+  }
+
+  @Override
   public void exitNamedArgument(NamedArgumentContext ctx) {
     put(ctx, new NamedArgument(context, ctx.Identifier().getText(), get(ctx.positionalArgument())));
   }
@@ -1350,6 +1404,10 @@ public class SyntaxAnalyser extends EsqlBaseListener {
   }
 
   private void put(RuleContext ctx, Esql<?, ?> esql) {
+    if (ctx instanceof ParserRuleContext p
+     && p.getStart() != null) {
+      esql.line = p.getStart().getLine();
+    }
     nodes.put(ctx, esql);
   }
 

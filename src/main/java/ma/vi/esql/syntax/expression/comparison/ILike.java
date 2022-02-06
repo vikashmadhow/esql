@@ -5,12 +5,13 @@
 package ma.vi.esql.syntax.expression.comparison;
 
 import ma.vi.base.tuple.T2;
+import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.expression.Expression;
 import ma.vi.esql.syntax.expression.NegatableDoubleSubExpressions;
-import ma.vi.esql.translation.Translatable;
 import org.pcollections.PMap;
 
 import static ma.vi.esql.translation.SqlServerTranslator.requireIif;
@@ -54,22 +55,22 @@ public class ILike extends NegatableDoubleSubExpressions<String> {
   }
 
   @Override
-  protected String trans(Translatable.Target target,
-                         EsqlPath path,
-                         PMap<String, Object> parameters) {
+  protected String trans(Target target,
+                         EsqlConnection esqlCon, EsqlPath path,
+                         PMap<String, Object> parameters, Environment env) {
     if (target == SQLSERVER) {
       /*
        * SQL Server requires collation for case-insensitive like.
        */
-      String e = '(' + expr1().translate(target, path.add(expr1()), parameters) + ") collate Latin1_General_CI_AS"
+      String e = '(' + expr1().translate(target, null, path.add(expr1()), parameters, null) + ") collate Latin1_General_CI_AS"
                + (not() ? " not" : "")
-               + " like (" + expr2().translate(target, path.add(expr2()), parameters) + ") collate Latin1_General_CI_AS";
+               + " like (" + expr2().translate(target, null, path.add(expr2()), parameters, null) + ") collate Latin1_General_CI_AS";
       if (requireIif(path, parameters)) {
         e = "iif(" + e + ", 1, 0)";
       }
       return e;
     } else {
-      return super.trans(target, path, parameters);
+      return super.trans(target, esqlCon, path, parameters, env);
     }
   }
 

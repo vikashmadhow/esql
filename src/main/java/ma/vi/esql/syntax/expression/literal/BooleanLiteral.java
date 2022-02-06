@@ -5,6 +5,8 @@
 package ma.vi.esql.syntax.expression.literal;
 
 import ma.vi.base.tuple.T2;
+import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
@@ -54,7 +56,7 @@ public class BooleanLiteral extends BaseLiteral<Boolean> {
   }
 
   @Override
-  protected String trans(Target target, EsqlPath path, PMap<String, Object> parameters) {
+  protected String trans(Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
     if (target == Translatable.Target.SQLSERVER) {
       return value ? "1" : "0";
     }
@@ -62,7 +64,7 @@ public class BooleanLiteral extends BaseLiteral<Boolean> {
   }
 
   @Override
-  public Boolean value(Translatable.Target target, EsqlPath path) {
+  public Boolean exec(Target target, EsqlConnection esqlCon, EsqlPath path, Environment env) {
     return value;
   }
 }

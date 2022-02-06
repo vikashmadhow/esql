@@ -2708,14 +2708,14 @@ public class Databases {
 //            if (rs.next()) {
 //              log.log(INFO, "Updating import function " + functionName);
 //              c.exec(p.parse("update _platform.import.Function f " +
-//                               "set func=:f, iterative=:i where name=:n"),
+//                               "set func=$f, iterative=$i where name=$n"),
 //                     Param.of("n", functionName),
 //                     Param.of("i", iterative),
 //                     Param.of("f", functionBody));
 //            } else {
 //              log.log(INFO, "Creating import function " + functionName);
 //              c.exec(p.parse("insert into _platform.import.Function(_id, _can_delete, name, iterative, func) values" +
-//                               "(newid(), false, :n, :i, :f)"),
+//                               "(newid(), false, $n, $i, $f)"),
 //                     Param.of("n", functionName),
 //                     Param.of("i", iterative),
 //                     Param.of("f", functionBody));
@@ -2733,7 +2733,7 @@ public class Databases {
 //
 //          String id = UUID.randomUUID().toString();
 //          c.exec(p.parse("insert into _platform.lookup.Lookup(_id, _can_delete, name, description) " +
-//                             "values(:id, false, :name, :description)"),
+//                             "values($id, false, $name, $description)"),
 //                 Param.of("id", id),
 //                 Param.of("name", "_join_type"),
 //                 Param.of("description", "Internal lookup containing table join types used in filters and reports"));
@@ -2756,7 +2756,7 @@ public class Databases {
 //
 //          UUID id = UUID.randomUUID();
 //          c.exec(p.parse("insert into _platform.lookup.Lookup(_id, _can_delete, name, description) " +
-//                             "values(:id, false, :name, :description)"),
+//                             "values($id, false, $name, $description)"),
 //                 Param.of("id", id.toString()),
 //                 Param.of("name", "_group_type"),
 //                 Param.of("description",
@@ -2777,7 +2777,7 @@ public class Databases {
 //
 //          UUID id = UUID.randomUUID();
 //          c.exec(p.parse("insert into _platform.lookup.Lookup(_id, _can_delete, name, description) " +
-//                             "values(:id, false, :name, :description)"),
+//                             "values($id, false, $name, $description)"),
 //                 Param.of("id", id.toString()),
 //                 Param.of("name", "_audit_action"),
 //                 Param.of("description",
@@ -2802,7 +2802,7 @@ public class Databases {
 //
 //          UUID id = UUID.randomUUID();
 //          c.exec(p.parse("insert into _platform.lookup.Lookup(_id, _can_delete, name, description) " +
-//                             "values(:id, false, :name, :description)"),
+//                             "values($id, false, $name, $description)"),
 //                 Param.of("id", id.toString()),
 //                 Param.of("name", "_output_type"),
 //                 Param.of("description", "Internal lookup defining the output types of reports"));
@@ -2830,7 +2830,7 @@ public class Databases {
 ////
 ////                    UUID id = UUID.randomUUID();
 ////                    c.exec(parse("insert into _platform.lookup.Lookup(_id, _can_delete, name, description) " +
-////                                    "values(:id, false, :name, :description)"),
+////                                    "values($id, false, $name, $description)"),
 ////                            Param.of("id", id.toString()),
 ////                            Param.of("name", "_user_resource"),
 ////                            Param.of("description", "Internal lookup containing resources which can be assigned as rights to users"));
@@ -2850,7 +2850,7 @@ public class Databases {
 ////
 ////                    UUID id = UUID.randomUUID();
 ////                    c.exec(parse("insert into _platform.lookup.Lookup(_id, _can_delete, name, description) " +
-////                                    "values(:id, false, :name, :description)"),
+////                                    "values($id, false, $name, $description)"),
 ////                            Param.of("id", id.toString()),
 ////                            Param.of("name", "_user_entity"),
 ////                            Param.of("description", "Internal lookup containing entities which can be assigned as rights to users"));
@@ -2872,7 +2872,7 @@ public class Databases {
 ////
 ////                    UUID id = UUID.randomUUID();
 ////                    c.exec(parse("insert into _platform.lookup.Lookup(_id, _can_delete, name, description) " +
-////                                    "values(:id, false, :name, :description)"),
+////                                    "values($id, false, $name, $description)"),
 ////                            Param.of("id", id.toString()),
 ////                            Param.of("name", "_user_function"),
 ////                            Param.of("description", "Internal lookup containing functions which can be assigned as rights to users"));
@@ -2895,7 +2895,7 @@ public class Databases {
 //
 //          UUID id = UUID.randomUUID();
 //          c.exec(p.parse("insert into _platform.lookup.Lookup(_id, _can_delete, name, description) " +
-//                             "values(:id, false, :name, :description)"),
+//                             "values($id, false, $name, $description)"),
 //                 Param.of("id", id.toString()),
 //                 Param.of("name", "_basetype"),
 //                 Param.of("description", "Internal lookup containing information on base types"));
@@ -2924,7 +2924,7 @@ public class Databases {
 //
 //          UUID id = UUID.randomUUID();
 //          c.exec(p.parse("insert into _platform.lookup.Lookup(_id, _can_delete, name, description) " +
-//                             "values(:id, false, :name, :description)"),
+//                             "values($id, false, $name, $description)"),
 //                 Param.of("id", id.toString()),
 //                 Param.of("name", "_otp_channel"),
 //                 Param.of("description", "OTP channel lookup"));
@@ -2943,7 +2943,7 @@ public class Databases {
 //
 //          UUID id = UUID.randomUUID();
 //          c.exec(p.parse("insert into _platform.lookup.Lookup(_id, _can_delete, name, description) " +
-//                             "values(:id, false, :name, :description)"),
+//                             "values($id, false, $name, $description)"),
 //                 Param.of("id", id.toString()),
 //                 Param.of("name", "_util_month"),
 //                 Param.of("description", "Month utility lookup"));
@@ -2972,7 +2972,7 @@ public class Databases {
 //
 //          UUID id = UUID.randomUUID();
 //          c.exec(p.parse("insert into _platform.lookup.Lookup(_id, _can_delete, name, description) " +
-//                             "values(:id, false, :name, :description)"),
+//                             "values($id, false, $name, $description)"),
 //                 Param.of("id", id.toString()),
 //                 Param.of("name", "_util_yes_no"),
 //                 Param.of("description", "Yes/No utility lookup"));
@@ -2991,7 +2991,7 @@ public class Databases {
 //
 //          UUID id = UUID.randomUUID();
 //          c.exec(p.parse("insert into _platform.lookup.Lookup(_id, _can_delete, name, description) " +
-//                             "values(:id, false, :name, :description)"),
+//                             "values($id, false, $name, $description)"),
 //                 Param.of("id", id.toString()),
 //                 Param.of("name", "_util_year"),
 //                 Param.of("description", "Year utility lookup"));
@@ -3021,7 +3021,7 @@ public class Databases {
 //
 //          UUID id = UUID.randomUUID();
 //          c.exec(p.parse("insert into _platform.lookup.Lookup(_id, _can_delete, name, description) " +
-//                             "values(:id, false, :name, :description)"),
+//                             "values($id, false, $name, $description)"),
 //                 Param.of("id", id.toString()),
 //                 Param.of("name", "_external_product"),
 //                 Param.of("description", "External products"));
@@ -3040,7 +3040,7 @@ public class Databases {
 //
 //          UUID id = UUID.randomUUID();
 //          c.exec(p.parse("insert into _platform.lookup.Lookup(_id, _can_delete, name, description) " +
-//                             "values(:id, false, :name, :description)"),
+//                             "values($id, false, $name, $description)"),
 //                 Param.of("id", id.toString()),
 //                 Param.of("name", "_field_attribute"),
 //                 Param.of("description", "Internal lookup containing information on default attributes for fields"));
@@ -3104,7 +3104,7 @@ public class Databases {
 //
 //          UUID id = UUID.randomUUID();
 //          c.exec(p.parse("insert into _platform.lookup.Lookup(_id, _can_delete, name, description) " +
-//                             "values(:id, false, :name, :description)"),
+//                             "values($id, false, $name, $description)"),
 //                 Param.of("id", id.toString()),
 //                 Param.of("name", "_report_type"),
 //                 Param.of("description", "Internal lookup of types of report"));
@@ -3129,7 +3129,7 @@ public class Databases {
 //
 //          UUID id = UUID.randomUUID();
 //          c.exec(p.parse("insert into _platform.lookup.Lookup(_id, _can_delete, name, description) " +
-//                             "values(:id, false, :name, :description)"),
+//                             "values($id, false, $name, $description)"),
 //                 Param.of("id", id.toString()),
 //                 Param.of("name", "_report_field_attribute"),
 //                 Param.of("description", "Internal lookup containing information on attributes for report fields"));

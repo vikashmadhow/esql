@@ -54,21 +54,23 @@ public class Exponentiation extends ArithmeticOperator {
   }
 
   @Override
-  protected String trans(Target target, EsqlPath path, PMap<String, Object> parameters) {
+  protected String trans(Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
     if (target == Translatable.Target.SQLSERVER) {
-      return "POWER(" + expr1().translate(target, path.add(expr1()), parameters) + ", " + expr2().translate(target, path.add(expr2()), parameters) + ")";
+      return "POWER(" + expr1().translate(target, esqlCon, path.add(expr1()), parameters, env)
+           + ", " + expr2().translate(target, esqlCon, path.add(expr2()), parameters, env) + ")";
     } else {
-      String e = expr1().translate(target, path.add(expr1()), parameters) + " ^ " + expr2().translate(target, path.add(expr2()), parameters);
+      String e = expr1().translate(target, esqlCon, path.add(expr1()), parameters, env)
+               + " ^ " + expr2().translate(target, esqlCon, path.add(expr2()), parameters, env);
       return target == JSON ? '"' + escapeJsonString(e) + '"' : e;
     }
   }
 
   @Override
-  public Object postTransformExec(EsqlConnection esqlCon,
-                                  EsqlPath       path,
-                                  Environment    env) {
-    Object left = expr1().exec(esqlCon, path.add(expr1()), env);
-    Object right = expr2().exec(esqlCon, path.add(expr2()), env);
+  public Object postTransformExec(Target target, EsqlConnection esqlCon,
+                                  EsqlPath path,
+                                  Environment env) {
+    Object left = expr1().exec(target, esqlCon, path.add(expr1()), env);
+    Object right = expr2().exec(target, esqlCon, path.add(expr2()), env);
 
     if (left instanceof Number ln
      && right instanceof Number rn) {
@@ -81,7 +83,7 @@ public class Exponentiation extends ArithmeticOperator {
         || right instanceof String) {
       return left + String.valueOf(right);
     } else {
-      throw new ExecutionException("Incompatible types for " + op()
+      throw new ExecutionException(this, "Incompatible types for " + op()
                                        + ": left " + left + ", right: " + right);
     }
   }

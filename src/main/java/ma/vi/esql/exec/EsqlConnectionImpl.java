@@ -6,11 +6,11 @@ package ma.vi.esql.exec;
 
 import ma.vi.esql.database.Database;
 import ma.vi.esql.exec.env.Environment;
-import ma.vi.esql.exec.env.FunctionEnvironment;
+import ma.vi.esql.exec.env.ProgramEnvironment;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.EsqlTransformer;
-import ma.vi.esql.syntax.expression.NamedParameter;
+import ma.vi.esql.syntax.expression.function.NamedParameter;
 import ma.vi.esql.syntax.expression.literal.Literal;
 import ma.vi.esql.syntax.expression.literal.NullLiteral;
 import ma.vi.esql.syntax.macro.Macro;
@@ -145,9 +145,9 @@ public class EsqlConnectionImpl implements EsqlConnection {
       st = t.transform(db, st);
     }
 
-    Environment env = new FunctionEnvironment(db.structure());
+    Environment env = new ProgramEnvironment(db.structure());
     for (Param p: params) env.add(p.a, p.b);
-    return (R)st.exec(this, new EsqlPath(st), env);
+    return (R)st.exec(database().target(), this, new EsqlPath(st), env);
   }
 
   private static <T extends Esql<?, ?>,
@@ -160,14 +160,13 @@ public class EsqlConnectionImpl implements EsqlConnection {
       esql = expanded;
       iteration++;
       if (iteration > 50) {
-        throw new TranslationException(
+        throw new TranslationException(esql,
             "Macro expansion continued for more than 50 iterations and was stopped. "
           + "A macro could be expanding recursively into other macros. Esql: " + esql);
       }
     }
     return expanded;
   }
-
 
   protected final Database db;
 

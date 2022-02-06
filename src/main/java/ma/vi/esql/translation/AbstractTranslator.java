@@ -1,5 +1,7 @@
 package ma.vi.esql.translation;
 
+import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.modify.Delete;
@@ -15,16 +17,20 @@ import org.pcollections.PMap;
 public abstract class AbstractTranslator implements Translator {
   @SuppressWarnings("unchecked")
   @Override
-  public <T> T translate(Esql<?, T> esql, EsqlPath path, PMap<String, Object> parameters) {
-    if      (esql instanceof Select) return (T)translate((Select)esql, path, parameters);
-    else if (esql instanceof Update) return (T)translate((Update)esql, path, parameters);
-    else if (esql instanceof Delete) return (T)translate((Delete)esql, path, parameters);
-    else if (esql instanceof Insert) return (T)translate((Insert)esql, path, parameters);
-    else                             throw new TranslationException("Translation of " + esql + " to " + target() + " is not supported");
+  public <T> T translate(Esql<?, T>           esql,
+                         EsqlConnection       esqlCon,
+                         EsqlPath             path,
+                         PMap<String, Object> parameters,
+                         Environment          env) {
+    if      (esql instanceof Select) return (T)translate((Select)esql, esqlCon, path, parameters, env);
+    else if (esql instanceof Update) return (T)translate((Update)esql, esqlCon, path, parameters, env);
+    else if (esql instanceof Delete) return (T)translate((Delete)esql, esqlCon, path, parameters, env);
+    else if (esql instanceof Insert) return (T)translate((Insert)esql, esqlCon, path, parameters, env);
+    else                             throw new TranslationException(esql, "Translation of " + esql + " to " + target() + " is not supported");
   }
 
-  protected abstract QueryTranslation translate(Select select, EsqlPath path, PMap<String, Object> parameters);
-  protected abstract QueryTranslation translate(Update update, EsqlPath path, PMap<String, Object> parameters);
-  protected abstract QueryTranslation translate(Delete delete, EsqlPath path, PMap<String, Object> parameters);
-  protected abstract QueryTranslation translate(Insert insert, EsqlPath path, PMap<String, Object> parameters);
+  protected abstract QueryTranslation translate(Select select, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env);
+  protected abstract QueryTranslation translate(Update update, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env);
+  protected abstract QueryTranslation translate(Delete delete, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env);
+  protected abstract QueryTranslation translate(Insert insert, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env);
 }

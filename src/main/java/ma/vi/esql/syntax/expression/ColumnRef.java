@@ -139,11 +139,11 @@ public class ColumnRef extends    Expression<String, String>
             if (alter != null) {
               BaseRelation table = context.structure.relation(alter.name());
               if (table == null) {
-                throw new TranslationException("Could not find table " + alter.name());
+                throw new TranslationException(this, "Could not find table " + alter.name());
               }
               Column column = table.column(columnName());
               if (column == null) {
-                throw new TranslationException("Could not find field " + columnName() + " in table " + alter.name());
+                throw new TranslationException(this, "Could not find field " + columnName() + " in table " + alter.name());
               }
               computedType = column.computeType(path.add(column));
             }
@@ -157,7 +157,7 @@ public class ColumnRef extends    Expression<String, String>
         }
       }
       if (computedType == null) {
-        throw new TranslationException("Could not determine the type of " + qualifiedName());
+        throw new TranslationException(this, "Could not determine the type of " + qualifiedName());
       }
       if (path.hasAncestor(OngoingMacroExpansion.class)) {
         return computedType;
@@ -259,8 +259,8 @@ public class ColumnRef extends    Expression<String, String>
 
   @Override
   protected String trans(Target target,
-                         EsqlPath path,
-                         PMap<String, Object> parameters) {
+                         EsqlConnection esqlCon, EsqlPath path,
+                         PMap<String, Object> parameters, Environment env) {
     boolean sqlServerBool = target == Target.SQLSERVER
                          && computeType(path.add(this)) == Types.BoolType
                          && !requireIif(path, parameters)
@@ -327,11 +327,11 @@ public class ColumnRef extends    Expression<String, String>
   }
 
   @Override
-  public Object exec(EsqlConnection esqlCon,
-                     EsqlPath       path,
-                     Environment    env) {
-    if (!env.has(name())) {
-      throw new ExecutionException("Unknown variable " + name() + " in " + env);
+  public Object exec(Target target, EsqlConnection esqlCon,
+                     EsqlPath path,
+                     Environment env) {
+    if (!env.knows(name())) {
+      throw new ExecutionException(this, "Unknown variable " + name() + " in " + env);
     }
     return env.get(name());
   }

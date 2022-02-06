@@ -171,7 +171,7 @@ public class CreateTable extends Define {
           String colName = ref.columnName();
           ColumnDefinition column = columns.get(colName);
           if (column == null) {
-            throw new TranslationException("Unknown column " + colName
+            throw new TranslationException(derivedExpression, "Unknown column " + colName
                                          + " in derived expression " + derivedExpression);
           } else if (seen.contains(colName)) {
             Set<String> otherColumns = seen.stream()
@@ -194,7 +194,7 @@ public class CreateTable extends Define {
   }
 
   @Override
-  protected String trans(Target target, EsqlPath path, PMap<String, Object> parameters) {
+  protected String trans(Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
     StringBuilder st = new StringBuilder("create table ");
     if (target != SQLSERVER) {
       st.append("if not exists ");
@@ -203,7 +203,7 @@ public class CreateTable extends Define {
 
     boolean first = true;
     for (ColumnDefinition column: columns()) {
-      String def = column.translate(target, path.add(column));
+      String def = column.translate(target, esqlCon, path.add(column), env);
       if (def != null) {
         if (first) {
           first = false;
@@ -214,15 +214,15 @@ public class CreateTable extends Define {
       }
     }
     for (ConstraintDefinition constraint: constraints()) {
-      st.append(", ").append(constraint.translate(target, path.add(constraint), parameters));
+      st.append(", ").append(constraint.translate(target, esqlCon, path.add(constraint), parameters, env));
     }
     st.append(')');
     return st.toString();
   }
 
   @Override
-  protected Object postTransformExec(EsqlConnection esqlCon,
-                                     EsqlPath       path,
+  protected Object postTransformExec(Target target, EsqlConnection esqlCon,
+                                     EsqlPath path,
                                      Environment env) {
     try {
       Database db = esqlCon.database();
@@ -280,8 +280,8 @@ public class CreateTable extends Define {
          * instance and will prevent the creation to go through if the structure
          * is not valid.
          */
-        String tableDisplayName = metadata().evaluateAttribute(NAME);
-        String tableDescription = metadata().evaluateAttribute(DESCRIPTION);
+        String tableDisplayName = metadata().evaluateAttribute(NAME, esqlCon, path, env);
+        String tableDescription = metadata().evaluateAttribute(DESCRIPTION, esqlCon, path, env);
         BaseRelation table = new BaseRelation(context,
                                               UUID.randomUUID(),
                                               tableName,
@@ -295,7 +295,7 @@ public class CreateTable extends Define {
         /*
          * Does not exist and valid: create
          */
-        con.createStatement().executeUpdate(modified.translate(db.target(), path.add(modified)));
+        con.createStatement().executeUpdate(modified.translate(db.target(), esqlCon, path.add(modified), env));
         db.structure().relation(table);
         table.expandColumns();
         db.structure().database.addTable(con, table);
@@ -315,7 +315,7 @@ public class CreateTable extends Define {
           alter = new AlterTable(context,
                                  tableName,
                                  singletonList(new AddTableDefinition(context, metadata())));
-          alter.exec(esqlCon, path.add(alter), env);
+          alter.exec(target, esqlCon, path.add(alter), env);
         }
 
         // add missing columns and alter existing ones if needed
@@ -330,7 +330,7 @@ public class CreateTable extends Define {
             alter = new AlterTable(context,
                                    tableName,
                                    singletonList(new AddTableDefinition(context, column)));
-            alter.exec(esqlCon, path.add(alter), env);
+            alter.exec(target, esqlCon, path.add(alter), env);
           } else {
             /*
              * alter existing field
@@ -375,7 +375,7 @@ public class CreateTable extends Define {
                                                                                              setDefault,
                                                                                              dropDefault,
                                                                                              metadata))));
-              alter.exec(esqlCon, path.add(alter), env);
+              alter.exec(target, esqlCon, path.add(alter), env);
             }
           }
         }
@@ -388,7 +388,7 @@ public class CreateTable extends Define {
              * A constraint same as this one does not exist;: add it
              */
             alter = new AlterTable(context, tableName, singletonList(new AddTableDefinition(context, constraint)));
-            alter.exec(esqlCon, path.add(alter), env);
+            alter.exec(target, esqlCon, path.add(alter), env);
           } else {
             /*
              * There is a similar constraint. For foreign keys check that the cascading
@@ -401,10 +401,10 @@ public class CreateTable extends Define {
                   || !Objects.equals(fk.onUpdate(), existing.onUpdate())) {
 
                 alter = new AlterTable(context, tableName, singletonList(new DropConstraint(context, tableConstraint.name())));
-                alter.exec(esqlCon, path.add(alter), env);
+                alter.exec(target, esqlCon, path.add(alter), env);
 
                 alter = new AlterTable(context, tableName, singletonList(new AddTableDefinition(context, constraint)));
-                alter.exec(esqlCon, path.add(alter), env);
+                alter.exec(target, esqlCon, path.add(alter), env);
               }
             }
           }
@@ -426,7 +426,7 @@ public class CreateTable extends Define {
                * Drop existing field not specified in create command
                */
               alter = new AlterTable(context, tableName, singletonList(new DropColumn(context, columnName)));
-              alter.exec(esqlCon, path.add(alter), env);
+              alter.exec(target, esqlCon, path.add(alter), env);
             }
           }
 
@@ -451,7 +451,7 @@ public class CreateTable extends Define {
           }
           for (String c: toDrop) {
             alter = new AlterTable(context, tableName, singletonList(new DropConstraint(context, c)));
-            alter.exec(esqlCon, path.add(alter), env);
+            alter.exec(target, esqlCon, path.add(alter), env);
           }
 
           /*
@@ -461,7 +461,7 @@ public class CreateTable extends Define {
            || metadata().attributes() == null
            || metadata().attributes().isEmpty()) {
             alter = new AlterTable(context, tableName, singletonList(new DropMetadata(context)));
-            alter.exec(esqlCon, path.add(alter), env);
+            alter.exec(target, esqlCon, path.add(alter), env);
           }
         }
       }

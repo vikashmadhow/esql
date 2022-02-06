@@ -51,8 +51,8 @@ public class Negation extends SingleSubExpression {
   }
 
   @Override
-  protected String trans(Target target, EsqlPath path, PMap<String, Object> parameters) {
-    return '-' + expr().translate(target, path.add(expr()), parameters);
+  protected String trans(Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
+    return '-' + expr().translate(target, esqlCon, path.add(expr()), parameters, env);
   }
 
   @Override
@@ -62,10 +62,10 @@ public class Negation extends SingleSubExpression {
   }
 
   @Override
-  public Object postTransformExec(EsqlConnection esqlCon,
-                                  EsqlPath       path,
-                                  Environment    env) {
-    Object expr = expr().exec(esqlCon, path.add(expr()), env);
+  public Object postTransformExec(Target target, EsqlConnection esqlCon,
+                                  EsqlPath path,
+                                  Environment env) {
+    Object expr = expr().exec(target, esqlCon, path.add(expr()), env);
     if (expr instanceof Number num) {
       if (Numbers.isReal(num)) {
         return -1 * num.doubleValue();
@@ -73,7 +73,7 @@ public class Negation extends SingleSubExpression {
         return -1 * num.longValue();
       }
     } else {
-      throw new ExecutionException("Incompatible types for negation: " + expr);
+      throw new ExecutionException(this, "Incompatible types for negation: " + expr);
     }
   }
 }

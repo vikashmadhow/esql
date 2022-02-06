@@ -73,14 +73,14 @@ public class DataTest {
                               f=from S select max(a) {
                                 m1: from S select min(a)
                               },
-                              g=from S select distinct c where d>5 {
+                              g=from S select distinct a+b where d>5 {
                                 m1: from a.b.T select min(a)
                               },
-                              h text[] {
+                              h []text {
                                 m1: 5
                               },
                               i string default 'Aie',
-                              j int[],
+                              j []int,
                               k interval,
                               l int,
                               primary key(_id)

@@ -5,6 +5,8 @@
 package ma.vi.esql.syntax.expression;
 
 import ma.vi.base.tuple.T2;
+import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
@@ -50,14 +52,14 @@ public class Concatenation extends MultipleSubExpressions {
   }
 
   @Override
-  protected String trans(Target target, EsqlPath path, PMap<String, Object> parameters) {
+  protected String trans(Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
     switch (target) {
       case JSON, JAVASCRIPT -> {
         StringBuilder st = new StringBuilder();
         for (Expression<?, String> e: expressions()) {
           st.append(st.length() == 0 ? "" : " + ")
             .append('(')
-            .append(e.translate(target, path.add(e), parameters))
+            .append(e.translate(target, esqlCon, path.add(e), parameters, env))
             .append(" || '')");
         }
         String translation = "(" + st + ")";
@@ -70,7 +72,7 @@ public class Concatenation extends MultipleSubExpressions {
         StringBuilder st = new StringBuilder();
         for (Expression<?, String> e: expressions()) {
           st.append(st.length() == 0 ? "" : " + ")
-            .append(e.translate(target, path.add(e), parameters));
+            .append(e.translate(target, esqlCon, path.add(e), parameters, env));
         }
         return st.toString();
       }
@@ -78,7 +80,7 @@ public class Concatenation extends MultipleSubExpressions {
         StringBuilder st = new StringBuilder();
         for (Expression<?, String> e: expressions()) {
           st.append(st.length() == 0 ? "" : " || ")
-            .append(e.translate(target, path.add(e), parameters));
+            .append(e.translate(target, esqlCon, path.add(e), parameters, env));
         }
         return st.toString();
       }

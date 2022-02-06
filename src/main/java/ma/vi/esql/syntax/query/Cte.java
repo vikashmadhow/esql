@@ -5,6 +5,8 @@
 package ma.vi.esql.syntax.query;
 
 import ma.vi.base.tuple.T2;
+import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.semantic.type.Relation;
 import ma.vi.esql.semantic.type.Selection;
 import ma.vi.esql.semantic.type.Type;
@@ -119,7 +121,7 @@ public class Cte extends QueryUpdate {
       if (fields != null && !fields.isEmpty()) {
         List<T2<Relation, Column>> typeCols = ((Selection)type).columns();
         if (typeCols.size() != fields.size()) {
-          throw new TranslationException("CTE " + name() + " has different number of fields and columns. Fields "
+          throw new TranslationException(this, "CTE " + name() + " has different number of fields and columns. Fields "
                                        + "defined are [" + String.join(", ", fields) + "] while columns "
                                        + "defined are [" + typeCols.stream().map(c -> c.b.name()).collect(joining(", ")) + ']');
         }
@@ -147,11 +149,11 @@ public class Cte extends QueryUpdate {
   }
 
   @Override
-  public QueryTranslation trans(Target target, EsqlPath path, PMap<String, Object> parameters) {
+  public QueryTranslation trans(Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
     /*
      * Translate query and surround by CTE fields definition.
      */
-    QueryTranslation q = query().translate(target, path, parameters);
+    QueryTranslation q = query().translate(target, esqlCon, path, parameters, env);
     String s = '"' + name() + '"'
              + (fields() == null
                 ? ""

@@ -5,6 +5,8 @@
 package ma.vi.esql.syntax.expression.literal;
 
 import ma.vi.base.tuple.T2;
+import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.Context;
@@ -72,13 +74,13 @@ public class DateLiteral extends BaseLiteral<String> {
   }
 
   @Override
-  protected String trans(Target target, EsqlPath path, PMap<String, Object> parameters) {
+  protected String trans(Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
     switch (target) {
       case POSTGRESQL:
-        return '\'' + value + "'::" + computeType(path.add(this)).translate(target, path, parameters);
+        return '\'' + value + "'::" + computeType(path.add(this)).translate(target, esqlCon, path, parameters, env);
 
       case SQLSERVER:
-        return "cast('" + value + "' as " + computeType(path.add(this)).translate(target, path, parameters) + ')';
+        return "cast('" + value + "' as " + computeType(path.add(this)).translate(target, esqlCon, path, parameters, env) + ')';
 
       case JSON:
       case JAVASCRIPT:
@@ -92,7 +94,7 @@ public class DateLiteral extends BaseLiteral<String> {
   }
 
   @Override
-  public Date value(Target target, EsqlPath path) {
+  public Date exec(Target target, EsqlConnection esqlCon, EsqlPath path, Environment env) {
     int year = 0, month  = 0, day    = 0,
         hour = 0, minute = 0, second = 0, milli = 0;
 

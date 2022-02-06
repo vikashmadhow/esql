@@ -11,6 +11,7 @@ import ma.vi.esql.syntax.expression.ColumnRef;
 import ma.vi.esql.syntax.query.Column;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -133,4 +134,8 @@ public abstract class Relation extends AbstractType implements Symbol {
     st.append('}');
     return st.toString();
   }
+
+  public static final Relation UNKNOWN = new Selection(Collections.emptyList(),
+                                                       Collections.emptyList(),
+                                                       null, "__unknown");
 }

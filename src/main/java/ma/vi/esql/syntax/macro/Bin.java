@@ -64,7 +64,7 @@ public class Bin extends Function implements TypedMacro {
     Context ctx = call.context;
     List<Expression<?, ?>> args = call.arguments();
     if (args.size() < 3) {
-      throw new TranslationException("bin requires at least 3 arguments: the value to bin, a human-readable "
+      throw new TranslationException(esql, "bin requires at least 3 arguments: the value to bin, a human-readable "
                                    + "name of the value to bin, and at least 1 value defining the intervals of "
                                    + "the bin range. E.g: bin(x, 'age', 1, 5, 10) will produce bins: "
                                    + "age < 1, 1 <= age < 5, 5 <= age < 10 and age >= 10" );

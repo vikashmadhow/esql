@@ -5,6 +5,8 @@
 package ma.vi.esql.syntax.modify;
 
 import ma.vi.base.tuple.T2;
+import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
@@ -45,9 +47,9 @@ public class InsertRow extends Expression<String, String> {
   }
 
   @Override
-  protected String trans(Target target, EsqlPath path, PMap<String, Object> parameters) {
+  protected String trans(Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
     return values().stream()
-                   .map(e -> e.translate(target, path.add(e), parameters))
+                   .map(e -> e.translate(target, esqlCon, path.add(e), parameters, env))
                    .collect(joining(", ", "(", ")"));
   }
 

@@ -35,6 +35,8 @@ public class SqlServer extends AbstractDatabase {
     props.setProperty("dataSource.user", valueOf(config.get(CONFIG_DB_USER)));
     props.setProperty("dataSource.password", valueOf(config.get(CONFIG_DB_PASSWORD)));
     props.setProperty("dataSource.sendStringParametersAsUnicode", "true");
+    props.setProperty("dataSource.encrypt", "false");
+    props.setProperty("dataSource.trustServerCertificate", "true");
     dataSource = new HikariDataSource(new HikariConfig(props));
 
     init(config);

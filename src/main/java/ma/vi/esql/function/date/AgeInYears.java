@@ -4,13 +4,14 @@
 
 package ma.vi.esql.function.date;
 
+import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.function.Function;
 import ma.vi.esql.function.FunctionParam;
 import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.expression.Expression;
 import ma.vi.esql.syntax.expression.function.FunctionCall;
-import ma.vi.esql.translation.Translatable;
 
 import java.util.Arrays;
 import java.util.List;
@@ -31,23 +32,23 @@ public class AgeInYears extends Function {
   }
 
   @Override
-  public String translate(FunctionCall call, Translatable.Target target, EsqlPath path) {
+  public String translate(FunctionCall call, Target target, EsqlConnection esqlCon, EsqlPath path, Environment env) {
     List<Expression<?, ?>> args = call.arguments();
     if (target == POSTGRESQL) {
       return "extract(year from age("
-           + args.get(0).translate(target, path.add(args.get(0))) + ", "
-           + args.get(1).translate(target, path.add(args.get(1))) + "))";
+           + args.get(0).translate(target, esqlCon, path.add(args.get(0)), env) + ", "
+           + args.get(1).translate(target, esqlCon, path.add(args.get(1)), env) + "))";
     } else if (target == SQLSERVER) {
       return "case when dateadd(year, datediff(year, "
-           + args.get(1).translate(target, path.add(args.get(1))) + ", "
-           + args.get(0).translate(target, path.add(args.get(0))) + "), "
-           + args.get(1).translate(target, path.add(args.get(1))) + ") > "
-           + args.get(0).translate(target, path.add(args.get(0)))
-           + "  then datediff(hour, " + args.get(1).translate(target, path.add(args.get(1))) + ", " + args.get(0).translate(target, path.add(args.get(0))) + ") / 8766 "
-           + "  else datediff(hour, " + args.get(1).translate(target, path.add(args.get(1))) + ", " + args.get(0).translate(target, path.add(args.get(0))) + ") / 8760 "
+           + args.get(1).translate(target, esqlCon, path.add(args.get(1)), env) + ", "
+           + args.get(0).translate(target, esqlCon, path.add(args.get(0)), env) + "), "
+           + args.get(1).translate(target, esqlCon, path.add(args.get(1)), env) + ") > "
+           + args.get(0).translate(target, esqlCon, path.add(args.get(0)), env)
+           + "  then datediff(hour, " + args.get(1).translate(target, esqlCon, path.add(args.get(1)), env) + ", " + args.get(0).translate(target, esqlCon, path.add(args.get(0)), env) + ") / 8766 "
+           + "  else datediff(hour, " + args.get(1).translate(target, esqlCon, path.add(args.get(1)), env) + ", " + args.get(0).translate(target, esqlCon, path.add(args.get(0)), env) + ") / 8760 "
            + "end";
     } else {
-      return name + '(' + args.get(0).translate(target, path.add(args.get(0))) + ')';
+      return name + '(' + args.get(0).translate(target, esqlCon, path.add(args.get(0)), env) + ')';
     }
   }
 }

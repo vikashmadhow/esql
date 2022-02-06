@@ -5,6 +5,8 @@
 package ma.vi.esql.syntax.expression.comparison;
 
 import ma.vi.base.tuple.T2;
+import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.Context;
@@ -65,9 +67,9 @@ public class QuantifiedComparison extends Expression<String, String> {
   }
 
   @Override
-  protected String trans(Target target, EsqlPath path, PMap<String, Object> parameters) {
-    return expr().translate(target, path.add(expr()), parameters) + ' ' + compareOp() + ' ' + quantifier()
-         + select().translate(target, path.add(select()), parameters);
+  protected String trans(Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
+    return expr().translate(target, esqlCon, path.add(expr()), parameters, env) + ' ' + compareOp() + ' ' + quantifier()
+         + select().translate(target, esqlCon, path.add(select()), parameters, env);
   }
 
   @Override

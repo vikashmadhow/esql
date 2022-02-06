@@ -15,9 +15,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Support for creating indices.
 - Support for creating and using views (including materialised views).
 - Complete documentation of ESQL grammar.
-- Document purpose and usage.
+- Fully document purpose and usage.
 - Result transformers and encoders.
 - Support for Oracle database.
+- Support for SQLite.
 - Make into Java 9 module.
 - Support for 'within group' for ordering in string and array aggregate functions.
 - Support for bulk copy manager in postgresql.
@@ -36,6 +37,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Implement `explicit` in select (no expanded columns when explicit keyword used).
 - String indexing in ESQL functions should be 1-based to be coherent with SQL 
   (instead of 0-based currently as in Java).
+- 1-based array access everywhere.
+- `pkey` macro expands to the primary key columns of a table.
+- `fkey` macro expands to the columns of a foreign key between two tables.
 
 ### To test
 - Test composition of select statements (union, intersect, except).
@@ -55,6 +59,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the overridden metadata are not being considered). (create tests for metadata 
   overriding)
 
+## [0.8.3]
+### Added
+- `print` function to print debug messages to console.
+- Named argument now uses `@` instead of `:` prefix as the ':' conflicts in some
+  cases with naming of columns and tables.
+- Eval construct added to the grammar: `@(expression)` evaluates the expression
+  and inserts it into the containing expression.
+- Signature of `translate` and `exec` methods changed to allow them to work 
+  together, as this is required to properly implement the eval construct.
+- General-purpose language:
+  - Selector construct added to grammar: `a[b]...` selects member `b` in `a`.
+  - For-each loop over list, iterables, maps, arrays and results, with binding
+    for both key and value where applicable.
+- Show line number where error occurred in ESQL program.
+
 ## [0.8.2] - 2022-02-03
 ### Added
 - Support for passing named arguments to functions.
@@ -73,8 +92,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `Result` now implements `Iterator` and `Iterable` interfaces. The `next` method
   in `Result` was renamed to `toNext` as its signature conflicted with that of 
   the `next` method in `Iterator`. Result can now be iterated using the Java 
-  for-each loop. The existing resulting scrolling mechanism (based on Java ResultSet)
-  is still available and the iterator mechanism is thin wrapper around it; this
+  for-each loop. The existing result scrolling mechanism (based on Java ResultSet)
+  is still available and the iterator mechanism is a thin wrapper around it; this
   allows the result to be read with either mechanism separately or even combined.
 
 ### Testing

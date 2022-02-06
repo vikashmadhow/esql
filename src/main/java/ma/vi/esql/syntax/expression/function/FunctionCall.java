@@ -45,7 +45,7 @@ public class FunctionCall extends Expression<String, String> implements TypedMac
                       List<Expression<?, String>> partitions,
                       List<Order>                 orderBy,
                       WindowFrame                 frame) {
-    super(context, "Func:" + functionName,
+    super(context, "Call " + functionName,
           of("function",   new Esql<>(context, functionName)),
           of("distinct",   new Esql<>(context, distinct)),
           of("distinctOn", new Esql<>(context, "distinctOn", distinctOn)),
@@ -115,14 +115,18 @@ public class FunctionCall extends Expression<String, String> implements TypedMac
   }
 
   @Override
-  protected String trans(Target target, EsqlPath path, PMap<String, Object> parameters) {
+  protected String trans(Target               target,
+                         EsqlConnection       esqlCon,
+                         EsqlPath             path,
+                         PMap<String, Object> parameters,
+                         Environment          env) {
     String functionName = functionName();
     Structure s = context.structure;
     Function function = s.function(functionName);
     if (function == null) {
       function = Structure.UnknownFunction;
     }
-    StringBuilder translation = new StringBuilder(function.translate(this, target, path));
+    StringBuilder translation = new StringBuilder(function.translate(this, target, esqlCon, path, env));
 
     /*
      * add window suffix
@@ -135,7 +139,7 @@ public class FunctionCall extends Expression<String, String> implements TypedMac
       if (partitions != null && !partitions.isEmpty()) {
         translation.append(" over (partition by ")
                    .append(partitions.stream()
-                                     .map(p -> p.translate(target, path.add(p), parameters))
+                                     .map(p -> p.translate(target, esqlCon, path.add(p), parameters, env))
                                      .collect(joining(", ")));
         overAdded = true;
       }
@@ -143,13 +147,13 @@ public class FunctionCall extends Expression<String, String> implements TypedMac
         translation.append(overAdded ? " " : " over (")
                    .append("order by ")
                    .append(orderBy.stream()
-                                  .map(o -> o.translate(target, path.add(o), parameters))
+                                  .map(o -> o.translate(target, esqlCon, path.add(o), parameters, env))
                                   .collect(joining(", ")));
       }
       WindowFrame frame = frame();
       if (frame != null) {
         translation.append(' ');
-        translation.append(frame.translate(target, path.add(frame), parameters));
+        translation.append(frame.translate(target, esqlCon, path.add(frame), parameters, env));
       }
       translation.append(')');
     }
@@ -217,7 +221,8 @@ public class FunctionCall extends Expression<String, String> implements TypedMac
   }
 
   @Override
-  public Object exec(EsqlConnection esqlCon,
+  public Object exec(Target         target,
+                     EsqlConnection esqlCon,
                      EsqlPath       path,
                      Environment    env) {
     Object f = env.get(functionName());
@@ -228,8 +233,10 @@ public class FunctionCall extends Expression<String, String> implements TypedMac
         /*
          * User-defined function.
          */
-        funcEnv = new FunctionEnvironment(func.environment());
-        setArgs(functionName(),
+        funcEnv = new FunctionEnvironment("Function " + functionName(), func.environment());
+        setArgs(this,
+                functionName(),
+                target,
                 new ArrayList<>(func.params()),
                 new ArrayList<>(arguments()),
                 esqlCon,
@@ -239,7 +246,7 @@ public class FunctionCall extends Expression<String, String> implements TypedMac
 
         Object ret = Result.Nothing;
         for (Expression<?, ?> st: func.body()) {
-          ret = st.exec(esqlCon, funcPath.add(st), funcEnv);
+          ret = st.exec(target, esqlCon, funcPath.add(st), funcEnv);
           if (st instanceof Return) {
             return ret;
           }
@@ -251,8 +258,10 @@ public class FunctionCall extends Expression<String, String> implements TypedMac
          * Internal pre-defined function.
          */
         Function func = (Function)f;
-        funcEnv = new FunctionEnvironment(env);
-        setArgs(functionName(),
+        funcEnv = new FunctionEnvironment("Function " + functionName(), env);
+        setArgs(this,
+                functionName(),
+                target,
                 new ArrayList<>(func.parameters()),
                 new ArrayList<>(arguments()),
                 esqlCon,
@@ -260,15 +269,17 @@ public class FunctionCall extends Expression<String, String> implements TypedMac
                 env,
                 funcEnv);
         
-        return func.exec(esqlCon, funcPath, funcEnv);
+        return func.exec(target, esqlCon, funcPath, funcEnv);
       }
     } else {
-      throw new ExecutionException(functionName() + " is not a function in the "
-                                 + "current environment. It is " + f);
+      throw new ExecutionException(this, functionName() + " is not a function in "
+                                       + "the current environment. It is " + f + '.');
     }
   }
 
-  private static void setArgs(String                 functionName,
+  private static void setArgs(FunctionCall           call,
+                              String                 functionName,
+                              Target                 target,
                               List<FunctionParam>    params,
                               List<Expression<?, ?>> arguments,
                               EsqlConnection         esqlCon,
@@ -276,9 +287,9 @@ public class FunctionCall extends Expression<String, String> implements TypedMac
                               Environment            computeIn,
                               Environment            setIn) {
     if (arguments.size() > params.size()) {
-      throw new ExecutionException("Function " + functionName + " take "
-                                 + params.size() + " parameters but "
-                                 + arguments.size() + " arguments were provided.");
+      throw new ExecutionException(call, "Function " + functionName + " take "
+                                       + params.size() + " parameters but "
+                                       + arguments.size() + " arguments were provided.");
     }
 
     int i = 0;
@@ -291,7 +302,7 @@ public class FunctionCall extends Expression<String, String> implements TypedMac
         FunctionParam param = params.get(i);
         setIn.add(param.name(), param.defaultValue() == null
                               ? null
-                              : param.defaultValue().exec(esqlCon,
+                              : param.defaultValue().exec(target, esqlCon,
                                                           path.add(param.defaultValue()),
                                                           computeIn));
         i++;
@@ -311,7 +322,7 @@ public class FunctionCall extends Expression<String, String> implements TypedMac
             }
           }
           if (param == null) {
-            throw new ExecutionException(
+            throw new ExecutionException(call,
                 "Function " + functionName + " does not take a parameter named "
               + na.name() + " or an argument for the same parameter has been "
               + "specified more than once.");
@@ -322,9 +333,9 @@ public class FunctionCall extends Expression<String, String> implements TypedMac
           param = params.get(i);
           i++;
         }
-        Object value = arg.exec(esqlCon, path.add(arg), computeIn);
+        Object value = arg.exec(target, esqlCon, path.add(arg), computeIn);
         if (!Types.instanceOf(value, param.type())) {
-          throw new ExecutionException(
+          throw new ExecutionException(call,
               "Param " + param.name() + " is of type " + param.type() + " but a "
             + "value (" + value + ") of type " + value.getClass().getSimpleName()
             + " was provided.");

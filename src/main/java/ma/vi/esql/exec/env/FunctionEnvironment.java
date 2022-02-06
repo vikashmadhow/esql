@@ -14,6 +14,10 @@ public class FunctionEnvironment extends AbstractEnvironment {
     super(parent);
   }
 
+  public FunctionEnvironment(String name, Environment parent) {
+    super(name, parent);
+  }
+
   @Override
   public void add(String symbol, Object value) throws SymbolAlreadyDefinedException {
     if (values.containsKey(symbol)) {

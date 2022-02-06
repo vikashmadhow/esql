@@ -99,4 +99,35 @@ public interface EsqlConnection extends AutoCloseable {
       unchecked(con()::close);
     }
   }
+
+  EsqlConnection NULL_CONNECTION = new EsqlConnection() {
+    @Override
+    public <R> R exec(Esql<?, ?> esql, Param... params) {
+      return null;
+    }
+
+    @Override
+    public Database database() {
+      return Database.NULL_DB;
+    }
+
+    @Override
+    public void commit() {}
+
+    @Override
+    public void rollback() {}
+
+    @Override
+    public void rollbackOnly() {}
+
+    @Override
+    public boolean isRollbackOnly() {
+      return false;
+    }
+
+    @Override
+    public Connection con() {
+      return null;
+    }
+  };
 }

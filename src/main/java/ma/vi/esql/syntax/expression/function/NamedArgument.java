@@ -5,6 +5,8 @@
 package ma.vi.esql.syntax.expression.function;
 
 import ma.vi.base.tuple.T2;
+import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
@@ -50,19 +52,19 @@ public class NamedArgument extends Expression<String, String> {
   }
 
   @Override
-  protected String trans(Target target, EsqlPath path, PMap<String, Object> parameters) {
+  protected String trans(Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
     switch (target) {
       case ESQL:
-        return name() + ":=" + arg().translate(target, path.add(arg()), parameters);
+        return name() + ":=" + arg().translate(target, esqlCon, path.add(arg()), parameters, env);
       case JSON:
       case JAVASCRIPT:
-        String translation = name() + '=' + arg().translate(target, path.add(arg()), parameters);
+        String translation = name() + '=' + arg().translate(target, esqlCon, path.add(arg()), parameters, env);
         return target == JSON ? '"' + translation + '"' : translation;
       default:
         /*
          * for databases drop name as it is not supported in most cases
          */
-        return arg().translate(target, path.add(arg()), parameters);
+        return arg().translate(target, esqlCon, path.add(arg()), parameters, env);
     }
   }
 

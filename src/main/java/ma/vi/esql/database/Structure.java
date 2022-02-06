@@ -10,6 +10,7 @@ import ma.vi.esql.function.BinFunction;
 import ma.vi.esql.function.Function;
 import ma.vi.esql.function.FunctionParam;
 import ma.vi.esql.function.date.*;
+import ma.vi.esql.function.debug.Print;
 import ma.vi.esql.function.string.*;
 import ma.vi.esql.semantic.scope.AbstractScope;
 import ma.vi.esql.semantic.scope.Symbol;
@@ -247,6 +248,10 @@ public class Structure extends AbstractScope implements Environment {
                           false,
                           Map.of(POSTGRESQL, "chr",
                                  SQLSERVER, "char")));
+
+
+    // Print function for debugging purposes mainly
+    function(new Print());
 
     function(new Trim());
     function(new LeftTrim());

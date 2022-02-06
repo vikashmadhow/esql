@@ -5,12 +5,13 @@
 package ma.vi.esql.syntax.expression.literal;
 
 import ma.vi.base.tuple.T2;
+import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
-import ma.vi.esql.translation.Translatable;
 import org.json.JSONArray;
 import org.pcollections.PMap;
 
@@ -63,10 +64,10 @@ public class JsonArrayLiteral extends Literal<List<Literal<?>>> {
 
   @Override
   protected String trans(Target target,
-                         EsqlPath path,
-                         PMap<String, Object> parameters) {
+                         EsqlConnection esqlCon, EsqlPath path,
+                         PMap<String, Object> parameters, Environment env) {
     String t = items().stream()
-                      .map(e -> e.translate(target, path.add(e), parameters))
+                      .map(e -> e.translate(target, esqlCon, path.add(e), parameters, env))
                       .collect(joining(",", "[", "]"));
     if (path.tail() != null && path.tail().hasAncestor(JsonArrayLiteral.class, JsonObjectLiteral.class)) {
       return t;
@@ -92,9 +93,9 @@ public class JsonArrayLiteral extends Literal<List<Literal<?>>> {
   }
 
   @Override
-  public JSONArray value(Translatable.Target target, EsqlPath path) {
+  public JSONArray exec(Target target, EsqlConnection esqlCon, EsqlPath path, Environment env) {
     return new JSONArray(items().stream()
-                                .map(e -> e.value(target, path))
+                                .map(e -> e.exec(target, esqlCon, path, env))
                                 .collect(Collectors.toList()));
   }
 

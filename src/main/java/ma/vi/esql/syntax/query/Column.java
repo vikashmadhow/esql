@@ -5,6 +5,8 @@
 package ma.vi.esql.syntax.query;
 
 import ma.vi.base.tuple.T2;
+import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
@@ -31,7 +33,7 @@ import static ma.vi.esql.translation.Translatable.Target.ESQL;
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public class Column extends MetadataContainer<String> { // implements TypedMacro, Symbol {
+public class Column extends MetadataContainer<String> {
   @SafeVarargs
   public Column(Context context,
                 String name,
@@ -135,13 +137,13 @@ public class Column extends MetadataContainer<String> { // implements TypedMacro
 //  }
 
   @Override
-  protected String trans(Target target, EsqlPath path, PMap<String, Object> parameters) {
+  protected String trans(Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
     StringBuilder st = new StringBuilder();
     if (target == ESQL) {
       if (name() != null) {
         st.append(name()).append(':');
       }
-      st.append(expression().translate(target, path.add(expression()), parameters));
+      st.append(expression().translate(target, esqlCon, path.add(expression()), parameters, env));
       Metadata metadata = metadata();
       if (metadata != null && !metadata.attributes().isEmpty()) {
         st.append(" {");
@@ -150,12 +152,12 @@ public class Column extends MetadataContainer<String> { // implements TypedMacro
           if (first) { first = false; }
           else       { st.append(", "); }
           st.append(attr.name()).append(':')
-            .append(attr.attributeValue().translate(target, path.add(attr.attributeValue()), parameters));
+            .append(attr.attributeValue().translate(target, esqlCon, path.add(attr.attributeValue()), parameters, env));
         }
         st.append('}');
       }
     } else {
-      st.append(expression().translate(target, path.add(expression()), parameters));
+      st.append(expression().translate(target, esqlCon, path.add(expression()), parameters, env));
       if (name() != null) {
         st.append(" \"").append(name()).append('"');
       }

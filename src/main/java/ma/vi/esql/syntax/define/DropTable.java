@@ -57,7 +57,7 @@ public class DropTable extends Define {
   }
 
   @Override
-  protected String trans(Target target, EsqlPath path, PMap<String, Object> parameters) {
+  protected String trans(Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
     return "drop table " + (target == ESQL ? name() : dbTableName(name(), target));
   }
 
@@ -66,8 +66,8 @@ public class DropTable extends Define {
    * @return
    */
   @Override
-  protected Object postTransformExec(EsqlConnection esqlCon,
-                                     EsqlPath       path,
+  protected Object postTransformExec(Target target, EsqlConnection esqlCon,
+                                     EsqlPath path,
                                      Environment env) {
     try {
       /*

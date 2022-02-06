@@ -12,7 +12,6 @@ import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.expression.Expression;
 import ma.vi.esql.syntax.expression.function.FunctionCall;
-import ma.vi.esql.translation.Translatable;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Arrays;
@@ -34,11 +33,11 @@ public class RightPad extends Function {
   }
 
   @Override
-  public String translate(FunctionCall call, Translatable.Target target, EsqlPath path) {
+  public String translate(FunctionCall call, Target target, EsqlConnection esqlCon, EsqlPath path, Environment env) {
     List<Expression<?, ?>> args = call.arguments();
-    String str = args.get(0).translate(target, path.add(args.get(0))).toString();
-    String length = args.get(1).translate(target, path.add(args.get(1))).toString();
-    String pad = args.size() > 2 ? args.get(2).translate(target, path.add(args.get(2))).toString() : "' '";
+    String str = args.get(0).translate(target, esqlCon, path.add(args.get(0)), env).toString();
+    String length = args.get(1).translate(target, esqlCon, path.add(args.get(1)), env).toString();
+    String pad = args.size() > 2 ? args.get(2).translate(target, esqlCon, path.add(args.get(2)), env).toString() : "' '";
 
     if (target == JAVASCRIPT) {
       return "(" + str + ").padEnd(" + length + ", " + pad + ")";
@@ -56,8 +55,8 @@ public class RightPad extends Function {
   }
 
   @Override
-  public Object exec(EsqlConnection esqlCon,
-                     EsqlPath       path,
+  public Object exec(Target target, EsqlConnection esqlCon,
+                     EsqlPath path,
                      Environment env) {
     String  text   = env.get("text");
     Long    length = env.get("length");

@@ -53,24 +53,27 @@ public class Inequality extends ComparisonOperator {
   }
 
   @Override
-  protected String trans(Target target, EsqlPath path, PMap<String, Object> parameters) {
+  protected String trans(Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
     switch (target) {
       case JSON:
       case JAVASCRIPT:
-        String e = expr1().translate(target, path.add(expr1()), parameters) + " !== " + expr2().translate(target, path.add(expr2()), parameters);
+        String e = expr1().translate(target, null, path.add(expr1()), parameters, null) + " !== " + expr2().translate(target,
+                                                                                                                      null,
+                                                                                                                      path.add(expr2()), parameters,
+                                                                                                                      null);
         return target == JSON ? '"' + escapeJsonString(e) + '"' : e;
 
       default:
-        return super.trans(target, path, parameters);
+        return super.trans(target, esqlCon, path, parameters, env);
     }
   }
 
   @Override
-  public Object postTransformExec(EsqlConnection esqlCon,
-                                  EsqlPath       path,
-                                  Environment    env) {
-    Object left = expr1().exec(esqlCon, path.add(expr1()), env);
-    Object right = expr2().exec(esqlCon, path.add(expr2()), env);
+  public Object postTransformExec(Target target, EsqlConnection esqlCon,
+                                  EsqlPath path,
+                                  Environment env) {
+    Object left = expr1().exec(target, esqlCon, path.add(expr1()), env);
+    Object right = expr2().exec(target, esqlCon, path.add(expr2()), env);
     return !Objects.equals(left, right);
   }
 }

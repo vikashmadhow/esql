@@ -55,10 +55,13 @@ public class Or extends ComparisonOperator {
   }
 
   @Override
-  protected String trans(Target target, EsqlPath path, PMap<String, Object> parameters) {
+  protected String trans(Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
     switch (target) {
       case JSON, JAVASCRIPT -> {
-        String e = expr1().translate(target, path.add(expr1()), parameters) + " || " + expr2().translate(target, path.add(expr2()), parameters);
+        String e = expr1().translate(target, null, path.add(expr1()), parameters, null) + " || " + expr2().translate(target,
+                                                                                                                     null,
+                                                                                                                     path.add(expr2()), parameters,
+                                                                                                                     null);
         return target == JSON ? '"' + escapeJsonString(e) + '"' : e;
       }
       case SQLSERVER -> {
@@ -69,30 +72,33 @@ public class Or extends ComparisonOperator {
            * For SQL Server, boolean expressions outside of where and having
            * clauses are not allowed and we simulate it with bitwise operations.
            */
-          return "cast(" + expr1().translate(target, path.add(expr1()), parameters) + " | " + expr2().translate(target, path.add(expr2()), parameters) + " as bit)";
+          return "cast(" + expr1().translate(target, null, path.add(expr1()), parameters, null) + " | " + expr2().translate(target,
+                                                                                                                            null,
+                                                                                                                            path.add(expr2()), parameters,
+                                                                                                                            null) + " as bit)";
         } else {
-          return super.trans(target, path, parameters);
+          return super.trans(target, esqlCon, path, parameters, env);
         }
       }
       default -> {
-        return super.trans(target, path, parameters);
+        return super.trans(target, esqlCon, path, parameters, env);
       }
     }
   }
 
   @Override
-  public Object postTransformExec(EsqlConnection esqlCon,
-                                  EsqlPath       path,
+  public Object postTransformExec(Target target, EsqlConnection esqlCon,
+                                  EsqlPath path,
                                   Environment env) {
-    Object left = expr1().exec(esqlCon, path.add(expr1()), env);
-    Object right = expr2().exec(esqlCon, path.add(expr2()), env);
+    Object left = expr1().exec(target, esqlCon, path.add(expr1()), env);
+    Object right = expr2().exec(target, esqlCon, path.add(expr2()), env);
 
     if (left instanceof Boolean lb
      && right instanceof Boolean rb) {
       return lb || rb;
     } else {
-      throw new ExecutionException("Incompatible types for " + op()
-                                 + ": left " + left + ", right: " + right);
+      throw new ExecutionException(this, "Incompatible types for " + op()
+                                       + ": left " + left + ", right: " + right);
     }
   }
 }

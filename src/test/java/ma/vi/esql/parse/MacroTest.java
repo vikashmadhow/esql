@@ -35,12 +35,12 @@ public class MacroTest extends DataTest {
                           id5 = randomUUID(),
                           id6 = randomUUID();
                      con.exec("insert into S(_id, a, b, e, h, j) values "
-                            + "(u'" + id1 + "', 1, 10, true, text['Four', 'Quatre'], int[1, 2, 3]),"
-                            + "(u'" + id2 + "', 2, 21, true, text['Four', 'Quatre'], int[1, 2, 3]),"
-                            + "(u'" + id3 + "', 3, 32, true, text['Four', 'Quatre'], int[1, 2, 3]),"
-                            + "(u'" + id4 + "', 4, 24, true, text['Four', 'Quatre'], int[1, 2, 3]),"
-                            + "(u'" + id5 + "', 5, 24, true, text['Four', 'Quatre'], int[1, 2, 3]),"
-                            + "(u'" + id6 + "', 6, 71, false, text['Nine', 'Neuf', 'X'], int[5, 6, 7, 8])");
+                            + "(u'" + id1 + "', 1, 10, true, ['Four', 'Quatre']text, [1, 2, 3]int),"
+                            + "(u'" + id2 + "', 2, 21, true, ['Four', 'Quatre']text, [1, 2, 3]int),"
+                            + "(u'" + id3 + "', 3, 32, true, ['Four', 'Quatre']text, [1, 2, 3]int),"
+                            + "(u'" + id4 + "', 4, 24, true, ['Four', 'Quatre']text, [1, 2, 3]int),"
+                            + "(u'" + id5 + "', 5, 24, true, ['Four', 'Quatre']text, [1, 2, 3]int),"
+                            + "(u'" + id6 + "', 6, 71, false, ['Nine', 'Neuf', 'X']text, [5, 6, 7, 8]int)");
 
                      con.exec("insert into a.b.T(_id, a, b, s_id) values"
                             + "(newid(), 11, 2, u'" + id1 + "'), "
@@ -99,12 +99,12 @@ public class MacroTest extends DataTest {
                           id5 = randomUUID(),
                           id6 = randomUUID();
                      con.exec("insert into S(_id, a, b, e, h, j, l) values "
-                            + "(u'" + id1 + "', 1, 10, true, text['Four', 'Quatre'], int[1, 2, 3], 11),"
-                            + "(u'" + id2 + "', 2, 21, true, text['Four', 'Quatre'], int[1, 2, 3], 22),"
-                            + "(u'" + id3 + "', 3, 32, true, text['Four', 'Quatre'], int[1, 2, 3], 33),"
-                            + "(u'" + id4 + "', 4, 24, true, text['Four', 'Quatre'], int[1, 2, 3], 24),"
-                            + "(u'" + id5 + "', 5, 24, true, text['Four', 'Quatre'], int[1, 2, 3], 25),"
-                            + "(u'" + id6 + "', 6, 71, false, text['Nine', 'Neuf', 'X'], int[5, 6, 7, 8], 76)");
+                            + "(u'" + id1 + "', 1, 10, true, ['Four', 'Quatre']text, [1, 2, 3]int, 11),"
+                            + "(u'" + id2 + "', 2, 21, true, ['Four', 'Quatre']text, [1, 2, 3]int, 22),"
+                            + "(u'" + id3 + "', 3, 32, true, ['Four', 'Quatre']text, [1, 2, 3]int, 33),"
+                            + "(u'" + id4 + "', 4, 24, true, ['Four', 'Quatre']text, [1, 2, 3]int, 24),"
+                            + "(u'" + id5 + "', 5, 24, true, ['Four', 'Quatre']text, [1, 2, 3]int, 25),"
+                            + "(u'" + id6 + "', 6, 71, false, ['Nine', 'Neuf', 'X']text, [5, 6, 7, 8]int, 76)");
 
                      con.exec("insert into a.b.T(_id, x, y, s_id) values"
                             + "(newid(), 11, 2, u'" + id1 + "'), "

@@ -5,6 +5,8 @@
 package ma.vi.esql.syntax.define;
 
 import ma.vi.base.tuple.T2;
+import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
@@ -15,6 +17,8 @@ import java.util.List;
 import java.util.Map;
 
 import static java.util.stream.Collectors.joining;
+import static ma.vi.esql.database.Database.NULL_DB;
+import static ma.vi.esql.exec.EsqlConnection.NULL_CONNECTION;
 
 /**
  * A list of attributes (name expression pairs) describing
@@ -53,10 +57,10 @@ public class Metadata extends TableDefinition {
   }
 
   @Override
-  protected String trans(Target target, EsqlPath path, PMap<String, Object> parameters) {
+  protected String trans(Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
     return attributes().values()
                        .stream()
-                       .map(a -> a.translate(target, path.add(a), parameters))
+                       .map(a -> a.translate(target, esqlCon, path.add(a), parameters, env))
                        .collect(joining(", ", "{", "}"));
   }
 
@@ -81,12 +85,25 @@ public class Metadata extends TableDefinition {
   }
 
   public <T> T evaluateAttribute(String name) {
+    return evaluateAttribute(name,
+                             NULL_CONNECTION,
+                             new EsqlPath(this),
+                             NULL_DB.structure());
+  }
+
+  public <T> T evaluateAttribute(String         name,
+                                 EsqlConnection esqlCon,
+                                 EsqlPath       path,
+                                 Environment    env) {
     Attribute a = attributes().get(name);
     if (a == null) {
       return null;
     } else {
       Expression<?, String> expr = a.attributeValue();
-      return (T)expr.value(Target.ESQL, new EsqlPath(expr));
+      return (T)expr.exec(Target.ESQL,
+                          esqlCon,
+                          path == null ? new EsqlPath(expr) : path.add(expr),
+                          env);
     }
   }
 }

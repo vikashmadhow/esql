@@ -5,6 +5,8 @@
 package ma.vi.esql.syntax.expression;
 
 import ma.vi.base.tuple.T2;
+import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.Context;
@@ -57,7 +59,7 @@ public class DefaultValue extends Expression<String, String> {
   }
 
   @Override
-  protected String trans(Target target, EsqlPath path, PMap<String, Object> parameters) {
+  protected String trans(Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
     return "default";
   }
 
@@ -67,7 +69,7 @@ public class DefaultValue extends Expression<String, String> {
   }
 
   @Override
-  public Object value(Target target, EsqlPath path) {
+  public Object exec(Target target, EsqlConnection esqlCon, EsqlPath path, Environment env) {
     return null;
   }
 }

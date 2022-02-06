@@ -33,15 +33,15 @@ public class InsertTest extends DataTest {
                      con.exec("delete s from s:S");
                      Insert insert = p.parse(
                          "insert into S(_id, a, b, e, h, i) values "
-                            + "(newid(), 1, 2, true, text['Four', 'Quatre'], 'Five'),"
-                            + "(newid(), 6, 7, false, text['Nine', 'Neuf'], 'Ten')",
+                            + "(newid(), 1, 2, true, ['Four', 'Quatre']text, 'Five'),"
+                            + "(newid(), 6, 7, false, ['Nine', 'Neuf']text, 'Ten')",
                          INSERT);
                      Context context = new Context(db.structure());
                      assertEquals(new InsertBuilder(context)
                                         .in("S", null)
                                         .insertColumns("_id", "a", "b", "e", "h", "i")
-                                        .insertRow("newid()", "1", "2", "true",  "text['Four', 'Quatre']", "'Five'")
-                                        .insertRow("newid()", "6", "7", "false", "text['Nine', 'Neuf']",   "'Ten'")
+                                        .insertRow("newid()", "1", "2", "true",  "['Four', 'Quatre']text", "'Five'")
+                                        .insertRow("newid()", "6", "7", "false", "['Nine', 'Neuf']text",   "'Ten'")
                                         .build(),
                                   insert);
                      for (int i = 0; i < 10; i++) {
@@ -103,8 +103,8 @@ public class InsertTest extends DataTest {
                      con.exec("delete s from s:S");
                      Insert insert = p.parse(
                          "insert into S(_id, a, b, e, h, j) values "
-                             + "(newid(), 1, 2, true, text['Four', 'Quatre'], int[1, 2, 3]),"
-                             + "(newid(), 6, 7, false, text['Nine', 'Neuf', 'X'], int[5, 6, 7, 8])",
+                             + "(newid(), 1, 2, true, ['Four', 'Quatre']text, [1, 2, 3]int),"
+                             + "(newid(), 6, 7, false, ['Nine', 'Neuf', 'X']text, [5, 6, 7, 8]int)",
                          INSERT);
                      con.exec(insert);
 
@@ -134,8 +134,8 @@ public class InsertTest extends DataTest {
                      con.exec("delete s from s:S");
                      con.exec(
                          "insert into S(_id, a, b, e, h, j) values "
-                             + "(newid(), 1, 2, true, text['Four', 'Quatre'], int[1, 2, 3]),"
-                             + "(newid(), 6, 7, false, text['Nine', 'Neuf', 'X'], int[5, 6, 7, 8])");
+                             + "(newid(), 1, 2, true, ['Four', 'Quatre']text, [1, 2, 3]int),"
+                             + "(newid(), 6, 7, false, ['Nine', 'Neuf', 'X']text, [5, 6, 7, 8]int)");
 
                      con.exec("insert into S(_id, a, b, e, h, j) "
                             + "select newid(), 7, b, e, h, j from S");
@@ -161,8 +161,8 @@ public class InsertTest extends DataTest {
                      con.exec("delete s from s:S");
                      con.exec(
                          "insert into S(_id, a, b, e, h, j) values "
-                             + "(newid(), 1, 2, true, text['Four', 'Quatre'], int[1, 2, 3]),"
-                             + "(newid(), 6, 7, false, text['Nine', 'Neuf', 'X'], int[5, 6, 7, 8])");
+                             + "(newid(), 1, 2, true, ['Four', 'Quatre']text, [1, 2, 3]int),"
+                             + "(newid(), 6, 7, false, ['Nine', 'Neuf', 'X']text, [5, 6, 7, 8]int)");
 
                      con.exec("""
                               insert into a.b.T(_id, a, b, x, y, s_id)

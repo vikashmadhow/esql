@@ -5,6 +5,8 @@
 package ma.vi.esql.syntax.query;
 
 import ma.vi.base.tuple.T2;
+import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
@@ -47,9 +49,9 @@ public class Order extends Esql<String, String> {
   }
 
   @Override
-  protected String trans(Target target, EsqlPath path, PMap<String, Object> parameters) {
+  protected String trans(Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
     String dir = dir();
-    return order().translate(target, path.add(order()), parameters) + (dir == null ? "" : ' ' + dir);
+    return order().translate(target, esqlCon, path.add(order()), parameters, env) + (dir == null ? "" : ' ' + dir);
   }
 
   @Override

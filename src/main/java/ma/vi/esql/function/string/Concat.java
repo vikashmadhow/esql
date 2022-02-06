@@ -4,13 +4,14 @@
 
 package ma.vi.esql.function.string;
 
+import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.function.Function;
 import ma.vi.esql.function.FunctionParam;
 import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.expression.Expression;
 import ma.vi.esql.syntax.expression.function.FunctionCall;
-import ma.vi.esql.translation.Translatable;
 
 import java.util.Iterator;
 
@@ -30,13 +31,13 @@ public class Concat extends Function {
   }
 
   @Override
-  public String translate(FunctionCall call, Translatable.Target target, EsqlPath path) {
+  public String translate(FunctionCall call, Target target, EsqlConnection esqlCon, EsqlPath path, Environment env) {
     StringBuilder sb = new StringBuilder();
     Iterator<Expression<?, ?>> args = call.arguments().iterator();
 
     if (target == JAVASCRIPT) {
       Expression<?, ?> arg = args.next();
-      sb.append("(").append(arg.translate(target, path.add(arg))).append(").concat(");
+      sb.append("(").append(arg.translate(target, esqlCon, path.add(arg), env)).append(").concat(");
 
     } else {
       // sql server, esql and all databases
@@ -51,7 +52,7 @@ public class Concat extends Function {
         sb.append(", ");
       }
       Expression<?, ?> arg = args.next();
-      sb.append(arg.translate(target, path.add(arg)));
+      sb.append(arg.translate(target, esqlCon, path.add(arg), env));
     }
     return sb.append(')').toString();
   }

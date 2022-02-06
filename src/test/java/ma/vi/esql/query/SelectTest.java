@@ -42,8 +42,8 @@ public class SelectTest extends DataTest {
                      con.exec("delete t from t:a.b.T");
                      con.exec("delete s from s:S");
                      con.exec("insert into S(_id, a, b, e, h, j) values "
-                                  + "(newid(), 1, 2, true, text['Four', 'Quatre'], int[1, 2, 3]),"
-                                  + "(newid(), 6, 7, false, text['Nine', 'Neuf', 'X'], int[5, 6, 7, 8])");
+                                  + "(newid(), 1, 2, true, ['Four', 'Quatre']text, [1, 2, 3]int),"
+                                  + "(newid(), 6, 7, false, ['Nine', 'Neuf', 'X']text, [5, 6, 7, 8]int)");
 
                      Select select = p.parse("select a, b from s:S order by s.a asc", SELECT);
                      Context context = new Context(db.structure());
@@ -90,8 +90,8 @@ public class SelectTest extends DataTest {
                      con.exec("delete t from t:a.b.T");
                      con.exec("delete s from s:S");
                      con.exec("insert into S(_id, a, b, e, h, j) values "
-                            + "(newid(), 1, 2, true, text['Four', 'Quatre'], int[1, 2, 3]),"
-                            + "(newid(), 6, 7, false, text['Nine', 'Neuf', 'X'], int[5, 6, 7, 8])");
+                            + "(newid(), 1, 2, true, ['Four', 'Quatre']text, [1, 2, 3]int),"
+                            + "(newid(), 6, 7, false, ['Nine', 'Neuf', 'X']text, [5, 6, 7, 8]int)");
 
                      Select select = p.parse("select a {required: b < 5, mx: b > 5}, b "
                                            + "from x:(select a, b from s:S order by s.a asc)",
@@ -136,8 +136,8 @@ public class SelectTest extends DataTest {
                      con.exec("delete t from t:a.b.T");
                      con.exec("delete s from s:S");
                      con.exec("insert into S(_id, a, b, e, h, j) values "
-                            + "(newid(), 1, 2, true, text['Four', 'Quatre'], int[1, 2, 3]),"
-                            + "(newid(), 6, 7, false, text['Nine', 'Neuf', 'X'], int[5, 6, 7, 8])");
+                            + "(newid(), 1, 2, true, ['Four', 'Quatre']text, [1, 2, 3]int),"
+                            + "(newid(), 6, 7, false, ['Nine', 'Neuf', 'X']text, [5, 6, 7, 8]int)");
 
                      Select select = p.parse(
                          "select a, b "
@@ -163,8 +163,8 @@ public class SelectTest extends DataTest {
                      con.exec("delete t from t:a.b.T");
                      con.exec("delete s from s:S");
                      con.exec("insert into S(_id, a, b, e, h, j) values "
-                            + "(newid(), 1, 2, true, text['Four', 'Quatre'], int[1, 2, 3]),"
-                            + "(newid(), 6, 7, false, text['Nine', 'Neuf', 'X'], int[5, 6, 7, 8])");
+                            + "(newid(), 1, 2, true, ['Four', 'Quatre']text, [1, 2, 3]int),"
+                            + "(newid(), 6, 7, false, ['Nine', 'Neuf', 'X']text, [5, 6, 7, 8]int)");
 
                      Select select = p.parse(
                          "select a, b "
@@ -191,8 +191,8 @@ public class SelectTest extends DataTest {
                      con.exec("delete t from t:a.b.T");
                      con.exec("delete s from s:S");
                      con.exec("insert into S(_id, a, b, e, h, j) values "
-                            + "(newid(), 1, 2, true, text['Four', 'Quatre'], int[1, 2, 3]),"
-                            + "(newid(), 6, 7, false, text['Nine', 'Neuf', 'X'], int[5, 6, 7, 8])");
+                            + "(newid(), 1, 2, true, ['Four', 'Quatre']text, [1, 2, 3]int),"
+                            + "(newid(), 6, 7, false, ['Nine', 'Neuf', 'X']text, [5, 6, 7, 8]int)");
 
                      Select select = p.parse(
                          "select a, c "
@@ -218,8 +218,8 @@ public class SelectTest extends DataTest {
                      con.exec("delete t from t:a.b.T");
                      con.exec("delete s from s:S");
                      con.exec("insert into S(_id, a, b, e, h, j) values "
-                            + "(newid(), 1, 2, true, text['Four', 'Quatre'], int[1, 2, 3]),"
-                            + "(newid(), 6, 7, false, text['Nine', 'Neuf', 'X'], int[5, 6, 7, 8])");
+                            + "(newid(), 1, 2, true, ['Four', 'Quatre']text, [1, 2, 3]int),"
+                            + "(newid(), 6, 7, false, ['Nine', 'Neuf', 'X']text, [5, 6, 7, 8]int)");
 
                      Select select = p.parse(
                          "select * "
@@ -245,8 +245,8 @@ public class SelectTest extends DataTest {
                      con.exec("delete t from t:a.b.T");
                      con.exec("delete s from s:S");
                      con.exec("insert into S(_id, a, b, e, h, j) values "
-                            + "(newid(), 1, 2, true, text['Four', 'Quatre'], int[1, 2, 3]),"
-                            + "(newid(), 6, 7, false, text['Nine', 'Neuf', 'X'], int[5, 6, 7, 8])");
+                            + "(newid(), 1, 2, true, ['Four', 'Quatre']text, [1, 2, 3]int),"
+                            + "(newid(), 6, 7, false, ['Nine', 'Neuf', 'X']text, [5, 6, 7, 8]int)");
 
                      Select select = p.parse(
                          "select * "
@@ -280,8 +280,8 @@ public class SelectTest extends DataTest {
                      con.exec("delete t from t:a.b.T");
                      con.exec("delete s from s:S");
                      con.exec("insert into S(_id, a, b, e, h, j) values "
-                            + "(newid(), 1, 2, true, text['Four', 'Quatre'], int[1, 2, 3]),"
-                            + "(newid(), 6, 7, false, text['Nine', 'Neuf', 'X'], int[5, 6, 7, 8])");
+                            + "(newid(), 1, 2, true, ['Four', 'Quatre']text, [1, 2, 3]int),"
+                            + "(newid(), 6, 7, false, ['Nine', 'Neuf', 'X']text, [5, 6, 7, 8]int)");
 
                      Select select = p.parse("select * from x:(select * from S) where a >= 3 order by a", SELECT);
                      Result rs = con.exec(select);
@@ -312,8 +312,8 @@ public class SelectTest extends DataTest {
                      con.exec("delete t from t:a.b.T");
                      con.exec("delete s from s:S");
                      con.exec("insert into S(_id, a, b, e, h, j) values "
-                            + "(newid(), 1, 2, true, text['Four', 'Quatre'], int[1, 2, 3]),"
-                            + "(newid(), 6, 7, false, text['Nine', 'Neuf', 'X'], int[5, 6, 7, 8])");
+                            + "(newid(), 1, 2, true, ['Four', 'Quatre']text, [1, 2, 3]int),"
+                            + "(newid(), 6, 7, false, ['Nine', 'Neuf', 'X']text, [5, 6, 7, 8]int)");
 
                      Select select = p.parse("select a, c from x:(select a, c from s:S order by s.a asc)", SELECT);
                      Result rs = con.exec(select);

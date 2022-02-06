@@ -16,8 +16,4 @@ public class CircularReferenceException extends TranslationException {
   public CircularReferenceException(String message) {
     super(message);
   }
-
-  public CircularReferenceException(String message, Throwable cause) {
-    super(message, cause);
-  }
 }

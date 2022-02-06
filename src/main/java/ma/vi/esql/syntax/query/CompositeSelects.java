@@ -5,6 +5,8 @@
 package ma.vi.esql.syntax.query;
 
 import ma.vi.base.tuple.T2;
+import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
@@ -88,7 +90,7 @@ public class CompositeSelects extends Select {
   }
 
   @Override
-  public QueryTranslation trans(Target target, EsqlPath path, PMap<String, Object> parameters) {
+  public QueryTranslation trans(Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
     boolean first = true;
     StringBuilder st = new StringBuilder();
     QueryTranslation q = null;
@@ -99,9 +101,9 @@ public class CompositeSelects extends Select {
         st.append(' ').append(operator()).append(' ');
       }
       QueryTranslation trans = select.translate(target,
-                                                path.add(select),
+                                                null, path.add(select),
                                                 parameters.plus("addAttributes", parameters.getOrDefault("addAttributes", true))
-                                                          .plus("optimiseAttributesLoading", false));
+                                                          .plus("optimiseAttributesLoading", false), null);
       st.append(trans.translation());
       if (q == null) {
         q = trans;

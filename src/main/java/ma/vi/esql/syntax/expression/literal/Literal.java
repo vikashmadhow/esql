@@ -72,10 +72,10 @@ public abstract class Literal<V> extends Expression<V, String> {
   public abstract Literal<V> copy(V value, T2<String, ? extends Esql<?, ?>>... children);
 
   @Override
-  public Object exec(EsqlConnection esqlCon,
+  public Object exec(Target target, EsqlConnection esqlCon,
                      EsqlPath path,
                      Environment env) {
-    return value(Target.ESQL, path);
+    return exec(target, esqlCon, path, env);
   }
 
   public static Literal<?> makeLiteral(Context context, String value, Type type) {

@@ -53,10 +53,10 @@ public class Not extends SingleSubExpression {
   }
 
   @Override
-  protected String trans(Target target, EsqlPath path, PMap<String, Object> parameters) {
+  protected String trans(Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
     switch (target) {
       case JSON, JAVASCRIPT -> {
-        String e = "!" + expr().translate(target, path.add(expr()), parameters);
+        String e = "!" + expr().translate(target, esqlCon, path.add(expr()), parameters, env);
         return target == JSON ? '"' + escapeJsonString(e) + '"' : e;
       }
       case SQLSERVER -> {
@@ -69,11 +69,11 @@ public class Not extends SingleSubExpression {
            */
           return "cast(~(" + expr() + ") as bit)";
         } else {
-          return "not " + expr().translate(target, path.add(expr()), parameters);
+          return "not " + expr().translate(target, esqlCon, path.add(expr()), parameters, env);
         }
       }
       default -> {
-        return "not " + expr().translate(target, path.add(expr()), parameters);
+        return "not " + expr().translate(target, esqlCon, path.add(expr()), parameters, env);
       }
     }
   }
@@ -85,14 +85,14 @@ public class Not extends SingleSubExpression {
   }
 
   @Override
-  public Object postTransformExec(EsqlConnection esqlCon,
-                                  EsqlPath       path,
+  public Object postTransformExec(Target target, EsqlConnection esqlCon,
+                                  EsqlPath path,
                                   Environment env) {
-    Object expr = expr().exec(esqlCon, path.add(expr()), env);
+    Object expr = expr().exec(target, esqlCon, path.add(expr()), env);
     if (expr instanceof Boolean bool) {
       return !bool;
     } else {
-      throw new ExecutionException("Invalid type for logical inverse: " + expr);
+      throw new ExecutionException(this, "Invalid type for logical inverse: " + expr);
     }
   }
 }

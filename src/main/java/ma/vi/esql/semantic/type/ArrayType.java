@@ -4,6 +4,8 @@
 
 package ma.vi.esql.semantic.type;
 
+import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.syntax.EsqlPath;
 import org.pcollections.PMap;
 
@@ -31,18 +33,19 @@ public class ArrayType extends AbstractType {
   }
 
   @Override
-  public String translate(Target target, EsqlPath path, PMap<String, Object> parameters) {
+  public String translate(Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
     return switch (target) {
       case SQLSERVER      -> "nvarchar(max)";
       case MARIADB, MYSQL -> "text";
-      case HSQLDB         -> componentType.translate(target, path, parameters) + " array";
-      default             -> componentType.translate(target, path, parameters) + "[]";
+      case HSQLDB         -> componentType.translate(target, esqlCon, path, parameters, env) + " array";
+      case ESQL           -> "[]" + componentType.translate(target, esqlCon, path, parameters, env);
+      default             -> componentType.translate(target, esqlCon, path, parameters, env) + "[]";
     };
   }
 
   public static String arrayTypeName(Type componentType) {
     checkArgument(componentType != null, "Component type for array cannot be null");
-    return componentType.name() + "[]";
+    return "[]" + componentType.name();
   }
 
   @Override

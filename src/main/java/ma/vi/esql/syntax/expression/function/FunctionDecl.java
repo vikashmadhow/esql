@@ -80,13 +80,13 @@ public class FunctionDecl extends Expression<String, FunctionDecl> implements Sy
   }
 
   @Override
-  public FunctionDecl trans(Target target, EsqlPath path, PMap<String, Object> parameters) {
+  public FunctionDecl trans(Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
     return this;
   }
 
   @Override
-  public Object exec(EsqlConnection esqlCon,
-                     EsqlPath       path,
+  public Object exec(Target target, EsqlConnection esqlCon,
+                     EsqlPath path,
                      Environment env) {
     env.add(name(), set("environment", new Esql<>(context, env)));
     return Result.Nothing;

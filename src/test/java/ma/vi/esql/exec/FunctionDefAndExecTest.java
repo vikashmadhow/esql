@@ -8,6 +8,7 @@ import ma.vi.esql.DataTest;
 import ma.vi.esql.syntax.Parser;
 import ma.vi.esql.syntax.Program;
 import ma.vi.esql.syntax.expression.Expression;
+import ma.vi.esql.translation.TranslationException;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
 
@@ -42,8 +43,8 @@ public class FunctionDefAndExecTest extends DataTest {
                    Parser p = new Parser(db.structure());
                    try (EsqlConnection con = db.esql(db.pooledConnection())) {
                      Expression<?, ?> expr = p.parse("""
-                             function _x.y.xyz(a:int, b:double, c:money[]): string[]
-                               let x := select * from S where a < :c;
+                             function _x.y.xyz(a:int, b:double, c:[]money): []string
+                               let x := select * from S where a < @c;
                                insert into a.b.T(a, b) values(1, 2);
                                let z := a + b;
                                z := z + 2 ^ z;
@@ -93,6 +94,71 @@ public class FunctionDefAndExecTest extends DataTest {
                      long value = con.exec(prog);
                      System.out.println(prog);
                      assertEquals(120L, value);
+                   }
+                 }));
+  }
+
+  @TestFactory
+  Stream<DynamicTest> readFromSelect() {
+    return Stream.of(databases)
+                 .map(db -> dynamicTest(db.target().toString(), () -> {
+                   Parser p = new Parser(db.structure());
+                   try (EsqlConnection con = db.esql(db.pooledConnection())) {
+                     Program prog = p.parse("""
+                                            delete t from t:a.b.T;
+                                            delete s from s:S;
+                                            insert into S(_id, a, b, e, h, j) values
+                                                         (newid(), 1, @b1, true, ['Four', 'Quatre']text, [1, 2, 3]int),
+                                                         (newid(), 6, @b2, false, ['Nine', 'Neuf', 'X']text, [5, 6, 7, 8]int);
+                                            let i := 1;
+                                            for r in select * from S do
+                                              print('_id: ' + r['_id']);
+                                              print('a: ' + r['a']);
+                                              print('b: ' + r['b']);
+                                              print('c: ' + r['c']);
+                                              print('e: ' + r['e']);
+                                              print('h: ' + r['h']);
+                                              print('j: ' + r['j']);
+                                              
+                                              print('Row: ' + @i);
+                                              print('Row: ' + @((i * 100) + '%'));
+                                              print('Row: ' + i);
+                                              i := i + 1;
+                                            end;
+                                            """);
+                     con.exec(prog, Param.of("b1", 5), Param.of("b2", 9));
+                      System.out.println(prog);
+                   }
+                 }));
+  }
+
+  @TestFactory
+  Stream<DynamicTest> errorLine() {
+    return Stream.of(databases)
+                 .map(db -> dynamicTest(db.target().toString(), () -> {
+                   Parser p = new Parser(db.structure());
+                   try (EsqlConnection con = db.esql(db.pooledConnection())) {
+                     Program prog = p.parse("""
+                                            delete t from t:a.b.T;
+                                            delete s from s:S;
+                                            insert into S(_id, a, b, e, h, j) values
+                                                         (newid(), 1, @b1, true, ['Four', 'Quatre']text, [1, 2, 3]int),
+                                                         (newid(), 6, @b2, false, ['Nine', 'Neuf', 'X']text, [5, 6, 7, 8]int);
+                                            for r in select * from S do
+                                              print('_id: ' + r['_id']);
+                                              print('a: ' + r['a']);
+                                              print('b: ' + r['b']);
+                                              print('c: ' + r['c']);
+                                              print('e: ' + d['e']);  # Error line
+                                              print('h: ' + r['h']);
+                                              print('j: ' + r['j']);
+                                            end;
+                                            """);
+                     TranslationException error = assertThrows(TranslationException.class,
+                                                               () -> con.exec(prog,
+                                                                              Param.of("b1", 5),
+                                                                              Param.of("b2", 9)));
+                     assertEquals(error.esql.line, 11);
                    }
                  }));
   }
