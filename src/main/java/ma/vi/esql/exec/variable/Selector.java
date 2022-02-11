@@ -107,36 +107,35 @@ public class Selector extends Expression<String, Selector> {
             + "and results. The selection was performed on a " + on.getClass().getSimpleName() + '.');
         }
       } else if (member instanceof String name) {
-        switch (on) {
-          case Map m:                             return m.get(name);
-          case Result r     && r.hasColumn(name): return r.value(name);
-          case Result.Row r && r.hasColumn(name): return r.value(name);
-          default:
-            Optional<Property> p = Dissector.property(on.getClass(), name);
-            if (p.isPresent()) {
-              return p.get().get(on);
+        if      (on instanceof Map m)                             { return m.get(name);   }
+        else if (on instanceof Result r && r.hasColumn(name))     { return r.value(name); }
+        else if (on instanceof Result.Row r && r.hasColumn(name)) { return r.value(name); }
+        else {
+          Optional<Property> p = Dissector.property(on.getClass(), name);
+          if (p.isPresent()) {
+            return p.get().get(on);
+          } else {
+            Optional<Method> method = Dissector.method(on.getClass(), name);
+            if (method.isPresent()) {
+              try {
+                return method.get().invoke(on);
+              } catch (Exception e) {
+                throw new ExecutionException(this, "Could not execute method " + name
+                    + " on " + on + ": " + e.getMessage(), e);
+              }
             } else {
-              Optional<Method> method = Dissector.method(on.getClass(), name);
-              if (method.isPresent()) {
-                try {
-                  return method.get().invoke(on);
-                } catch (Exception e) {
-                  throw new ExecutionException(this, "Could not execute method " + name
-                      + " on " + on + ": " + e.getMessage(), e);
-                }
+              List<Method> methods = Dissector.methods(on.getClass(), name);
+              if (!methods.isEmpty()) {
+                return new BoundMethods(on, name, methods);
               } else {
-                List<Method> methods = Dissector.methods(on.getClass(), name);
-                if (!methods.isEmpty()) {
-                  return new BoundMethods(on, name, methods);
-                } else {
-                  throw new ExecutionException(this,
-                                               "Selection by string is supported on maps, results, properties and "
-                                                   + "methods on arbitrary classes. The selection was performed on "
-                                                   + "class " + on.getClass().getSimpleName() + " which does not have "
-                                                   + "a field, property or method named " + name + '.');
-                }
+                throw new ExecutionException(this,
+                   "Selection by string is supported on maps, results, properties and "
+                 + "methods on arbitrary classes. The selection was performed on "
+                 + "class " + on.getClass().getSimpleName() + " which does not have "
+                 + "a field, property or method named " + name + '.');
               }
             }
+          }
         }
       } else if (on instanceof Map m) {
         return m.get(member);

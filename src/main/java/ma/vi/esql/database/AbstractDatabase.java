@@ -37,7 +37,6 @@ import static java.util.Collections.*;
 import static java.util.stream.Collectors.joining;
 import static ma.vi.base.string.Escape.escapeSqlString;
 import static ma.vi.esql.builder.Attributes.*;
-import static ma.vi.esql.exec.EsqlConnection.NULL_CONNECTION;
 import static ma.vi.esql.syntax.define.ConstraintDefinition.ForeignKeyChangeAction.fromInformationSchema;
 import static ma.vi.esql.syntax.define.ConstraintDefinition.Type.fromMarker;
 import static ma.vi.esql.translation.Translatable.Target.*;

@@ -62,11 +62,14 @@ public interface Translatable<T> {
    * Translate the statement for running on the specified target.
    *
    * @param target The target system to compile to.
-   * @param esqlCon
+   * @param esqlCon The active connection that the enclosing program, if running,
+   *                is using for getting and writing data.
    * @param path The path of the object being translated from the
    *             root of program tree.
    * @param parameters A set of arbitrary parameters to pass to the translator.
-   * @param env
+   * @param env The execution environment, if applicable, where the translation
+   *            can get values for variables that are accessible from this part
+   *            of the program.
    * @return A statement adapted for the specified target system.
    */
   T translate(Target               target,

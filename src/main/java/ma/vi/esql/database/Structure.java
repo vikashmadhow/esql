@@ -11,6 +11,7 @@ import ma.vi.esql.exec.function.FunctionCall;
 import ma.vi.esql.exec.function.FunctionParam;
 import ma.vi.esql.exec.function.date.*;
 import ma.vi.esql.exec.function.debug.Print;
+import ma.vi.esql.exec.function.stat.Bin;
 import ma.vi.esql.exec.function.stat.BinFunction;
 import ma.vi.esql.exec.function.string.*;
 import ma.vi.esql.semantic.scope.AbstractScope;
@@ -20,8 +21,6 @@ import ma.vi.esql.semantic.type.BaseRelation;
 import ma.vi.esql.semantic.type.Sequence;
 import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.syntax.EsqlPath;
-import ma.vi.esql.exec.function.stat.Bin;
-import ma.vi.esql.exec.function.date.InMonth;
 import ma.vi.esql.translation.Translatable;
 import ma.vi.esql.translation.TranslationException;
 

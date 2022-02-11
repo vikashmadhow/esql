@@ -74,7 +74,6 @@ public class FunctionDefAndExecTest extends DataTest {
                              """);
                      long value = con.exec(prog);
                      assertEquals(105L, value);
-
                    }
                  }));
   }

@@ -673,16 +673,14 @@ public class SyntaxAnalyser extends EsqlBaseListener {
        * Determine type of base array.
        */
       for (BaseLiteral<?> item: items) {
-        String itemType = switch(item) {
-          case IntegerLiteral       t -> Types.LongType.name();
-          case FloatingPointLiteral t -> Types.DoubleType.name();
-          case StringLiteral        t -> Types.TextType.name();
-          case BooleanLiteral       t -> Types.BoolType.name();
-          case DateLiteral          t -> Types.DatetimeType.name();
-          case UuidLiteral          t -> Types.UuidType.name();
-          case IntervalLiteral      t -> Types.IntervalType.name();
-          default                     -> null;
-        };
+        String itemType = item instanceof IntegerLiteral       ? Types.LongType.name()
+                        : item instanceof FloatingPointLiteral ? Types.DoubleType.name()
+                        : item instanceof StringLiteral        ? Types.TextType.name()
+                        : item instanceof BooleanLiteral       ? Types.BoolType.name()
+                        : item instanceof DateLiteral          ? Types.DatetimeType.name()
+                        : item instanceof UuidLiteral          ? Types.UuidType.name()
+                        : item instanceof IntervalLiteral      ? Types.IntervalType.name()
+                        : null;
         if (itemType != null) {
           if (componentType != null && !componentType.equals(itemType)) {
             throw new SyntaxException("An array literal can only contain one type of elements. "

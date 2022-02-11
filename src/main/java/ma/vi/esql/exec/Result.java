@@ -7,14 +7,14 @@ package ma.vi.esql.exec;
 import ma.vi.base.lang.Errors;
 import ma.vi.base.lang.NotFoundException;
 import ma.vi.base.string.Strings;
+import ma.vi.base.tuple.T2;
 import ma.vi.base.util.Numbers;
 import ma.vi.esql.database.DataException;
 import ma.vi.esql.database.Database;
-import ma.vi.esql.semantic.type.ArrayType;
-import ma.vi.esql.semantic.type.Interval;
-import ma.vi.esql.semantic.type.Type;
-import ma.vi.esql.semantic.type.Types;
+import ma.vi.esql.semantic.type.*;
+import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.query.AttributeIndex;
+import ma.vi.esql.syntax.query.Column;
 import ma.vi.esql.syntax.query.QueryTranslation;
 import org.postgresql.util.PGInterval;
 
@@ -263,6 +263,19 @@ public class Result implements Iterator<Result.Row>,
     if (value == null) {
       return null;
     } else {
+      if (type instanceof Relation r) {
+        /*
+         * Type of selects with single columns will be a relation but the database
+         * will return an actual value type when the select is in a column list
+         * of an enclosing query. In such cases, the type should be the type of
+         * the single column.
+         */
+        List<T2<Relation, Column>> cols = r.columns();
+        if (cols.size() == 1) {
+          Column col = cols.get(0).b;
+          type = col.computeType(new EsqlPath(col));
+        }
+      }
       if (type == Types.BoolType && value instanceof Number) {
         /*
          * Numeric to boolean conversion for SQL Server.

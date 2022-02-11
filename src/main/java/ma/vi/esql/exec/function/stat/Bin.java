@@ -5,6 +5,7 @@
 package ma.vi.esql.exec.function.stat;
 
 import ma.vi.esql.exec.function.Function;
+import ma.vi.esql.exec.function.FunctionCall;
 import ma.vi.esql.exec.function.FunctionParam;
 import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.Context;
@@ -16,7 +17,6 @@ import ma.vi.esql.syntax.expression.Expression;
 import ma.vi.esql.syntax.expression.comparison.Case;
 import ma.vi.esql.syntax.expression.comparison.LessThan;
 import ma.vi.esql.syntax.expression.comparison.Range;
-import ma.vi.esql.exec.function.FunctionCall;
 import ma.vi.esql.syntax.expression.literal.StringLiteral;
 import ma.vi.esql.syntax.macro.TypedMacro;
 import ma.vi.esql.translation.TranslationException;

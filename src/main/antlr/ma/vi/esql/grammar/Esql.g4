@@ -324,12 +324,19 @@ qualifiedName
  * composition.
  */
 tableExpr
-    : (alias ':')? qualifiedName                                 #SingleTableExpr
-    | alias ':' '(' select ')'                                   #SelectTableExpr
-    | alias metadata? dynamicColumns ':' '(' rows ')'            #DynamicTableExpr
-    | left=tableExpr 'times' right=tableExpr                     #CrossProductTableExpr
-    | left=tableExpr (joinType='left'|'right'|'full')? 'join' lateral?
-      right=tableExpr 'on' expr                                  #JoinTableExpr
+    : (alias ':')? qualifiedName                            #SingleTableExpr
+    | alias ':' '(' select ')'                              #SelectTableExpr
+    | alias metadata? dynamicColumns ':' '(' rows ')'       #DynamicTableExpr
+    | left=tableExpr 'times' right=tableExpr                #CrossProductTableExpr
+
+      /**
+       * 4 join types are available in ESQL: `left`, `right` and `full` joins are
+       * built with these respective keywords before the `join` keyword in a table
+       * expression; when none of those are provided, an inner join is assumed.
+       */
+    | left=tableExpr
+      (joinType='left'|'right'|'full')? 'join' lateral?
+      right=tableExpr 'on' expr                             #JoinTableExpr
     ;
 
 /**
@@ -348,19 +355,9 @@ nameWithMetadata
     : Identifier metadata?
     ;
 
-/**
- * 4 join types are available in ESQL: `left`, `right` and `full` joins are
- * built with these respective keywords before the `join` keyword in a table
- * expression; when none of those are provided, an inner join is assumed.
- */
-//JoinType
-//    : 'left'
-//    | 'right'
-//    | 'full'
-//    ;
-
 lateral
-    : 'lateral';
+    : 'lateral'
+    ;
 
 /**
  * The `group by` clause of a select consists of a subset of expressions present
@@ -1104,8 +1101,8 @@ StringLiteral
     ;
 
 /**
- * Multi-line strings in ESQL are surrounded by back-ticks (`) and can span
- * more than one lines. These strings have special support for stripping the left
+ * Multi-line strings in ESQL are surrounded by back-ticks (`) and can span more
+ * than one lines. These strings have special support for stripping the left
  * margin of spaces.
  *
  * For example the following text:
@@ -1126,7 +1123,7 @@ MultiLineStringLiteral
 
 /**
  * UUIDs are strings of 32 hexadecimal digits surrounded by single-quotes and
- * preceded with a 'u' character. For instance,
+ * preceded by a 'u' character. For instance,
  *
  *    u'a124bf41-bfeb-aae4-ffee-039fbcde00ee'
  */
@@ -1158,12 +1155,11 @@ fragment Date
     ;
 
 /**
- * The time part of a date literal consists of a one or two-digit hour
- * followed by a single or double digits minute and, optionally, a single or
- * double digits second and finally a one, two or three digits millisecond.
- * The hour, minute and second must be separated by a `:`, while the millisecond,
- * if present, must be separated from the second with a `.`.
- * E.g., 10:45, 10:43:12, 15:3:5.34
+ * The time part of a date literal consists of a one or two-digit hour followed
+ * by a single or double digits minute and, optionally, a single or double digits
+ * second and finally a one, two or three digits millisecond. The hour, minute
+ * and second must be separated with a `:`, while the millisecond, if present,
+ * must be separated from the second with a `.`. E.g., 10:45, 10:43:12, 15:3:5.34
  */
 fragment Time
     : Digit? Digit ':' [012345]? Digit (':' [012345]? Digit ('.' Digit Digit? Digit?)?)?
@@ -1190,14 +1186,14 @@ fragment IntervalPart
 
 /**
  * The interval part suffixes are:
- * * 'd' for days
- * * 'w' for weeks
- * * 'mon' for months
- * * 'y' for year
- * * 'h' for hours
- * * 'm' for minutes
- * * 's' for seconds
- * * 'ms' for milliseconds
+ * 'd'   for days
+ * 'w'   for weeks
+ * 'mon' for months
+ * 'y'   for year
+ * 'h'   for hours
+ * 'm'   for minutes
+ * 's'   for seconds
+ * 'ms'  for milliseconds
  */
 fragment IntervalSuffix
     : 'd'        // days
@@ -1512,8 +1508,7 @@ dropTable
 type
      : Identifier                       #Base       // A base type is simply an identifier
      | '[' IntegerLiteral? ']' type     #Array      // Array of arrays are supported by multiple by following with
-                                                    // a type with any number of '['']'
-     ;
+     ;                                              // a type with any number of '['']'
 
 /**
  * The keywords `any` and `all` are used in quantified comparisons of the form:

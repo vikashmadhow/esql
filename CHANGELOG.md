@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Planned]
 ### To add
-- Array operations.
+- Array, list, map, set operations.
 - JSON operations.
 - Support for creating and using sequences.
 - Support for creating indices.
@@ -52,6 +52,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Apply result and column metadata overloading in column list expansion (currently,
   the overridden metadata are not being considered). (create tests for metadata 
   overriding)
+
+## [0.8.4] - 2022-02-11
+### Added
+- Do not expand column list of arbitrary selects (not just select expressions)
+  in column list of other queries.
+- Correlated query test.
+- Type of a select with a single column and part of a column list of an enclosing
+  query is taken to be the type of its single column (as for select expressions), 
+  when reading the value for that column from the database. This allow proper 
+  normalisation of such values.
+ 
+### Fixed
+- Fixed resolving of qualified column references in correlated queries (where a 
+  table is referenced in a subquery) where the reference belongs to a table in an
+  outer query.
 
 ## [0.8.3] - 2022-02-06
 ### Added

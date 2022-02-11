@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Stream;
 
+import static java.util.UUID.randomUUID;
 import static ma.vi.esql.syntax.Parser.Rules.SELECT;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.DynamicTest.dynamicTest;
@@ -298,6 +299,52 @@ public class SelectTest extends DataTest {
                                 assertArrayEquals(new Integer[]{5,6,7,8}, rs.value("j"));
                                 assertNull(rs.value("k"));
                                 assertNull(rs.value("l"));
+                   }
+                 }));
+  }
+
+  @TestFactory
+  Stream<DynamicTest> correlatedQuery() {
+    return Stream.of(databases)
+                 .map(db -> dynamicTest(db.target().toString(), () -> {
+                   System.out.println(db.target());
+                   Parser p = new Parser(db.structure());
+                   try (EsqlConnection con = db.esql(db.pooledConnection())) {
+                     con.exec("delete t from t:a.b.T");
+                     con.exec("delete s from s:S");
+
+                     UUID id1 = randomUUID(), id2 = randomUUID();
+                     con.exec("insert into S(_id, a, b, e, h, j) values "
+                                  + "(u'" + id1 + "', 1, 2, true, ['Four', 'Quatre']text, [1, 2, 3]int),"
+                                  + "(u'" + id2 + "', 6, 7, false, ['Nine', 'Neuf', 'X']text, [5, 6, 7, 8]int)");
+
+                     con.exec("insert into a.b.T(_id, a, b, s_id) values"
+                                  + "(newid(), 1, 2, u'" + id1 + "'), "
+                                  + "(newid(), 3, 4, u'" + id2 + "')");
+
+                     Result rs = con.exec("""
+                               select 'TestDivision', _id, a, b,
+                                      (select b
+                                         from target:a.b.T
+                                        where target.a >= s.a
+                                          and target.s_id=s._id)
+                                 from s:S where s.a >= 1
+                               """);
+
+                     printResult(rs, 20);
+//
+//                     rs.toNext(); assertEquals("TestDivision",  rs.value(1));
+//                                  assertInstanceOf(UUID.class,  rs.value("_id"));
+//                                  assertEquals(13, (Integer)rs.value("c"));
+//                                  assertEquals(20, (Integer)rs.value("d"));
+//                                  assertEquals(false, rs.value("e"));
+//                                  assertEquals(6,  (Integer)rs.value("f"));
+//                                  assertEquals(13, (Integer)rs.value("g"));
+//                                  assertArrayEquals(new String[]{"Nine", "Neuf", "X"}, rs.value("h"));
+//                                  assertEquals("Aie", rs.value("i"));
+//                                  assertArrayEquals(new Integer[]{5,6,7,8}, rs.value("j"));
+//                                  assertNull(rs.value("k"));
+//                                  assertNull(rs.value("l"));
                    }
                  }));
   }

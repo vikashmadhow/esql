@@ -92,7 +92,7 @@ dependencies {
 
   api('org.pcollections:pcollections:3.1.4')
 
-  implementation("org.apache.commons:commons-lang3:3.12.0")
+  implementation("org.apache.commons:commons-lang3:latest.release")
   implementation("org.json:json:latest.release")
   implementation("org.yaml:snakeyaml:latest.release")
   implementation("com.vikmad:base:latest.release")
@@ -119,10 +119,10 @@ test {
   jvmArgs("--enable-preview")
 }
 
-group = 'com.vikmad'
+group = 'ma.vi.esql'
 archivesBaseName = 'esql'
 sourceCompatibility = JavaVersion.VERSION_17
-version = "0.8.3"
+version = "0.8.4"
 ext.isReleaseVersion = !version.endsWith("SNAPSHOT")
 
 java {

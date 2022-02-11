@@ -8,6 +8,7 @@ import ma.vi.base.tuple.T2;
 import ma.vi.esql.exec.EsqlConnection;
 import ma.vi.esql.exec.ExecutionException;
 import ma.vi.esql.exec.env.Environment;
+import ma.vi.esql.exec.function.FunctionCall;
 import ma.vi.esql.semantic.scope.Scope;
 import ma.vi.esql.semantic.scope.Symbol;
 import ma.vi.esql.semantic.type.BaseRelation;
@@ -17,7 +18,6 @@ import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.define.*;
-import ma.vi.esql.exec.function.FunctionCall;
 import ma.vi.esql.syntax.macro.TypedMacro;
 import ma.vi.esql.syntax.query.Column;
 import ma.vi.esql.syntax.query.QueryUpdate;
@@ -202,12 +202,19 @@ public class ColumnRef extends    Expression<String, String>
       TableExpr tables = qu.tables();
       String q = ref.qualifier();
       if (q != null) {
+        /*
+         * In a correlated query, the qualifier might reference a table outside
+         * of this query, resulting in the following statement returning null
+         * when looking for that named table. This is handled below where the
+         * parent of the current query is checked.
+         */
         tables = tables.named(q);
       }
-
-      column = tables.columnList(path).stream()
-                     .filter(c -> c.name().equals(ref.columnName()))
-                     .findFirst().orElse(null);
+      if (tables != null) {
+        column = tables.columnList(path).stream()
+                       .filter(c -> c.name().equals(ref.columnName()))
+                       .findFirst().orElse(null);
+      }
       if (column == null) {
         T2<QueryUpdate, EsqlPath> ancestor = path.tail() == null
                                            ? null

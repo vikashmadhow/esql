@@ -260,4 +260,8 @@ public class DataTest {
       System.out.println('+' + repeat(repeat('-', columnWidth) + '+', rs.columnsCount()));
     }
   }
+
+  private static String lengthen(String val, int length) {
+    return rightPad(val == null ? " " : val, length, " ").substring(0, length);
+  }
 }

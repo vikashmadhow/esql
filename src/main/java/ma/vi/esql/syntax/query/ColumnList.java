@@ -73,6 +73,22 @@ public class ColumnList extends Esql<String, String> implements UntypedMacro {
 
       boolean expandColumns = !query.grouped() && !path.hasAncestor(SelectExpression.class);
       if (expandColumns) {
+        /*
+         * Do not expand columns if this column list is part of a query which is
+         * in the column list of an outer query, as the column list of this query,
+         * in such cases, is limited to one column only.
+         */
+        T2<QueryUpdate, EsqlPath> p = path.ancestorAndPath(QueryUpdate.class);
+        if (p != null && p.b.tail() != null && p.b.tail().ancestor("columns") != null) {
+          expandColumns = false;
+        }
+      }
+      if (expandColumns) {
+        /*
+         * Do not expand columns if this column list is part of a CTE that has
+         * explicit fields defined (as the column list of this query must match
+         * the CTR fields exactly).
+         */
         Cte cte = path.ancestor(Cte.class);
         if (cte != null && cte.fields() != null && !cte.fields().isEmpty()) {
           expandColumns = false;

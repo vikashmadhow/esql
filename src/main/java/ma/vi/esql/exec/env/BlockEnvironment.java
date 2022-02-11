@@ -21,7 +21,7 @@ public class BlockEnvironment extends AbstractEnvironment {
   @Override
   public void add(String symbol, Object value) throws SymbolAlreadyDefinedException {
     /*
-     * Go up until we reach a functional environment. Symbols defined outside of
+     * Go up until we reach a function environment. Symbols defined outside of
      * the containing function can safely be shadowed in the current block.
      */
     Environment env = this;
