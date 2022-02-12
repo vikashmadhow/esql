@@ -112,7 +112,6 @@ public class CompositeSelects extends Select {
     return new QueryTranslation(this,
                                 st.toString(),
                                 q.columns(),
-                                q.resultAttributeIndices(),
                                 q.resultAttributes());
   }
 

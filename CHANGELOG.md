@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Planned]
 ### To add
 - Array, list, map, set operations.
+- Assignment to array, list and map subscripts.
 - JSON operations.
 - Support for creating and using sequences.
 - Support for creating indices.
@@ -29,7 +30,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   where this make senses. For example, a set of records is specified as the target
   content of a table which will then be merged with the existing data through a 
   merge statement and/or a set of insert and update statements.
-- Configure extensions (e.g. specify lookup schema) through parameters.
 - Replace visual tests (printResult) with assertions, where possible.
 - Implement `explicit` in select (no expanded columns when explicit keyword used).
 - `pkey` macro expands to the primary key columns of a table.
@@ -52,6 +52,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Apply result and column metadata overloading in column list expansion (currently,
   the overridden metadata are not being considered). (create tests for metadata 
   overriding)
+
+## [0.8.5]
+### Added
+- Extensions can now be configured (e.g. to set a specific lookup schema) through 
+  parameters on initialisation.
+- Result and table metadata are now restricted to literal values only as they are
+  associated to the whole result/table. Metadata attribute expressions are computed 
+  for every row in a result/table and would not have the same value for the whole 
+  result/table.
+- Dynamic table expressions now supports table-level literal metadata.
+- Uncomputed expression surround the textual translation of the expression with
+  `$(` and `)` on all targets. This was previously done only for ESQL output. The
+  delimiters simplify the detection of an uncomputed expression in a result.
+
+### Fixed
+- Fixed propagation of table-level metadata from inner query to outer query which
+  was failing for select table expressions and dynamic expressions  
+- Uncomputed expressions is now a subclass of `BaseLiteral` and behaves as a
+  literal in all circumstances, fixing several issues with how they were treated.
+
+### Changed
+- The uncomputed expressions of derived columns and attributes now used the suffix
+  `/$e` instead of `/e` as the latter could conflict (especially for derived columns)
+  with a metadata attribute of that name (e). `$e` also follows the naming pattern 
+  of special attributes in ESQL (other special attributes include `$m` and `$v`). 
 
 ## [0.8.4] - 2022-02-11
 ### Added

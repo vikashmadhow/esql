@@ -72,7 +72,7 @@ queryUpdate
  * to compose more complex `selects` in the same statement.
  */
 select
-    :  'select' (metadata ','?)? distinct? explicit? columns
+    :  'select' (literalMetadata ','?)? distinct? explicit? columns
       (  'from' tableExpr)?
       ( 'where' where=expr)?
       ( 'group' 'by' groupByList)?
@@ -157,6 +157,25 @@ attributeList
  */
 attribute
     : Identifier ':' expr
+    ;
+
+/**
+ * Literal metadata is metadata whose attributes are restricted to literal values
+ * only (instead of expressions). Result and table metadata are restricted to be
+ * literal values as they are associated to the whole result/table. Metadata
+ * attribute expressions are computed for every row in a result/table and would
+ * not have the same value for the whole result/table.
+ */
+literalMetadata
+    : '{' literalAttributeList '}'
+    ;
+
+literalAttributeList
+    : literalAttribute (',' literalAttribute)*
+    ;
+
+literalAttribute
+    : Identifier ':' literal
     ;
 
 /**
@@ -324,10 +343,10 @@ qualifiedName
  * composition.
  */
 tableExpr
-    : (alias ':')? qualifiedName                            #SingleTableExpr
-    | alias ':' '(' select ')'                              #SelectTableExpr
-    | alias metadata? dynamicColumns ':' '(' rows ')'       #DynamicTableExpr
-    | left=tableExpr 'times' right=tableExpr                #CrossProductTableExpr
+    : (alias ':')? qualifiedName                              #SingleTableExpr
+    | alias ':' '(' select ')'                                #SelectTableExpr
+    | alias  dynamicColumns ':' '(' rows ')' #DynamicTableExpr
+    | left=tableExpr 'times' right=tableExpr                  #CrossProductTableExpr
 
       /**
        * 4 join types are available in ESQL: `left`, `right` and `full` joins are
@@ -336,7 +355,7 @@ tableExpr
        */
     | left=tableExpr
       (joinType='left'|'right'|'full')? 'join' lateral?
-      right=tableExpr 'on' expr                             #JoinTableExpr
+      right=tableExpr 'on' expr                               #JoinTableExpr
     ;
 
 /**
@@ -344,7 +363,7 @@ tableExpr
  * attached to each column.
  */
 dynamicColumns
-    : '(' nameWithMetadata (',' nameWithMetadata)* ')'
+    : '(' (literalMetadata ',')? nameWithMetadata (',' nameWithMetadata)* ')'
     ;
 
 /**
@@ -487,7 +506,7 @@ names
 insert
     : 'insert' 'into' (alias ':')? qualifiedName names?
       (('values' rows) | defaultValues | select)
-      ('return' metadata? columns)?
+      ('return' literalMetadata? columns)?
     ;
 
 /**
@@ -535,7 +554,7 @@ update
          'from' tableExpr
           'set' setList
       ( 'where' expr)?
-      ('return' metadata? columns)?
+      ('return' literalMetadata? columns)?
     ;
 
 /**
@@ -579,7 +598,7 @@ delete
     :  'delete' alias
          'from' tableExpr
       ( 'where' expr)?
-      ('return' metadata? columns)?
+      ('return' literalMetadata? columns)?
     ;
 
 /**
@@ -1272,7 +1291,7 @@ tableDefinition
     : columnDefinition
     | derivedColumnDefinition
     | constraintDefinition
-    | metadata
+    | literalMetadata
     ;
 
 /**
@@ -1528,6 +1547,7 @@ Not
     ;
 
 fragment Digit
+
     : [0-9]
     ;
 

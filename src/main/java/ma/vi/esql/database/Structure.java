@@ -218,7 +218,7 @@ public class Structure extends AbstractScope implements Environment {
 
     // id
     /////////////////////////////////
-    function(new Function("newid", FloatType, emptyList(),
+    function(new Function("newid", UuidType, emptyList(),
                           false,
                           Map.of(POSTGRESQL, "uuid_generate_v4",
                                  SQLSERVER, "newid",

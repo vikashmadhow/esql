@@ -91,11 +91,11 @@ dependencies {
   antlr("org.antlr:antlr4:latest.release")
 
   api('org.pcollections:pcollections:3.1.4')
+  api("ma.vi:base:latest.release")
 
   implementation("org.apache.commons:commons-lang3:latest.release")
   implementation("org.json:json:latest.release")
   implementation("org.yaml:snakeyaml:latest.release")
-  implementation("com.vikmad:base:latest.release")
 
   implementation("org.postgresql:postgresql:42.3.1")
   implementation('com.microsoft.sqlserver:mssql-jdbc:10.2.0.jre17')
@@ -122,7 +122,7 @@ test {
 group = 'ma.vi.esql'
 archivesBaseName = 'esql'
 sourceCompatibility = JavaVersion.VERSION_17
-version = "0.8.4"
+version = "0.8.5"
 ext.isReleaseVersion = !version.endsWith("SNAPSHOT")
 
 java {
@@ -170,7 +170,7 @@ publishing {
     mavenJava(MavenPublication) {
       from components.java
       pom {
-        groupId = 'com.vikmad'
+        groupId = 'ma.vi'
         artifactId = 'esql'
         name = "ESQL language implementation"
         description = 'ESQL, SQL enhanced with metadata compiling to various relational databases'

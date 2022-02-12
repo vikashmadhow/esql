@@ -4,6 +4,7 @@
 
 package ma.vi.esql.database;
 
+import ma.vi.base.config.Configuration;
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.exec.EsqlConnection;
 import ma.vi.esql.exec.Param;
@@ -781,15 +782,15 @@ public abstract class AbstractDatabase implements Database {
     /*
      * Load extensions.
      */
-    loadExtensions((Collection<Class<? extends Extension>>)config.getOrDefault(CONFIG_DB_EXTENSIONS, emptySet()),
+    loadExtensions((Map<Class<? extends Extension>, Configuration>)config.getOrDefault(CONFIG_DB_EXTENSIONS, emptyMap()),
                    new HashSet<>(), 0);
   }
 
-  private void loadExtensions(Collection<Class<? extends Extension>> toLoad,
+  private void loadExtensions(Map<Class<? extends Extension>, Configuration> toLoad,
                               Set<Class<? extends Extension>> loaded,
                               int level) {
     try {
-      for (Class<? extends Extension> extension: toLoad) {
+      for (Class<? extends Extension> extension: toLoad.keySet()) {
         if (!loaded.contains(extension)) {
           loaded.add(extension);
           log.log(INFO, repeat(' ', level * 2) + extension.getName() + " loaded");
@@ -798,7 +799,7 @@ public abstract class AbstractDatabase implements Database {
           if (e.dependsOn() != null && !e.dependsOn().isEmpty()) {
             loadExtensions(e.dependsOn(), loaded, level + 1);
           }
-          e.init(this);
+          e.init(this, toLoad.get(extension));
           log.log(INFO, repeat(' ', level * 2) + extension.getName() + " initialized");
         }
       }

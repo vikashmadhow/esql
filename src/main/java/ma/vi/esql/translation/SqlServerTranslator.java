@@ -179,7 +179,6 @@ public class SqlServerTranslator extends AbstractTranslator {
       return new QueryTranslation(select,
                                   query,
                                   q.columns(),
-                                  q.resultAttributeIndices(),
                                   q.resultAttributes());
     } else {
       if (hasComplexGroups) {
@@ -369,7 +368,6 @@ public class SqlServerTranslator extends AbstractTranslator {
         return new QueryTranslation(select,
                                     st.toString(),
                                     q.columns(),
-                                    q.resultAttributeIndices(),
                                     q.resultAttributes());
       }
     }
@@ -401,11 +399,11 @@ public class SqlServerTranslator extends AbstractTranslator {
                                                            parameters.plusAll(DONT_ADD_IIF), null));
     }
     if (q == null) {
-      return new QueryTranslation(update, st.toString(), emptyList(), emptyList(), emptyMap());
+      return new QueryTranslation(update, st.toString(), emptyList(), emptyMap());
     } else {
-      return new QueryTranslation(update, st.toString(),
+      return new QueryTranslation(update,
+                                  st.toString(),
                                   q.columns(),
-                                  q.resultAttributeIndices(),
                                   q.resultAttributes());
     }
   }
@@ -430,11 +428,11 @@ public class SqlServerTranslator extends AbstractTranslator {
                                                            parameters.plusAll(DONT_ADD_IIF), null));
     }
     if (q == null) {
-      return new QueryTranslation(delete, st.toString(), emptyList(), emptyList(), emptyMap());
+      return new QueryTranslation(delete, st.toString(), emptyList(), emptyMap());
     } else {
-      return new QueryTranslation(delete, st.toString(),
+      return new QueryTranslation(delete,
+                                  st.toString(),
                                   q.columns(),
-                                  q.resultAttributeIndices(),
                                   q.resultAttributes());
     }
   }
@@ -481,11 +479,11 @@ public class SqlServerTranslator extends AbstractTranslator {
     }
 
     if (q == null) {
-      return new QueryTranslation(insert, st.toString(), emptyList(), emptyList(), emptyMap());
+      return new QueryTranslation(insert, st.toString(), emptyList(), emptyMap());
     } else {
-      return new QueryTranslation(insert, st.toString(),
+      return new QueryTranslation(insert,
+                                  st.toString(),
                                   q.columns(),
-                                  q.resultAttributeIndices(),
                                   q.resultAttributes());
     }
   }

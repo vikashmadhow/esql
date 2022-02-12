@@ -236,23 +236,27 @@ public class Result implements Iterator<Result.Row>,
    * Returns the computed result attributes for the current row.
    */
   public Map<String, Object> resultAttributes() {
-    try {
-      Map<String, Object> attributes = new HashMap<>(query.resultAttributes());
-      for (AttributeIndex attr: query.resultAttributeIndices()) {
-        Object v = rs.getObject(attr.index());
-        if (attr.type() == Types.BoolType && v instanceof Number) {
-          /*
-           * Conversion of numeric to boolean for SQL Server.
-           */
-          v = ((Number)v).intValue() == 1 ? Boolean.TRUE : Boolean.FALSE;
-        }
-        attributes.put(attr.name(), v);
-      }
-      return attributes;
-    } catch (SQLException sqle) {
-      throw Errors.unchecked(sqle);
-    }
+    return query.resultAttributes();
   }
+
+//  public Map<String, Object> resultAttributes() {
+//    try {
+//      Map<String, Object> attributes = new HashMap<>(query.resultAttributes());
+//      for (AttributeIndex attr: query.resultAttributeIndices()) {
+//        Object v = rs.getObject(attr.index());
+//        if (attr.type() == Types.BoolType && v instanceof Number) {
+//          /*
+//           * Conversion of numeric to boolean for SQL Server.
+//           */
+//          v = ((Number)v).intValue() == 1 ? Boolean.TRUE : Boolean.FALSE;
+//        }
+//        attributes.put(attr.name(), v);
+//      }
+//      return attributes;
+//    } catch (SQLException sqle) {
+//      throw Errors.unchecked(sqle);
+//    }
+//  }
 
   /**
    * Converts and normalize the value `v` based on the expected value type.
@@ -338,15 +342,16 @@ public class Result implements Iterator<Result.Row>,
   }
 
   public class Row {
-    public int                 columnsCount()              { return Result.this.columnsCount();    }
-    public List<ColumnMapping> columns     ()              { return Result.this.columns();         }
-    public boolean             hasColumn   (String column) { return Result.this.hasColumn(column); }
-    public <T> ResultColumn<T> get         (int    column) { return Result.this.get(column);       }
-    public <T> ResultColumn<T> get         (String column) { return Result.this.get(column);       }
-    public <T> T               value       (int    column) { return Result.this.value(column);     }
-    public <T> T               value       (String column) { return Result.this.value(column);     }
-    public ColumnMapping       column      (int    column) { return Result.this.column(column);    }
-    public ColumnMapping       column      (String column) { return Result.this.column(column);    }
+    public Map<String, Object> resultAttributes()          { return Result.this.resultAttributes(); }
+    public int                 columnsCount()              { return Result.this.columnsCount();     }
+    public List<ColumnMapping> columns     ()              { return Result.this.columns();          }
+    public boolean             hasColumn   (String column) { return Result.this.hasColumn(column);  }
+    public <T> ResultColumn<T> get         (int    column) { return Result.this.get(column);        }
+    public <T> ResultColumn<T> get         (String column) { return Result.this.get(column);        }
+    public <T> T               value       (int    column) { return Result.this.value(column);      }
+    public <T> T               value       (String column) { return Result.this.value(column);      }
+    public ColumnMapping       column      (int    column) { return Result.this.column(column);     }
+    public ColumnMapping       column      (String column) { return Result.this.column(column);     }
   }
 
   /**
@@ -355,7 +360,7 @@ public class Result implements Iterator<Result.Row>,
    */
   public static final Result Nothing = new Result(null, null,
                                                   new QueryTranslation(null, null,
-                                                                       emptyList(), emptyList(), emptyMap()));
+                                                                       emptyList(), emptyMap()));
 
   /**
    * The database from which the data was loaded.

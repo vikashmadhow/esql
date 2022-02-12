@@ -163,7 +163,6 @@ public class Cte extends QueryUpdate {
              + " as (" + q.translation() + ')';
     return new QueryTranslation(this, s,
                                 q.columns(),
-                                q.resultAttributeIndices(),
                                 q.resultAttributes());
   }
 

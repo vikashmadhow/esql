@@ -247,9 +247,10 @@ public class CreateTable extends Define {
         }
       }
 
-      // create or alter table
-      // update structure if this was not a system table creation and
-      // the table did not exist before
+      /*
+       * Create or alter table:  update structure if this was not a system table
+       * creation and the table did not exist before.
+       */
       if (!db.structure().relationExists(tableName)) {
         CreateTable modified = this;
         List<ConstraintDefinition> constraints = constraints();
@@ -410,9 +411,11 @@ public class CreateTable extends Define {
           }
         }
 
-        // drop existing definitions (columns, constraints and metadata) from the table
-        // which have not been defined in the current create statement if 'drop undefined'
-        // clause was explicitly set in command.
+        /*
+         * Drop existing definitions (columns, constraints and metadata) from the
+         * table which have not been defined in the current create statement if
+         * 'drop undefined' clause was explicitly set in command.
+         */
         if (dropUndefined()) {
           /*
            * drop excess fields

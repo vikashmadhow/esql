@@ -262,7 +262,7 @@ public class BaseRelation extends Relation {
          * computed on the client-side where the aliased names will be valid.
          */
         cols.add(new Column(attr.context,
-                            attrPrefix + "/e",
+                            attrPrefix + "/$e",
                             new UncomputedExpression(attr.context, rename(expr, aliased)),
                             Types.TextType,
                             null));
@@ -294,23 +294,23 @@ public class BaseRelation extends Relation {
 
   /**
    * Add relation and column metadata to the column list.
-   * For example, `select a from S` becomes
-   *     ```
+   * For example, <pre>select a from S</pre> becomes
+   *     <pre>
    *     select /tm1:(max:max(S.b) from S:S),
-   *            /tm1/e:$(max:max(S.b) from S:S),
+   *            /tm1/$e:$(max:max(S.b) from S:S),
    *            /tm2:(S.a>S.b),
-   *            /tm2/e:$(S.a>S.b),
+   *            /tm2/$e:$(S.a>S.b),
    *
    *            a:S.a,
    *            a/m1:(S.b>5),
    *            a/m2:(10),
    *            a/m3:(S.a!=0),
-   *            a/m3/e:$(S.a!=0)
+   *            a/m3/$e:$(S.a!=0)
    *       from S:S
-   *     ```
+   *     </pre>
    */
-  public static List<Column> expandColumns(List<Attribute> attributes,
-                                           List<Column> columns) {
+  public static List<Column> expandColumns(Collection<Attribute> attributes,
+                                           Collection<Column> columns) {
     List<Column> newCols = new ArrayList<>();
     Map<String, String> aliased = aliasedColumns(columns);
 
@@ -334,9 +334,9 @@ public class BaseRelation extends Relation {
    * <pre>
    *    a:a
    *    a/m1:b,
-   *    a/m1/e:$(b),
+   *    a/m1/$e:$(b),
    *    a/m2:c+5,
-   *    a/m2/e:$(c+5),
+   *    a/m2/$e:$(c+5),
    *    a/m3:10
    * </pre>
    */
@@ -349,7 +349,7 @@ public class BaseRelation extends Relation {
         Boolean derived = column.metadata().evaluateAttribute(DERIVED);
         if (derived != null && derived) {
           newCols.add(new Column(column.context,
-                                 colAlias + "/e",
+                                 colAlias + "/$e",
                                  new UncomputedExpression(column.context,
                                                           rename(column.expression(), aliased)),
                                  Types.TextType,
@@ -384,7 +384,7 @@ public class BaseRelation extends Relation {
    * Returns column names which have been aliased to a different name. This is
    * used to rename the reference to those column names in expressions.
    */
-  private static Map<String, String> aliasedColumns(List<Column> columns) {
+  private static Map<String, String> aliasedColumns(Collection<Column> columns) {
     Map<String, String> aliased = new HashMap<>();
     for (Column col: columns) {
       Expression<?, String> expr = col.expression();

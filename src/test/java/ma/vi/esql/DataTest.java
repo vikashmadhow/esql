@@ -11,6 +11,10 @@ import ma.vi.esql.exec.Result;
 import ma.vi.esql.exec.ResultColumn;
 import ma.vi.esql.syntax.Parser;
 import ma.vi.esql.syntax.Program;
+import org.hamcrest.BaseMatcher;
+import org.hamcrest.Description;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.junit.jupiter.api.BeforeAll;
 
 import java.util.Arrays;
@@ -21,6 +25,50 @@ import static org.apache.commons.lang3.StringUtils.rightPad;
 
 public class DataTest {
   public static Database[] databases;
+
+  public static class IsEqualToJsonArray extends BaseMatcher<JSONArray> {
+    public IsEqualToJsonArray(JSONArray expected) {
+      this.expected = expected;
+    }
+
+    @Override
+    public boolean matches(Object actual) {
+      if (actual instanceof JSONArray arr) {
+        return arr.similar(expected);
+      } else {
+        return false;
+      }
+    }
+
+    @Override
+    public void describeTo(Description description) {
+      description.appendValue(expected);
+    }
+
+    private final JSONArray expected;
+  }
+
+  public static class IsEqualToJsonObject extends BaseMatcher<JSONArray> {
+    public IsEqualToJsonObject(JSONObject expected) {
+      this.expected = expected;
+    }
+
+    @Override
+    public boolean matches(Object actual) {
+      if (actual instanceof JSONObject obj) {
+        return obj.similar(expected);
+      } else {
+        return false;
+      }
+    }
+
+    @Override
+    public void describeTo(Description description) {
+      description.appendValue(expected);
+    }
+
+    private final JSONObject expected;
+  }
 
   @BeforeAll
   static void setup() {
@@ -39,8 +87,6 @@ public class DataTest {
                               create table S drop undefined({
                                 name: 'S',
                                 description: 'S test table',
-                                tm1: from S select max(b),
-                                tm2: a > b,
                                 validate_unique: [['a', 'b', 'e']],
                                 dependents: {
                                   links: {
@@ -90,9 +136,7 @@ public class DataTest {
         s = p.parse("create table a.b.T drop undefined(" +
                     "  {" +
                     "    name: 'T'," +
-                    "    description: 'T test table'," +
-                    "    tm1: from a.b.T select max(b)," +
-                    "    tm2: a > b" +
+                    "    description: 'T test table'" +
                     "  }, " +
                     "  _id uuid not null," +
                     "  a int {" +
@@ -129,9 +173,7 @@ public class DataTest {
         s = p.parse("create table a.b.X drop undefined(" +
                     "  {" +
                     "    name: 'X'," +
-                    "    description: 'X test table'," +
-                    "    tm1: from a.b.X select max(b)," +
-                    "    tm2: a > b" +
+                    "    description: 'X test table'" +
                     "  }, " +
                     "  _id uuid not null," +
                     "  a int {" +
@@ -166,9 +208,7 @@ public class DataTest {
         s = p.parse("create table b.Y drop undefined(" +
                     "  {" +
                     "    name: 'Y'," +
-                    "    description: 'Y test table'," +
-                    "    tm1: from b.Y select max(b)," +
-                    "    tm2: a > b" +
+                    "    description: 'Y test table'" +
                     "  }, " +
                     "  _id uuid not null," +
                     "  a int {" +

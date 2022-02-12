@@ -77,6 +77,16 @@ public class NameWithMetadata extends TableDefinition {
     }
   }
 
+  @Override
+  public void _toString(StringBuilder st, int level, int indent) {
+    st.append(name());
+    if (metadata() != null
+     && metadata().attributes() != null
+     && !metadata().attributes().isEmpty()) {
+      metadata()._toString(st, level + 1, indent);
+    }
+  }
+
   public Metadata metadata() {
     return child("metadata");
   }

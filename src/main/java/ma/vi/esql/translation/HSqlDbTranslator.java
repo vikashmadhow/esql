@@ -69,9 +69,9 @@ public class HSqlDbTranslator extends AbstractTranslator {
     if (select.limit() != null) {
       st.append(" limit ").append(select.limit().translate(target(), esqlCon, path.add(select.limit()), parameters, env));
     }
-    return new QueryTranslation(select, st.toString(),
+    return new QueryTranslation(select,
+                                st.toString(),
                                 q.columns(),
-                                q.resultAttributeIndices(),
                                 q.resultAttributes());
   }
 
@@ -92,7 +92,7 @@ public class HSqlDbTranslator extends AbstractTranslator {
     if (update.columns() != null) {
       throw new TranslationException(update, target() + " does not support return values in updates");
     }
-    return new QueryTranslation(update, st.toString(), emptyList(), emptyList(), emptyMap());
+    return new QueryTranslation(update, st.toString(), emptyList(), emptyMap());
   }
 
   @Override
@@ -109,7 +109,7 @@ public class HSqlDbTranslator extends AbstractTranslator {
     if (delete.columns() != null) {
       throw new TranslationException(delete, target() + " does not support returning rows in deletes");
     }
-    return new QueryTranslation(delete, st.toString(), emptyList(), emptyList(), emptyMap());
+    return new QueryTranslation(delete, st.toString(), emptyList(), emptyMap());
   }
 
   @Override
@@ -147,6 +147,6 @@ public class HSqlDbTranslator extends AbstractTranslator {
     if (insert.columns() != null && !insert.columns().isEmpty()) {
       throw new TranslationException(insert, target() + " does not support returning rows in inserts");
     }
-    return new QueryTranslation(insert, st.toString(), emptyList(), emptyList(), emptyMap());
+    return new QueryTranslation(insert, st.toString(), emptyList(), emptyMap());
   }
 }

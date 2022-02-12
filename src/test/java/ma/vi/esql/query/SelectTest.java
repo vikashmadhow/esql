@@ -19,14 +19,18 @@ import ma.vi.esql.syntax.Program;
 import ma.vi.esql.syntax.expression.Expression;
 import ma.vi.esql.syntax.expression.literal.UuidLiteral;
 import ma.vi.esql.syntax.query.Select;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestFactory;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Stream;
 
+import static java.util.Collections.singletonList;
 import static java.util.UUID.randomUUID;
 import static ma.vi.esql.syntax.Parser.Rules.SELECT;
 import static org.junit.jupiter.api.Assertions.*;
@@ -286,6 +290,20 @@ public class SelectTest extends DataTest {
 
                      Select select = p.parse("select * from x:(select * from S) where a >= 3 order by a", SELECT);
                      Result rs = con.exec(select);
+
+                     JSONArray validateUnique = new JSONArray(singletonList(new String[]{"a", "b", "e"}));
+                     JSONObject dependents = new JSONObject(
+                             Map.of("links", new JSONObject(
+                                 Map.of("type", "a.b.T",
+                                        "referred_by", "s_id",
+                                        "label", "S Links"))));
+
+                     assertEquals(rs.resultAttributes().size(), 4);
+                     assertEquals(rs.resultAttributes().get("name"), "S");
+                     assertEquals(rs.resultAttributes().get("description"), "S test table");
+                     assertTrue(validateUnique.similar(rs.resultAttributes().get("validate_unique")));
+                     assertTrue(dependents.similar(rs.resultAttributes().get("dependents")));
+
                      rs.next(); assertInstanceOf(UUID.class, rs.value("_id"));
                                 assertEquals(6,  (Integer)rs.value("a"));
                                 assertEquals(7,  (Integer)rs.value("b"));
@@ -299,6 +317,133 @@ public class SelectTest extends DataTest {
                                 assertArrayEquals(new Integer[]{5,6,7,8}, rs.value("j"));
                                 assertNull(rs.value("k"));
                                 assertNull(rs.value("l"));
+                   }
+                 }));
+  }
+
+  @TestFactory
+  Stream<DynamicTest> selectAllFromDynamic() {
+    return Stream.of(databases)
+                 .map(db -> dynamicTest(db.target().toString(), () -> {
+                   System.out.println(db.target());
+                   Parser p = new Parser(db.structure());
+                   try (EsqlConnection con = db.esql(db.pooledConnection())) {
+                     Select select = p.parse("""
+                                             select *
+                                               from t (_id, a, b, e, h, j)
+                                                     :(
+                                                         (newid(), 1, 2, true, ['Four', 'Quatre']text, [1, 2, 3]int),
+                                                         (newid(), 6, 7, false, ['Nine', 'Neuf', 'X']text, [5, 6, 7, 8]int)
+                                                      )
+                                              where a >= 1
+                                              order by a
+                                             """, SELECT);
+                     Result rs = con.exec(select);
+                     rs.next(); assertInstanceOf(UUID.class, rs.value("_id"));
+                                assertEquals(1, (Long)rs.value("a"));
+                                assertEquals(2, (Long)rs.value("b"));
+                                assertEquals(true, rs.value("e"));
+                                assertArrayEquals(new String[]{"Four", "Quatre"}, rs.value("h"));
+                                assertArrayEquals(new Integer[]{1,2,3}, rs.value("j"));
+
+                     rs.next(); assertInstanceOf(UUID.class, rs.value("_id"));
+                                assertEquals(6, (Long)rs.value("a"));
+                                assertEquals(7, (Long)rs.value("b"));
+                                assertEquals(false, rs.value("e"));
+                                assertArrayEquals(new String[]{"Nine", "Neuf", "X"}, rs.value("h"));
+                                assertArrayEquals(new Integer[]{5,6,7,8}, rs.value("j"));
+                   }
+                 }));
+  }
+
+  @TestFactory
+  Stream<DynamicTest> selectAllFromDynamicWithMetadata() {
+    return Stream.of(databases)
+                 .map(db -> dynamicTest(db.target().toString(), () -> {
+                   System.out.println(db.target());
+                   Parser p = new Parser(db.structure());
+                   try (EsqlConnection con = db.esql(db.pooledConnection())) {
+                     Select select = p.parse("""
+                                             select *
+                                               from t ({name: 't', description: 'Dynamic test'},
+                                                       _id, a {m1:b+1}, b, e, h, j)
+                                                     :(
+                                                         (newid(), 1, 2, true, ['Four', 'Quatre']text, [1, 2, 3]int),
+                                                         (newid(), 6, 7, false, ['Nine', 'Neuf', 'X']text, [5, 6, 7, 8]int)
+                                                      )
+                                              where a >= 1
+                                              order by a
+                                             """, SELECT);
+                     Result rs = con.exec(select);
+
+                     Map<String, Object> expected = Map.of("name", "t", "description", "Dynamic test");
+//                     assertThat(rs.resultAttributes().entrySet(),
+//                                everyItem(in(expected.entrySet())));
+//                     assertThat(rs.resultAttributes().entrySet(),
+//                                containsInAnyOrder(expected.entrySet()));
+
+                     assertEquals(expected, rs.resultAttributes());
+                     rs.next(); assertInstanceOf(UUID.class, rs.value("_id"));
+                                assertEquals(1, (Long)rs.value("a"));
+                                assertEquals(3, (Long)rs.get("a").metadata().get("m1"));
+                                assertEquals("$(t.b + 1)", rs.get("a").metadata().get("m1/$e"));
+                                assertEquals(2, (Long)rs.value("b"));
+                                assertEquals(true, rs.value("e"));
+                                assertArrayEquals(new String[]{"Four", "Quatre"}, rs.value("h"));
+                                assertArrayEquals(new Integer[]{1,2,3}, rs.value("j"));
+
+                     rs.next(); assertInstanceOf(UUID.class, rs.value("_id"));
+                                assertEquals(6, (Long)rs.value("a"));
+                                assertEquals(7, (Long)rs.value("b"));
+                                assertEquals(false, rs.value("e"));
+                                assertArrayEquals(new String[]{"Nine", "Neuf", "X"}, rs.value("h"));
+                                assertArrayEquals(new Integer[]{5,6,7,8}, rs.value("j"));
+                     assertEquals(expected, rs.resultAttributes());
+                   }
+                 }));
+  }
+
+  @TestFactory
+  Stream<DynamicTest> selectAllFromSelectAllFromDynamicWithMetadata() {
+    return Stream.of(databases)
+                 .map(db -> dynamicTest(db.target().toString(), () -> {
+                   System.out.println(db.target());
+                   Parser p = new Parser(db.structure());
+                   try (EsqlConnection con = db.esql(db.pooledConnection())) {
+                     Select select = p.parse("""
+                                             select *
+                                               from x:(
+                                                  select *
+                                                   from t ({name: 't', description: 'Dynamic test'},
+                                                           _id, a {m1:b+1}, b, e, h, j)
+                                                         :(
+                                                             (newid(), 1, 2, true, ['Four', 'Quatre']text, [1, 2, 3]int),
+                                                             (newid(), 6, 7, false, ['Nine', 'Neuf', 'X']text, [5, 6, 7, 8]int)
+                                                          )
+                                               )
+                                              where a >= 1
+                                              order by a
+                                             """, SELECT);
+                     Result rs = con.exec(select);
+
+                     Map<String, Object> expected = Map.of("name", "t", "description", "Dynamic test");
+                     assertEquals(expected, rs.resultAttributes());
+                     rs.next(); assertInstanceOf(UUID.class, rs.value("_id"));
+                                assertEquals(1, (Long)rs.value("a"));
+                                assertEquals(3, (Long)rs.get("a").metadata().get("m1"));
+                                assertEquals("$(t.b + 1)", rs.get("a").metadata().get("m1/$e"));
+                                assertEquals(2, (Long)rs.value("b"));
+                                assertEquals(true, rs.value("e"));
+                                assertArrayEquals(new String[]{"Four", "Quatre"}, rs.value("h"));
+                                assertArrayEquals(new Integer[]{1,2,3}, rs.value("j"));
+
+                     rs.next(); assertInstanceOf(UUID.class, rs.value("_id"));
+                                assertEquals(6, (Long)rs.value("a"));
+                                assertEquals(7, (Long)rs.value("b"));
+                                assertEquals(false, rs.value("e"));
+                                assertArrayEquals(new String[]{"Nine", "Neuf", "X"}, rs.value("h"));
+                                assertArrayEquals(new Integer[]{5,6,7,8}, rs.value("j"));
+                     assertEquals(expected, rs.resultAttributes());
                    }
                  }));
   }

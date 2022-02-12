@@ -1,6 +1,9 @@
 package ma.vi.esql.database;
 
-import java.util.Set;
+import ma.vi.base.config.Configuration;
+
+import java.util.Collections;
+import java.util.Map;
 
 /**
  * An extension is invoked on initialisation of the database whereupon it can
@@ -20,12 +23,18 @@ public interface Extension {
    * Initialises the database with tables, functions, macros, transformers, etc.
    * required to implement this extension.
    */
-  void init(Database db);
+  void init(Database db, Configuration parameters);
+
+  default void init(Database db) {
+    init(db, Configuration.EMPTY);
+  }
 
   /**
    * Returns a set of extension classes that must be loaded and initialised
    * before this extension is initialized. If this extension does not depend on
    * any other extensions, this method should return null or an empty set.
    */
-  Set<Class<? extends Extension>> dependsOn();
+  default Map<Class<? extends Extension>, Configuration> dependsOn() {
+    return Collections.emptyMap();
+  }
 }

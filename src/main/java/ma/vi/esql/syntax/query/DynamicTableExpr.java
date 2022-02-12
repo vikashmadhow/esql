@@ -7,6 +7,7 @@ package ma.vi.esql.syntax.query;
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.exec.EsqlConnection;
 import ma.vi.esql.exec.env.Environment;
+import ma.vi.esql.semantic.type.BaseRelation;
 import ma.vi.esql.semantic.type.Selection;
 import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.syntax.Context;
@@ -21,6 +22,7 @@ import ma.vi.esql.syntax.modify.InsertRow;
 import org.pcollections.PMap;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
@@ -30,8 +32,10 @@ import static ma.vi.esql.semantic.type.Types.UnknownType;
 /**
  * Represents a dynamic table created from a list of rows:
  * <pre>
- *      select t.a, t.b from t(a, b):(('One', 1), ('Two', 2))
- *                           |------------------------------| -&gt; Dynamic table expression
+ *      select t.a, t.b from t{name: 't',
+ *                             description: 'Dynamic'}(a, b):(('One', 1),
+ *                                                            ('Two', 2))
+ *                           |------------------------------------------| -&gt; Dynamic table expression
  * </pre>
  *
  * @author vikash.madhow@gmail.com
@@ -45,8 +49,8 @@ public class DynamicTableExpr extends AbstractAliasTableExpr {
     super(context, "DynamicTable",
           alias,
           T2.of("metadata", metadata),
-          T2.of("columns", new Esql<>(context, "columns", columns)),
-          T2.of("rows", new Esql<>(context, "rows", rows)));
+          T2.of("columns",  new Esql<>(context, "columns", columns, true)),
+          T2.of("rows",     new Esql<>(context, "rows", rows, true)));
   }
 
   public DynamicTableExpr(DynamicTableExpr other) {
@@ -97,7 +101,12 @@ public class DynamicTableExpr extends AbstractAliasTableExpr {
                               ColumnRef.qualify(column.metadata(), alias()));
       relationColumns.add(col);
     }
-    return relationColumns;
+    return BaseRelation.expandColumns(
+        metadata() == null
+     || metadata().attributes() == null
+     || metadata().attributes().isEmpty() ? Collections.emptyList()
+                                          : new ArrayList<>(metadata().attributes().values()),
+        relationColumns);
   }
 
   private List<Type> guessColumnTypes(EsqlPath path) {
@@ -155,9 +164,11 @@ public class DynamicTableExpr extends AbstractAliasTableExpr {
   }
 
   @Override
-  protected String trans(Target target,
-                         EsqlConnection esqlCon, EsqlPath path,
-                         PMap<String, Object> parameters, Environment env) {
+  protected String trans(Target               target,
+                         EsqlConnection       esqlCon,
+                         EsqlPath             path,
+                         PMap<String, Object> parameters,
+                         Environment          env) {
     return "(values "
          + rows().stream()
                  .map(r -> r.translate(target, esqlCon, path.add(r), parameters, env))
@@ -170,37 +181,37 @@ public class DynamicTableExpr extends AbstractAliasTableExpr {
   }
 
   @Override
-  public String toString() {
-    return alias() + ":("
-         + columns().stream()
-                    .map(NameWithMetadata::name)
-                    .collect(joining(", "))
-         + ")";
-  }
-
-  @Override
   public void _toString(StringBuilder st, int level, int indent) {
-    st.append(alias()).append(":(")
-      .append(columns().stream()
-                       .map(NameWithMetadata::name)
-                       .collect(joining(", ")))
-      .append(")");
-  }
-
-  public List<InsertRow> rows() {
-    return childValue("rows");
+    st.append(alias()).append(":(");
+    if (metadata() != null
+     && metadata().attributes() != null
+     && !metadata().attributes().isEmpty()) {
+      metadata()._toString(st, level + 1, indent);
+      st.append(", ");
+    }
+    boolean first = true;
+    for (NameWithMetadata col: columns()) {
+      if (first) { first = false;   }
+      else       { st.append(", "); }
+      col._toString(st, level + 1, indent);
+    }
+    st.append(")");
   }
 
   public String alias() {
     return childValue("alias");
   }
 
-  public List<NameWithMetadata> columns() {
-    return childValue("columns");
+  public Metadata metadata() {
+    return child("metadata");
   }
 
-  public Metadata metadata() {
-    return childValue("metadata");
+  public List<NameWithMetadata> columns() {
+    return child("columns").children();
+  }
+
+  public List<InsertRow> rows() {
+    return child("rows").children();
   }
 
   private transient volatile List<Type> columnTypes;

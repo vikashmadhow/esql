@@ -26,9 +26,7 @@ public class CreateTest extends DataTest {
                                            create table A drop undefined(
                                              {
                                                name: 'A',
-                                               description: 'A test table',
-                                               tm1: from A select max(b),
-                                               tm2: a > b
+                                               description: 'A test table'
                                              },
                                              _id uuid not null,
                                              a int {

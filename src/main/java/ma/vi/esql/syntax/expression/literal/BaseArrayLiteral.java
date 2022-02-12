@@ -21,6 +21,7 @@ import java.util.List;
 
 import static java.util.stream.Collectors.joining;
 import static ma.vi.base.collections.ArrayUtils.ARRAY_ESCAPE;
+import static ma.vi.base.util.Convert.convert;
 import static ma.vi.esql.translation.Translatable.Target.SQLSERVER;
 
 /**
@@ -108,13 +109,17 @@ public class BaseArrayLiteral extends Literal<Type> {
   }
 
   @Override
-  public Object exec(Target target, EsqlConnection esqlCon, EsqlPath path, Environment env) {
+  public Object exec(Target         target,
+                     EsqlConnection esqlCon,
+                     EsqlPath       path,
+                     Environment    env) {
     Class<?> componentType = Types.classOf(componentType().name());
     List<BaseLiteral<?>> items = items();
     Object array = Array.newInstance(componentType, items.size());
     for (int i = 0; i < items.size(); i++) {
       BaseLiteral<?> item = items.get(i);
-      Array.set(array, i, Convert.convert(item, componentType));
+      Array.set(array, i, convert(item.exec(target, esqlCon, path.add(item), env),
+                                  componentType));
     }
     return array;
   }

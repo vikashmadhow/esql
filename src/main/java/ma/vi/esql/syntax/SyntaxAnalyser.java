@@ -278,7 +278,7 @@ public class SyntaxAnalyser extends EsqlBaseListener {
       List<Column> namedColumns = new ArrayList<>();
       ColumnList.disambiguateNames(value(ctx.columns()), namedColumns);
       put(ctx, new Select(context,
-                          ctx.metadata() == null ? null : get(ctx.metadata()),
+                          ctx.literalMetadata() == null ? null : get(ctx.literalMetadata()),
                           distinct != null && distinct.getText().startsWith("distinct"),
                           distinct != null && distinct.expressionList() != null ? value(distinct.expressionList()) : null,
                           ctx.explicit() != null,
@@ -360,7 +360,7 @@ public class SyntaxAnalyser extends EsqlBaseListener {
   public void exitDynamicTableExpr(DynamicTableExprContext ctx) {
     put(ctx, new DynamicTableExpr(context,
                                   value(ctx.alias()),
-                                  get(ctx.metadata()),
+                                  get(ctx.dynamicColumns().literalMetadata()),
                                   value(ctx.dynamicColumns()),
                                   ctx.rows() == null ? null : value(ctx.rows())));
   }
@@ -377,8 +377,8 @@ public class SyntaxAnalyser extends EsqlBaseListener {
     /*
      * map list of names (identifiers) to a list of string
      */
-    put(ctx, new Esql<>(context,  ctx.nameWithMetadata().stream()
-                                     .map(this::get).toList()));
+    put(ctx, new Esql<>(context, ctx.nameWithMetadata().stream()
+                                    .map(this::get).toList()));
   }
 
   @Override
@@ -489,7 +489,7 @@ public class SyntaxAnalyser extends EsqlBaseListener {
                         ctx.rows() == null ? null : value(ctx.rows()),
                         ctx.defaultValues() != null,
                         ctx.select() == null ? null : get(ctx.select()),
-                        ctx.metadata() == null ? null : get(ctx.metadata()),
+                        ctx.literalMetadata() == null ? null : get(ctx.literalMetadata()),
                         ctx.columns() == null ? null : value(ctx.columns())));
   }
 
@@ -525,7 +525,7 @@ public class SyntaxAnalyser extends EsqlBaseListener {
                         value(ctx.alias()),
                         get(ctx.tableExpr()),
                         ctx.expr() == null ? null : get(ctx.expr()),
-                        ctx.metadata() == null ? null : get(ctx.metadata()),
+                        ctx.literalMetadata() == null ? null : get(ctx.literalMetadata()),
                         ctx.columns() == null ? null : value(ctx.columns())));
   }
 
@@ -539,7 +539,7 @@ public class SyntaxAnalyser extends EsqlBaseListener {
                         get(ctx.tableExpr()),
                         get(ctx.setList()),
                         ctx.expr() == null ? null : get(ctx.expr()),
-                        ctx.metadata() == null ? null : get(ctx.metadata()),
+                        ctx.literalMetadata() == null ? null : get(ctx.literalMetadata()),
                         ctx.columns() == null ? null : value(ctx.columns())));
   }
 
@@ -1144,7 +1144,7 @@ public class SyntaxAnalyser extends EsqlBaseListener {
                                                 t.columnDefinition()        != null ? t.columnDefinition() :
                                                 t.derivedColumnDefinition() != null ? t.derivedColumnDefinition() :
                                                 t.constraintDefinition()    != null ? t.constraintDefinition()
-                                                                                    : t.metadata()))
+                                                                                    : t.literalMetadata()))
                                     .toList()));
   }
 
@@ -1223,8 +1223,8 @@ public class SyntaxAnalyser extends EsqlBaseListener {
       ConstraintDefinitionContext childCtx = tableDef.constraintDefinition();
       put(ctx, new AddTableDefinition(context, get(childCtx)));
 
-    } else if (tableDef.metadata() != null) {
-      MetadataContext childCtx = tableDef.metadata();
+    } else if (tableDef.literalMetadata() != null) {
+      LiteralMetadataContext childCtx = tableDef.literalMetadata();
       put(ctx, new AddTableDefinition(context, get(childCtx)));
     }
   }
@@ -1232,15 +1232,15 @@ public class SyntaxAnalyser extends EsqlBaseListener {
   @Override
   public void exitAlterColumnDefinition(AlterColumnDefinitionContext ctx) {
     put(ctx, new AlterColumnDefinition(
-                  context,
-                  ctx.Identifier() == null ? null : ctx.Identifier().getText(),
-                  ctx.type() == null ? null : value(ctx.type()),
-                  ctx.alterNull() != null && ctx.alterNull().getText().contains("not"),
-                  ctx.alterNull() != null && !ctx.alterNull().getText().contains("not"),
-                  ctx.alterDefault() != null && ctx.alterDefault().expr() != null
-                  ? get(ctx.alterDefault().expr()) : null,
-                  ctx.alterDefault() != null && ctx.alterDefault().expr() == null,
-                  ctx.metadata() == null ? null : get(ctx.metadata())));
+                   context,
+                   ctx.Identifier() == null ? null : ctx.Identifier().getText(),
+                   ctx.type() == null ? null : value(ctx.type()),
+                   ctx.alterNull() != null && ctx.alterNull().getText().contains("not"),
+                   ctx.alterNull() != null && !ctx.alterNull().getText().contains("not"),
+                   ctx.alterDefault() != null && ctx.alterDefault().expr() != null
+                   ? get(ctx.alterDefault().expr()) : null,
+                   ctx.alterDefault() != null && ctx.alterDefault().expr() == null,
+                   ctx.metadata() == null ? null : get(ctx.metadata())));
   }
 
   @Override
@@ -1437,6 +1437,25 @@ public class SyntaxAnalyser extends EsqlBaseListener {
   public void exitAttribute(AttributeContext ctx) {
     if (ctx.Identifier() != null) {
       put(ctx, new Attribute(context, ctx.Identifier().getText(), get(ctx.expr())));
+    }
+  }
+
+  @Override
+  public void exitLiteralMetadata(LiteralMetadataContext ctx) {
+    put(ctx, new Metadata(context, value(ctx.literalAttributeList())));
+  }
+
+  @Override
+  public void exitLiteralAttributeList(LiteralAttributeListContext ctx) {
+    put(ctx, new Esql<>(context, ctx.literalAttribute().stream()
+                                    .map(e -> (Attribute)get(e))
+                                    .toList()));
+  }
+
+  @Override
+  public void exitLiteralAttribute(LiteralAttributeContext ctx) {
+    if (ctx.Identifier() != null) {
+      put(ctx, new Attribute(context, ctx.Identifier().getText(), get(ctx.literal())));
     }
   }
 

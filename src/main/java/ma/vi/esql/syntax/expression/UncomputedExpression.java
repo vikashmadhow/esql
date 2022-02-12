@@ -12,6 +12,7 @@ import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
+import ma.vi.esql.syntax.expression.literal.BaseLiteral;
 import org.pcollections.PMap;
 
 /**
@@ -20,9 +21,9 @@ import org.pcollections.PMap;
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public class UncomputedExpression extends SingleSubExpression {
+public class UncomputedExpression extends BaseLiteral<String> {
   public UncomputedExpression(Context context, Expression<?, String> expr) {
-    super(context, "UncomputedExpr", expr);
+    super(context, "UncomputedExpr", T2.of("expr", expr));
   }
 
   public UncomputedExpression(UncomputedExpression other) {
@@ -52,9 +53,8 @@ public class UncomputedExpression extends SingleSubExpression {
   @Override
   public Type computeType(EsqlPath path) {
     /*
-     * Uncomputed expressions are not computed and therefore their
-     * representation is their type. Thus all uncomputed expressions
-     * are similar to text values.
+     * Uncomputed expressions are not computed and therefore their representation
+     * is their type. Thus all uncomputed expressions are similar to text values.
      */
     return Types.TextType;
   }
@@ -62,10 +62,18 @@ public class UncomputedExpression extends SingleSubExpression {
   @Override
   protected String trans(Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
     return switch (target) {
-      case JAVASCRIPT -> '`' + expr().translate(target, esqlCon, path.add(expr()), parameters, env) + '`';
-      case ESQL       -> "$(" + expr().translate(target, esqlCon, path.add(expr()), parameters, env) + ')';
-      default         -> '\'' + expr().translate(Target.ESQL, esqlCon, path.add(expr()), parameters, env).replace("'", "''") + '\'';
+      case JAVASCRIPT -> "`$(" + expr().translate(target, esqlCon, path.add(expr()), parameters, env) + ")`";
+      case ESQL       ->  "$(" + expr().translate(target, esqlCon, path.add(expr()), parameters, env) + ')';
+      default         -> "'$(" + expr().translate(Target.ESQL, esqlCon, path.add(expr()), parameters, env).replace("'", "''") + ")'";
     };
+  }
+
+  @Override
+  public String exec(Target target, EsqlConnection esqlCon, EsqlPath path, Environment env) {
+    /*
+     * returns the string unescaped and without surrounding quotes
+     */
+    return trans(Target.ESQL, esqlCon, path, null, env);
   }
 
   @Override
@@ -73,5 +81,9 @@ public class UncomputedExpression extends SingleSubExpression {
     st.append("$(");
     expr()._toString(st, level, indent);
     st.append(')');
+  }
+
+  public Expression<?, String> expr() {
+    return child("expr");
   }
 }

@@ -64,9 +64,9 @@ public class MariaDbTranslator extends AbstractTranslator {
     if (select.offset() != null) {
       st.append(" offset ").append(select.offset().translate(target(), esqlCon, path.add(select.offset()), parameters, env));
     }
-    return new QueryTranslation(select, st.toString(),
+    return new QueryTranslation(select,
+                                st.toString(),
                                 q.columns(),
-                                q.resultAttributeIndices(),
                                 q.resultAttributes());
   }
 
@@ -84,7 +84,7 @@ public class MariaDbTranslator extends AbstractTranslator {
     if (update.columns() != null) {
       throw new TranslationException(update, target() + " does not support return values in updates");
     }
-    return new QueryTranslation(update, st.toString(), emptyList(), emptyList(), emptyMap());
+    return new QueryTranslation(update, st.toString(), emptyList(), emptyMap());
   }
 
   @Override
@@ -120,11 +120,11 @@ public class MariaDbTranslator extends AbstractTranslator {
       q = delete.constructResult(st, target(), path, null, parameters);
     }
     if (q == null) {
-      return new QueryTranslation(delete, st.toString(), emptyList(), emptyList(), emptyMap());
+      return new QueryTranslation(delete, st.toString(), emptyList(), emptyMap());
     } else {
-      return new QueryTranslation(delete, st.toString(),
+      return new QueryTranslation(delete,
+                                  st.toString(),
                                   q.columns(),
-                                  q.resultAttributeIndices(),
                                   q.resultAttributes());
     }
   }
@@ -135,7 +135,7 @@ public class MariaDbTranslator extends AbstractTranslator {
     TableExpr table = insert.tables();
     if (!(table instanceof SingleTableExpr)) {
       throw new TranslationException(insert, "Insert only works with single tables. A " + table.getClass().getSimpleName()
-                                         + " was found instead.");
+                                           + " was found instead.");
     }
     st.append(Type.dbTableName(((SingleTableExpr)table).tableName(), target()));
 
@@ -168,11 +168,11 @@ public class MariaDbTranslator extends AbstractTranslator {
     }
 
     if (q == null) {
-      return new QueryTranslation(insert, st.toString(), emptyList(), emptyList(), emptyMap());
+      return new QueryTranslation(insert, st.toString(), emptyList(), emptyMap());
     } else {
-      return new QueryTranslation(insert, st.toString(),
+      return new QueryTranslation(insert,
+                                  st.toString(),
                                   q.columns(),
-                                  q.resultAttributeIndices(),
                                   q.resultAttributes());
     }
   }

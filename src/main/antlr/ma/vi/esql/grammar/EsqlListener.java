@@ -126,6 +126,36 @@ public interface EsqlListener extends ParseTreeListener {
 	 */
 	void exitAttribute(EsqlParser.AttributeContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link EsqlParser#literalMetadata}.
+	 * @param ctx the parse tree
+	 */
+	void enterLiteralMetadata(EsqlParser.LiteralMetadataContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link EsqlParser#literalMetadata}.
+	 * @param ctx the parse tree
+	 */
+	void exitLiteralMetadata(EsqlParser.LiteralMetadataContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link EsqlParser#literalAttributeList}.
+	 * @param ctx the parse tree
+	 */
+	void enterLiteralAttributeList(EsqlParser.LiteralAttributeListContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link EsqlParser#literalAttributeList}.
+	 * @param ctx the parse tree
+	 */
+	void exitLiteralAttributeList(EsqlParser.LiteralAttributeListContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link EsqlParser#literalAttribute}.
+	 * @param ctx the parse tree
+	 */
+	void enterLiteralAttribute(EsqlParser.LiteralAttributeContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link EsqlParser#literalAttribute}.
+	 * @param ctx the parse tree
+	 */
+	void exitLiteralAttribute(EsqlParser.LiteralAttributeContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link EsqlParser#distinct}.
 	 * @param ctx the parse tree
 	 */

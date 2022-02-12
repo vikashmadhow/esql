@@ -33,7 +33,6 @@ import java.util.Map;
 public record QueryTranslation(QueryUpdate          query,
                                String               translation,
                                List<ColumnMapping>  columns,
-                               List<AttributeIndex> resultAttributeIndices,
                                Map<String, Object>  resultAttributes) {
   @Override
   public String toString() {

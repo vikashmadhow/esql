@@ -14,11 +14,13 @@ import ma.vi.esql.semantic.type.Relation;
 import ma.vi.esql.semantic.type.Selection;
 import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.*;
+import ma.vi.esql.syntax.define.Metadata;
 import ma.vi.esql.syntax.expression.*;
 import ma.vi.esql.syntax.expression.literal.Literal;
 import ma.vi.esql.syntax.expression.logical.And;
 import ma.vi.esql.syntax.macro.Macro;
 import ma.vi.esql.syntax.modify.InsertRow;
+import ma.vi.esql.translation.TranslationException;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -175,7 +177,7 @@ public abstract class QueryUpdate extends MetadataContainer<QueryTranslation> {
 
     Map<String, ColumnMapping> columnMappings = new LinkedHashMap<>();
     Map<String, Object> resultAttributes = new LinkedHashMap<>();
-    List<AttributeIndex> resultAttributeIndices = new ArrayList<>();
+//    List<AttributeIndex> resultAttributeIndices = new ArrayList<>();
     int itemIndex = 0;
     Selection selection = computeType(path.add(this));
 
@@ -211,23 +213,58 @@ public abstract class QueryUpdate extends MetadataContainer<QueryTranslation> {
       /*
        * Output result metadata
        */
-      for (T2<Relation, Column> column: selection.columns().stream()
-                                                 .filter(c -> c.b.name().startsWith("/")).toList()) {
-        String colName = column.b.name();
+      List<Column> resultMetadata = selection.columns().stream()
+                                             .filter(c -> c.b.name().startsWith("/"))
+                                             .map(T2::b)
+                                             .toList();
+      for (Column column: resultMetadata) {
+        String colName = column.name();
         String attrName = colName.substring(1);
 
-        Expression<?, String> attributeValue = column.b.expression();
-        if (optimiseAttributesLoading && (attributeValue instanceof Literal
-                                       || attributeValue instanceof UncomputedExpression)) {
-          resultAttributes.put(attrName, attributeValue.exec(target, NULL_CONNECTION, path, NULL_DB.structure()));
-        } else if (addAttributes) {
-          itemIndex += 1;
-          if (itemIndex > 1) {
-            query.append(", ");
+        Expression<?, String> attributeValue = column.expression();
+        if (attributeValue instanceof ColumnRef ref) {
+          /*
+           * Result metadata column referring to a column in an inner-query: get
+           * literal value by translating inner query.
+           */
+          String q = ref.qualifier();
+          if (tables().named(q) instanceof SelectTableExpr sel) {
+            QueryTranslation sub = sel.select()
+                                      .constructResult(new StringBuilder(),
+                                                       target, path.add(sel.select()),
+                                                       q, parameters);
+            resultAttributes.put(attrName, sub.resultAttributes().get(attrName));
+          } else if (tables().named(q) instanceof DynamicTableExpr dyn) {
+            Metadata dynMeta = dyn.metadata();
+            if (dynMeta != null
+             && dynMeta.attributes() != null
+             && dynMeta.attributes().containsKey(attrName)) {
+              resultAttributes.put(attrName,
+                                   dynMeta.attributes().get(attrName)
+                                          .exec(target, NULL_CONNECTION, path, NULL_DB.structure()));
+            }
           }
-          appendExpression(query, attributeValue, target, path, colName);
-          resultAttributeIndices.add(new AttributeIndex(itemIndex, attrName, attributeValue.computeType(path.add(attributeValue))));
+        } else if (attributeValue instanceof Literal<?>){
+          /*
+           * Result metadata is a literal: add its computed value.
+           */
+          resultAttributes.put(attrName, attributeValue.exec(target, NULL_CONNECTION, path, NULL_DB.structure()));
+        } else {
+          throw new TranslationException(
+              "Result metadata column " + column + " is a " + attributeValue.getClass().getSimpleName()
+            + ". Only literals and reference to literals are supported for result metadata columns.");
         }
+//        if (optimiseAttributesLoading && (attributeValue instanceof Literal
+//                                       || attributeValue instanceof UncomputedExpression)) {
+//          resultAttributes.put(attrName, attributeValue.exec(target, NULL_CONNECTION, path, NULL_DB.structure()));
+//        } else if (addAttributes) {
+//          itemIndex += 1;
+//          if (itemIndex > 1) {
+//            query.append(", ");
+//          }
+//          appendExpression(query, attributeValue, target, path, colName);
+//          resultAttributeIndices.add(new AttributeIndex(itemIndex, attrName, attributeValue.computeType(path.add(attributeValue))));
+//        }
       }
 
       /*
@@ -258,9 +295,12 @@ public abstract class QueryUpdate extends MetadataContainer<QueryTranslation> {
         }
       }
     }
+//    return new QueryTranslation(this, query.toString(),
+//                                unmodifiableList(new ArrayList<>(columnMappings.values())),
+//                                unmodifiableList(resultAttributeIndices),
+//                                unmodifiableMap(resultAttributes));
     return new QueryTranslation(this, query.toString(),
                                 unmodifiableList(new ArrayList<>(columnMappings.values())),
-                                unmodifiableList(resultAttributeIndices),
                                 unmodifiableMap(resultAttributes));
   }
 

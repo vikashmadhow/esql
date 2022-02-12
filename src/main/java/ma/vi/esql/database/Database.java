@@ -68,8 +68,13 @@ public interface Database {
 
   /**
    * Configuration parameter for extensions. The value of this parameter must be
-   * a set of classes implementing the {@link Extension} interface; these
-   * classes are initialised when the database starts.
+   * a map of classes implementing the {@link Extension} interface, mapped to a
+   * set of string parameters (another map of string to string). For example
+   *
+   *    Map.of(LookupExtension.class, Map.of("schema", "_lookup"),
+   *           UserExtension.class,   Map.of("jwt", "true", "two-factor", "false"))
+   *
+   * Extension classes are initialised when the database starts.
    */
   String CONFIG_DB_EXTENSIONS = "database.extensions";
 
