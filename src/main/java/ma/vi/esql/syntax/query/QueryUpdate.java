@@ -220,8 +220,9 @@ public abstract class QueryUpdate extends MetadataContainer<QueryTranslation> {
       for (Column column: resultMetadata) {
         String colName = column.name();
         String attrName = colName.substring(1);
-
         Expression<?, String> attributeValue = column.expression();
+        Map<Select, QueryTranslation> selectTableMapping = new HashMap<>();
+
         if (attributeValue instanceof ColumnRef ref) {
           /*
            * Result metadata column referring to a column in an inner-query: get
@@ -229,11 +230,12 @@ public abstract class QueryUpdate extends MetadataContainer<QueryTranslation> {
            */
           String q = ref.qualifier();
           if (tables().named(q) instanceof SelectTableExpr sel) {
-            QueryTranslation sub = sel.select()
-                                      .constructResult(new StringBuilder(),
-                                                       target, path.add(sel.select()),
-                                                       q, parameters);
+            QueryTranslation sub = selectTableMapping.computeIfAbsent(
+                sel.select(), s -> s.constructResult(new StringBuilder(),
+                                                     target, path.add(s),
+                                                     q, parameters));
             resultAttributes.put(attrName, sub.resultAttributes().get(attrName));
+
           } else if (tables().named(q) instanceof DynamicTableExpr dyn) {
             Metadata dynMeta = dyn.metadata();
             if (dynMeta != null

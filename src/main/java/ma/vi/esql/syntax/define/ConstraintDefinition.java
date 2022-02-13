@@ -82,7 +82,7 @@ public abstract class ConstraintDefinition extends TableDefinition {
                   .map(cols -> cols.stream()
                                    .map(String::toLowerCase)
                                    .collect(joining("_")))
-                  .collect(joining("__"))
+                  .collect(joining("_"))
           + '_' + Strings.random(4);
   }
 

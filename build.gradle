@@ -92,9 +92,9 @@ dependencies {
 
   api('org.pcollections:pcollections:3.1.4')
   api("ma.vi:base:latest.release")
+  api("org.json:json:latest.release")
 
   implementation("org.apache.commons:commons-lang3:latest.release")
-  implementation("org.json:json:latest.release")
   implementation("org.yaml:snakeyaml:latest.release")
 
   implementation("org.postgresql:postgresql:42.3.1")
@@ -122,7 +122,7 @@ test {
 group = 'ma.vi.esql'
 archivesBaseName = 'esql'
 sourceCompatibility = JavaVersion.VERSION_17
-version = "0.8.5"
+version = "0.8.6"
 ext.isReleaseVersion = !version.endsWith("SNAPSHOT")
 
 java {

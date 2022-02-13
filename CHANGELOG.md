@@ -8,7 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### To add
 - Array, list, map, set operations.
 - Assignment to array, list and map subscripts.
-- JSON operations.
+- Operations on JSON objects.
+- Make all expressions and functions (where possible) executable.
 - Support for creating and using sequences.
 - Support for creating indices.
 - Support for creating and using views (including materialised views).
@@ -53,7 +54,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the overridden metadata are not being considered). (create tests for metadata 
   overriding)
 
-## [0.8.5]
+## [0.8.6] - 2022-02-13
+### Added
+- Add default column metadata for unique and non-null columns.
+- Add default result metadata for unique set of columns.
+- Add default result metadata for child relations (relations pointing to 
+  current relation through a foreign key).
+- Several additional checks and fixes on foreign key and dependency constraints 
+  (a dependency constraint is the reverse of a foreign key. I.e. if there is an
+   fk pointing from A to B there is a dependency constraint pointing from B to A).
+
+## [0.8.5] - 2022-02-12
 ### Added
 - Extensions can now be configured (e.g. to set a specific lookup schema) through 
   parameters on initialisation.
@@ -83,10 +94,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Do not expand column list of arbitrary selects (not just select expressions)
   in column list of other queries.
 - Correlated query test.
-- Type of a select with a single column and part of a column list of an enclosing
-  query is taken to be the type of its single column (as for select expressions), 
-  when reading the value for that column from the database. This allow proper 
-  normalisation of such values.
+- The type of a select with a single column and part of a column list of an 
+  enclosing query is taken to be the type of its single column (as for select 
+  expressions), when reading the value for that column from the database. This 
+  allows proper normalisation of such values.
  
 ### Fixed
 - Fixed resolving of qualified column references in correlated queries (where a 

@@ -22,10 +22,6 @@ import java.util.Map;
  *                the index of the column and the indices of its attributes in
  *                the underlying resultset along with pre-computed values for
  *                literal attributes.
- * @param resultAttributeIndices List of result attributes which are loaded from
- *                               the resultset. Each entry in the list consists
- *                               of the position in the resultset of the value of
- *                               that attribute, its name and its type.
  * @param resultAttributes Precomputed values for literal result attributes.
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
@@ -38,4 +34,9 @@ public record QueryTranslation(QueryUpdate          query,
   public String toString() {
     return translation;
   }
+
+// resultAttributeIndices List of result attributes which are loaded from
+//                        the resultset. Each entry in the list consists
+//                        of the position in the resultset of the value of
+//                        that attribute, its name and its type.
 }

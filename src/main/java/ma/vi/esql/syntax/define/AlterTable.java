@@ -122,11 +122,11 @@ public class AlterTable extends Define {
           s.relation(relation);
           s.database.renameTable(con, relation.id(), newFullName);
 
-        } else if (alteration instanceof AddTableDefinition) {
+        } else if (alteration instanceof AddTableDefinition addTable) {
           /*
            * Add table definitions (columns, constraints and metadata)
            */
-          TableDefinition definition = ((AddTableDefinition)alteration).definition();
+          TableDefinition definition = addTable.definition();
           if (definition instanceof ColumnDefinition column) {
             /*
              * add a column to table

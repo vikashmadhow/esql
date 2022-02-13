@@ -4,6 +4,7 @@
 
 package ma.vi.esql.semantic.type;
 
+import ma.vi.base.lang.NotFoundException;
 import ma.vi.base.trie.PathTrie;
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.syntax.CircularReferenceException;
@@ -12,7 +13,10 @@ import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.define.*;
 import ma.vi.esql.syntax.expression.*;
+import ma.vi.esql.syntax.expression.literal.BooleanLiteral;
+import ma.vi.esql.syntax.expression.literal.JsonArrayLiteral;
 import ma.vi.esql.syntax.expression.literal.Literal;
+import ma.vi.esql.syntax.expression.literal.StringLiteral;
 import ma.vi.esql.syntax.query.Column;
 import ma.vi.esql.syntax.query.Select;
 import ma.vi.esql.translation.TranslationException;
@@ -22,7 +26,7 @@ import java.util.*;
 import static java.util.Collections.*;
 import static java.util.stream.Collectors.toSet;
 import static ma.vi.base.string.Strings.random;
-import static ma.vi.esql.builder.Attributes.DERIVED;
+import static ma.vi.esql.builder.Attributes.*;
 import static ma.vi.esql.semantic.type.Types.UnknownType;
 
 /**
@@ -46,7 +50,9 @@ public class BaseRelation extends Relation {
     this.displayName = displayName;
     this.description = description;
     if (constraints != null) {
-      this.constraints.addAll(constraints);
+      for (ConstraintDefinition c: constraints) {
+        constraint(c);
+      }
     }
 
     /*
@@ -147,7 +153,7 @@ public class BaseRelation extends Relation {
   }
 
   public void addColumn(Column column) {
-    for (Column c: expandColumn(column, aliasedColumns(columns))) {
+    for (Column c: expandColumn(column, aliasedColumns(columns), false)) {
       this.columns.add(c);
       this.columnsByAlias.put(c.name(), c);
     }
@@ -188,13 +194,6 @@ public class BaseRelation extends Relation {
       addColumn(col);
     }
     return attributes().put(name, att);
-//    Expression<?, String> expr = att.attributeValue();
-//    if (expr != null && !(expr instanceof Literal)) {
-//      att = new Attribute(att.context,
-//                          att.name(),
-//                          expandDerived(expr, columnsByAlias, name, new HashSet<>()));
-//    }
-//    return attributes().put(att.name(), att);
   }
 
   private static Expression<?, String> expandDerived(Expression<?, String> derivedExpression,
@@ -272,7 +271,9 @@ public class BaseRelation extends Relation {
   }
 
   public void expandColumns() {
-    List<Column> cols = expandColumns(new ArrayList<>(attributes().values()), this.columns);
+    List<Column> cols = expandColumns(new ArrayList<>(attributes().values()),
+                                      this.columns,
+                                      this.constraints);
     /*
      * Implicit naming of columns.
      */
@@ -309,19 +310,63 @@ public class BaseRelation extends Relation {
    *       from S:S
    *     </pre>
    */
-  public static List<Column> expandColumns(Collection<Attribute> attributes,
-                                           Collection<Column> columns) {
-    List<Column> newCols = new ArrayList<>();
-    Map<String, String> aliased = aliasedColumns(columns);
+  public static List<Column> expandColumns(List<Attribute> attributes,
+                                           List<Column> columns,
+                                           List<ConstraintDefinition> constraints) {
 
-    if (attributes != null) {
-      for (Attribute attr: attributes) {
-        newCols.addAll(columnsForAttribute(attr, "/", aliased));
-      }
+    Context context = !attributes .isEmpty() ? attributes .get(0).context
+                    : !columns    .isEmpty() ? columns    .get(0).context
+                    : !constraints.isEmpty() ? constraints.get(0).context
+                    :  null;
+    if (context == null) {
+      throw new NotFoundException("Could not get a valid context");
     }
 
+    List<Column> newCols = new ArrayList<>();
+    Map<String, String> aliased = aliasedColumns(columns);
+    for (Attribute attr: attributes) {
+      newCols.addAll(columnsForAttribute(attr, "/", aliased));
+    }
+
+    /*
+     * Add relation level attribute columns for multi columns unique constraint.
+     */
+    List<UniqueConstraint> uniqueCons = constraints.stream()
+                                                   .filter(c -> c instanceof UniqueConstraint)
+                                                   .map(c -> (UniqueConstraint)c)
+                                                   .toList();
+    List<List<String>> multiUnique = new ArrayList<>();
+    for (UniqueConstraint cons: uniqueCons) {
+      if (cons.columns().size() > 1) {
+        multiUnique.add(cons.columns());
+      }
+    }
+    if (!multiUnique.isEmpty()) {
+      newCols.add(new Column(context,
+                             "/" + UNIQUE,
+                             new JsonArrayLiteral(
+                                   context,
+                                   multiUnique.stream()
+                                              .map(u -> new JsonArrayLiteral(
+                                                              context,
+                                                              u.stream()
+                                                               .map(s -> new StringLiteral(context, s))
+                                                               .toList()))
+                                              .toList()),
+                             Types.JsonType,
+                             null));
+    }
+
+    /*
+     * Expand columns, adding unique attribute to unique columns.
+     */
+    Set<String> uniqueColumns = uniqueCons.stream()
+                                          .filter(u -> u.columns().size() == 1)
+                                          .map(u -> u.columns().get(0))
+                                          .collect(toSet());
     for (Column column: columns) {
-     newCols.addAll(expandColumn(column, aliased));
+     newCols.addAll(expandColumn(column, aliased,
+                                 uniqueColumns.contains(column.name())));
     }
     return newCols;
   }
@@ -340,7 +385,9 @@ public class BaseRelation extends Relation {
    *    a/m3:10
    * </pre>
    */
-  public static List<Column> expandColumn(Column column, Map<String, String> aliased) {
+  public static List<Column> expandColumn(Column column,
+                                          Map<String, String> aliased,
+                                          boolean unique) {
     List<Column> newCols = new ArrayList<>();
     newCols.add(column);
     String colAlias = column.name();
@@ -355,7 +402,22 @@ public class BaseRelation extends Relation {
                                  Types.TextType,
                                  null));
         }
-        for (Attribute attr: column.metadata().attributes().values()) {
+        Map<String, Attribute> attributes = column.metadata().attributes();
+        if (unique && !attributes.containsKey(UNIQUE)) {
+          newCols.add(new Column(column.context,
+                                 colAlias + "/" + UNIQUE,
+                                 new BooleanLiteral(column.context, true),
+                                 Types.BoolType,
+                                 null));
+        }
+        if (column.notNull() && !attributes.containsKey(REQUIRED)) {
+          newCols.add(new Column(column.context,
+                                 colAlias + "/" + REQUIRED,
+                                 new BooleanLiteral(column.context, true),
+                                 Types.BoolType,
+                                 null));
+        }
+        for (Attribute attr: attributes.values()) {
           newCols.addAll(columnsForAttribute(attr, colAlias + '/', aliased));
         }
       }
@@ -414,6 +476,25 @@ public class BaseRelation extends Relation {
 
   public void constraint(ConstraintDefinition c) {
     constraints.add(c);
+    if (c instanceof UniqueConstraint u && u.columns().size() == 1) {
+      /*
+       * For unique constraints on single columns add a unique metadata attribute
+       * to the column.
+       */
+      String col = u.columns().get(0);
+      addColumn(new Column(c.context,
+                           col + "/" + UNIQUE,
+                           new BooleanLiteral(c.context, true),
+                           Types.BoolType,
+                           null));
+    }
+    if (c instanceof ForeignKeyConstraint f
+     && context.structure.relationExists(f.targetTable())) {
+      Relation relation = context.structure.relation(f.targetTable());
+      if (relation instanceof BaseRelation br) {
+        br.dependentConstraint(f);
+      }
+    }
   }
 
   public ConstraintDefinition constraint(String constraintName) {
@@ -426,7 +507,23 @@ public class BaseRelation extends Relation {
   }
 
   public boolean removeConstraint(String constraintName) {
-    return constraints.removeIf(c -> c.name().equals(constraintName));
+    Optional<ConstraintDefinition> opt = constraints.stream()
+                                                    .filter(c -> c.name().equals(constraintName))
+                                                    .findFirst();
+    if (opt.isPresent()) {
+      ConstraintDefinition c = opt.get();
+      constraints.remove(c);
+      if (c instanceof ForeignKeyConstraint fk
+       && fk.context.structure.relationExists(fk.targetTable()) ) {
+        Relation rel = fk.context.structure.relation(fk.targetTable());
+        if (rel instanceof BaseRelation br) {
+          br.removeDependentConstraint(fk);
+        }
+      }
+//      return constraints.removeIf(c -> c.name().equals(constraintName));
+      return true;
+    }
+    return false;
   }
 
   public List<ForeignKeyConstraint> dependentConstraints() {
@@ -434,7 +531,13 @@ public class BaseRelation extends Relation {
   }
 
   public void dependentConstraint(ForeignKeyConstraint c) {
-    dependentConstraints.add(c);
+    if (dependentConstraints.stream().noneMatch(c::sameAs)) {
+      dependentConstraints.add(c);
+    }
+  }
+
+  public void removeDependentConstraint(ForeignKeyConstraint c) {
+    dependentConstraints.removeIf(c::sameAs);
   }
 
   /**
@@ -448,7 +551,7 @@ public class BaseRelation extends Relation {
    */
   public synchronized ConstraintDefinition sameAs(ConstraintDefinition def) {
     if (constraints != null) {
-      for (ConstraintDefinition tableConstraint : constraints) {
+      for (ConstraintDefinition tableConstraint: constraints) {
         if (tableConstraint.sameAs(def)) {
           return tableConstraint;
         }

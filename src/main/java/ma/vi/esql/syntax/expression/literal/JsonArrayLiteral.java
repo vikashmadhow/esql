@@ -25,8 +25,8 @@ import static java.util.stream.Collectors.joining;
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public class JsonArrayLiteral extends Literal<List<Literal<?>>> {
-  public JsonArrayLiteral(Context context, List<Literal<?>> items) {
+public class JsonArrayLiteral extends Literal<List<? extends Literal<?>>> {
+  public JsonArrayLiteral(Context context, List<? extends Literal<?>> items) {
     super(context, items);
   }
 
@@ -35,7 +35,7 @@ public class JsonArrayLiteral extends Literal<List<Literal<?>>> {
   }
 
   @SafeVarargs
-  public JsonArrayLiteral(JsonArrayLiteral other, List<Literal<?>> value, T2<String, ? extends Esql<?, ?>>... children) {
+  public JsonArrayLiteral(JsonArrayLiteral other, List<? extends Literal<?>> value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }
 
@@ -50,7 +50,7 @@ public class JsonArrayLiteral extends Literal<List<Literal<?>>> {
    * of the copy.
    */
   @Override
-  public JsonArrayLiteral copy(List<Literal<?>> value, T2<String, ? extends Esql<?, ?>>... children) {
+  public JsonArrayLiteral copy(List<? extends Literal<?>> value, T2<String, ? extends Esql<?, ?>>... children) {
     return new JsonArrayLiteral(this, value, children);
   }
 
@@ -99,7 +99,7 @@ public class JsonArrayLiteral extends Literal<List<Literal<?>>> {
                                 .collect(Collectors.toList()));
   }
 
-  public List<Literal<?>> items() {
+  public List<? extends Literal<?>> items() {
     return value;
   }
 }

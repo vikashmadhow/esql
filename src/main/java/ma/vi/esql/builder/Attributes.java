@@ -89,7 +89,7 @@ public class Attributes {
   /**
    * The name a column that will contain the id of a parent row.
    */
-  public static final String PARENT_LINK_COLUMN = "parent_link_column";
+  public static final String PARENT_LINK_COLUMN = "link_column";
 
   /*
    * Set to true on derived fields.
@@ -618,7 +618,7 @@ public class Attributes {
    * Members having unique set to TRUE cannot have duplicate values in the database, i.e,
    * they are candidate keys.
    */
-  public static final String UNIQUE = "validate_unique";
+  public static final String UNIQUE = "unique";
 
   /**
    * Minimum length of the string representation of the value.

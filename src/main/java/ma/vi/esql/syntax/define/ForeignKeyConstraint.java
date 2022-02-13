@@ -26,26 +26,26 @@ import static ma.vi.esql.translation.Translatable.Target.MYSQL;
  * @author vikash.madhow@gmail.om
  */
 public class ForeignKeyConstraint extends ConstraintDefinition {
-  public ForeignKeyConstraint(Context context,
-                              String name,
-                              String sourceTable,
-                              List<String> sourceColumns,
-                              String targetTable,
-                              List<String> targetColumns,
-                              int forwardCost,
-                              int reverseCost,
+  public ForeignKeyConstraint(Context                context,
+                              String                 name,
+                              String                 sourceTable,
+                              List<String>           sourceColumns,
+                              String                 targetTable,
+                              List<String>           targetColumns,
+                              int                    forwardCost,
+                              int                    reverseCost,
                               ForeignKeyChangeAction onUpdate,
                               ForeignKeyChangeAction onDelete) {
     super(context,
           name != null ? name : defaultConstraintName("fk_", sourceColumns, targetColumns),
           sourceTable,
           sourceColumns,
-          T2.of("targetTable", new Esql<>(context, targetTable)),
-          T2.of("targetColumns", new Esql<>(context, targetColumns)),
-          T2.of("forwardCost", new Esql<>(context, forwardCost)),
-          T2.of("reverseCost", new Esql<>(context, reverseCost)),
-          T2.of("onUpdate", new Esql<>(context, onUpdate)),
-          T2.of("onDelete", new Esql<>(context, onDelete)));
+          T2.of("targetTable",    new Esql<>(context, targetTable)),
+          T2.of("targetColumns",  new Esql<>(context, targetColumns)),
+          T2.of("forwardCost",    new Esql<>(context, forwardCost)),
+          T2.of("reverseCost",    new Esql<>(context, reverseCost)),
+          T2.of("onUpdate",       new Esql<>(context, onUpdate)),
+          T2.of("onDelete",       new Esql<>(context, onDelete)));
   }
 
   public ForeignKeyConstraint(ForeignKeyConstraint other) {
@@ -74,20 +74,10 @@ public class ForeignKeyConstraint extends ConstraintDefinition {
 
   public boolean sameAs(ConstraintDefinition def) {
     if (def instanceof ForeignKeyConstraint c) {
-      return new HashSet<>(sourceColumns()).equals(new HashSet<>(c.sourceColumns()))
+      return c.table().equals(table())
+          && new HashSet<>(c.sourceColumns()).equals(new HashSet<>(sourceColumns()))
           && c.targetTable().equals(targetTable())
-          && new HashSet<>(targetColumns()).equals(new HashSet<>(c.targetColumns()))
-
-//          && c.forwardCost() == forwardCost()
-//          && c.reverseCost() == reverseCost()
-
-//          && (c.onUpdate() == null || c.onUpdate() == NO_ACTION
-//                ? onUpdate() == null || onUpdate() == NO_ACTION
-//                : c.onUpdate() == onUpdate())
-//          && (c.onDelete() == null || c.onDelete() == NO_ACTION
-//                ? onDelete() == null || onDelete() == NO_ACTION
-//                : c.onDelete() == onDelete())
-          ;
+          && new HashSet<>(c.targetColumns()).equals(new HashSet<>(targetColumns()));
     }
     return false;
   }

@@ -84,9 +84,9 @@ public class DropTable extends Define {
                                   EsqlConnection esqlCon) throws SQLException {
     Database db = esqlCon.database();
     Structure structure = db.structure();
-    BaseRelation table = structure.relation(drop.name());
-    if (table != null) {
-      for (ForeignKeyConstraint constraint: table.dependentConstraints()) {
+    if (structure.relationExists(drop.name())) {
+      BaseRelation table = structure.relation(drop.name());
+      for (ForeignKeyConstraint constraint : table.dependentConstraints()) {
         cascadeDrop(new DropTable(drop.context, constraint.table()), esqlCon);
       }
 

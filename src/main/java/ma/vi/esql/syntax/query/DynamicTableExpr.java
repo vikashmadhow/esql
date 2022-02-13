@@ -102,11 +102,12 @@ public class DynamicTableExpr extends AbstractAliasTableExpr {
       relationColumns.add(col);
     }
     return BaseRelation.expandColumns(
-        metadata() == null
-     || metadata().attributes() == null
-     || metadata().attributes().isEmpty() ? Collections.emptyList()
-                                          : new ArrayList<>(metadata().attributes().values()),
-        relationColumns);
+              metadata() == null
+           || metadata().attributes() == null
+           || metadata().attributes().isEmpty() ? Collections.emptyList()
+                                                : new ArrayList<>(metadata().attributes().values()),
+              relationColumns,
+              Collections.emptyList());
   }
 
   private List<Type> guessColumnTypes(EsqlPath path) {
