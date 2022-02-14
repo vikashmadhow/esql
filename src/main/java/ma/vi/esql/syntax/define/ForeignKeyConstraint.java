@@ -35,7 +35,8 @@ public class ForeignKeyConstraint extends ConstraintDefinition {
                               int                    forwardCost,
                               int                    reverseCost,
                               ForeignKeyChangeAction onUpdate,
-                              ForeignKeyChangeAction onDelete) {
+                              ForeignKeyChangeAction onDelete,
+                              boolean                ignore) {
     super(context,
           name != null ? name : defaultConstraintName("fk_", sourceColumns, targetColumns),
           sourceTable,
@@ -45,7 +46,8 @@ public class ForeignKeyConstraint extends ConstraintDefinition {
           T2.of("forwardCost",    new Esql<>(context, forwardCost)),
           T2.of("reverseCost",    new Esql<>(context, reverseCost)),
           T2.of("onUpdate",       new Esql<>(context, onUpdate)),
-          T2.of("onDelete",       new Esql<>(context, onDelete)));
+          T2.of("onDelete",       new Esql<>(context, onDelete)),
+          T2.of("ignore",         new Esql<>(context, ignore)));
   }
 
   public ForeignKeyConstraint(ForeignKeyConstraint other) {
@@ -126,5 +128,9 @@ public class ForeignKeyConstraint extends ConstraintDefinition {
 
   public ForeignKeyChangeAction onDelete() {
     return childValue("onDelete");
+  }
+
+  public boolean ignore() {
+    return childValue("ignore");
   }
 }

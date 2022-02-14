@@ -154,6 +154,6 @@ public class ConstraintTest extends DataTest {
     return new ForeignKeyConstraint(
         null, null, sourceTable,
         singletonList(sourceColumn), targetTable, singletonList(targetColumn),
-        1, 1, null, null);
+        1, 1, null, null, false);
   }
 }

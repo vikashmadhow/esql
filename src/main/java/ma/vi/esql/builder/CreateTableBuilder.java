@@ -112,29 +112,31 @@ public class CreateTableBuilder implements Builder<CreateTable> {
   public CreateTableBuilder foreignKey(List<String> sourceFields,
                                        String targetTable,
                                        List<String> targetFields) {
-    return foreignKey(null, sourceFields, targetTable, targetFields, null, null);
+    return foreignKey(null, sourceFields, targetTable, targetFields, null, null, false);
   }
 
   public CreateTableBuilder foreignKey(List<String> sourceFields,
                                        String targetTable,
                                        List<String> targetFields,
                                        ConstraintDefinition.ForeignKeyChangeAction onUpdate,
-                                       ConstraintDefinition.ForeignKeyChangeAction onDelete) {
-    return foreignKey(null, sourceFields, targetTable, targetFields, onUpdate, onDelete);
+                                       ConstraintDefinition.ForeignKeyChangeAction onDelete,
+                                       boolean ignore) {
+    return foreignKey(null, sourceFields, targetTable, targetFields, onUpdate, onDelete, ignore);
   }
 
   public CreateTableBuilder foreignKey(String sourceField,
                                        String targetTable,
                                        String targetField) {
-    return foreignKey(sourceField, targetTable, targetField, null, null);
+    return foreignKey(sourceField, targetTable, targetField, null, null, false);
   }
 
   public CreateTableBuilder foreignKey(String sourceField,
                                        String targetTable,
                                        String targetField,
                                        ConstraintDefinition.ForeignKeyChangeAction onUpdate,
-                                       ConstraintDefinition.ForeignKeyChangeAction onDelete) {
-    return foreignKey(null, sourceField, targetTable, targetField, onUpdate, onDelete);
+                                       ConstraintDefinition.ForeignKeyChangeAction onDelete,
+                                       boolean ignore) {
+    return foreignKey(null, sourceField, targetTable, targetField, onUpdate, onDelete, ignore);
   }
 
   public CreateTableBuilder foreignKey(String name,
@@ -142,13 +144,15 @@ public class CreateTableBuilder implements Builder<CreateTable> {
                                        String targetTable,
                                        String targetField,
                                        ConstraintDefinition.ForeignKeyChangeAction onUpdate,
-                                       ConstraintDefinition.ForeignKeyChangeAction onDelete) {
+                                       ConstraintDefinition.ForeignKeyChangeAction onDelete,
+                                       boolean ignore) {
     return foreignKey(name,
                       singletonList(sourceField),
                       targetTable,
                       singletonList(targetField),
                       onUpdate,
-                      onDelete);
+                      onDelete,
+                      ignore);
   }
 
   public CreateTableBuilder foreignKey(String constraintName,
@@ -156,7 +160,8 @@ public class CreateTableBuilder implements Builder<CreateTable> {
                                        String targetTable,
                                        List<String> targetFields,
                                        ConstraintDefinition.ForeignKeyChangeAction onUpdate,
-                                       ConstraintDefinition.ForeignKeyChangeAction onDelete) {
+                                       ConstraintDefinition.ForeignKeyChangeAction onDelete,
+                                       boolean ignore) {
     constraints.add(new ForeignKeyConstraint(context,
                                              constraintName,
                                              name,
@@ -165,7 +170,8 @@ public class CreateTableBuilder implements Builder<CreateTable> {
                                              targetFields,
                                              1, 2,
                                              onUpdate,
-                                             onDelete));
+                                             onDelete,
+                                             ignore));
     return this;
   }
 

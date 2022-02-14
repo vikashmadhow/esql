@@ -1324,7 +1324,8 @@ public class SyntaxAnalyser extends EsqlBaseListener {
         forwardCost,
         reverseCost,
         value(onUpdates != null && !onUpdates.isEmpty() ? onUpdates.get(0) : null),
-        value(onDeletes != null && !onDeletes.isEmpty() ? onDeletes.get(0) : null)));
+        value(onDeletes != null && !onDeletes.isEmpty() ? onDeletes.get(0) : null),
+        ctx.ignore != null));
   }
 
   @Override

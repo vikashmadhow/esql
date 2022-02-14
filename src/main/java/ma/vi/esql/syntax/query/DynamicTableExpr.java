@@ -158,8 +158,8 @@ public class DynamicTableExpr extends AbstractAliasTableExpr {
         return selection;
       } else {
         type = selection;
+        context.type(alias(), type);
       }
-      context.type(alias(), type);
     }
     return (Selection)type;
   }

@@ -263,7 +263,8 @@ public abstract class AbstractDatabase implements Database {
                                                targetColumns,
                                                0, 0,
                                                fromInformationSchema(updateRule),
-                                               fromInformationSchema(deleteRule));
+                                               fromInformationSchema(deleteRule),
+                                               false);
                 }
             }
             relation.constraint(c);
@@ -1032,7 +1033,8 @@ public abstract class AbstractDatabase implements Database {
           targetColumns,
           forwardCost, reverseCost,
           onUpdate == null ? null : ConstraintDefinition.ForeignKeyChangeAction.fromMarker(onUpdate.charAt(0)),
-          onDelete == null ? null : ConstraintDefinition.ForeignKeyChangeAction.fromMarker(onDelete.charAt(0)));
+          onDelete == null ? null : ConstraintDefinition.ForeignKeyChangeAction.fromMarker(onDelete.charAt(0)),
+          false);
     };
     relation.constraint(c);
 

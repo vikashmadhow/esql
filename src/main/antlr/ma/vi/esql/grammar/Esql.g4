@@ -1370,7 +1370,13 @@ constraintDefinition
        * then caught in the Analyser.
        */
       (onUpdate | onDelete)?
-      (onUpdate | onDelete)?                            #ForeignKeyConstraint
+      (onUpdate | onDelete)?
+
+      /*
+       * If this keyword is present, the foreign key is not enforced on the table;
+       * it is used for information on table links only.
+       */
+      ignore='ignore'?                                #ForeignKeyConstraint
     ;
 
 /**

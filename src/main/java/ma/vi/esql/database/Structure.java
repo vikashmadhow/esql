@@ -118,6 +118,13 @@ public class Structure extends AbstractScope implements Environment {
                                  HSQLDB, "array_agg",
                                  SQLSERVER, "string_agg")));
 
+    // conditional
+    //////////////////////
+    functions.put("coalesce",
+                  new Function("coalesce",
+                               AsParameterType,
+                               singletonList(new FunctionParam("values", TopType))));
+
     // mathematical
     //////////////////////
 

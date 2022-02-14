@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Array, list, map, set operations.
 - Assignment to array, list and map subscripts.
 - Operations on JSON objects.
+- `Truncate table` statement.
 - Make all expressions and functions (where possible) executable.
 - Support for creating and using sequences.
 - Support for creating indices.
@@ -35,6 +36,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Implement `explicit` in select (no expanded columns when explicit keyword used).
 - `pkey` macro expands to the primary key columns of a table.
 - `fkey` macro expands to the columns of a foreign key between two tables.
+- Virtual tables implemented as Esql transformers: A virtual table looks and 
+  behaves like a normal table but does not need to exist on the database or may
+  correspond to multiple tables. Queries and updates to virtual tables are rewritten
+  as other queries/updates or whole programs.
+- Restriction on queries based on filters (merging with existing query). Merge 
+  joins must correctly account for different join types. Merging with an inner
+  join produces a restrictive query as required; however merging with an outer
+  join causes several problems which need to be dealt with carefully:
+  - such joins can be non-restrictive;
+  - if there are no match, one of the joined table will have null rows which need
+    to be kept in the result (as that was the reason that the outer join was used
+    in the first place). However, adding another join will remove the null rows 
+    as there will be nothing to join with (this is true irrespective of the type
+    of joins used). The only way around is to use a more complex join condition
+    where the null values are considered. E.g.: `on x._id=y._id or x._id is null`
 
 ### To test
 - Test composition of select statements (union, intersect, except).
@@ -53,6 +69,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Apply result and column metadata overloading in column list expansion (currently,
   the overridden metadata are not being considered). (create tests for metadata 
   overriding)
+
+## [0.8.7] - 2022-02-14
+### Added
+- Define coalesce function so that its return type is properly mapped to its 
+  parameter type.
+- Foreign keys which are not enforced by the database (only saved in the _core 
+  tables to use for linkage information in restriction, main-details CRUD ops, etc.).
 
 ## [0.8.6] - 2022-02-13
 ### Added

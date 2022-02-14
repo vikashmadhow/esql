@@ -156,8 +156,11 @@ public class AlterTable extends Define {
             /*
              * add a constraint to table
              */
-            con.createStatement().executeUpdate("ALTER TABLE " + dbName +
-                                                    " ADD " + constraint.translate(db.target(), esqlCon, path.add(constraint), env));
+            if (!(constraint instanceof ForeignKeyConstraint)
+             || !((ForeignKeyConstraint)constraint).ignore()) {
+              con.createStatement().executeUpdate("ALTER TABLE " + dbName +
+                                                  " ADD " + constraint.translate(db.target(), esqlCon, path.add(constraint), env));
+            }
             s.database.constraint(con, relation.id(), constraint);
             relation.constraint(constraint);
 
@@ -377,7 +380,7 @@ public class AlterTable extends Define {
             throw new IllegalArgumentException("Relation " + name() + " does not have constraint " + drop.constraintName());
           }
           con.createStatement().executeUpdate(
-            "ALTER TABLE " + dbName + " DROP CONSTRAINT \"" + drop.constraintName() + '"');
+            "ALTER TABLE " + dbName + " DROP CONSTRAINT IF EXISTS \"" + drop.constraintName() + '"');
 
           s.database.dropConstraint(con, relation.id(), drop.constraintName());
           relation.removeConstraint(drop.constraintName());

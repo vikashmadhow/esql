@@ -214,7 +214,10 @@ public class CreateTable extends Define {
       }
     }
     for (ConstraintDefinition constraint: constraints()) {
-      st.append(", ").append(constraint.translate(target, esqlCon, path.add(constraint), parameters, env));
+      if (!(constraint instanceof ForeignKeyConstraint)
+       || !((ForeignKeyConstraint)constraint).ignore()) {
+        st.append(", ").append(constraint.translate(target, esqlCon, path.add(constraint), parameters, env));
+      }
     }
     st.append(')');
     return st.toString();
