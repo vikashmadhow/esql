@@ -7,12 +7,12 @@ package ma.vi.esql.database;
 import com.microsoft.sqlserver.jdbc.SQLServerConnectionPoolDataSource;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import ma.vi.base.config.Configuration;
 import ma.vi.base.util.Convert;
 import ma.vi.esql.translation.Translatable;
 
 import java.lang.reflect.Array;
 import java.sql.*;
-import java.util.Map;
 import java.util.Properties;
 
 import static ma.vi.base.collections.ArrayUtils.ARRAY_ESCAPE;
@@ -24,11 +24,11 @@ import static ma.vi.esql.translation.Translatable.Target.SQLSERVER;
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 public class SqlServer extends AbstractDatabase {
-  public SqlServer(Map<String, Object> config) {
+  public SqlServer(Configuration config) {
     Properties props = new Properties();
     props.setProperty("dataSourceClassName", SQLServerConnectionPoolDataSource.class.getName());
-    props.setProperty("dataSource.serverName", valueOf(config.getOrDefault(CONFIG_DB_HOST, "localhost")));
-    if (config.containsKey(CONFIG_DB_PORT)) {
+    props.setProperty("dataSource.serverName", valueOf(config.get(CONFIG_DB_HOST, "localhost")));
+    if (config.has(CONFIG_DB_PORT)) {
       props.setProperty("dataSource.portNumber", valueOf(config.get(CONFIG_DB_PORT)));
     }
     props.setProperty("dataSource.databaseName", valueOf(config.get(CONFIG_DB_NAME)));
@@ -366,7 +366,7 @@ public class SqlServer extends AbstractDatabase {
       Connection con = DriverManager.getConnection(
           "jdbc:sqlserver://"
               + valueOf(config().get(CONFIG_DB_HOST))
-              + (config().containsKey(CONFIG_DB_PORT)
+              + (config().has(CONFIG_DB_PORT)
                     ? ':' + valueOf(config().get(CONFIG_DB_PORT))
                     : "")
               + ";database=" + valueOf(config().get(CONFIG_DB_NAME))
@@ -374,9 +374,12 @@ public class SqlServer extends AbstractDatabase {
           username,
           password);
       con.setAutoCommit(autoCommit);
-      if (isolationLevel == -1) {
+//      if (isolationLevel == -1) {
 //        con.setTransactionIsolation(SQLServerConnection.TRANSACTION_SNAPSHOT);
-      } else {
+//      } else {
+//        con.setTransactionIsolation(isolationLevel);
+//      }
+      if (isolationLevel != -1) {
         con.setTransactionIsolation(isolationLevel);
       }
       return con;
@@ -394,9 +397,12 @@ public class SqlServer extends AbstractDatabase {
 //      Connection con = dataSource.getConnection(username, password);
       Connection con = dataSource.getConnection();
       con.setAutoCommit(autoCommit);
-      if (isolationLevel == -1) {
+//      if (isolationLevel == -1) {
 //        con.setTransactionIsolation(SQLServerConnection.TRANSACTION_SNAPSHOT);
-      } else {
+//      } else {
+//        con.setTransactionIsolation(isolationLevel);
+//      }
+      if (isolationLevel != -1) {
         con.setTransactionIsolation(isolationLevel);
       }
       return con;

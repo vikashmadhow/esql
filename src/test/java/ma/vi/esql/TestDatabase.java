@@ -4,7 +4,10 @@
 
 package ma.vi.esql;
 
+import ma.vi.base.config.Configuration;
+import ma.vi.base.lang.NotFoundException;
 import ma.vi.esql.database.Database;
+import ma.vi.esql.database.Extension;
 import ma.vi.esql.database.Structure;
 import ma.vi.esql.semantic.type.BaseRelation;
 import ma.vi.esql.semantic.type.Types;
@@ -37,7 +40,7 @@ public class TestDatabase implements Database {
     init(null);
   }
 
-  @Override public void init(Map<String, Object> config) {
+  @Override public void init(Configuration config) {
     /*
      * Register translators.
      */
@@ -54,7 +57,7 @@ public class TestDatabase implements Database {
   }
 
   @Override
-  public Map<String, Object> config() {
+  public Configuration config() {
     return null;
   }
 
@@ -257,6 +260,11 @@ public class TestDatabase implements Database {
 
   @Override
   public void postInit(Connection con, Structure structure) {
+  }
+
+  @Override
+  public <E extends Extension> E extension(Class<? extends Extension> e) throws NotFoundException {
+    throw new NotFoundException("Extension " + e + " not loaded");
   }
 
   @Override

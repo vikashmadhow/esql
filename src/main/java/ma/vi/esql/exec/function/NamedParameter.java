@@ -71,7 +71,7 @@ public class NamedParameter extends Expression<String, String> {
       return env.get(name());
     } else {
       throw new TranslationException(this, "A value for named parameter " + name()
-                                   + " has not been provided.");
+                                        + " has not been provided.");
     }
   }
 

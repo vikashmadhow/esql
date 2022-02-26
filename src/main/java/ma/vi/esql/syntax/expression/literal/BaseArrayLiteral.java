@@ -5,7 +5,6 @@
 package ma.vi.esql.syntax.expression.literal;
 
 import ma.vi.base.tuple.T2;
-import ma.vi.base.util.Convert;
 import ma.vi.esql.exec.EsqlConnection;
 import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.semantic.type.Type;

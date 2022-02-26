@@ -4,11 +4,14 @@
 
 package ma.vi.esql.exec;
 
+import ma.vi.base.reflect.Dissector;
+import ma.vi.base.reflect.Property;
 import ma.vi.esql.database.Database;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.Parser;
 
 import java.sql.Connection;
+import java.util.Map;
 
 import static ma.vi.base.lang.Errors.unchecked;
 
@@ -34,8 +37,39 @@ public interface EsqlConnection extends AutoCloseable {
    */
   <R> R exec(Esql<?, ?> esql, Param... params);
 
+  default <R> Iterable<R> exec(Esql<?, ?>           esql,
+                               ResultTransformer<R> transformer,
+                               Object               objectAsParams) {
+    return exec(esql, transformer, asParams(objectAsParams));
+  }
+
+  default <R> R exec(Esql<?, ?> esql, Object objectAsParams) {
+    return exec(esql, asParams(objectAsParams));
+  }
+
   default <R> R exec(String esql, Param... params) {
     return exec(new Parser(database().structure()).parse(esql), params);
+  }
+
+  default <R> R exec(String esql, Object objectAsParams) {
+    return exec(new Parser(database().structure()).parse(esql), asParams(objectAsParams));
+  }
+
+  default <R> Iterable<R> exec(String               esql,
+                               ResultTransformer<R> transformer) {
+    return transformer.transform(exec(new Parser(database().structure()).parse(esql)));
+  }
+
+  default <R> Iterable<R> exec(String               esql,
+                               ResultTransformer<R> transformer,
+                               Object               objectAsParams) {
+    return exec(esql, transformer, asParams(objectAsParams));
+  }
+
+  default <R> Iterable<R> exec(String               esql,
+                               ResultTransformer<R> transformer,
+                               Param...             params) {
+    return transformer.transform(exec(new Parser(database().structure()).parse(esql), params));
   }
 
   /**
@@ -98,6 +132,17 @@ public interface EsqlConnection extends AutoCloseable {
     } finally {
       unchecked(con()::close);
     }
+  }
+
+  private static Param[] asParams(Object objectAsParams) {
+    Map<String, Property> props = Dissector.properties(objectAsParams.getClass());
+    Param[] params = new Param[props.size()];
+    int i = 0;
+    for (Map.Entry<String, Property> prop: props.entrySet()) {
+      params[i] = Param.of(prop.getKey(), prop.getValue().get(objectAsParams));
+      i++;
+    }
+    return params;
   }
 
   EsqlConnection NULL_CONNECTION = new EsqlConnection() {

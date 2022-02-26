@@ -70,6 +70,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the overridden metadata are not being considered). (create tests for metadata 
   overriding)
 
+## [0.8.8] - 2022-02-26
+### Added
+- `ResultTransformer` interface to transform `Result` to sequence of arbitrary 
+  objects.
+- Loaded extensions can be obtained from database which allows the development of
+  arbitrary custom methods for logic that cannot be easily implemented as ESQL 
+  macros or functions. 
+- An object or a record can now be passed as a parameter when executing a query;
+  the properties/fields of the object is used to create an array of `Param` objects
+  which is then passed to the query executioner.
+- Use Configuration class instead of Map of string to objects to pass configuration
+  information to the database for consistency.
+- DatabaseFactory to create database instance of the correct type based on passed 
+  configuration.
+
 ## [0.8.7] - 2022-02-14
 ### Added
 - Define coalesce function so that its return type is properly mapped to its 

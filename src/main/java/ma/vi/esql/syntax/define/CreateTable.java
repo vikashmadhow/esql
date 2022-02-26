@@ -342,8 +342,8 @@ public class CreateTable extends Define {
             Column existingColumn = existing.b();
             Type toType = !existingColumn.computeType(path.add(existingColumn)).equals(column.type()) ? column.type() : null;
 
-            boolean setNotNull = column.notNull() != null
-                              && column.notNull()
+            boolean setNotNull =  column.notNull() != null
+                              &&  column.notNull()
                               && !existingColumn.notNull();
 
             boolean dropNotNull = (column.notNull() == null || !column.notNull())
@@ -357,18 +357,18 @@ public class CreateTable extends Define {
             }
             boolean dropDefault = !(column instanceof DerivedColumnDefinition)
                                &&  column.expression() == null
-                               && existingColumn.defaultExpression() != null;
+                               &&  existingColumn.defaultExpression() != null;
 
             Metadata metadata = column.metadata();
             boolean changedMetadata = (metadata == null && existingColumn.metadata() != null)
                                    || (metadata != null && !metadata.equals(existingColumn.metadata()));
 
             if (toType != null
-                || setNotNull
-                || dropNotNull
-                || setDefault != null
-                || dropDefault
-                || changedMetadata) {
+             || setNotNull
+             || dropNotNull
+             || setDefault != null
+             || dropDefault
+             || changedMetadata) {
               alter = new AlterTable(context, tableName,
                                      singletonList(new AlterColumn(context, column.name(),
                                                                    new AlterColumnDefinition(context,

@@ -177,7 +177,6 @@ public abstract class QueryUpdate extends MetadataContainer<QueryTranslation> {
 
     Map<String, ColumnMapping> columnMappings = new LinkedHashMap<>();
     Map<String, Object> resultAttributes = new LinkedHashMap<>();
-//    List<AttributeIndex> resultAttributeIndices = new ArrayList<>();
     int itemIndex = 0;
     Selection selection = computeType(path.add(this));
 

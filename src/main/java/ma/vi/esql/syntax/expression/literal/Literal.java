@@ -5,12 +5,9 @@
 package ma.vi.esql.syntax.expression.literal;
 
 import ma.vi.base.tuple.T2;
-import ma.vi.esql.exec.EsqlConnection;
-import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.semantic.type.*;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
-import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.expression.Expression;
 import ma.vi.esql.translation.TranslationException;
 import org.json.JSONArray;

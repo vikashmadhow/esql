@@ -6,13 +6,13 @@ package ma.vi.esql.database;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import ma.vi.base.config.Configuration;
 import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.translation.Translatable;
 import org.postgresql.ds.PGSimpleDataSource;
 
 import java.sql.*;
-import java.util.Map;
 import java.util.Properties;
 
 import static ma.vi.base.lang.Errors.unchecked;
@@ -22,11 +22,11 @@ import static ma.vi.esql.translation.Translatable.Target.POSTGRESQL;
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 public class Postgresql extends AbstractDatabase {
-  public Postgresql(Map<String, Object> config) {
+  public Postgresql(Configuration config) {
     Properties props = new Properties();
     props.setProperty("dataSourceClassName", PGSimpleDataSource.class.getName());
-    props.setProperty("dataSource.serverName", valueOf(config.getOrDefault(CONFIG_DB_HOST, "localhost")));
-    if (config.containsKey(CONFIG_DB_PORT)) {
+    props.setProperty("dataSource.serverName", valueOf(config.get(CONFIG_DB_HOST, "localhost")));
+    if (config.has(CONFIG_DB_PORT)) {
       props.setProperty("dataSource.portNumber", valueOf(config.get(CONFIG_DB_PORT)));
     }
     props.setProperty("dataSource.databaseName", valueOf(config.get(CONFIG_DB_NAME)));
@@ -115,7 +115,7 @@ public class Postgresql extends AbstractDatabase {
       Connection con = DriverManager.getConnection(
           "jdbc:postgresql://"
               + valueOf(config().get(CONFIG_DB_HOST)) + ':'
-              + (config().containsKey(CONFIG_DB_PORT)
+              + (config().has(CONFIG_DB_PORT)
                     ? ':' + valueOf(config().get(CONFIG_DB_PORT))
                     : "")
               + '/' + valueOf(config().get(CONFIG_DB_NAME)),

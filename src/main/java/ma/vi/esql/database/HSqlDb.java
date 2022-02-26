@@ -6,6 +6,7 @@ package ma.vi.esql.database;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import ma.vi.base.config.Configuration;
 import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.translation.Translatable;
@@ -13,7 +14,6 @@ import org.hsqldb.Server;
 import org.hsqldb.jdbc.JDBCDataSource;
 
 import java.sql.*;
-import java.util.Map;
 import java.util.Properties;
 
 import static ma.vi.base.lang.Errors.unchecked;
@@ -23,13 +23,13 @@ import static ma.vi.esql.translation.Translatable.Target.HSQLDB;
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 public class HSqlDb extends AbstractDatabase {
-  public HSqlDb(Map<String, Object> config) {
+  public HSqlDb(Configuration config) {
     Properties props = new Properties();
     props.setProperty("dataSourceClassName", JDBCDataSource.class.getName());
-    if (config.containsKey(CONFIG_DB_HOST)) {
+    if (config.has(CONFIG_DB_HOST)) {
       props.setProperty("dataSource.serverName", valueOf(config.get(CONFIG_DB_HOST)));
     }
-    if (config.containsKey(CONFIG_DB_PORT)) {
+    if (config.has(CONFIG_DB_PORT)) {
       props.setProperty("dataSource.portNumber", valueOf(config.get(CONFIG_DB_PORT)));
     }
     String database = valueOf(config.get(CONFIG_DB_NAME));

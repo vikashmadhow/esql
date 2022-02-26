@@ -4,6 +4,8 @@
 
 package ma.vi.esql.database;
 
+import ma.vi.base.config.Configuration;
+import ma.vi.base.lang.NotFoundException;
 import ma.vi.esql.exec.EsqlConnection;
 import ma.vi.esql.exec.EsqlConnectionImpl;
 import ma.vi.esql.semantic.type.BaseRelation;
@@ -19,7 +21,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -33,6 +34,17 @@ import java.util.UUID;
 public interface Database {
   // Initialisation
   ////////////////////////////////////////////////
+
+  /**
+   * The database system (SQL_SERVER, POSTGRESQL, ORACLE, etc.).
+   */
+  String CONFIG_DB_SYSTEM = "database.system";
+
+  String DB_SYSTEM_SQLSERVER  = "SQLSERVER";
+  String DB_SYSTEM_POSTGRESQL = "POSTGRESQL";
+  String DB_SYSTEM_MYSQL      = "MYSQL";
+  String DB_SYSTEM_MARIADB    = "MARIADB";
+  String DB_SYSTEM_SQLITE     = "SQLITE";
 
   /**
    * The database host configuration parameter (default localhost).
@@ -79,7 +91,7 @@ public interface Database {
   String CONFIG_DB_EXTENSIONS = "database.extensions";
 
   /**
-   * Initialise the database using the provided configuration map.
+   * Initialise the database using the provided configuration.
    * The following map keys are recognised:
    * <ul>
    *   <li><b>database.host:</b> the database host (default localhost).</li>
@@ -96,16 +108,16 @@ public interface Database {
    *
    * @param config Contains the configuration keys for connecting to the database.
    */
-  void init(Map<String, Object> config);
+  void init(Configuration config);
 
   /**
-   * Returns an unmodifiable copy of the default config supplied when the database was created.
+   * Returns the configuration with which the database was created.
    */
-  Map<String, Object> config();
+  Configuration config();
 
   /**
    * Returns the structure of the objects (relations) in the database, loading it when first called.
-   * This method will be called by {@link #init(Map)}.
+   * This method will be called by {@link #init(Configuration)}.
    */
   Structure structure();
 
@@ -116,7 +128,7 @@ public interface Database {
    * `database.createCoreTables` if it is present, or true otherwise.
    */
   default boolean createCoreTables() {
-    return (Boolean)config().getOrDefault(CONFIG_DB_CREATE_CORE_TABLES, Boolean.TRUE);
+    return config().get(CONFIG_DB_CREATE_CORE_TABLES, Boolean.TRUE);
   }
 
   /**
@@ -150,6 +162,12 @@ public interface Database {
    */
   List<EsqlTransformer> esqlTransformers();
 
+  /**
+   * Returns the extension class of type E loaded in the database or throws
+   * NotFoundException if no such extension has been loaded.
+   */
+  <E extends Extension> E extension(Class<? extends Extension> e) throws NotFoundException;
+
   // Connections
   //////////////////////////////////////////////////////
   /**
@@ -164,8 +182,8 @@ public interface Database {
                                       int isolationLevel) {
     return pooledConnection(autoCommit,
                             isolationLevel,
-                            String.valueOf(config().get("database.user.name")),
-                            String.valueOf(config().get("database.user.password")));
+                            config().get("database.user.name"),
+                            config().get("database.user.password"));
   }
 
   default Connection pooledConnection() {
@@ -189,8 +207,8 @@ public interface Database {
   default Connection rawConnection(boolean autoCommit, int isolationLevel) {
     return rawConnection(autoCommit,
                          isolationLevel,
-                         String.valueOf(config().get("database.user.name")),
-                         String.valueOf(config().get("database.user.password")));
+                         config().get("database.user.name"),
+                         config().get("database.user.password"));
   }
 
   default Connection rawConnection() {
@@ -296,11 +314,11 @@ public interface Database {
 
   Database NULL_DB = new Database() {
     @Override
-    public void init(Map<String, Object> config) {}
+    public void init(Configuration config) {}
 
     @Override
-    public Map<String, Object> config() {
-      return Collections.emptyMap();
+    public Configuration config() {
+      return Configuration.EMPTY;
     }
 
     @Override
@@ -314,6 +332,11 @@ public interface Database {
     @Override
     public Translatable.Target target() {
       return Translatable.Target.ESQL;
+    }
+
+    @Override
+    public <E extends Extension> E extension(Class<? extends Extension> e) throws NotFoundException {
+      throw new NotFoundException("Extension " + e + " not loaded");
     }
 
     @Override
@@ -345,17 +368,15 @@ public interface Database {
     }
 
     @Override
-    public <T> T[] getArray(ResultSet rs, int index, Class<T> componentType) throws SQLException {
+    public <T> T[] getArray(ResultSet rs, int index, Class<T> componentType) {
       return null;
     }
 
     @Override
-    public void setArray(PreparedStatement ps, int paramIndex, Object array) throws SQLException {
-    }
+    public void setArray(PreparedStatement ps, int paramIndex, Object array) {}
 
     @Override
-    public void addTable(Connection con, BaseRelation table) {
-    }
+    public void addTable(Connection con, BaseRelation table) {}
 
     @Override
     public UUID tableId(Connection con, String tableName) {
@@ -368,55 +389,42 @@ public interface Database {
     }
 
     @Override
-    public void renameTable(Connection con, UUID tableId, String name) {
-    }
+    public void renameTable(Connection con, UUID tableId, String name) {}
 
     @Override
-    public void clearTableMetadata(Connection con, UUID tableId) {
-    }
+    public void clearTableMetadata(Connection con, UUID tableId) {}
 
     @Override
-    public void tableMetadata(Connection con, UUID tableId, Metadata metadata) {
-    }
+    public void tableMetadata(Connection con, UUID tableId, Metadata metadata) {}
 
     @Override
-    public void dropTable(Connection con, UUID tableId) {
-    }
+    public void dropTable(Connection con, UUID tableId) {}
 
     @Override
-    public void column(Connection con, UUID tableId, Column column) {
-    }
+    public void column(Connection con, UUID tableId, Column column) {}
 
     @Override
-    public void columnName(Connection con, UUID columnId, String name) {
-    }
+    public void columnName(Connection con, UUID columnId, String name) {}
 
     @Override
-    public void columnType(Connection con, UUID columnId, String type) {
-    }
+    public void columnType(Connection con, UUID columnId, String type) {}
 
     @Override
-    public void defaultValue(Connection con, UUID columnId, String defaultValue) {
-    }
+    public void defaultValue(Connection con, UUID columnId, String defaultValue) {}
 
     @Override
-    public void notNull(Connection con, UUID columnId, String notNull) {
-    }
+    public void notNull(Connection con, UUID columnId, String notNull) {}
 
     @Override
-    public void columnMetadata(Connection con, UUID columnId, Metadata metadata) {
-    }
+    public void columnMetadata(Connection con, UUID columnId, Metadata metadata) {}
 
     @Override
-    public void dropColumn(Connection con, UUID columnId) {
-    }
+    public void dropColumn(Connection con, UUID columnId) {}
 
     @Override
-    public void constraint(Connection con, UUID tableId, ConstraintDefinition constraint) {
-    }
+    public void constraint(Connection con, UUID tableId, ConstraintDefinition constraint) {}
 
     @Override
-    public void dropConstraint(Connection con, UUID tableId, String constraintName) {
-    }
+    public void dropConstraint(Connection con, UUID tableId, String constraintName) {}
   };
 }

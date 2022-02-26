@@ -5,6 +5,7 @@
 package ma.vi.esql.database;
 
 import ma.vi.base.config.Configuration;
+import ma.vi.base.lang.NotFoundException;
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.exec.EsqlConnection;
 import ma.vi.esql.exec.Param;
@@ -51,7 +52,8 @@ import static org.apache.commons.lang3.StringUtils.repeat;
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 public abstract class AbstractDatabase implements Database {
-  @Override public void init(Map<String, Object> config) {
+  @Override
+  public void init(Configuration config) {
     this.config = config;
 
     /*
@@ -272,10 +274,9 @@ public abstract class AbstractDatabase implements Database {
             // dependent relation:
             // E.g., r1[a] -> r2[b]: r1 depends on r2. If r2 is dropped, so should r1.
             if (targetRelation != null) {
-              // targetRelation.dependency(relation);
               targetRelation.dependentConstraint((ForeignKeyConstraint)c);
             }
-//
+
 //            // link referenced field to constraint
 //            // if the field is dropped, so should the constraint
 //            if (columns != null && !columns.isEmpty()) {
@@ -292,7 +293,6 @@ public abstract class AbstractDatabase implements Database {
 //                f.dependentForeignKey(relation);
 //              }
 //            }
-
           }
         }
       } catch (SQLException sqle) {
@@ -783,7 +783,7 @@ public abstract class AbstractDatabase implements Database {
     /*
      * Load extensions.
      */
-    loadExtensions((Map<Class<? extends Extension>, Configuration>)config.getOrDefault(CONFIG_DB_EXTENSIONS, emptyMap()),
+    loadExtensions(config.get(CONFIG_DB_EXTENSIONS, emptyMap()),
                    new HashSet<>(), 0);
   }
 
@@ -801,6 +801,7 @@ public abstract class AbstractDatabase implements Database {
             loadExtensions(e.dependsOn(), loaded, level + 1);
           }
           e.init(this, toLoad.get(extension));
+          extensions.put(extension, e);
           log.log(INFO, repeat(' ', level * 2) + extension.getName() + " initialized");
         }
       }
@@ -810,8 +811,17 @@ public abstract class AbstractDatabase implements Database {
   }
 
   @Override
-  public Map<String, Object> config() {
+  public Configuration config() {
     return config;
+  }
+
+  @Override
+  public <E extends Extension> E extension(Class<? extends Extension> e) throws NotFoundException {
+    if (extensions.containsKey(e)) {
+      return (E)extensions.get(e);
+    } else {
+      throw new NotFoundException("Extension " + e + " not loaded");
+    }
   }
 
   /**
@@ -1590,6 +1600,16 @@ public abstract class AbstractDatabase implements Database {
 
   private final List<EsqlTransformer> transformers = new ArrayList<>();
 
+  /**
+   * Loaded extensions.
+   */
+  private final Map<Class<? extends Extension>, Extension> extensions = new HashMap<>();
+
+  /**
+   * Database configuration.
+   */
+  private Configuration config;
+
   private static final String INSERT_COLUMN =
       "insert into _core.columns("
           + "  _id, _can_delete, relation_id, name, "
@@ -1628,6 +1648,4 @@ public abstract class AbstractDatabase implements Database {
                                                            "PERFORMANCE_SCHEMA");
 
   private static final Pattern STRING_PREFIX = Pattern.compile("\\b[A-Z]('[^']*')");
-
-  private Map<String, Object> config;
 }
