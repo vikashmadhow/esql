@@ -60,11 +60,11 @@ public class Assignment extends Expression<String, Assignment> {
   @Override
   protected Object postTransformExec(Target target, EsqlConnection esqlCon,
                                      EsqlPath path,
-                                     Environment env) {
+                                     PMap<String, Object> parameters, Environment env) {
     if (!env.knows(name())) {
       throw new ExecutionException(this, "Unknown variable " + name() + " in " + env);
     }
-    env.set(name(), value().exec(target, esqlCon, path.add(value()), env));
+    env.set(name(), value().exec(target, esqlCon, path.add(value()), parameters, env));
     return Result.Nothing;
   }
 

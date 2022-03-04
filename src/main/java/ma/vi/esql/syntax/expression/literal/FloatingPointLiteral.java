@@ -62,7 +62,7 @@ public class FloatingPointLiteral extends BaseLiteral<String> {
   }
 
   @Override
-  public Double exec(Target target, EsqlConnection esqlCon, EsqlPath path, Environment env) {
+  public Double exec(Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
     return parseDouble(value);
   }
 }

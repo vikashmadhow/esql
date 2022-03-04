@@ -86,7 +86,7 @@ public class FunctionDecl extends Expression<String, FunctionDecl> implements Sy
   @Override
   public Object exec(Target target, EsqlConnection esqlCon,
                      EsqlPath path,
-                     Environment env) {
+                     PMap<String, Object> parameters, Environment env) {
     env.add(name(), set("environment", new Esql<>(context, env)));
     return Result.Nothing;
   }

@@ -16,7 +16,7 @@ import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.expression.ColumnRef;
-import ma.vi.esql.syntax.query.Column;
+import ma.vi.esql.semantic.type.Column;
 import org.pcollections.PMap;
 
 import java.sql.Connection;
@@ -88,7 +88,7 @@ public class AlterTable extends Define {
   @Override
   protected Object postTransformExec(Target target, EsqlConnection esqlCon,
                                      EsqlPath path,
-                                     Environment env) {
+                                     PMap<String, Object> parameters, Environment env) {
     Database db = esqlCon.database();
     Connection con = esqlCon.con();
     String name = name();
@@ -358,7 +358,7 @@ public class AlterTable extends Define {
             for (ConstraintDefinition c: new ArrayList<>(constraints)) {
               if (c.columns().contains(column.name())) {
                 new AlterTable(context, relation.name(),
-                               singletonList(new DropConstraint(context, c.name()))).exec(target, esqlCon, path, env);
+                               singletonList(new DropConstraint(context, c.name()))).exec(target, esqlCon, path, parameters, env);
               }
             }
           }

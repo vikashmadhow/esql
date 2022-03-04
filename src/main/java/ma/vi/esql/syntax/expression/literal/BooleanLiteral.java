@@ -64,7 +64,7 @@ public class BooleanLiteral extends BaseLiteral<Boolean> {
   }
 
   @Override
-  public Boolean exec(Target target, EsqlConnection esqlCon, EsqlPath path, Environment env) {
+  public Boolean exec(Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
     return value;
   }
 }

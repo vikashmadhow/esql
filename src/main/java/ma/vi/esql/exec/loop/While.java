@@ -96,13 +96,14 @@ public class While extends Expression<String, While> {
   }
 
   @Override
-  public Object exec(Target         target,
-                     EsqlConnection esqlCon,
-                     EsqlPath       path,
-                     Environment    env) {
+  public Object exec(Target               target,
+                     EsqlConnection       esqlCon,
+                     EsqlPath             path,
+                     PMap<String, Object> parameters,
+                     Environment          env) {
     Environment whileEnv = new BlockEnvironment("While Loop Environment", env);
-    while ((Boolean)condition().exec(target, esqlCon, path, whileEnv)) {
-      if (execLoopBody(body(), target, esqlCon, path, whileEnv) == BREAK) {
+    while ((Boolean)condition().exec(target, esqlCon, path, parameters, whileEnv)) {
+      if (execLoopBody(body(), target, esqlCon, path, parameters, whileEnv) == BREAK) {
         break;
       }
     }

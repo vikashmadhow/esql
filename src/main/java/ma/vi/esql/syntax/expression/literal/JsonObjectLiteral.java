@@ -79,12 +79,24 @@ public class JsonObjectLiteral extends Literal<List<Attribute>> {
   }
 
   @Override
-  public JSONObject exec(Target target, EsqlConnection esqlCon, EsqlPath path, Environment env) {
+  public JSONObject exec(Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
     JSONObject object = new JSONObject();
     for (Attribute member: members()) {
-      object.put(member.name(), member.attributeValue().exec(target, esqlCon, path, env));
+      object.put(member.name(), member.attributeValue().exec(target, esqlCon, path, parameters, env));
     }
     return object;
+  }
+
+  @Override
+  public void _toString(StringBuilder st, int level, int indent) {
+    st.append('{');
+    boolean first = true;
+    for (Attribute a: members()) {
+      if (first) { first = false; }
+      else       { st.append(", "); }
+      a._toString(st, level, indent);
+    }
+    st.append('}');
   }
 
   public List<Attribute> members() {

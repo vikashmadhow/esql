@@ -106,7 +106,11 @@ public class EsqlTranslator extends AbstractTranslator {
   }
 
   @Override
-  protected QueryTranslation translate(Delete delete, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
+  protected QueryTranslation translate(Delete               delete,
+                                       EsqlConnection       esqlCon,
+                                       EsqlPath             path,
+                                       PMap<String, Object> parameters,
+                                       Environment          env) {
     TableExpr from = delete.tables();
     StringBuilder st = new StringBuilder();
     st.append("delete ").append(delete.deleteTableAlias())

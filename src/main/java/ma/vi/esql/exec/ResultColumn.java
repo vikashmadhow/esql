@@ -5,7 +5,7 @@
 package ma.vi.esql.exec;
 
 import ma.vi.base.collections.Maps;
-import ma.vi.esql.syntax.query.Column;
+import ma.vi.esql.semantic.type.Column;
 
 import java.util.Arrays;
 import java.util.Map;

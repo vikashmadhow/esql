@@ -10,6 +10,7 @@ import ma.vi.esql.exec.ColumnMapping;
 import ma.vi.esql.exec.EsqlConnection;
 import ma.vi.esql.exec.Result;
 import ma.vi.esql.exec.env.Environment;
+import ma.vi.esql.semantic.type.Column;
 import ma.vi.esql.semantic.type.Relation;
 import ma.vi.esql.semantic.type.Selection;
 import ma.vi.esql.semantic.type.Types;
@@ -21,6 +22,7 @@ import ma.vi.esql.syntax.expression.logical.And;
 import ma.vi.esql.syntax.macro.Macro;
 import ma.vi.esql.syntax.modify.InsertRow;
 import ma.vi.esql.translation.TranslationException;
+import org.pcollections.PMap;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -155,7 +157,7 @@ public abstract class QueryUpdate extends MetadataContainer<QueryTranslation> {
                                           Target target,
                                           EsqlPath path,
                                           String qualifier,
-                                          Map<String, Object> parameters) {
+                                          PMap<String, Object> parameters) {
 
     boolean addAttributes = (Boolean)parameters.getOrDefault("addAttributes", true);
     boolean optimiseAttributesLoading = (Boolean)parameters.getOrDefault("optimiseAttributesLoading", true);
@@ -242,14 +244,14 @@ public abstract class QueryUpdate extends MetadataContainer<QueryTranslation> {
              && dynMeta.attributes().containsKey(attrName)) {
               resultAttributes.put(attrName,
                                    dynMeta.attributes().get(attrName)
-                                          .exec(target, NULL_CONNECTION, path, NULL_DB.structure()));
+                                          .exec(target, NULL_CONNECTION, path, parameters, NULL_DB.structure()));
             }
           }
         } else if (attributeValue instanceof Literal<?>){
           /*
            * Result metadata is a literal: add its computed value.
            */
-          resultAttributes.put(attrName, attributeValue.exec(target, NULL_CONNECTION, path, NULL_DB.structure()));
+          resultAttributes.put(attrName, attributeValue.exec(target, NULL_CONNECTION, path, parameters, NULL_DB.structure()));
         } else {
           throw new TranslationException(
               "Result metadata column " + column + " is a " + attributeValue.getClass().getSimpleName()
@@ -287,7 +289,7 @@ public abstract class QueryUpdate extends MetadataContainer<QueryTranslation> {
         Expression<?, String> attributeValue = col.b.expression();
         if (optimiseAttributesLoading &&  (attributeValue instanceof Literal
                                         || attributeValue instanceof UncomputedExpression)) {
-          mapping.attributes().put(attrName, attributeValue.exec(target, NULL_CONNECTION, path, NULL_DB.structure()));
+          mapping.attributes().put(attrName, attributeValue.exec(target, NULL_CONNECTION, path, parameters, NULL_DB.structure()));
         } else if (addAttributes) {
           itemIndex += 1;
           query.append(", ");
@@ -436,7 +438,7 @@ public abstract class QueryUpdate extends MetadataContainer<QueryTranslation> {
   @Override
   protected Object postTransformExec(Target target, EsqlConnection esqlCon,
                                      EsqlPath path,
-                                     Environment env) {
+                                     PMap<String, Object> parameters, Environment env) {
     Database db = esqlCon.database();
     Connection con = esqlCon.con();
     QueryTranslation q = translate(db.target(), esqlCon, path, env);

@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Planned]
 ### To add
 - Array, list, map, set operations.
+- Manual transaction control (begin, commit, rollback, set isolation level, 
+  savepoints, locking). Currently, transaction boundary is aligned to connection 
+  or single-statement only.
 - Assignment to array, list and map subscripts.
 - Operations on JSON objects.
 - `Truncate table` statement.
@@ -69,6 +72,52 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Apply result and column metadata overloading in column list expansion (currently,
   the overridden metadata are not being considered). (create tests for metadata 
   overriding)
+
+## [0.8.9] - 2022-03-05
+### Added
+- JSON object literals can now only have literal attributes list instead of general
+  attributes list (containing expressions which cannot be computed in a JSON 
+  literal context).
+- Escaped identifiers can be used in attributes which allows reserved words and
+  special characters in the identifier names.
+- Add `parameters` parameter to `exec` method so that it have the same signature
+  as the `translate` method; this is in preparation to the implementation of 
+  general-purpose assignment to values of composite types.
+- `evaluateAttribute` method added to `Attribute` class to compute the value of
+  the attribute's expression. This is useful for attributes with literal values.
+- Added auto-generated metadata columns for check, primary and foreign key constraints
+  on single columns. For foreign keys, metadata are added to both sides of the 
+  reference.
+- Check constraints expressions no longer need to be surrounded in brackets.
+- `JsonArrayLiteral` now has higher precedence than base array literals which
+  allows attributes of JsonArrayLiterals to parse correctly.
+- All 4 constraint types (unique, primary, check and foreign) now add attributes 
+  describing themselves to the containing (and target for foreign keys) relation 
+  and, if they are set on a single column, the corresponding column.
+
+### Test
+- Test check constraints.
+
+### Fixed
+- `notNull` method in `Column` now only evaluates its value if it is set to a 
+  boolean literal. Evaluating it when it is set to an expression will likely cause
+  an error in that context; in such cases, `notNull` is assumed to be false.
+- `exec` methods in `EsqlConnection` check type of parameters and dispatch to
+  correct method at runtime; this corrects for the inability of Java static dispatch
+  to distinguish between an object and a variadic parameter.
+- Expansion of column list of CTE now returns a list of column names aliased with
+  the alias associated to the CTE name instead of the CTE name only; this fixes 
+  a problem where the column references to columns inside a CTE was wrongly using 
+  the CTE name as their qualifier.
+- Fixed parsing of SQL Server expressions containing special variables surrounded
+  by square brackets when loading check expression for SQL Server information 
+  schemas (on initial load).
+- Fixed parsing of SQL expressions containing keywords in uppercase (ESQL is 
+  case-sensitive and all keywords are in lowercase).
+- Column reference in column definition of `create table` statements where the 
+  column expression is a select expressions is now handled correctly.  
+- Grammar changed to include `UncomputedExpression` as an actual base literal which
+  allows `JsonArrayLiteral` containing `UncomputedExpression` to parse correctly.
 
 ## [0.8.8] - 2022-02-26
 ### Added

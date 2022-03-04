@@ -25,11 +25,14 @@ import ma.vi.esql.syntax.expression.literal.BooleanLiteral;
 import ma.vi.esql.syntax.expression.literal.StringLiteral;
 import ma.vi.esql.syntax.expression.literal.UuidLiteral;
 import ma.vi.esql.syntax.modify.Insert;
-import ma.vi.esql.syntax.query.Column;
+import ma.vi.esql.semantic.type.Column;
 import ma.vi.esql.translation.*;
+import org.pcollections.HashPMap;
+import org.pcollections.IntTreePMap;
 
 import java.sql.*;
 import java.util.*;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -136,28 +139,7 @@ public abstract class AbstractDatabase implements Database {
                 List<Attribute> attributes = new ArrayList<>();
                 attributes.add(new Attribute(context, TYPE, new StringLiteral(context, columnType)));
                 if (defaultValue != null) {
-                  /*
-                   * Hack to ensure that native database expressions are mapped
-                   * to ESQL form (A proper solution to this would require a parser
-                   * for each target database as the default expressions read from
-                   * the information schemas are expressed in those):
-                   * 1. that all boolean value capitalisations are mapped to the
-                   *    lowercase esql form.
-                   * 2. String prefixes such as N'' and E'' are removed (this is
-                   *    done using a regex which caters for most cases but will
-                   *    not catch all of them; for that a parser is required).
-                   */
-                  defaultValue = defaultValue.trim();
-                  if (defaultValue.equalsIgnoreCase("true")) {
-                    defaultValue = "true";
-                  } else if (defaultValue.equalsIgnoreCase("false")) {
-                    defaultValue = "false";
-                  }
-                  if (defaultValue.equalsIgnoreCase("null")) {
-                    defaultValue = "null";
-                  }
-                  defaultValue = STRING_PREFIX.matcher(defaultValue).replaceAll("$1");
-                  attributes.add(new Attribute(context, EXPRESSION, parser.parseExpression(defaultValue)));
+                  attributes.add(new Attribute(context, EXPRESSION, dbExpressionToEsql(defaultValue, parser)));
                 }
                 attributes.add(new Attribute(context, ID, new UuidLiteral(context, columnId)));
                 attributes.add(new Attribute(context, REQUIRED, new BooleanLiteral(context, notNull)));
@@ -224,7 +206,8 @@ public abstract class AbstractDatabase implements Database {
                       context,
                       constraintName,
                       tableName,
-                      parser.parseExpression(r.getString("check_clause")));
+                      dbExpressionToEsql(r.getString("check_clause"), parser));
+//                      parser.parseExpression(r.getString("check_clause")));
                 }
                 break;
 
@@ -300,6 +283,39 @@ public abstract class AbstractDatabase implements Database {
       }
     }
     return structure;
+  }
+
+  /**
+   * Hack to ensure that native database expressions are mapped to ESQL form (A
+   * better solution to this would require a parser for each target database as
+   * the default expressions read from the information schemas are expressed in
+   * those):
+   * 1. that all boolean value capitalisations are mapped to the lowercase esql
+   *    form.
+   * 2. String prefixes such as N'' and E'' are removed (this is done using a
+   *    regex which caters for most cases but will not catch all of them; for that
+   *    a parser is required).
+   * 3. Remove square brackets surrounding variables which are used in SQL Server.
+   */
+  private static Expression<?, String> dbExpressionToEsql(String expr, Parser parser) {
+    if (expr == null) {
+      return null;
+    } else {
+      expr = expr.trim();
+      if (expr.equalsIgnoreCase("true")) {
+        expr = "true";
+      } else if (expr.equalsIgnoreCase("false")) {
+        expr = "false";
+      }
+      if (expr.equalsIgnoreCase("null")) {
+        expr = "null";
+      }
+      expr = STRING_PREFIX.matcher(expr).replaceAll("$1");
+      expr = SQL_SERVER_SURROUNDED_VAR.matcher(expr).replaceAll("$1");
+      expr = SQL_SERVER_LEN.matcher(expr).replaceAll("length($1)");
+      expr = SQL_KEYWORDS.matcher(expr).replaceAll(m -> m.group().toLowerCase());
+      return parser.parseExpression(expr);
+    }
   }
 
   @Override
@@ -769,9 +785,9 @@ public abstract class AbstractDatabase implements Database {
           }
         }
 
-        for (BaseRelation rel: structure.relations().values()) {
-          rel.expandColumns();
-        }
+//        for (BaseRelation rel: structure.relations().values()) {
+//          rel.expandColumns();
+//        }
 
         // Todo: parse expressions
         // Todo: load the view sources by interpreting the view definition
@@ -1312,6 +1328,7 @@ public abstract class AbstractDatabase implements Database {
       Boolean canDelete = column.metadata() == null ? null : column.metadata().evaluateAttribute(CAN_DELETE,
                                                                                                  econ,
                                                                                                  new EsqlPath(column.metadata()),
+                                                                                                 HashPMap.empty(IntTreePMap.empty()),
                                                                                                  econ.database().structure());
       UUID columnId = column.id();
       if (columnId == null) {
@@ -1648,4 +1665,22 @@ public abstract class AbstractDatabase implements Database {
                                                            "PERFORMANCE_SCHEMA");
 
   private static final Pattern STRING_PREFIX = Pattern.compile("\\b[A-Z]('[^']*')");
+
+  /**
+   * Regex to identify special variables that SQL Server surround with square
+   * brackets. To parse as ESQL the ssquare brackets must be removed.
+   */
+  private static final Pattern SQL_SERVER_SURROUNDED_VAR = Pattern.compile("\\[([a-zA-Z_][a-zA-Z_0-9]*)\\]");
+
+  /**
+   * Replace len() function with length in SQL Server.
+   */
+  private static final Pattern SQL_SERVER_LEN = Pattern.compile("len\\s*\\((.+)\\)");
+
+  /**
+   * Keywords to change to lowercase
+   */
+  private static final Pattern SQL_KEYWORDS = Pattern.compile(
+    "and|or|not|left|right|trim|len|length|null|in|all|any|true|false",
+    Pattern.CASE_INSENSITIVE);
 }

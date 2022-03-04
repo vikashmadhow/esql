@@ -78,20 +78,28 @@ public interface Translatable<T> {
               PMap<String, Object> parameters,
               Environment          env);
 
+  default Object exec(Target               target,
+                      EsqlConnection       esqlCon,
+                      EsqlPath             path,
+                      Environment          env) {
+    return exec(target, esqlCon, path, HashPMap.empty(IntTreePMap.empty()), env);
+  }
+
   /**
    * The value of a translatable is generally its translation. In some
    * cases, this method can be overridden to return a computed value.
    * For example, a string translation will keep quotes around the text,
    * while its value will remove it.
    */
-  default Object exec(Target         target,
-                      EsqlConnection esqlCon,
-                      EsqlPath       path,
-                      Environment    env) {
+  default Object exec(Target               target,
+                      EsqlConnection       esqlCon,
+                      EsqlPath             path,
+                      PMap<String, Object> parameters,
+                      Environment          env) {
     return translate(target,
                      esqlCon,
                      path,
-                     HashPMap.empty(IntTreePMap.empty()),
+                     parameters,
                      env);
   }
 }

@@ -17,6 +17,11 @@ import java.util.List;
 
 import static java.util.stream.Collectors.joining;
 
+/**
+ * A row in an insert statement or dynamic table.
+ *
+ * @author Vikash Madhow (vikash.madhow@gmail.com)
+ */
 public class InsertRow extends Expression<String, String> {
   public InsertRow(Context context, List<Expression<?, String>> values) {
     super(context, "InsertRow", values);

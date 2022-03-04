@@ -8,6 +8,7 @@ import ma.vi.base.tuple.T2;
 import ma.vi.esql.exec.EsqlConnection;
 import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.semantic.type.BaseRelation;
+import ma.vi.esql.semantic.type.Column;
 import ma.vi.esql.semantic.type.Selection;
 import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.syntax.Context;
@@ -22,10 +23,10 @@ import ma.vi.esql.syntax.modify.InsertRow;
 import org.pcollections.PMap;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
+import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.joining;
 import static ma.vi.esql.semantic.type.Types.UnknownType;
 
@@ -104,10 +105,10 @@ public class DynamicTableExpr extends AbstractAliasTableExpr {
     return BaseRelation.expandColumns(
               metadata() == null
            || metadata().attributes() == null
-           || metadata().attributes().isEmpty() ? Collections.emptyList()
+           || metadata().attributes().isEmpty() ? emptyList()
                                                 : new ArrayList<>(metadata().attributes().values()),
               relationColumns,
-              Collections.emptyList());
+              emptyList());
   }
 
   private List<Type> guessColumnTypes(EsqlPath path) {

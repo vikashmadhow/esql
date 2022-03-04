@@ -17,6 +17,7 @@ import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Parser;
 import ma.vi.esql.syntax.Program;
 import ma.vi.esql.syntax.expression.Expression;
+import ma.vi.esql.syntax.expression.literal.JsonArrayLiteral;
 import ma.vi.esql.syntax.expression.literal.UuidLiteral;
 import ma.vi.esql.syntax.query.Select;
 import org.json.JSONArray;
@@ -25,6 +26,7 @@ import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestFactory;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -32,6 +34,7 @@ import java.util.stream.Stream;
 
 import static java.util.Collections.singletonList;
 import static java.util.UUID.randomUUID;
+import static ma.vi.esql.builder.Attributes.*;
 import static ma.vi.esql.syntax.Parser.Rules.SELECT;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.DynamicTest.dynamicTest;
@@ -298,11 +301,31 @@ public class SelectTest extends DataTest {
                                         "referred_by", "s_id",
                                         "label", "S Links"))));
 
-                     assertEquals(rs.resultAttributes().size(), 4);
+                     assertEquals(rs.resultAttributes().size(), 6);
                      assertEquals(rs.resultAttributes().get("name"), "S");
                      assertEquals(rs.resultAttributes().get("description"), "S test table");
                      assertTrue(validateUnique.similar(rs.resultAttributes().get("validate_unique")));
                      assertTrue(dependents.similar(rs.resultAttributes().get("dependents")));
+                     assertTrue(new JSONArray(singletonList("_id")).similar(rs.resultAttributes().get(PRIMARY_KEY)));
+                     assertTrue(new JSONArray(
+                       Arrays.asList(
+                         new JSONObject(Map.of(
+                           "from_table", "a.b.T",
+                           "from_columns", new JSONArray(singletonList("s_id")),
+                           "to_columns", new JSONArray(singletonList("_id"))
+                         )),
+                         new JSONObject(Map.of(
+                           "from_table", "a.b.X",
+                           "from_columns", new JSONArray(singletonList("s_id")),
+                           "to_columns", new JSONArray(singletonList("_id"))
+                         )),
+                         new JSONObject(Map.of(
+                           "from_table", "b.Y",
+                           "from_columns", new JSONArray(singletonList("s_id")),
+                           "to_columns", new JSONArray(singletonList("_id"))
+                         ))
+                       )
+                     ).similar(rs.resultAttributes().get(REFERRED_BY)));
 
                      rs.next(); assertInstanceOf(UUID.class, rs.value("_id"));
                                 assertEquals(6,  (Integer)rs.value("a"));

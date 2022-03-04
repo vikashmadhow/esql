@@ -156,7 +156,7 @@ attributeList
  * attribute is specified.
  */
 attribute
-    : Identifier ':' expr
+    : identifier ':' expr
     ;
 
 /**
@@ -175,7 +175,7 @@ literalAttributeList
     ;
 
 literalAttribute
-    : Identifier ':' literal
+    : identifier ':' literal
     ;
 
 /**
@@ -289,6 +289,11 @@ alias
 aliasPart
     : EscapedIdentifier                 #EscapedAliasPart
     | qualifiedName                     #NormalAliasPart
+    ;
+
+identifier
+    : Identifier
+    | EscapedIdentifier
     ;
 
 /**
@@ -558,6 +563,35 @@ update
     ;
 
 /**
+   merge z:Z from x:(select ... ...) join y:Y
+            where z.a = ...
+           update set a=x.a, b=y.b
+            insert set ... different
+
+merge test.X x
+using (select * from A) as a
+   on a.a=x.a and a.b=x.b
+when matched then update set c=a.e, d=a.a + a.b
+when not matched then insert(_id, a, b, c, d)
+                      values(newid(), a.a, a.b, a.e, a.a + a.e);
+
+
+merge test.X x
+using A as a
+   on a.a=x.a and a.b=x.b
+when matched then update set c=a.e, d=a.a + a.b
+when not matched then insert(_id, a, b, c, d)
+                      values(newid(), a.a, a.b, a.e, a.a + a.e);
+ */
+
+//merge
+//  : 'merge'  singleTable
+//     'from' (singleTable | alias ':' select)
+//       'on' ('(' identifierList ')' | expr)
+//    ('when' 'not'? 'matched' ('and' expr)? (update | insert | delete))+
+//  ;
+
+/**
  * The set list of an `update` consists of comma-separated list of set instructions,
  * each of which consists of the column to update followed by '=' and the value
  * to update the column to.
@@ -627,17 +661,8 @@ expr
     | '(' expr ')'                                              #GroupingExpr
 
       /*
-       * An expression surrounded by '$(' and ')' is known as an uncomputed
-       * expression in that it is not computed by the interpreter and sent to
-       * the database (or client) as a string. Uncomputed expressions are
-       * useful when the expressions need to be computed outside of the
-       * database (e.g., validation check that can be executed on a client
-       * to the check the validity of a value before sending to the database).
-       */
-    | '$(' expr ')'                                             #UncomputedExpr
-
-      /*
-       * Refers to the default value applicable in certain context such as when
+       * Refers to the default value applicable in certain context such as
+        when
        * inserting values and updating columns (to their defaults)
        */
     | type '<' expr '>'                                         #CastExpr
@@ -876,7 +901,6 @@ simpleExpr
     | <assoc=right> simpleExpr ('if' simpleExpr 'else' simpleExpr)+     #SimpleCaseExpr
     ;
 
-
 /**
  * A function parameter is a name followed by colon (:) and its type, with an
  * optional default value expression.
@@ -1026,17 +1050,17 @@ positionalArgument
  * null literal ('null'), arrays, JSON arrays and JSON objects.
  *
  * ESQL array literals are defined by their element type (int, string, etc.)
- * followed by their elements surrounded by square brackets. E.g.:
+ * optionally following their elements surrounded by square brackets. E.g.:
  *
- *    int[1, 4, 10, 3]
- *    string['a', 'b', 'c']
+ *    [1, 4, 10, 3]int
+ *    ['a', 'b', 'c']string
  */
 literal
     : baseLiteral                               #BasicLiterals
     | NullLiteral                               #Null
-    | '[' baseLiteralList? ']' (Identifier)?    #BaseArrayLiteral
     | '[' literalList? ']'                      #JsonArrayLiteral       // valid only in metadata expression
-    | '{' attributeList? '}'                    #JsonObjectLiteral      // valid only in metadata expression
+    | '[' baseLiteralList? ']' (Identifier)?    #BaseArrayLiteral
+    | '{' literalAttributeList? '}'             #JsonObjectLiteral      // valid only in metadata expression
     ;
 
 /**
@@ -1052,6 +1076,16 @@ baseLiteral
     | UuidLiteral               #Uuid
     | DateLiteral               #Date
     | IntervalLiteral           #Interval
+
+      /*
+       * An expression surrounded by '$(' and ')' is known as an uncomputed
+       * expression in that it is not computed by the interpreter and sent to
+       * the database (or client) as a string. Uncomputed expressions are
+       * useful when the expressions need to be computed outside of the
+       * database (e.g., validation check that can be executed on a client
+       * to the check the validity of a value before sending to the database).
+       */
+    | '$(' expr ')'             #UncomputedExpr
     ;
 
 /**
@@ -1356,7 +1390,7 @@ derivedColumnDefinition
 constraintDefinition
     : constraintName? 'unique' names                    #UniqueConstraint
     | constraintName? 'primary' 'key' names             #PrimaryKeyConstraint
-    | constraintName? 'check' '(' expr ')'              #CheckConstraint
+    | constraintName? 'check' expr                      #CheckConstraint
     | constraintName? 'foreign' 'key'
       from=names 'references' qualifiedName to=names
 

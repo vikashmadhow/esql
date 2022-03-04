@@ -78,7 +78,7 @@ public class IntervalLiteral extends BaseLiteral<String> {
   }
 
   @Override
-  public Object exec(Target target, EsqlConnection esqlCon, EsqlPath path, Environment env) {
+  public Object exec(Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
     return target == JSON ? translate(target, esqlCon, path.add(this), env) : new Interval(value);
   }
 }

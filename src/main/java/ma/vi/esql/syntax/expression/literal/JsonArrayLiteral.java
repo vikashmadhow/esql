@@ -93,9 +93,9 @@ public class JsonArrayLiteral extends Literal<List<? extends Literal<?>>> {
   }
 
   @Override
-  public JSONArray exec(Target target, EsqlConnection esqlCon, EsqlPath path, Environment env) {
+  public JSONArray exec(Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
     return new JSONArray(items().stream()
-                                .map(e -> e.exec(target, esqlCon, path, env))
+                                .map(e -> e.exec(target, esqlCon, path, parameters, env))
                                 .collect(Collectors.toList()));
   }
 

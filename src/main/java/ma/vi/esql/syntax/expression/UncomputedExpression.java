@@ -69,7 +69,7 @@ public class UncomputedExpression extends BaseLiteral<String> {
   }
 
   @Override
-  public String exec(Target target, EsqlConnection esqlCon, EsqlPath path, Environment env) {
+  public String exec(Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
     /*
      * returns the string unescaped and without surrounding quotes
      */

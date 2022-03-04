@@ -71,10 +71,10 @@ public class Program extends Esql<String, List<?>> {
   @Override
   public Object exec(Target target, EsqlConnection esqlCon,
                      EsqlPath path,
-                     Environment env) {
+                     PMap<String, Object> parameters, Environment env) {
     Object ret = Result.Nothing;
     for (Expression<?, ?> st: expressions()) {
-      ret = st.exec(target, esqlCon, path.add(st), env);
+      ret = st.exec(target, esqlCon, path.add(st), parameters, env);
       if (st instanceof Return) {
         return ret;
       }

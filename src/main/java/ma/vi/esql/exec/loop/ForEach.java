@@ -99,10 +99,10 @@ public class ForEach extends Expression<String, ForEach> {
   }
 
   @Override
-  public Object exec(Target         target,
+  public Object exec(Target target,
                      EsqlConnection esqlCon,
-                     EsqlPath       path,
-                     Environment    env) {
+                     EsqlPath path,
+                     PMap<String, Object> parameters, Environment env) {
     Environment forEnv = new BlockEnvironment("For Each Loop Environment", env);
     String keyVar = keyVar();
     if (keyVar != null) {
@@ -111,7 +111,7 @@ public class ForEach extends Expression<String, ForEach> {
     String valueVar = valueVar();
     forEnv.add(valueVar, null);
 
-    Object iterateOn = iterateOn().exec(target, esqlCon, path.add(iterateOn()), forEnv);
+    Object iterateOn = iterateOn().exec(target, esqlCon, path.add(iterateOn()), parameters, forEnv);
     if (iterateOn == null) {
       throw new ExecutionException(this, "Iteration over null object: " + iterateOn());
     } else {
@@ -122,7 +122,7 @@ public class ForEach extends Expression<String, ForEach> {
             forEnv.set(keyVar, i);
           }
           forEnv.set(valueVar, Array.get(iterateOn, i));
-          if (execLoopBody(body, target, esqlCon, path, forEnv) == LoopState.BREAK) {
+          if (execLoopBody(body, target, esqlCon, path, parameters, forEnv) == LoopState.BREAK) {
             break;
           }
         }
@@ -132,7 +132,7 @@ public class ForEach extends Expression<String, ForEach> {
             forEnv.set(keyVar, i);
           }
           forEnv.set(valueVar, list.get(i));
-          if (execLoopBody(body, target, esqlCon, path, forEnv) == LoopState.BREAK) {
+          if (execLoopBody(body, target, esqlCon, path, parameters, forEnv) == LoopState.BREAK) {
             break;
           }
         }
@@ -142,21 +142,21 @@ public class ForEach extends Expression<String, ForEach> {
             forEnv.set(keyVar, key);
           }
           forEnv.set(valueVar, map.get(key));
-          if (execLoopBody(body, target, esqlCon, path, forEnv) == LoopState.BREAK) {
+          if (execLoopBody(body, target, esqlCon, path, parameters, forEnv) == LoopState.BREAK) {
             break;
           }
         }
       } else if (iterateOn instanceof Result rs) {
         for (Result.Row row: rs) {
           forEnv.set(valueVar, row);
-          if (execLoopBody(body, target, esqlCon, path, forEnv) == LoopState.BREAK) {
+          if (execLoopBody(body, target, esqlCon, path, parameters, forEnv) == LoopState.BREAK) {
             break;
           }
         }
       } else if (iterateOn instanceof Iterable<?> it) {
         for (Object row: it) {
           forEnv.set(valueVar, row);
-          if (execLoopBody(body, target, esqlCon, path, forEnv) == LoopState.BREAK) {
+          if (execLoopBody(body, target, esqlCon, path, parameters, forEnv) == LoopState.BREAK) {
             break;
           }
         }
@@ -173,10 +173,11 @@ public class ForEach extends Expression<String, ForEach> {
                                        Target                 target,
                                        EsqlConnection         esqlCon,
                                        EsqlPath               path,
+                                       PMap<String, Object>   parameters,
                                        Environment            parentEnv) {
     Environment bodyEnv = new BlockEnvironment(parentEnv);
     for (Expression<?, ?> e: body) {
-      e.exec(target, esqlCon, path.add(e), bodyEnv);
+      e.exec(target, esqlCon, path.add(e), parameters, bodyEnv);
       if ((Boolean)bodyEnv.get("#continue")) {
         bodyEnv.set("#continue", false);
         return LoopState.CONTINUE;

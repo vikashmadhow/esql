@@ -54,8 +54,8 @@ public class Return extends Expression<String, Return> {
   @Override
   public Object exec(Target target, EsqlConnection esqlCon,
                      EsqlPath path,
-                     Environment env) {
-    return value().exec(target, esqlCon, path.add(value()), env);
+                     PMap<String, Object> parameters, Environment env) {
+    return value().exec(target, esqlCon, path.add(value()), parameters, env);
   }
 
   public Expression<?, ?> value() {

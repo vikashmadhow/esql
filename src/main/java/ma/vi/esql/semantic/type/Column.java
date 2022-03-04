@@ -2,12 +2,11 @@
  * Copyright (c) 2020 Vikash Madhow
  */
 
-package ma.vi.esql.syntax.query;
+package ma.vi.esql.semantic.type;
 
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.exec.EsqlConnection;
 import ma.vi.esql.exec.env.Environment;
-import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
@@ -180,8 +179,10 @@ public class Column extends MetadataContainer<String> {
 
   public boolean notNull() {
     if (metadata() != null) {
-      Object notNull = metadata().evaluateAttribute(REQUIRED);
-      return notNull instanceof Boolean && (Boolean)notNull;
+      Attribute att = metadata().attributes().get(REQUIRED);
+      return att != null
+          && att.attributeValue() instanceof BooleanLiteral
+          && (Boolean)metadata().evaluateAttribute(REQUIRED);
     }
     return false;
   }
@@ -227,9 +228,21 @@ public class Column extends MetadataContainer<String> {
     return type;
   }
 
-  //  public Column type(Type type) {
-//    return set("type", new Esql<>(context, type));
-//  }
+  protected Attribute _attribute(String name, Expression<?, String> expr) {
+    return _attribute(new Attribute(context, name, expr));
+  }
+
+  protected Attribute _attribute(Attribute attr) {
+    List<Attribute> attributes = new ArrayList<>();
+    if (metadata() != null && metadata().attributes() != null) {
+      attributes.addAll(metadata().attributes().values().stream()
+                                  .filter(a -> !a.name().equals(attr.name()))
+                                  .toList());
+    }
+    attributes.add(attr);
+    _set("metadata", new Metadata(context, attributes));
+    return attr;
+  }
 
   private Column setMetadata(String name, Expression<?, String> expr) {
     List<Attribute> attributes = new ArrayList<>();

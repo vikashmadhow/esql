@@ -87,8 +87,8 @@ public class Not extends SingleSubExpression {
   @Override
   public Object postTransformExec(Target target, EsqlConnection esqlCon,
                                   EsqlPath path,
-                                  Environment env) {
-    Object expr = expr().exec(target, esqlCon, path.add(expr()), env);
+                                  PMap<String, Object> parameters, Environment env) {
+    Object expr = expr().exec(target, esqlCon, path.add(expr()), parameters, env);
     if (expr instanceof Boolean bool) {
       return !bool;
     } else {

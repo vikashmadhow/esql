@@ -319,13 +319,29 @@ public class Esql<V, T> implements Copy<Esql<V, T>>, Translatable<T> {
     return (X)copy;
   }
 
-  public <X extends Esql<V, T>> X setPath(String path, Esql<?, ?> child) {
-    return _setPath(path.split("/"), 0, child);
+  protected void _set(String childName, Esql<?, ?> child) {
+    if(has(childName)) {
+      _set(indexOf(childName), child);
+    } else {
+      childrenNames.put(childName, children().size());
+      _set(children.size(), child);
+    }
   }
 
-  private <X extends Esql<V, T>> X _setPath(String[] path,
-                                            int indexInPath,
-                                            Esql<?, ?> child) {
+  protected void _set(int index, Esql<?, ?> child) {
+    while (children.size() <= index) {
+      children.add(null);
+    }
+    children.set(index, child);
+  }
+
+  public <X extends Esql<V, T>> X setPath(String path, Esql<?, ?> child) {
+    return setPath(path.split("/"), 0, child);
+  }
+
+  private <X extends Esql<V, T>> X setPath(String[] path,
+                                           int indexInPath,
+                                           Esql<?, ?> child) {
     while (indexInPath < path.length
        && (path[indexInPath] == null || path[indexInPath].length() == 0)) {
       indexInPath++;
@@ -335,7 +351,7 @@ public class Esql<V, T> implements Copy<Esql<V, T>>, Translatable<T> {
       int childIndex = indexOf(path[indexInPath]);
       Esql<?, ?> childCopy = copy.get(childIndex);
       if (childCopy != null) {
-        Esql<?, ?> rep = childCopy._setPath(path, indexInPath++, child);
+        Esql<?, ?> rep = childCopy.setPath(path, indexInPath++, child);
         copy.children.set(childIndex, rep);
       }
       return (X)copy;
@@ -534,7 +550,7 @@ public class Esql<V, T> implements Copy<Esql<V, T>>, Translatable<T> {
                            EsqlPath             path,
                            PMap<String, Object> parameters,
                            Environment          env) {
-    return trans(target, null, path, parameters, null);
+    return trans(target, esqlCon, path, parameters, env);
   }
 
   protected T trans(Target               target,
@@ -567,25 +583,28 @@ public class Esql<V, T> implements Copy<Esql<V, T>>, Translatable<T> {
    * Executes this ESQL node and returns its result. The default returns null.
    */
   @Override
-  public Object exec(Target         target,
-                     EsqlConnection esqlCon,
-                     EsqlPath       path,
-                     Environment    env) {
-    Esql<?, ?> esql = preExecTransform(target, esqlCon, path, env);
-    return esql.postTransformExec(target, esqlCon, path.replaceHead(esql), env);
+  public Object exec(Target               target,
+                     EsqlConnection       esqlCon,
+                     EsqlPath             path,
+                     PMap<String, Object> parameters,
+                     Environment          env) {
+    Esql<?, ?> esql = preExecTransform(target, esqlCon, path, parameters, env);
+    return esql.postTransformExec(target, esqlCon, path.replaceHead(esql), parameters, env);
   }
 
-  protected Esql<?, ?> preExecTransform(Target         target,
-                                        EsqlConnection esqlCon,
-                                        EsqlPath       path,
-                                        Environment    env) {
+  protected Esql<?, ?> preExecTransform(Target               target,
+                                        EsqlConnection       esqlCon,
+                                        EsqlPath             path,
+                                        PMap<String, Object> parameters,
+                                        Environment          env) {
     return this;
   }
 
-  protected Object postTransformExec(Target         target,
-                                     EsqlConnection esqlCon,
-                                     EsqlPath       path,
-                                     Environment    env) {
+  protected Object postTransformExec(Target               target,
+                                     EsqlConnection       esqlCon,
+                                     EsqlPath             path,
+                                     PMap<String, Object> parameters,
+                                     Environment          env) {
     return null;
   }
 

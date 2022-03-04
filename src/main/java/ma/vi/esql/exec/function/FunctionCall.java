@@ -124,7 +124,7 @@ public class FunctionCall extends Expression<String, String> implements TypedMac
     if (function == null) {
       function = Structure.UnknownFunction;
     }
-    StringBuilder translation = new StringBuilder(function.translate(this, target, esqlCon, path, env));
+    StringBuilder translation = new StringBuilder(function.translate(this, target, esqlCon, path, parameters, env));
 
     /*
      * add window suffix
@@ -219,10 +219,11 @@ public class FunctionCall extends Expression<String, String> implements TypedMac
   }
 
   @Override
-  public Object exec(Target         target,
-                     EsqlConnection esqlCon,
-                     EsqlPath       path,
-                     Environment    env) {
+  public Object exec(Target               target,
+                     EsqlConnection       esqlCon,
+                     EsqlPath             path,
+                     PMap<String, Object> parameters,
+                     Environment          env) {
     Object f = env.get(functionName());
     if (f instanceof FunctionDecl || f instanceof Function) {
       Environment funcEnv;
@@ -239,12 +240,13 @@ public class FunctionCall extends Expression<String, String> implements TypedMac
                 new ArrayList<>(arguments()),
                 esqlCon,
                 funcPath,
+                parameters,
                 env,
                 funcEnv);
 
         Object ret = Result.Nothing;
         for (Expression<?, ?> st: func.body()) {
-          ret = st.exec(target, esqlCon, funcPath.add(st), funcEnv);
+          ret = st.exec(target, esqlCon, funcPath.add(st), parameters, funcEnv);
           if (st instanceof Return) {
             return ret;
           }
@@ -264,10 +266,11 @@ public class FunctionCall extends Expression<String, String> implements TypedMac
                 new ArrayList<>(arguments()),
                 esqlCon,
                 funcPath,
+                parameters,
                 env,
                 funcEnv);
         
-        return func.exec(target, esqlCon, funcPath, funcEnv);
+        return func.exec(target, esqlCon, funcPath, parameters, funcEnv);
       }
     } else {
       throw new ExecutionException(this, functionName() + " is not a function in "
@@ -282,6 +285,7 @@ public class FunctionCall extends Expression<String, String> implements TypedMac
                               List<Expression<?, ?>> arguments,
                               EsqlConnection         esqlCon,
                               EsqlPath               path,
+                              PMap<String, Object>   parameters,
                               Environment            computeIn,
                               Environment            setIn) {
     if (arguments.size() > params.size()) {
@@ -302,7 +306,7 @@ public class FunctionCall extends Expression<String, String> implements TypedMac
                               ? null
                               : param.defaultValue().exec(target, esqlCon,
                                                           path.add(param.defaultValue()),
-                                                          computeIn));
+                                                          parameters, computeIn));
         i++;
       } else {
         /*
@@ -331,7 +335,7 @@ public class FunctionCall extends Expression<String, String> implements TypedMac
           param = params.get(i);
           i++;
         }
-        Object value = arg.exec(target, esqlCon, path.add(arg), computeIn);
+        Object value = arg.exec(target, esqlCon, path.add(arg), parameters, computeIn);
         if (!Types.instanceOf(value, param.type())) {
           throw new ExecutionException(call,
               "Param " + param.name() + " is of type " + param.type() + " but a "

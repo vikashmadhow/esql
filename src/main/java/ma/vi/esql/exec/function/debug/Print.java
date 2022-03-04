@@ -12,6 +12,7 @@ import ma.vi.esql.exec.function.FunctionParam;
 import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.expression.Expression;
+import org.pcollections.PMap;
 
 import java.util.Arrays;
 import java.util.List;
@@ -31,7 +32,7 @@ public class Print extends Function {
   }
 
   @Override
-  public String translate(FunctionCall call, Target target, EsqlConnection esqlCon, EsqlPath path, Environment env) {
+  public String translate(FunctionCall call, Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
     List<Expression<?, ?>> args = call.arguments();
     if (target == JAVASCRIPT) {
       return "console.log(" + args.get(0).translate(target, esqlCon, path.add(args.get(0)), env) + ")";
@@ -53,7 +54,7 @@ public class Print extends Function {
   @Override
   public Object exec(Target target, EsqlConnection esqlCon,
                      EsqlPath path,
-                     Environment env) {
+                     PMap<String, Object> parameters, Environment env) {
     Object text = env.get("text");
     if (text == null) {
       System.out.println("null");

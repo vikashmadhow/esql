@@ -13,11 +13,8 @@ import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.define.*;
 import ma.vi.esql.syntax.expression.*;
-import ma.vi.esql.syntax.expression.literal.BooleanLiteral;
-import ma.vi.esql.syntax.expression.literal.JsonArrayLiteral;
-import ma.vi.esql.syntax.expression.literal.Literal;
-import ma.vi.esql.syntax.expression.literal.StringLiteral;
-import ma.vi.esql.syntax.query.Column;
+import ma.vi.esql.syntax.expression.literal.*;
+import ma.vi.esql.syntax.expression.logical.And;
 import ma.vi.esql.syntax.query.Select;
 import ma.vi.esql.translation.TranslationException;
 
@@ -49,11 +46,6 @@ public class BaseRelation extends Relation {
     this.name = name != null ? name : "__temp__.rel_" + random(10);
     this.displayName = displayName;
     this.description = description;
-    if (constraints != null) {
-      for (ConstraintDefinition c: constraints) {
-        constraint(c);
-      }
-    }
 
     /*
      * Set default names of columns when not specified.
@@ -103,9 +95,17 @@ public class BaseRelation extends Relation {
       this.columnsByAlias.put(column.name(), column);
     }
 
+    expandColumns();
+
     if (attributes != null) {
       for (Attribute a: attributes) {
         attribute(a);
+      }
+    }
+
+    if (constraints != null) {
+      for (ConstraintDefinition c: constraints) {
+        constraint(c);
       }
     }
   }
@@ -153,7 +153,7 @@ public class BaseRelation extends Relation {
   }
 
   public void addColumn(Column column) {
-    for (Column c: expandColumn(column, aliasedColumns(columns), false)) {
+    for (Column c: expandColumn(column, aliasedColumns(columns))) {
       this.columns.add(c);
       this.columnsByAlias.put(c.name(), c);
     }
@@ -182,6 +182,10 @@ public class BaseRelation extends Relation {
                .toList();
   }
 
+  public Attribute attribute(String name, Expression<?, String> expr) {
+    return attribute(new Attribute(context, name, expr));
+  }
+
   @Override
   public Attribute attribute(Attribute att) {
     Expression<?, String> expr = att.attributeValue();
@@ -189,8 +193,9 @@ public class BaseRelation extends Relation {
     if (expr != null && !(expr instanceof Literal)) {
       expr = expandDerived(expr, columnsByAlias, name, new HashSet<>());
     }
-    removeColumn("/" + name);
-    for (Column col: columnsForAttribute(new Attribute(context, name, expr), "/", emptyMap())) {
+    removeColumn('/' + name);
+    for (Column col: columnsForAttribute(new Attribute(context, name, expr), "/",
+                                         aliasedColumns(columns))) {
       addColumn(col);
     }
     return attributes().put(name, att);
@@ -270,7 +275,7 @@ public class BaseRelation extends Relation {
     return cols;
   }
 
-  public void expandColumns() {
+  private void expandColumns() {
     List<Column> cols = expandColumns(new ArrayList<>(attributes().values()),
                                       this.columns,
                                       this.constraints);
@@ -310,8 +315,8 @@ public class BaseRelation extends Relation {
    *       from S:S
    *     </pre>
    */
-  public static List<Column> expandColumns(List<Attribute> attributes,
-                                           List<Column> columns,
+  public static List<Column> expandColumns(List<Attribute>            attributes,
+                                           List<Column>               columns,
                                            List<ConstraintDefinition> constraints) {
 
     Context context = !attributes .isEmpty() ? attributes .get(0).context
@@ -321,52 +326,50 @@ public class BaseRelation extends Relation {
     if (context == null) {
       throw new NotFoundException("Could not get a valid context");
     }
-
     List<Column> newCols = new ArrayList<>();
     Map<String, String> aliased = aliasedColumns(columns);
     for (Attribute attr: attributes) {
       newCols.addAll(columnsForAttribute(attr, "/", aliased));
     }
 
-    /*
-     * Add relation level attribute columns for multi columns unique constraint.
-     */
-    List<UniqueConstraint> uniqueCons = constraints.stream()
-                                                   .filter(c -> c instanceof UniqueConstraint)
-                                                   .map(c -> (UniqueConstraint)c)
-                                                   .toList();
-    List<List<String>> multiUnique = new ArrayList<>();
-    for (UniqueConstraint cons: uniqueCons) {
-      if (cons.columns().size() > 1) {
-        multiUnique.add(cons.columns());
-      }
-    }
-    if (!multiUnique.isEmpty()) {
-      newCols.add(new Column(context,
-                             "/" + UNIQUE,
-                             new JsonArrayLiteral(
-                                   context,
-                                   multiUnique.stream()
-                                              .map(u -> new JsonArrayLiteral(
-                                                              context,
-                                                              u.stream()
-                                                               .map(s -> new StringLiteral(context, s))
-                                                               .toList()))
-                                              .toList()),
-                             Types.JsonType,
-                             null));
-    }
-
-    /*
-     * Expand columns, adding unique attribute to unique columns.
-     */
-    Set<String> uniqueColumns = uniqueCons.stream()
-                                          .filter(u -> u.columns().size() == 1)
-                                          .map(u -> u.columns().get(0))
-                                          .collect(toSet());
+//    /*
+//     * Add relation level attribute columns for multi columns unique constraint.
+//     */
+//    List<UniqueConstraint> uniqueCons = constraints.stream()
+//                                                   .filter(c -> c instanceof UniqueConstraint)
+//                                                   .map(c -> (UniqueConstraint)c)
+//                                                   .toList();
+//    List<List<String>> multiUnique = new ArrayList<>();
+//    for (UniqueConstraint cons: uniqueCons) {
+//      if (cons.columns().size() > 1) {
+//        multiUnique.add(cons.columns());
+//      }
+//    }
+//    if (!multiUnique.isEmpty()) {
+//      newCols.add(new Column(context,
+//                             '/' + UNIQUE,
+//                             new JsonArrayLiteral(
+//                                   context,
+//                                   multiUnique.stream()
+//                                              .map(u -> new JsonArrayLiteral(
+//                                                              context,
+//                                                              u.stream()
+//                                                               .map(s -> new StringLiteral(context, s))
+//                                                               .toList()))
+//                                              .toList()),
+//                             Types.JsonType,
+//                             null));
+//    }
+//
+//    /*
+//     * Expand columns, adding unique attribute to unique columns.
+//     */
+//    Set<String> uniqueColumns = uniqueCons.stream()
+//                                          .filter(u -> u.columns().size() == 1)
+//                                          .map(u -> u.columns().get(0))
+//                                          .collect(toSet());
     for (Column column: columns) {
-     newCols.addAll(expandColumn(column, aliased,
-                                 uniqueColumns.contains(column.name())));
+      newCols.addAll(expandColumn(column, aliased));
     }
     return newCols;
   }
@@ -386,8 +389,7 @@ public class BaseRelation extends Relation {
    * </pre>
    */
   public static List<Column> expandColumn(Column column,
-                                          Map<String, String> aliased,
-                                          boolean unique) {
+                                          Map<String, String> aliased) {
     List<Column> newCols = new ArrayList<>();
     newCols.add(column);
     String colAlias = column.name();
@@ -403,16 +405,16 @@ public class BaseRelation extends Relation {
                                  null));
         }
         Map<String, Attribute> attributes = column.metadata().attributes();
-        if (unique && !attributes.containsKey(UNIQUE)) {
-          newCols.add(new Column(column.context,
-                                 colAlias + "/" + UNIQUE,
-                                 new BooleanLiteral(column.context, true),
-                                 Types.BoolType,
-                                 null));
-        }
+//        if (unique && !attributes.containsKey(UNIQUE)) {
+//          newCols.add(new Column(column.context,
+//                                 colAlias + '/' + UNIQUE,
+//                                 new BooleanLiteral(column.context, true),
+//                                 Types.BoolType,
+//                                 null));
+//        }
         if (column.notNull() && !attributes.containsKey(REQUIRED)) {
           newCols.add(new Column(column.context,
-                                 colAlias + "/" + REQUIRED,
+                                 colAlias + '/' + REQUIRED,
                                  new BooleanLiteral(column.context, true),
                                  Types.BoolType,
                                  null));
@@ -476,25 +478,7 @@ public class BaseRelation extends Relation {
 
   public void constraint(ConstraintDefinition c) {
     constraints.add(c);
-    if (c instanceof UniqueConstraint u && u.columns().size() == 1) {
-      /*
-       * For unique constraints on single columns add a unique metadata attribute
-       * to the column.
-       */
-      String col = u.columns().get(0);
-      addColumn(new Column(c.context,
-                           col + "/" + UNIQUE,
-                           new BooleanLiteral(c.context, true),
-                           Types.BoolType,
-                           null));
-    }
-    if (c instanceof ForeignKeyConstraint f
-     && context.structure.relationExists(f.targetTable())) {
-      Relation relation = context.structure.relation(f.targetTable());
-      if (relation instanceof BaseRelation br) {
-        br.dependentConstraint(f);
-      }
-    }
+    addAttributesForConstraints(this, c);
   }
 
   public ConstraintDefinition constraint(String constraintName) {
@@ -541,13 +525,13 @@ public class BaseRelation extends Relation {
   }
 
   /**
-   * Returns the constraint on this table same as the provided definition, or null
-   * if none found. When comparing constraints, their names are ignored (i.e. two
-   * constraints are equal if they have the same structure even if their names are
-   * different) and the source table of the constraint definition is assumed to be
-   * this table. The latter is because the constraint definition is attached to a
-   * bigger definition (create table, alter table, etc.) which has the table name;
-   * the constraint definition itself does not carry the table it is defined against.
+   * Returns the constraint on this table similar to the provided definition, or
+   * null if none found. When comparing constraints, their names are ignored (i.e.
+   * two constraints are equal if they have the same structure even if their names
+   * are different) and the source table of the constraint definition is assumed
+   * to be this table. The latter is because the constraint definition is attached
+   * to a bigger definition (create table, alter table, etc.) which has the table
+   * name; the constraint definition itself does not carry the table it is defined on.
    */
   public synchronized ConstraintDefinition sameAs(ConstraintDefinition def) {
     if (constraints != null) {
@@ -558,6 +542,208 @@ public class BaseRelation extends Relation {
       }
     }
     return null;
+  }
+
+  private static void addAttributesForConstraints(BaseRelation rel, ConstraintDefinition constraint) {
+    if      (constraint instanceof UniqueConstraint     u) addUniqueConstraint (rel, u);
+    else if (constraint instanceof CheckConstraint      c) addCheckConstraint  (rel, c);
+    else if (constraint instanceof PrimaryKeyConstraint p) addPrimaryConstraint(rel, p);
+    else if (constraint instanceof ForeignKeyConstraint f) addForeignConstraint(rel, f);
+  }
+
+  private static void addUniqueConstraint(BaseRelation rel, UniqueConstraint unique) {
+    if (unique.columns().size() == 1) {
+      /*
+       * For unique constraints on single columns add a unique metadata attribute
+       * to the column.
+       */
+      String colName = unique.columns().get(0);
+      Column existingCol = rel.findColumn(colName);
+      if (existingCol == null) {
+        throw new TranslationException(colName + " not found in table " + rel.name);
+      }
+      Attribute attr = existingCol._attribute(UNIQUE, new BooleanLiteral(unique.context, true));
+      rel.addColumnsForAttribute(attr, colName);
+    }
+
+    /*
+     * For multi-column unique constraints add to the unique metadata attribute
+     * of the table.
+     */
+    Attribute attr = rel.attribute(UNIQUE);
+    List<JsonArrayLiteral> items = new ArrayList<>();
+    if (attr != null) {
+      items.addAll((List<JsonArrayLiteral>)(((JsonArrayLiteral)attr.attributeValue()).items()));
+    }
+    items.add(new JsonArrayLiteral(unique.context, unique.columns().stream()
+                                                         .map(c -> new StringLiteral(unique.context, c))
+                                                         .toList()));
+    rel.attribute(UNIQUE, new JsonArrayLiteral(unique.context, items));
+  }
+
+  private static void addPrimaryConstraint(BaseRelation rel, PrimaryKeyConstraint pri) {
+    if (pri.columns().size() == 1) {
+      /*
+       * Add primary key constraint to single .
+       */
+      String colName = pri.columns().get(0);
+      Column existingCol = rel.findColumn(colName);
+      if (existingCol == null) {
+        throw new TranslationException(colName + " not found in table " + rel.name);
+      }
+      Attribute attr = existingCol._attribute(PRIMARY_KEY, new BooleanLiteral(pri.context, true));
+      rel.addColumnsForAttribute(attr, colName);
+    }
+
+    /*
+     * For multi-column primary constraints add to the unique metadata attribute
+     * of the table.
+     */
+    rel.attribute(PRIMARY_KEY, new JsonArrayLiteral(pri.context,
+                                                    pri.columns().stream()
+                                                       .map(c -> new StringLiteral(pri.context, c))
+                                                       .toList()));
+  }
+
+  private static void addForeignConstraint(BaseRelation rel, ForeignKeyConstraint f) {
+    if (f.columns().size() == 1) {
+      /*
+       * Add foreign key references expressions to single columns.
+       */
+      String colName = f.columns().get(0);
+      Column existingCol = rel.findColumn(colName);
+      if (existingCol == null) {
+        throw new TranslationException(colName + " not found in table " + rel.name);
+      }
+      Attribute keys = existingCol.attribute(REFERENCES);
+      List<Literal<?>> array = new ArrayList<>();
+      if (keys != null) {
+        JsonArrayLiteral json = (JsonArrayLiteral)keys.attributeValue();
+        array.addAll(json.items());
+      }
+      array.add(new JsonObjectLiteral(f.context,
+                                      Arrays.asList(Attribute.from(f.context, "to_table", f.targetTable()),
+                                                    Attribute.from(f.context, "to_columns", f.targetColumns().get(0)))));
+      Attribute attr = existingCol._attribute(REFERENCES, new JsonArrayLiteral(f.context, array));
+      rel.addColumnsForAttribute(attr, colName);
+    }
+
+    /*
+     * Add as table attribute.
+     */
+    Attribute attr = rel.attribute(REFERENCES);
+    List<JsonObjectLiteral> items = new ArrayList<>();
+    if (attr != null) {
+      items.addAll((List<JsonObjectLiteral>)(((JsonArrayLiteral)attr.attributeValue()).items()));
+    }
+    items.add(new JsonObjectLiteral(f.context,
+                                    Arrays.asList(new Attribute(f.context,
+                                                                "from_columns",
+                                                                new JsonArrayLiteral(f.context,
+                                                                                     f.columns().stream()
+                                                                                      .map(c -> new StringLiteral(f.context, c))
+                                                                                      .toList())),
+                                                  Attribute.from(f.context, "to_table", f.targetTable()),
+                                                  new Attribute(f.context,
+                                                                "to_columns",
+                                                                new JsonArrayLiteral(f.context,
+                                                                                     f.targetColumns().stream()
+                                                                                      .map(c -> new StringLiteral(f.context, c))
+                                                                                      .toList())))));
+    rel.attribute(REFERENCES, new JsonArrayLiteral(f.context, items));
+
+    if (rel.context.structure.relationExists(f.targetTable())) {
+      Relation relation = rel.context.structure.relation(f.targetTable());
+      if (relation instanceof BaseRelation br) {
+        br.dependentConstraint(f);
+        if (f.targetColumns().size() == 1) {
+          /*
+           * Add foreign key referred by expressions to single target columns.
+           */
+          String colName = f.targetColumns().get(0);
+          Column existingCol = br.findColumn(colName);
+          if (existingCol == null) {
+            throw new TranslationException(colName + " not found in table " + br.name);
+          }
+          Attribute keys = existingCol.attribute(REFERRED_BY);
+          List<Literal<?>> array = new ArrayList<>();
+          if (keys != null) {
+            JsonArrayLiteral json = (JsonArrayLiteral)keys.attributeValue();
+            array.addAll(json.items());
+          }
+          array.add(new JsonObjectLiteral(f.context,
+                                          Arrays.asList(Attribute.from(f.context, "from_table", f.table()),
+                                                        Attribute.from(f.context, "from_columns", f.columns().get(0)))));
+          attr = existingCol._attribute(REFERRED_BY, new JsonArrayLiteral(f.context, array));
+          br.addColumnsForAttribute(attr, colName);
+        }
+
+        /*
+         * Add as table attribute.
+         */
+        attr = br.attribute(REFERRED_BY);
+        items = new ArrayList<>();
+        if (attr != null) {
+          items.addAll((List<JsonObjectLiteral>)(((JsonArrayLiteral)attr.attributeValue()).items()));
+        }
+        items.add(new JsonObjectLiteral(f.context,
+                                        Arrays.asList(new Attribute(f.context,
+                                                                    "from_columns",
+                                                                    new JsonArrayLiteral(f.context,
+                                                                                         f.columns().stream()
+                                                                                          .map(c -> new StringLiteral(f.context, c))
+                                                                                          .toList())),
+                                                      Attribute.from(f.context, "from_table", f.table()),
+                                                      new Attribute(f.context,
+                                                                    "to_columns",
+                                                                    new JsonArrayLiteral(f.context,
+                                                                                         f.targetColumns().stream()
+                                                                                          .map(c -> new StringLiteral(f.context, c))
+                                                                                          .toList())))));
+        br.attribute(REFERRED_BY, new JsonArrayLiteral(f.context, items));
+      }
+    }
+  }
+
+  private static void addCheckConstraint(BaseRelation rel, CheckConstraint chk) {
+    if (chk.columns().size() == 1) {
+      /*
+       * Add check constraint expressions to single columns
+       */
+      String colName = chk.columns().get(0);
+      Column existingCol = rel.findColumn(colName);
+      if (existingCol == null) {
+        throw new TranslationException(colName + " not found in table " + rel.name);
+      }
+      Attribute checkAttr = existingCol.attribute(CHECK);
+      Expression<?, String> check = checkAttr == null ? null : checkAttr.attributeValue();
+      check = check == null || check.equals(chk.expr())
+            ? chk.expr()
+            : new And(chk.context,
+                      new GroupedExpression(chk.context, check),
+                      new GroupedExpression(chk.context, chk.expr()));
+
+      rel.addColumnsForAttribute(existingCol._attribute(CHECK, check), colName);
+      rel.addColumnsForAttribute(existingCol._attribute(CHECK + "/$e", new UncomputedExpression(chk.context, check)), colName);
+    }
+
+    /*
+     * For multi-column check constraints add to the check metadata attribute of
+     * the table.
+     */
+    Attribute attr = rel.attribute(CHECK);
+    List<UncomputedExpression> items = new ArrayList<>();
+    if (attr != null) {
+      items.addAll((List<UncomputedExpression>)((JsonArrayLiteral)attr.attributeValue()).items());
+    }
+    items.add(new UncomputedExpression(chk.context, chk.expr()));
+    rel.attribute(new Attribute(chk.context, CHECK, new JsonArrayLiteral(chk.context, items)));
+  }
+
+  private void addColumnsForAttribute(Attribute attr, String colName) {
+    for (Column col: columnsForAttribute(attr, colName + '/', aliasedColumns(columns))) {
+      addOrReplaceColumn(col);
+    }
   }
 
 //  public void dependency(Relation dependency) {

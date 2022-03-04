@@ -17,6 +17,8 @@ import ma.vi.esql.syntax.macro.Macro;
 import ma.vi.esql.syntax.macro.TypedMacro;
 import ma.vi.esql.syntax.macro.UntypedMacro;
 import ma.vi.esql.translation.TranslationException;
+import org.pcollections.HashPMap;
+import org.pcollections.IntTreePMap;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -147,7 +149,7 @@ public class EsqlConnectionImpl implements EsqlConnection {
 
     Environment env = new ProgramEnvironment(db.structure());
     for (Param p: params) env.add(p.a, p.b);
-    return (R)st.exec(database().target(), this, new EsqlPath(st), env);
+    return (R)st.exec(database().target(), this, new EsqlPath(st), HashPMap.empty(IntTreePMap.empty()), env);
   }
 
   private static <T extends Esql<?, ?>,

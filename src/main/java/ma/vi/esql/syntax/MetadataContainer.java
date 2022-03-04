@@ -59,8 +59,8 @@ public abstract class MetadataContainer<T> extends Expression<String, T> {
   /**
    * Set metadata.
    */
-  public <T extends MetadataContainer<?>> T metadata(Metadata metadata) {
-    return (T)set("metadata", metadata);
+  public <M extends MetadataContainer<?>> M metadata(Metadata metadata) {
+    return (M)set("metadata", metadata);
   }
 
   public Attribute attribute(String name) {

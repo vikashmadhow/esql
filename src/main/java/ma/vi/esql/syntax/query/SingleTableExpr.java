@@ -103,17 +103,22 @@ public class SingleTableExpr extends AbstractAliasTableExpr {
       if (with != null) {
         for (Cte cte: with.ctes()) {
           if (cte.name().equals(table)) {
-            if (cte.fields() == null || cte.fields().isEmpty()) {
-              return cte.columns().stream()
-                        .map(c -> c.expression(ColumnRef.qualify(c.expression(), alias())))
-                        .toList();
-            } else {
-              return cte.columns().stream()
-                        .map(c -> new Column(c.context, c.name(),
-                                             new ColumnRef(c.context, table, c.name()),
-                                             c.type(), null))
-                        .toList();
-            }
+            return cte.columns().stream()
+                      .map(c -> new Column(c.context, c.name(),
+                                           new ColumnRef(c.context, alias(), c.name()),
+                                           c.type(), null))
+                      .toList();
+//            if (cte.fields() == null || cte.fields().isEmpty()) {
+//              return cte.columns().stream()
+//                        .map(c -> c.expression(ColumnRef.qualify(c.expression(), alias())))
+//                        .toList();
+//            } else {
+//              return cte.columns().stream()
+//                        .map(c -> new Column(c.context, c.name(),
+//                                             new ColumnRef(c.context, table, c.name()),
+//                                             c.type(), null))
+//                        .toList();
+//            }
           }
         }
       }

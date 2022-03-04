@@ -11,7 +11,7 @@ import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
-import ma.vi.esql.syntax.query.Column;
+import ma.vi.esql.semantic.type.Column;
 import ma.vi.esql.syntax.query.Order;
 import ma.vi.esql.syntax.query.Select;
 import org.pcollections.PMap;

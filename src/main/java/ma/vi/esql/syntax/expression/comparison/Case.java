@@ -170,22 +170,22 @@ public class Case extends MultipleSubExpressions {
   }
 
   @Override
-  public Object postTransformExec(Target         target,
+  public Object postTransformExec(Target target,
                                   EsqlConnection esqlCon,
-                                  EsqlPath       path,
-                                  Environment    env) {
+                                  EsqlPath path,
+                                  PMap<String, Object> parameters, Environment env) {
     for (Iterator<Expression<?, String>> i = expressions().iterator(); i.hasNext(); ) {
       Expression<?, String> e = i.next();
       if (i.hasNext()) {
         Expression<?, String> expr = i.next();
-        Object cond = expr.exec(target, esqlCon, path.add(expr), env);
+        Object cond = expr.exec(target, esqlCon, path.add(expr), parameters, env);
         if (cond instanceof Boolean b) {
-          if (b) return e.exec(target, esqlCon, path.add(e), env);
+          if (b) return e.exec(target, esqlCon, path.add(e), parameters, env);
         } else {
           throw new ExecutionException(this, "Non-boolean condition: " + expr);
         }
       } else {
-        return e.exec(target, esqlCon, path.add(e), env);
+        return e.exec(target, esqlCon, path.add(e), parameters, env);
       }
     }
     return null;

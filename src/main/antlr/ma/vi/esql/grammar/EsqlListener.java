@@ -254,6 +254,16 @@ public interface EsqlListener extends ParseTreeListener {
 	 */
 	void exitNormalAliasPart(EsqlParser.NormalAliasPartContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link EsqlParser#identifier}.
+	 * @param ctx the parse tree
+	 */
+	void enterIdentifier(EsqlParser.IdentifierContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link EsqlParser#identifier}.
+	 * @param ctx the parse tree
+	 */
+	void exitIdentifier(EsqlParser.IdentifierContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link EsqlParser#qualifiedName}.
 	 * @param ctx the parse tree
 	 */
@@ -862,18 +872,6 @@ public interface EsqlListener extends ParseTreeListener {
 	 */
 	void exitLeftOfString(EsqlParser.LeftOfStringContext ctx);
 	/**
-	 * Enter a parse tree produced by the {@code UncomputedExpr}
-	 * labeled alternative in {@link EsqlParser#expr}.
-	 * @param ctx the parse tree
-	 */
-	void enterUncomputedExpr(EsqlParser.UncomputedExprContext ctx);
-	/**
-	 * Exit a parse tree produced by the {@code UncomputedExpr}
-	 * labeled alternative in {@link EsqlParser#expr}.
-	 * @param ctx the parse tree
-	 */
-	void exitUncomputedExpr(EsqlParser.UncomputedExprContext ctx);
-	/**
 	 * Enter a parse tree produced by the {@code ConcatenationExpr}
 	 * labeled alternative in {@link EsqlParser#expr}.
 	 * @param ctx the parse tree
@@ -1458,18 +1456,6 @@ public interface EsqlListener extends ParseTreeListener {
 	 */
 	void exitNull(EsqlParser.NullContext ctx);
 	/**
-	 * Enter a parse tree produced by the {@code BaseArrayLiteral}
-	 * labeled alternative in {@link EsqlParser#literal}.
-	 * @param ctx the parse tree
-	 */
-	void enterBaseArrayLiteral(EsqlParser.BaseArrayLiteralContext ctx);
-	/**
-	 * Exit a parse tree produced by the {@code BaseArrayLiteral}
-	 * labeled alternative in {@link EsqlParser#literal}.
-	 * @param ctx the parse tree
-	 */
-	void exitBaseArrayLiteral(EsqlParser.BaseArrayLiteralContext ctx);
-	/**
 	 * Enter a parse tree produced by the {@code JsonArrayLiteral}
 	 * labeled alternative in {@link EsqlParser#literal}.
 	 * @param ctx the parse tree
@@ -1481,6 +1467,18 @@ public interface EsqlListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitJsonArrayLiteral(EsqlParser.JsonArrayLiteralContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code BaseArrayLiteral}
+	 * labeled alternative in {@link EsqlParser#literal}.
+	 * @param ctx the parse tree
+	 */
+	void enterBaseArrayLiteral(EsqlParser.BaseArrayLiteralContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code BaseArrayLiteral}
+	 * labeled alternative in {@link EsqlParser#literal}.
+	 * @param ctx the parse tree
+	 */
+	void exitBaseArrayLiteral(EsqlParser.BaseArrayLiteralContext ctx);
 	/**
 	 * Enter a parse tree produced by the {@code JsonObjectLiteral}
 	 * labeled alternative in {@link EsqlParser#literal}.
@@ -1589,6 +1587,18 @@ public interface EsqlListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitInterval(EsqlParser.IntervalContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code UncomputedExpr}
+	 * labeled alternative in {@link EsqlParser#baseLiteral}.
+	 * @param ctx the parse tree
+	 */
+	void enterUncomputedExpr(EsqlParser.UncomputedExprContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code UncomputedExpr}
+	 * labeled alternative in {@link EsqlParser#baseLiteral}.
+	 * @param ctx the parse tree
+	 */
+	void exitUncomputedExpr(EsqlParser.UncomputedExprContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link EsqlParser#literalList}.
 	 * @param ctx the parse tree

@@ -19,14 +19,16 @@ import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.define.*;
 import ma.vi.esql.syntax.macro.TypedMacro;
-import ma.vi.esql.syntax.query.Column;
+import ma.vi.esql.semantic.type.Column;
 import ma.vi.esql.syntax.query.QueryUpdate;
+import ma.vi.esql.syntax.query.SingleTableExpr;
 import ma.vi.esql.syntax.query.TableExpr;
 import ma.vi.esql.translation.TranslationException;
 import org.pcollections.PMap;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static ma.vi.esql.semantic.type.Types.UnknownType;
 import static ma.vi.esql.translation.SqlServerTranslator.requireIif;
@@ -195,22 +197,19 @@ public class ColumnRef extends    Expression<String, String>
    */
   public static Column column(QueryUpdate qu, ColumnRef ref, EsqlPath path) {
     Column column = null;
-    while (column == null
-        && qu != null
-        && qu.tables().exists(path)) {
-
+    String qualifier = ref.qualifier();
+    while (column == null && qu != null) {
       TableExpr tables = qu.tables();
-      String q = ref.qualifier();
-      if (q != null) {
+      if (qualifier != null) {
         /*
          * In a correlated query, the qualifier might reference a table outside
          * of this query, resulting in the following statement returning null
          * when looking for that named table. This is handled below where the
          * parent of the current query is checked.
          */
-        tables = tables.named(q);
+        tables = tables.named(qualifier);
       }
-      if (tables != null) {
+      if (tables != null && tables.exists(path)) {
         column = tables.columnList(path).stream()
                        .filter(c -> c.name().equals(ref.columnName()))
                        .findFirst().orElse(null);
@@ -220,6 +219,21 @@ public class ColumnRef extends    Expression<String, String>
                                            ? null
                                            : QueryUpdate.ancestorAndPath(path.tail());
         if (ancestor == null) {
+          /*
+           * If the query is inside a create table (e.g., a select expression as
+           * the expression for a derived column), the target table might not be
+           * created yet (e.g. the column is referring to a column in the current
+           * create table statement). In that case, extract the column from the
+           * column definition in the create table.
+           */
+          CreateTable create = path.ancestor(CreateTable.class);
+          if (create != null) {
+            Map<String, ColumnDefinition> cols = create.columnsByName();
+            if (cols.containsKey(ref.columnName())) {
+              ColumnDefinition def = cols.get(ref.columnName());
+              column = Column.fromDefinition(def, path);
+            }
+          }
           qu = null;
         } else {
           qu = ancestor.a;
@@ -336,7 +350,7 @@ public class ColumnRef extends    Expression<String, String>
   @Override
   public Object exec(Target target, EsqlConnection esqlCon,
                      EsqlPath path,
-                     Environment env) {
+                     PMap<String, Object> parameters, Environment env) {
     if (!env.knows(name())) {
       throw new ExecutionException(this, "Unknown variable " + name() + " in " + env);
     }

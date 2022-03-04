@@ -9,6 +9,7 @@ import ma.vi.esql.exec.EsqlConnection;
 import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.semantic.type.AmbiguousColumnException;
 import ma.vi.esql.semantic.type.BaseRelation;
+import ma.vi.esql.semantic.type.Column;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
@@ -315,7 +316,7 @@ public class ColumnList extends Esql<String, String> implements UntypedMacro {
   @Override
   protected String trans(Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
     return columns().stream()
-                    .map(c -> c.trans(target, null, path, parameters, null))
+                    .map(c -> c.translate(target, null, path, parameters, null))
                     .collect(joining(", "));
   }
 

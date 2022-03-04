@@ -8,7 +8,6 @@ import ma.vi.base.lang.NotFoundException;
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.semantic.scope.Symbol;
 import ma.vi.esql.syntax.expression.ColumnRef;
-import ma.vi.esql.syntax.query.Column;
 
 import java.util.ArrayList;
 import java.util.Collections;

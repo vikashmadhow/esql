@@ -83,12 +83,13 @@ public class Imply extends Expression<String, Imply> {
   }
 
   @Override
-  public Object exec(Target         target,
-                     EsqlConnection esqlCon,
-                     EsqlPath       path,
-                     Environment    env) {
-    if ((Boolean)condition().exec(target, esqlCon, path.add(condition()), env)) {
-      If.execBody(body(), target, esqlCon, path, env);
+  public Object exec(Target               target,
+                     EsqlConnection       esqlCon,
+                     EsqlPath             path,
+                     PMap<String, Object> parameters,
+                     Environment          env) {
+    if ((Boolean)condition().exec(target, esqlCon, path.add(condition()), parameters, env)) {
+      If.execBody(body(), target, esqlCon, path, parameters, env);
     }
     return null;
   }

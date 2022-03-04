@@ -12,6 +12,7 @@ import ma.vi.esql.exec.function.FunctionParam;
 import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.expression.Expression;
+import org.pcollections.PMap;
 
 import java.util.Arrays;
 import java.util.List;
@@ -57,13 +58,13 @@ public class FormatDate extends Function {
   }
 
   @Override
-  public String translate(FunctionCall call, Target target, EsqlConnection esqlCon, EsqlPath path, Environment env) {
+  public String translate(FunctionCall call, Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
     List<Expression<?, ?>> args = call.arguments();
     Expression<?, ?> date = args.get(0);
 
     String format = null;
     if (args.size() >= 2) {
-      format = args.get(1).exec(target, esqlCon, path, env).toString();
+      format = args.get(1).exec(target, esqlCon, path, parameters, env).toString();
     }
     if (target == POSTGRESQL) {
       if (format == null) {

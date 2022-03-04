@@ -10,7 +10,8 @@ import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
-import ma.vi.esql.syntax.expression.Expression;
+import org.pcollections.HashPMap;
+import org.pcollections.IntTreePMap;
 import org.pcollections.PMap;
 
 import java.util.List;
@@ -88,22 +89,16 @@ public class Metadata extends TableDefinition {
     return evaluateAttribute(name,
                              NULL_CONNECTION,
                              new EsqlPath(this),
+                             HashPMap.empty(IntTreePMap.empty()),
                              NULL_DB.structure());
   }
 
-  public <T> T evaluateAttribute(String         name,
-                                 EsqlConnection esqlCon,
-                                 EsqlPath       path,
-                                 Environment    env) {
+  public <T> T evaluateAttribute(String               name,
+                                 EsqlConnection       esqlCon,
+                                 EsqlPath             path,
+                                 PMap<String, Object> parameters,
+                                 Environment          env) {
     Attribute a = attributes().get(name);
-    if (a == null) {
-      return null;
-    } else {
-      Expression<?, String> expr = a.attributeValue();
-      return (T)expr.exec(Target.ESQL,
-                          esqlCon,
-                          path == null ? new EsqlPath(expr) : path.add(expr),
-                          env);
-    }
+    return a == null ? null : a.evaluateAttribute(esqlCon, path, parameters, env);
   }
 }

@@ -64,10 +64,10 @@ public class Continue extends Expression<String, Continue> {
   }
 
   @Override
-  public Object exec(Target         target,
+  public Object exec(Target target,
                      EsqlConnection esqlCon,
-                     EsqlPath       path,
-                     Environment    env) {
+                     EsqlPath path,
+                     PMap<String, Object> parameters, Environment env) {
     env.set("#continue", true);
     return null;
   }

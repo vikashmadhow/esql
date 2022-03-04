@@ -53,6 +53,36 @@ sourceSets {
   }
 }
 
+version = "0.8.9"
+ext.isReleaseVersion = !version.endsWith("SNAPSHOT")
+
+java {
+  modularity.inferModulePath = true
+  withJavadocJar()
+  withSourcesJar()
+}
+
+group = 'ma.vi'
+version "0.8.9"
+sourceCompatibility = JavaVersion.VERSION_17
+
+project.ext {
+  moduleName = project.group + '.' + project.name
+  isReleaseVersion = !version.endsWith("SNAPSHOT")
+}
+
+jar {
+  inputs.property("moduleName", project.moduleName)
+  manifest {
+    attributes('Automatic-Module-Name': project.moduleName)
+  }
+}
+
+java {
+  withJavadocJar()
+  withSourcesJar()
+}
+
 projectFilestatistics {
   // the files to include in the generation of the statistics
   includes = ["src/main/**/*.*"]
@@ -97,7 +127,7 @@ dependencies {
   implementation("org.apache.commons:commons-lang3:latest.release")
   implementation("org.yaml:snakeyaml:latest.release")
 
-  implementation("org.postgresql:postgresql:42.3.1")
+  implementation("org.postgresql:postgresql:42.3.2")
   implementation('com.microsoft.sqlserver:mssql-jdbc:10.2.0.jre17')
   implementation("org.mariadb.jdbc:mariadb-java-client:2.7.3")
   implementation("mysql:mysql-connector-java:8.0.25")
@@ -117,18 +147,6 @@ test {
     events "passed", "skipped", "failed"
   }
   jvmArgs("--enable-preview")
-}
-
-group = 'ma.vi.esql'
-archivesBaseName = 'esql'
-sourceCompatibility = JavaVersion.VERSION_17
-version = "0.8.8"
-ext.isReleaseVersion = !version.endsWith("SNAPSHOT")
-
-java {
-  modularity.inferModulePath = true
-  withJavadocJar()
-  withSourcesJar()
 }
 
 tasks.withType(Jar) {

@@ -14,7 +14,7 @@ import ma.vi.esql.database.Database;
 import ma.vi.esql.semantic.type.*;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.query.AttributeIndex;
-import ma.vi.esql.syntax.query.Column;
+import ma.vi.esql.semantic.type.Column;
 import ma.vi.esql.syntax.query.QueryTranslation;
 import org.postgresql.util.PGInterval;
 
@@ -238,25 +238,6 @@ public class Result implements Iterator<Result.Row>,
   public Map<String, Object> resultAttributes() {
     return query.resultAttributes();
   }
-
-//  public Map<String, Object> resultAttributes() {
-//    try {
-//      Map<String, Object> attributes = new HashMap<>(query.resultAttributes());
-//      for (AttributeIndex attr: query.resultAttributeIndices()) {
-//        Object v = rs.getObject(attr.index());
-//        if (attr.type() == Types.BoolType && v instanceof Number) {
-//          /*
-//           * Conversion of numeric to boolean for SQL Server.
-//           */
-//          v = ((Number)v).intValue() == 1 ? Boolean.TRUE : Boolean.FALSE;
-//        }
-//        attributes.put(attr.name(), v);
-//      }
-//      return attributes;
-//    } catch (SQLException sqle) {
-//      throw Errors.unchecked(sqle);
-//    }
-//  }
 
   /**
    * Converts and normalize the value `v` based on the expected value type.

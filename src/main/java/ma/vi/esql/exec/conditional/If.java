@@ -95,40 +95,42 @@ public class If extends Expression<String, If> {
   }
 
   @Override
-  public Object exec(Target         target,
-                     EsqlConnection esqlCon,
-                     EsqlPath       path,
-                     Environment    env) {
+  public Object exec(Target               target,
+                     EsqlConnection       esqlCon,
+                     EsqlPath             path,
+                     PMap<String, Object> parameters,
+                     Environment          env) {
     Imply ifImply = ifImply();
-    if ((Boolean)ifImply.condition().exec(target, esqlCon, path, env)) {
-      execBody(ifImply.body(), target, esqlCon, path, env);
+    if ((Boolean)ifImply.condition().exec(target, esqlCon, path, parameters, env)) {
+      execBody(ifImply.body(), target, esqlCon, path, parameters, env);
     } else {
       boolean conditionMet = false;
       List<Imply> elseIfs = elseIfImplies();
       if (elseIfs != null && !elseIfs.isEmpty()) {
         for (Imply elseIf: elseIfs) {
-          if ((Boolean)elseIf.condition().exec(target, esqlCon, path, env)) {
-            execBody(elseIf.body(), target, esqlCon, path, env);
+          if ((Boolean)elseIf.condition().exec(target, esqlCon, path, parameters, env)) {
+            execBody(elseIf.body(), target, esqlCon, path, parameters, env);
             conditionMet = true;
             break;
           }
         }
       }
       if (!conditionMet && elseImply() != null) {
-        execBody(elseImply(), target, esqlCon, path, env);
+        execBody(elseImply(), target, esqlCon, path, parameters, env);
       }
     }
     return null;
   }
 
   static void execBody(List<Expression<?, ?>> body,
-                              Target                 target,
-                              EsqlConnection         esqlCon,
-                              EsqlPath               path,
-                              Environment            parentEnv) {
+                       Target                 target,
+                       EsqlConnection         esqlCon,
+                       EsqlPath               path,
+                       PMap<String, Object>   parameters,
+                       Environment            parentEnv) {
     Environment bodyEnv = new BlockEnvironment(parentEnv);
     for (Expression<?, ?> e: body) {
-      e.exec(target, esqlCon, path.add(e), bodyEnv);
+      e.exec(target, esqlCon, path.add(e), parameters, bodyEnv);
     }
   }
 

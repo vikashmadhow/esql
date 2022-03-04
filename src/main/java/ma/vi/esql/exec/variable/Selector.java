@@ -76,14 +76,14 @@ public class Selector extends Expression<String, Selector> {
   }
 
   @Override
-  public Object exec(Target         target,
+  public Object exec(Target target,
                      EsqlConnection esqlCon,
-                     EsqlPath       path,
-                     Environment    env) {
-    Object on = on().exec(target, esqlCon, path.add(on()), env);
+                     EsqlPath path,
+                     PMap<String, Object> parameters, Environment env) {
+    Object on = on().exec(target, esqlCon, path.add(on()), parameters, env);
     EsqlPath extPath = path.add(on());
     List<?> memberList = members().stream()
-                                  .map(m -> m.exec(target, esqlCon, extPath.add(m), env))
+                                  .map(m -> m.exec(target, esqlCon, extPath.add(m), parameters, env))
                                   .toList();
     if (on == null) {
       throw new ExecutionException(this, "Object to select from is null: " + on());

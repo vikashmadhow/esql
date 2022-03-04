@@ -68,7 +68,7 @@ public class DropTable extends Define {
   @Override
   protected Object postTransformExec(Target target, EsqlConnection esqlCon,
                                      EsqlPath path,
-                                     Environment env) {
+                                     PMap<String, Object> parameters, Environment env) {
     try {
       /*
        * Execute drop cascading to dependents and updating internal structures.

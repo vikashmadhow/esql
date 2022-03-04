@@ -64,10 +64,10 @@ public class Break extends Expression<String, Break> {
   }
 
   @Override
-  public Object exec(Target         target,
+  public Object exec(Target target,
                      EsqlConnection esqlCon,
-                     EsqlPath       path,
-                     Environment    env) {
+                     EsqlPath path,
+                     PMap<String, Object> parameters, Environment env) {
     env.set("#break", true);
     return null;
   }

@@ -41,7 +41,7 @@ public class UpdateTest extends DataTest {
       Assertions.assertEquals(
           "update \"public\".\"S\" \"usr\" " +
               "set \"a\"=1, \"i\"='yxz' " +
-              "where (\"i\" = 'xyz@yxz.com')",
+              "where \"i\" = 'xyz@yxz.com'",
           q.translation());
       con.exec(s);
     }
@@ -62,7 +62,7 @@ public class UpdateTest extends DataTest {
           "update \"usr\" " +
               "set \"a\"=1, \"i\"=N'yxz' " +
               "from \"DBO\".\"S\" \"usr\" " +
-              "where (\"i\" = N'xyz@yxz.com')",
+              "where \"i\" = N'xyz@yxz.com'",
           q.translation());
       con.exec(s);
     }
@@ -86,9 +86,9 @@ public class UpdateTest extends DataTest {
           "with \"!!\"(id, v1, v2) as (" +
                     "select \"usr\".ctid, 1, 'yxz' " +
                     "from \"public\".\"S\" \"usr\" " +
-                    "join \"a.b\".\"T\" \"usr_role\" on (\"usr_role\".\"s_id\" = \"usr\".\"_id\") " +
-                    "join \"a.b\".\"X\" \"role\" on (\"usr_role\".\"_id\" = \"role\".\"t_id\") " +
-                    "where (\"i\" = 'xyz@yxz.com')) " +
+                    "join \"a.b\".\"T\" \"usr_role\" on \"usr_role\".\"s_id\" = \"usr\".\"_id\" " +
+                    "join \"a.b\".\"X\" \"role\" on \"usr_role\".\"_id\" = \"role\".\"t_id\" " +
+                    "where \"i\" = 'xyz@yxz.com') " +
                   "update \"public\".\"S\" \"usr\" " +
                   "set a=\"!!\".v1, i=\"!!\".v2 " +
                   "from \"!!\" where \"usr\".ctid=\"!!\".id",
@@ -107,9 +107,9 @@ public class UpdateTest extends DataTest {
           "with \"!!\"(id, v1) as (" +
               "select \"usr_role\".ctid, \"usr\".\"b\" " +
               "from \"public\".\"S\" \"usr\" " +
-              "join \"a.b\".\"T\" \"usr_role\" on (\"usr_role\".\"s_id\" = \"usr\".\"_id\") " +
-              "join \"a.b\".\"X\" \"role\" on (\"usr_role\".\"_id\" = \"role\".\"t_id\") " +
-              "where (\"usr\".\"i\" = 'xyz@yxz.com')) " +
+              "join \"a.b\".\"T\" \"usr_role\" on \"usr_role\".\"s_id\" = \"usr\".\"_id\" " +
+              "join \"a.b\".\"X\" \"role\" on \"usr_role\".\"_id\" = \"role\".\"t_id\" " +
+              "where \"usr\".\"i\" = 'xyz@yxz.com') " +
               "update \"a.b\".\"T\" \"usr_role\" " +
               "set a=\"!!\".v1 " +
               "from \"!!\" where \"usr_role\".ctid=\"!!\".id " +

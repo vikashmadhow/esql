@@ -54,8 +54,8 @@ public class GroupedExpression extends SingleSubExpression {
   @Override
   public Object postTransformExec(Target target, EsqlConnection esqlCon,
                                   EsqlPath path,
-                                  Environment env) {
-    return expr().exec(target, esqlCon, path.add(expr()), env);
+                                  PMap<String, Object> parameters, Environment env) {
+    return expr().exec(target, esqlCon, path.add(expr()), parameters, env);
   }
 
   @Override

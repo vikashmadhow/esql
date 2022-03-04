@@ -16,6 +16,7 @@ import ma.vi.esql.exec.variable.Assignment;
 import ma.vi.esql.exec.variable.Selector;
 import ma.vi.esql.exec.variable.VariableDecl;
 import ma.vi.esql.grammar.EsqlBaseListener;
+import ma.vi.esql.semantic.type.Column;
 import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.define.*;
@@ -712,7 +713,7 @@ public class SyntaxAnalyser extends EsqlBaseListener {
 
   @Override
   public void exitJsonObjectLiteral(JsonObjectLiteralContext ctx) {
-    put(ctx, new JsonObjectLiteral(context, value(ctx.attributeList())));
+    put(ctx, new JsonObjectLiteral(context, value(ctx.literalAttributeList())));
   }
 
   @Override
@@ -775,7 +776,6 @@ public class SyntaxAnalyser extends EsqlBaseListener {
                                                      .collect(toList())));
     }
   }
-
 
   @Override
   public void exitCastExpr(CastExprContext ctx) {
@@ -1436,9 +1436,7 @@ public class SyntaxAnalyser extends EsqlBaseListener {
 
   @Override
   public void exitAttribute(AttributeContext ctx) {
-    if (ctx.Identifier() != null) {
-      put(ctx, new Attribute(context, ctx.Identifier().getText(), get(ctx.expr())));
-    }
+    put(ctx, new Attribute(context, value(ctx.identifier()), get(ctx.expr())));
   }
 
   @Override
@@ -1455,8 +1453,16 @@ public class SyntaxAnalyser extends EsqlBaseListener {
 
   @Override
   public void exitLiteralAttribute(LiteralAttributeContext ctx) {
+    put(ctx, new Attribute(context, value(ctx.identifier()), get(ctx.literal())));
+  }
+
+  @Override
+  public void exitIdentifier(IdentifierContext ctx) {
     if (ctx.Identifier() != null) {
-      put(ctx, new Attribute(context, ctx.Identifier().getText(), get(ctx.literal())));
+      put(ctx, new Esql<>(context, ctx.Identifier().getText()));
+    } else {
+      String identifier = ctx.EscapedIdentifier().getText();
+      put(ctx, new Esql<>(context, identifier.substring(1, identifier.length() - 1)));
     }
   }
 

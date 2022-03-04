@@ -9,7 +9,6 @@ import ma.vi.base.trie.PathTrie;
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.syntax.define.Attribute;
 import ma.vi.esql.syntax.expression.ColumnRef;
-import ma.vi.esql.syntax.query.Column;
 import ma.vi.esql.syntax.query.TableExpr;
 
 import java.util.*;

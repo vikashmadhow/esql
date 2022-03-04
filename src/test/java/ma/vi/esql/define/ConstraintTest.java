@@ -3,19 +3,26 @@ package ma.vi.esql.define;
 import ma.vi.base.lang.NotFoundException;
 import ma.vi.esql.DataTest;
 import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.exec.Result;
 import ma.vi.esql.semantic.type.BaseRelation;
 import ma.vi.esql.syntax.EsqlPath;
+import ma.vi.esql.syntax.Parser;
 import ma.vi.esql.syntax.define.ForeignKeyConstraint;
-import ma.vi.esql.syntax.query.Column;
+import ma.vi.esql.semantic.type.Column;
 import ma.vi.esql.translation.Translatable;
 import org.json.JSONArray;
+import org.json.JSONObject;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Stream;
 
 import static java.util.Collections.singletonList;
+import static ma.vi.esql.builder.Attributes.*;
+import static ma.vi.esql.builder.Attributes.REFERRED_BY;
+import static ma.vi.esql.translation.Translatable.Target.ESQL;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.DynamicTest.dynamicTest;
 
@@ -139,6 +146,7 @@ public class ConstraintTest extends DataTest {
                      assertTrue(
                          new JSONArray(
                            new JSONArray[] {
+                               new JSONArray(new String[]{"a"}),
                                new JSONArray(new String[]{"a", "b"}),
                                new JSONArray(new String[]{"b", "c", "d"}),
                            }
@@ -146,6 +154,143 @@ public class ConstraintTest extends DataTest {
 
                      System.out.println(x);
                    }
+                 }));
+  }
+
+  @TestFactory
+  Stream<DynamicTest> foreignKeyAttributes() {
+    return Stream.of(databases)
+                 .map(db -> dynamicTest(db.target().toString(), () -> {
+                   System.out.println(db.target());
+                   Parser p = new Parser(db.structure());
+                   try (EsqlConnection con = db.esql(db.pooledConnection())) {
+                     Result rs = con.exec("select * from a.b.X");
+
+                     assertEquals(rs.resultAttributes().size(), 5);
+                     assertEquals(rs.resultAttributes().get("name"), "X");
+                     assertEquals(rs.resultAttributes().get("description"), "X test table");
+                     assertTrue(new JSONArray(singletonList("_id")).similar(rs.resultAttributes().get(PRIMARY_KEY)));
+                     assertTrue(new JSONArray(
+                       List.of(
+                         new JSONObject(Map.of(
+                           "from_columns", new JSONArray(singletonList("s_id")),
+                           "to_table", "S",
+                           "to_columns", new JSONArray(singletonList("_id"))
+                         )),
+                         new JSONObject(Map.of(
+                           "from_columns", new JSONArray(singletonList("t_id")),
+                           "to_table", "a.b.T",
+                           "to_columns", new JSONArray(singletonList("_id"))
+                         ))
+                       )
+                     ).similar(rs.resultAttributes().get(REFERENCES)));
+                     assertTrue(new JSONArray(
+                       List.of(
+                         new JSONObject(Map.of(
+                           "from_table", "b.Y",
+                           "from_columns", new JSONArray(singletonList("x_id")),
+                           "to_columns", new JSONArray(singletonList("_id"))
+                         ))
+                       )
+                     ).similar(rs.resultAttributes().get(REFERRED_BY)));
+                   }
+                 }));
+  }
+
+  @TestFactory
+  Stream<DynamicTest> checkConstraints() {
+    return Stream.of(databases)
+                 .map(db -> dynamicTest(db.target().toString(), () -> {
+                   System.out.println(db.target());
+                   Parser p = new Parser(db.structure());
+                   try (EsqlConnection con = db.esql(db.pooledConnection())) {
+                     con.exec("drop table A");
+                     con.exec("""
+                              create table A drop undefined(
+                                {
+                                  name: 'A',
+                                  description: 'A test table'
+                                },
+                                _id uuid not null,
+                                a int {
+                                  m1: b > 5,
+                                  m2: 10,
+                                  m3: a != 0
+                                },
+                                b int {
+                                  m1: b < 0
+                                },
+                                c=a+b {
+                                  m1: a > 5,
+                                  m2: a + b,
+                                  m3: b > 5
+                                },
+                                d=b+c {
+                                  m1: 10
+                                },
+                                e int {
+                                  m1: c,
+                                  "values": {"any": {en: 'Any', fr: 'Une ou plusieurs'}, "all": {en: 'All', fr: 'Toutes'}}
+                                },
+                                f=from A select max(a) {
+                                  m1: from A select min(a)
+                                },
+                                g=from A select distinct c where d>5 {
+                                  m1: d
+                                },
+                                h text {
+                                  m1: 5
+                                },
+                                i string,
+                                check e >= 5,
+                                check e <= 100,
+                                check length(h) >= 3,
+                                primary key(_id)
+                              )""");
+
+                     con.exec("""
+                                insert into A(_id, a, b, e, h)
+                                       values(newid(), 1, 2, 5, 'one'),
+                                             (newid(), 2, 3, 7, 'two'),
+                                """);
+
+                     Result rs = con.exec("select * from A");
+                     assertEquals(rs.resultAttributes().size(), 4);
+                     assertEquals(rs.resultAttributes().get("name"), "A");
+                     assertEquals(rs.resultAttributes().get("description"), "A test table");
+                     assertTrue(new JSONArray(singletonList("_id")).similar(rs.resultAttributes().get(PRIMARY_KEY)));
+                     assertTrue(new JSONArray(
+                       List.of(
+                         p.parseExpression("$(e >= 5)").translate(ESQL),
+                         p.parseExpression("$(e <= 100)").translate(ESQL),
+                         p.parseExpression("$(length(h) >= 3)").translate(ESQL)
+                       )
+                     ).similar(rs.resultAttributes().get(CHECK)));
+                   }
+
+                   assertThrows(RuntimeException.class, () -> {
+                     try (EsqlConnection c = db.esql(db.pooledConnection())) {
+                       c.exec("""
+                                insert into A(_id, a, b, e, h)
+                                values(newid(), 1, 2, 1, 'one')""");
+                     }
+                   });
+
+                   assertThrows(RuntimeException.class, () -> {
+                     try (EsqlConnection c = db.esql(db.pooledConnection())) {
+                       c.exec("""
+                                insert into A(_id, a, b, e, h)
+                                values(newid(), 1, 2, 105, 'one')""");
+                     }
+                   });
+
+                   assertThrows(RuntimeException.class, () -> {
+                     try (EsqlConnection c = db.esql(db.pooledConnection())) {
+                       c.exec("""
+                                insert into A(_id, a, b, e, h)
+                                values(newid(), 1, 2, 10, 'on')""");
+                     }
+                   });
                  }));
   }
 

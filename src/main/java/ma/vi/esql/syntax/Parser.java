@@ -89,7 +89,6 @@ public class Parser {
 
   public interface Rules {
     String PROGRAM = "program";
-    String STATEMENT = "statement";
 
     String SELECT = "select";
     String SELECT_EXPRESSION = "selectExpression";

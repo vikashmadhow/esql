@@ -6,6 +6,7 @@ import ma.vi.esql.exec.EsqlConnection;
 import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.exec.function.Function;
 import ma.vi.esql.exec.function.FunctionCall;
+import ma.vi.esql.semantic.type.Column;
 import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.EsqlPath;

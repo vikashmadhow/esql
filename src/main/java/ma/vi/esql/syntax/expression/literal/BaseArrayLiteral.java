@@ -78,7 +78,7 @@ public class BaseArrayLiteral extends Literal<Type> {
       case SQLSERVER, MARIADB, MYSQL
           -> items().stream()
                     .map(e -> e instanceof StringLiteral
-                                  ? ARRAY_ESCAPE.escape((String)e.exec(target, esqlCon, path, env))
+                                  ? ARRAY_ESCAPE.escape((String)e.exec(target, esqlCon, path, parameters, env))
                                   : ARRAY_ESCAPE.escape(e.translate(target, esqlCon, path.add(e), parameters, env)))
                     .collect(joining(",", (target == SQLSERVER ? "N" : "") + "'[", "]'"));
 
@@ -108,16 +108,16 @@ public class BaseArrayLiteral extends Literal<Type> {
   }
 
   @Override
-  public Object exec(Target         target,
+  public Object exec(Target target,
                      EsqlConnection esqlCon,
-                     EsqlPath       path,
-                     Environment    env) {
+                     EsqlPath path,
+                     PMap<String, Object> parameters, Environment env) {
     Class<?> componentType = Types.classOf(componentType().name());
     List<BaseLiteral<?>> items = items();
     Object array = Array.newInstance(componentType, items.size());
     for (int i = 0; i < items.size(); i++) {
       BaseLiteral<?> item = items.get(i);
-      Array.set(array, i, convert(item.exec(target, esqlCon, path.add(item), env),
+      Array.set(array, i, convert(item.exec(target, esqlCon, path.add(item), parameters, env),
                                   componentType));
     }
     return array;

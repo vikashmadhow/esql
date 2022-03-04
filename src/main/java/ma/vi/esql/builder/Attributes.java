@@ -621,6 +621,27 @@ public class Attributes {
   public static final String UNIQUE = "unique";
 
   /**
+   * Validation check, as specified in check constraints.
+   */
+  public static final String CHECK = "check";
+
+  /**
+   * Primary key info
+   */
+  public static final String PRIMARY_KEY = "primary_key";
+
+  /**
+   * Table and columns pointed by foreign keys on this table.
+   */
+  public static final String REFERENCES = "references";
+
+  /**
+   * Array of tables and columns having foreign keys pointing to a column or
+   * multiple columns in this table.
+   */
+  public static final String REFERRED_BY = "referred_by";
+
+  /**
    * Minimum length of the string representation of the value.
    */
   public static final String MIN_LENGTH = "min_length";
@@ -688,7 +709,6 @@ public class Attributes {
    */
   public static final String VALUE_TYPE = "value_type";
 
-
   /**
    * The error message to use when a validation error occurs instead of
    * the default ones.
@@ -705,5 +725,5 @@ public class Attributes {
    * Similar to validation but only warns users for such errors, with the option to proceed
    * irrespective.
    */
-  public static final String CHECK = "check";
+  public static final String WARN = "warn";
 }

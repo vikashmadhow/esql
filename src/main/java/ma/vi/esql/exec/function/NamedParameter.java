@@ -57,16 +57,16 @@ public class NamedParameter extends Expression<String, String> {
                          EsqlPath             path,
                          PMap<String, Object> parameters,
                          Environment          env) {
-    Object value = exec(target, esqlCon, path, env);
+    Object value = exec(target, esqlCon, path, parameters, env);
     return Literal.makeLiteral(context, value)
                   .translate(target, esqlCon, path, parameters, env);
   }
 
   @Override
-  protected Object postTransformExec(Target         target,
+  protected Object postTransformExec(Target target,
                                      EsqlConnection esqlCon,
-                                     EsqlPath       path,
-                                     Environment    env) {
+                                     EsqlPath path,
+                                     PMap<String, Object> parameters, Environment env) {
     if (env.knows(name())) {
       return env.get(name());
     } else {

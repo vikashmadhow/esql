@@ -13,6 +13,7 @@ import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.expression.Expression;
 import ma.vi.esql.translation.Translatable;
+import org.pcollections.PMap;
 
 import java.util.List;
 import java.util.Map;
@@ -52,11 +53,12 @@ public class Function extends AbstractType implements Symbol {
     return this;
   }
 
-  public String translate(FunctionCall   call,
-                          Target         target,
-                          EsqlConnection esqlCon,
-                          EsqlPath       path,
-                          Environment    env) {
+  public String translate(FunctionCall         call,
+                          Target               target,
+                          EsqlConnection       esqlCon,
+                          EsqlPath             path,
+                          PMap<String, Object> parameters,
+                          Environment          env) {
     String functionName = translatedFunctionName(call, target, path);
     StringBuilder st = new StringBuilder(functionName).append('(');
     if (call.distinct()) {
@@ -99,7 +101,7 @@ public class Function extends AbstractType implements Symbol {
 
   public Object exec(Target target, EsqlConnection esqlCon,
                      EsqlPath path,
-                     Environment env) {
+                     PMap<String, Object> parameters, Environment env) {
     return null;
   }
 

@@ -6,7 +6,6 @@ package ma.vi.esql.semantic.type;
 
 import ma.vi.base.lang.NotFoundException;
 import ma.vi.base.tuple.T2;
-import ma.vi.esql.syntax.query.Column;
 import ma.vi.esql.translation.Translatable;
 
 import java.sql.Date;

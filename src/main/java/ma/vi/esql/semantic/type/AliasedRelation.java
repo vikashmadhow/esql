@@ -7,7 +7,6 @@ package ma.vi.esql.semantic.type;
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.syntax.define.Attribute;
 import ma.vi.esql.syntax.expression.ColumnRef;
-import ma.vi.esql.syntax.query.Column;
 
 import java.util.Collection;
 import java.util.Collections;

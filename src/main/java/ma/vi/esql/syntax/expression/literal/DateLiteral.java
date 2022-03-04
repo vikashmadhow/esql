@@ -94,7 +94,7 @@ public class DateLiteral extends BaseLiteral<String> {
   }
 
   @Override
-  public Date exec(Target target, EsqlConnection esqlCon, EsqlPath path, Environment env) {
+  public Date exec(Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
     int year = 0, month  = 0, day    = 0,
         hour = 0, minute = 0, second = 0, milli = 0;
 

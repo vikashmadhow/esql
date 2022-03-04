@@ -10,6 +10,7 @@ import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
+import org.pcollections.PMap;
 
 import java.util.List;
 
@@ -62,7 +63,7 @@ public abstract class BaseLiteral<V> extends Literal<V> {
   }
 
   @Override
-  public Object exec(Target target, EsqlConnection esqlCon, EsqlPath path, Environment env) {
+  public Object exec(Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
     return value;
   }
 }

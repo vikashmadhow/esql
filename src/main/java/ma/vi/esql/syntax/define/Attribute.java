@@ -15,9 +15,15 @@ import ma.vi.esql.syntax.expression.literal.BooleanLiteral;
 import ma.vi.esql.syntax.expression.literal.IntegerLiteral;
 import ma.vi.esql.syntax.expression.literal.StringLiteral;
 import ma.vi.esql.syntax.expression.literal.UuidLiteral;
+import org.pcollections.HashPMap;
+import org.pcollections.IntTreePMap;
 import org.pcollections.PMap;
 
 import java.util.UUID;
+import java.util.regex.Pattern;
+
+import static ma.vi.esql.database.Database.NULL_DB;
+import static ma.vi.esql.exec.EsqlConnection.NULL_CONNECTION;
 
 /**
  * An attribute is a named expression used as a unit of metadata.
@@ -71,10 +77,18 @@ public class Attribute extends Esql<String, String> {
   }
 
   @Override
-  protected String trans(Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
-    return name() + ": " + (attributeValue() == null
-                              ? "null"
-                              : attributeValue().translate(target, esqlCon, path.add(attributeValue()), parameters, env));
+  protected String trans(Target               target,
+                         EsqlConnection       esqlCon,
+                         EsqlPath             path,
+                         PMap<String, Object> parameters,
+                         Environment          env) {
+//    String name = name();
+//    if (!IDENTIFIER.matcher(name).matches()) {
+//      name = '"' + name + '"';
+//    }
+    return '"' + name() + "\": " + (attributeValue() == null
+                                 ? "null"
+                                 :  attributeValue().translate(target, esqlCon, path.add(attributeValue()), parameters, env));
   }
 
   @Override
@@ -98,4 +112,24 @@ public class Attribute extends Esql<String, String> {
   public Attribute attributeValue(Expression<?, String> value) {
     return set("value", value);
   }
+
+  public <T> T evaluateAttribute() {
+    return evaluateAttribute(NULL_CONNECTION,
+                             new EsqlPath(this),
+                             HashPMap.empty(IntTreePMap.empty()),
+                             NULL_DB.structure());
+  }
+
+  public <T> T evaluateAttribute(EsqlConnection       esqlCon,
+                                 EsqlPath             path,
+                                 PMap<String, Object> parameters,
+                                 Environment          env) {
+    Expression<?, String> expr = attributeValue();
+    return (T)expr.exec(Target.ESQL,
+                        esqlCon,
+                        path == null ? new EsqlPath(expr) : path.add(expr),
+                        parameters, env);
+  }
+
+  public static final Pattern IDENTIFIER = Pattern.compile("[$_a-zA-Z][$_a-zA-Z0-9]*");
 }

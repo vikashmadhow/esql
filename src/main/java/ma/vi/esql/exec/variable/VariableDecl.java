@@ -81,8 +81,8 @@ public class VariableDecl extends    Expression<String, VariableDecl>
   @Override
   protected Object postTransformExec(Target target, EsqlConnection esqlCon,
                                      EsqlPath path,
-                                     Environment env) {
-    env.add(name(), value().exec(target, esqlCon, path.add(value()), env));
+                                     PMap<String, Object> parameters, Environment env) {
+    env.add(name(), value().exec(target, esqlCon, path.add(value()), parameters, env));
     return Result.Nothing;
   }
 

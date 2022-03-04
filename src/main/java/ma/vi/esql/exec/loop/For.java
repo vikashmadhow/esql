@@ -108,17 +108,18 @@ public class For extends Expression<String, For> {
   }
 
   @Override
-  public Object exec(Target         target,
-                     EsqlConnection esqlCon,
-                     EsqlPath       path,
-                     Environment    env) {
+  public Object exec(Target               target,
+                     EsqlConnection       esqlCon,
+                     EsqlPath             path,
+                     PMap<String, Object> parameters,
+                     Environment          env) {
     Environment forEnv = new BlockEnvironment("For Loop Environment", env);
-    init().exec(target, esqlCon, path, forEnv);
-    while ((Boolean)condition().exec(target, esqlCon, path, forEnv)) {
-      if (execLoopBody(body(), target, esqlCon, path, forEnv) == BREAK) {
+    init().exec(target, esqlCon, path, parameters, forEnv);
+    while ((Boolean)condition().exec(target, esqlCon, path, parameters, forEnv)) {
+      if (execLoopBody(body(), target, esqlCon, path, parameters, forEnv) == BREAK) {
         break;
       }
-      step().exec(target, esqlCon, path, forEnv);
+      step().exec(target, esqlCon, path, parameters, forEnv);
     }
     return null;
   }

@@ -12,6 +12,7 @@ import ma.vi.esql.exec.function.FunctionParam;
 import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.expression.Expression;
+import org.pcollections.PMap;
 
 import java.util.List;
 
@@ -31,7 +32,7 @@ public class EndOfMonth extends Function {
   }
 
   @Override
-  public String translate(FunctionCall call, Target target, EsqlConnection esqlCon, EsqlPath path, Environment env) {
+  public String translate(FunctionCall call, Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
     List<Expression<?, ?>> args = call.arguments();
     String arg = args.get(0).translate(target, esqlCon, path.add(args.get(0)), env).toString();
     if (target == POSTGRESQL) {

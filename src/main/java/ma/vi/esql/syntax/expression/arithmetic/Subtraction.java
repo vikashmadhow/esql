@@ -13,6 +13,7 @@ import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.expression.Expression;
+import org.pcollections.PMap;
 
 /**
  * The subtraction (-) operator in ESQL.
@@ -53,9 +54,9 @@ public class Subtraction extends ArithmeticOperator {
   @Override
   public Object postTransformExec(Target target, EsqlConnection esqlCon,
                                   EsqlPath path,
-                                  Environment env) {
-    Object left = expr1().exec(target, esqlCon, path.add(expr1()), env);
-    Object right = expr2().exec(target, esqlCon, path.add(expr2()), env);
+                                  PMap<String, Object> parameters, Environment env) {
+    Object left = expr1().exec(target, esqlCon, path.add(expr1()), parameters, env);
+    Object right = expr2().exec(target, esqlCon, path.add(expr2()), parameters, env);
 
     if (left instanceof Number ln
      && right instanceof Number rn) {
