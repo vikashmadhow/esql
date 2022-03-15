@@ -28,18 +28,18 @@ import static ma.vi.esql.translation.Translatable.Target.HSQLDB;
  * @author vikash.madhow@gmail.com
  */
 public class ColumnDefinition extends TableDefinition {
-  public ColumnDefinition(Context context,
-                          String name,
-                          Type type,
-                          boolean notNull,
-                          Expression<?, String> expression,
-                          Metadata metadata) {
+  public ColumnDefinition(Context          context,
+                          String           name,
+                          Type             type,
+                          boolean          notNull,
+                          Expression<?, ?> expression,
+                          Metadata         metadata) {
     super(context, "ColumnDef",
-          T2.of("name", new Esql<>(context, name)),
-          T2.of("type", new Esql<>(context, type)),
-          T2.of("notNull", new Esql<>(context, notNull)),
+          T2.of("name",       new Esql<>(context, name)),
+          T2.of("type",       new Esql<>(context, type)),
+          T2.of("notNull",    new Esql<>(context, notNull)),
           T2.of("expression", expression),
-          T2.of("metadata", addType(context, metadata, type)));
+          T2.of("metadata",   addType(context, metadata, type)));
     this.type = type;
   }
 
@@ -141,7 +141,7 @@ public class ColumnDefinition extends TableDefinition {
     return new ColumnDefinition(context, name(), type(), notNull(), expression, metadata());
   }
 
-  public Expression<?, String> expression() {
+  public Expression<?, ?> expression() {
     return child("expression");
   }
 

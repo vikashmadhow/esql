@@ -32,7 +32,7 @@ public class MariaDbTranslator extends AbstractTranslator {
     StringBuilder st = new StringBuilder("select ");
     if (select.distinct()) {
       st.append("distinct ");
-      List<Expression<?, String>> distinctOn = select.distinctOn();
+      List<Expression<?, ?>> distinctOn = select.distinctOn();
       if (distinctOn != null && !distinctOn.isEmpty()) {
         throw new TranslationException(select, target() + " does not support distinct limited to columns");
       }

@@ -6,6 +6,7 @@ package ma.vi.esql.query;
 
 import ma.vi.esql.DataTest;
 import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.exec.QueryParams;
 import ma.vi.esql.exec.Result;
 import ma.vi.esql.syntax.Parser;
 import ma.vi.esql.syntax.modify.Insert;
@@ -85,23 +86,23 @@ public class WithTest extends DataTest {
 
                      Parser p = new Parser(db.structure());
                      Insert insert = p.parse("insert into x.R values(@id, @parent, @name)", INSERT);
-                     con.exec(insert, of("id", root), of("parent", null), of("name", "root"));
+                     con.exec(insert, new QueryParams().add("id", root).add("parent", null).add("name", "root"));
 
-                     con.exec(insert, of("id", a), of("parent", root), of("name", "a"));
-                     con.exec(insert, of("id", b), of("parent", root), of("name", "b"));
-                     con.exec(insert, of("id", c), of("parent", root), of("name", "c"));
+                     con.exec(insert, new QueryParams().add("id", a).add("parent", root).add("name", "a"));
+                     con.exec(insert, new QueryParams().add("id", b).add("parent", root).add("name", "b"));
+                     con.exec(insert, new QueryParams().add("id", c).add("parent", root).add("name", "c"));
 
-                     con.exec(insert, of("id", randomUUID()), of("parent", a), of("name", "a_child1"));
-                     con.exec(insert, of("id", randomUUID()), of("parent", a), of("name", "a_child2"));
-                     con.exec(insert, of("id", randomUUID()), of("parent", a), of("name", "a_child3"));
+                     con.exec(insert, new QueryParams().add("id", randomUUID()).add("parent", a).add("name", "a_child1"));
+                     con.exec(insert, new QueryParams().add("id", randomUUID()).add("parent", a).add("name", "a_child2"));
+                     con.exec(insert, new QueryParams().add("id", randomUUID()).add("parent", a).add("name", "a_child3"));
 
-                     con.exec(insert, of("id", randomUUID()), of("parent", b), of("name", "b_child1"));
-                     con.exec(insert, of("id", randomUUID()), of("parent", b), of("name", "b_child2"));
+                     con.exec(insert, new QueryParams().add("id", randomUUID()).add("parent", b).add("name", "b_child1"));
+                     con.exec(insert, new QueryParams().add("id", randomUUID()).add("parent", b).add("name", "b_child2"));
 
-                     con.exec(insert, of("id", randomUUID()), of("parent", c), of("name", "c_child1"));
-                     con.exec(insert, of("id", randomUUID()), of("parent", c), of("name", "c_child2"));
-                     con.exec(insert, of("id", randomUUID()), of("parent", c), of("name", "c_child3"));
-                     con.exec(insert, of("id", randomUUID()), of("parent", c), of("name", "c_child4"));
+                     con.exec(insert, new QueryParams().add("id", randomUUID()).add("parent", c).add("name", "c_child1"));
+                     con.exec(insert, new QueryParams().add("id", randomUUID()).add("parent", c).add("name", "c_child2"));
+                     con.exec(insert, new QueryParams().add("id", randomUUID()).add("parent", c).add("name", "c_child3"));
+                     con.exec(insert, new QueryParams().add("id", randomUUID()).add("parent", c).add("name", "c_child4"));
 
                      Result rs = con.exec("""             
                        with recursive r(id, parent, name) (

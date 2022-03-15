@@ -188,7 +188,7 @@ public class BaseRelation extends Relation {
 
   @Override
   public Attribute attribute(Attribute att) {
-    Expression<?, String> expr = att.attributeValue();
+    Expression<?, ?> expr = att.attributeValue();
     String name = att.name();
     if (expr != null && !(expr instanceof Literal)) {
       expr = expandDerived(expr, columnsByAlias, name, new HashSet<>());
@@ -201,10 +201,10 @@ public class BaseRelation extends Relation {
     return attributes().put(name, att);
   }
 
-  private static Expression<?, String> expandDerived(Expression<?, String> derivedExpression,
-                                                     PathTrie<Column> columns,
-                                                     String columnName,
-                                                     Set<String> seen) {
+  private static Expression<?, ?> expandDerived(Expression<?, ?> derivedExpression,
+                                                PathTrie<Column> columns,
+                                                String           columnName,
+                                                Set<String>      seen) {
     try {
       seen.add(columnName);
       return (Expression<?, String>)derivedExpression.map((e, path) -> {
@@ -247,13 +247,13 @@ public class BaseRelation extends Relation {
    *         attribute can be recomputed when its dependencies change. This
    *         2nd column is only returned for non-literal attributes.
    */
-  public static List<Column> columnsForAttribute(Attribute attr,
-                                                 String prefix,
+  public static List<Column> columnsForAttribute(Attribute           attr,
+                                                 String              prefix,
                                                  Map<String, String> aliased) {
     List<Column> cols = new ArrayList<>();
     if (!attr.name().startsWith("_")) {
       String attrPrefix = prefix + attr.name();
-      Expression<?, String> expr = attr.attributeValue().copy();
+      Expression<?, ?> expr = attr.attributeValue().copy();
       ColumnRef ref = expr.find(ColumnRef.class);
       cols.add(new Column(attr.context, attrPrefix, expr,
                           ref == null || expr instanceof SelectExpression
@@ -286,7 +286,7 @@ public class BaseRelation extends Relation {
     for (Column column: cols) {
       column = column.set("relation", new Esql<>(context, this));
       if (column.name() == null) {
-        Expression<?, String> expr = column.expression();
+        Expression<?, ?> expr = column.expression();
         if (expr instanceof ColumnRef ref) {
           column = column.name(ref.columnName());
         } else {
@@ -436,9 +436,9 @@ public class BaseRelation extends Relation {
    * @param mapping The name mappings.
    * @return The expression with the renamed column references.
    */
-  public static Expression<?, String> rename(Expression<?, String> expr,
-                                             Map<String, String> mapping) {
-    return (Expression<?, String>)expr.map(
+  public static Expression<?, ?> rename(Expression<?, ?>    expr,
+                                        Map<String, String> mapping) {
+    return (Expression<?, ?>)expr.map(
               (e, p) -> e instanceof ColumnRef r && mapping.containsKey(r.columnName())
                       ? r.columnName(mapping.get(r.columnName()))
                       : e);
@@ -451,7 +451,7 @@ public class BaseRelation extends Relation {
   private static Map<String, String> aliasedColumns(Collection<Column> columns) {
     Map<String, String> aliased = new HashMap<>();
     for (Column col: columns) {
-      Expression<?, String> expr = col.expression();
+      Expression<?, ?> expr = col.expression();
       if (expr instanceof ColumnRef ref) {
         String name = ref.columnName();
         String alias = col.name();
@@ -716,7 +716,7 @@ public class BaseRelation extends Relation {
         throw new TranslationException(colName + " not found in table " + rel.name);
       }
       Attribute checkAttr = existingCol.attribute(CHECK);
-      Expression<?, String> check = checkAttr == null ? null : checkAttr.attributeValue();
+      Expression<?, ?> check = checkAttr == null ? null : checkAttr.attributeValue();
       check = check == null || check.equals(chk.expr())
             ? chk.expr()
             : new And(chk.context,
@@ -754,13 +754,12 @@ public class BaseRelation extends Relation {
 //  }
 
   private static final class Node implements Comparable<Node> {
-    private Node(Node previous,
+    private Node(Node                 previous,
                  ForeignKeyConstraint constraint,
-                 boolean reverse) {
-      this.previous = previous;
+                 boolean              reverse) {
+      this.previous   = previous;
       this.constraint = constraint;
-      this.reverse = reverse;
-
+      this.reverse    = reverse;
       this.cost = (previous != null ? previous.cost : 0)
                 + (reverse ? constraint.reverseCost() : constraint.forwardCost());
     }
@@ -804,25 +803,33 @@ public class BaseRelation extends Relation {
 
     private final Node previous;
     private final ForeignKeyConstraint constraint;
-    public final boolean reverse;
-    public final int cost;
+    public  final boolean reverse;
+    public  final int cost;
+  }
+
+  public record Link(ForeignKeyConstraint constraint,
+                     boolean              reverse) {}
+
+  public record Path(List<Link> elements, int cost) {
+    public boolean hasReverseLink() {
+      return elements.stream().anyMatch(Link::reverse);
+    }
   }
 
   /**
-   * Returns the list of foreign-key constraints connecting
-   * this relation to the target, if such a path exists.
+   * Returns the list of foreign-key constraints connecting this relation to the
+   * target, if such a path exists.
    */
-  public List<T2<ForeignKeyConstraint, Boolean>> path(Relation target, boolean ignoreHiddenFields) {
-
+  public Path path(String targetTable) {
+    if (targetTable.equals(name())) {
+      return new Path(emptyList(), 0);
+    }
     Set<Node> explored = new HashSet<>();
     PriorityQueue<Node> toExplore = new PriorityQueue<>();
     Map<Node, Integer> toBeExplored = new HashMap<>();
     for (ConstraintDefinition c: constraints) {
       if (c instanceof ForeignKeyConstraint fk) {
-        if (fk.forwardCost() >= 0
-            && (!ignoreHiddenFields
-            || (fk.sourceColumns().stream().noneMatch(f -> !f.equals("_id") && f.charAt(0) == '_')
-            && fk.targetColumns().stream().noneMatch(f -> !f.equals("_id") && f.charAt(0) == '_')))) {
+        if (fk.forwardCost() >= 0) {
           Node node = new Node(null, fk, false);
           toExplore.add(node);
           toBeExplored.put(node, node.cost);
@@ -830,10 +837,7 @@ public class BaseRelation extends Relation {
       }
     }
     for (ForeignKeyConstraint c: dependentConstraints) {
-      if (c.reverseCost() >= 0
-          && (!ignoreHiddenFields
-          || (c.sourceColumns().stream().noneMatch(f -> !f.equals("_id") && f.charAt(0) == '_')
-          && c.targetColumns().stream().noneMatch(f -> !f.equals("_id") && f.charAt(0) == '_')))) {
+      if (c.reverseCost() >= 0) {
         Node node = new Node(null, c, true);
         toExplore.add(node);
         toBeExplored.put(node, node.cost);
@@ -844,18 +848,19 @@ public class BaseRelation extends Relation {
       toBeExplored.remove(node);
       explored.add(node);
 
-      if ((!node.reverse && node.constraint.targetTable().equals(target.name()))
-          || (node.reverse && node.constraint.table().equals(target.name()))) {
+      if ((!node.reverse && node.constraint.targetTable().equals(targetTable))
+       || ( node.reverse && node.constraint.table().equals(targetTable))) {
         /*
          * Reached target table (goal)
          */
-        List<T2<ForeignKeyConstraint, Boolean>> path = new ArrayList<>();
+        List<Link> path = new ArrayList<>();
+        int cost = node.cost;
         while (node != null) {
-          path.add(T2.of(node.constraint, node.reverse));
+          path.add(new Link(node.constraint, node.reverse));
           node = node.previous;
         }
         Collections.reverse(path);
-        return path;
+        return new Path(path, cost);
 
       } else {
         /*
@@ -871,18 +876,15 @@ public class BaseRelation extends Relation {
                                         : context.structure.relation(node.constraint.targetTable());
         for (ConstraintDefinition c: rel.constraints) {
           if (c instanceof ForeignKeyConstraint fk) {
-            if (fk.forwardCost() >= 0
-                && (!ignoreHiddenFields
-                || (fk.sourceColumns().stream().noneMatch(f -> !f.equals("_id") && f.charAt(0) == '_')
-                && fk.targetColumns().stream().noneMatch(f -> !f.equals("_id") && f.charAt(0) == '_')))) {
-
+            if (fk.forwardCost() >= 0) {
               Node targetNode = new Node(node, fk, false);
               if (!explored.contains(targetNode)
-                  && !toBeExplored.containsKey(targetNode)) {
+               && !toBeExplored.containsKey(targetNode)) {
                 toExplore.add(targetNode);
                 toBeExplored.put(targetNode, targetNode.cost);
 
-              } else if (toBeExplored.containsKey(targetNode) && toBeExplored.get(targetNode) > targetNode.cost) {
+              } else if (toBeExplored.containsKey(targetNode)
+                      && toBeExplored.get(targetNode) > targetNode.cost) {
                 toExplore.remove(targetNode);
                 toExplore.add(targetNode);
                 toBeExplored.remove(targetNode);
@@ -893,17 +895,15 @@ public class BaseRelation extends Relation {
         }
 
         for (ForeignKeyConstraint c: rel.dependentConstraints) {
-          if (c.reverseCost() >= 0
-              && (!ignoreHiddenFields
-              || (c.sourceColumns().stream().noneMatch(f -> !f.equals("_id") && f.charAt(0) == '_')
-              && c.targetColumns().stream().noneMatch(f -> !f.equals("_id") && f.charAt(0) == '_')))) {
+          if (c.reverseCost() >= 0) {
             Node sourceNode = new Node(node, c, true);
             if (!explored.contains(sourceNode)
-                && !toBeExplored.containsKey(sourceNode)) {
+             && !toBeExplored.containsKey(sourceNode)) {
               toExplore.add(sourceNode);
               toBeExplored.put(sourceNode, sourceNode.cost);
 
-            } else if (toBeExplored.containsKey(sourceNode) && toBeExplored.get(sourceNode) > sourceNode.cost) {
+            } else if (toBeExplored.containsKey(sourceNode)
+                    && toBeExplored.get(sourceNode) > sourceNode.cost) {
               toExplore.remove(sourceNode);
               toExplore.add(sourceNode);
               toBeExplored.remove(sourceNode);
@@ -913,8 +913,117 @@ public class BaseRelation extends Relation {
         }
       }
     }
-    return emptyList();
+    return null;
   }
+
+//  /**
+//   * Returns the list of foreign-key constraints connecting this relation to the
+//   * target, if such a path exists.
+//   */
+//  public List<Link> path(Relation target, boolean ignoreHiddenFields) {
+//    Set<Node> explored = new HashSet<>();
+//    PriorityQueue<Node> toExplore = new PriorityQueue<>();
+//    Map<Node, Integer> toBeExplored = new HashMap<>();
+//    for (ConstraintDefinition c: constraints) {
+//      if (c instanceof ForeignKeyConstraint fk) {
+//        if (fk.forwardCost() >= 0
+//         && (!ignoreHiddenFields
+//          || (fk.sourceColumns().stream().noneMatch(f -> !f.equals("_id") && f.charAt(0) == '_')
+//           && fk.targetColumns().stream().noneMatch(f -> !f.equals("_id") && f.charAt(0) == '_')))) {
+//          Node node = new Node(null, fk, false);
+//          toExplore.add(node);
+//          toBeExplored.put(node, node.cost);
+//        }
+//      }
+//    }
+//    for (ForeignKeyConstraint c: dependentConstraints) {
+//      if (c.reverseCost() >= 0
+//       && (!ignoreHiddenFields
+//        || (c.sourceColumns().stream().noneMatch(f -> !f.equals("_id") && f.charAt(0) == '_')
+//         && c.targetColumns().stream().noneMatch(f -> !f.equals("_id") && f.charAt(0) == '_')))) {
+//        Node node = new Node(null, c, true);
+//        toExplore.add(node);
+//        toBeExplored.put(node, node.cost);
+//      }
+//    }
+//    while (!toExplore.isEmpty()) {
+//      Node node = toExplore.remove();
+//      toBeExplored.remove(node);
+//      explored.add(node);
+//
+//      if ((!node.reverse && node.constraint.targetTable().equals(target.name()))
+//       || ( node.reverse && node.constraint.table().equals(target.name()))) {
+//        /*
+//         * Reached target table (goal)
+//         */
+//        List<Link> path = new ArrayList<>();
+//        while (node != null) {
+//          path.add(new Link(node.constraint, node.reverse));
+//          node = node.previous;
+//        }
+//        Collections.reverse(path);
+//        return path;
+//
+//      } else {
+//        /*
+//         * Expansion as per uniform cost search (from 'AI: a modern approach'):
+//         *      for each action in problem.ACTIONS(node.STATE) do
+//         *          child <- CHILD-NODE(problem, node, action)
+//         *          if child.STATE is not in explored or frontier then
+//         *              frontier <- INSERT(child, frontier)
+//         *          else if child.STATE is in frontier with higher PATH-COST then
+//         *              replace that frontier node with child
+//         */
+//        BaseRelation rel = node.reverse ? context.structure.relation(node.constraint.table())
+//                                        : context.structure.relation(node.constraint.targetTable());
+//        for (ConstraintDefinition c: rel.constraints) {
+//          if (c instanceof ForeignKeyConstraint fk) {
+//            if (fk.forwardCost() >= 0
+//            && (!ignoreHiddenFields
+//            || (fk.sourceColumns().stream().noneMatch(f -> !f.equals("_id") && f.charAt(0) == '_')
+//            &&  fk.targetColumns().stream().noneMatch(f -> !f.equals("_id") && f.charAt(0) == '_')))) {
+//
+//              Node targetNode = new Node(node, fk, false);
+//              if (!explored.contains(targetNode)
+//               && !toBeExplored.containsKey(targetNode)) {
+//                toExplore.add(targetNode);
+//                toBeExplored.put(targetNode, targetNode.cost);
+//
+//              } else if (toBeExplored.containsKey(targetNode)
+//                      && toBeExplored.get(targetNode) > targetNode.cost) {
+//                toExplore.remove(targetNode);
+//                toExplore.add(targetNode);
+//                toBeExplored.remove(targetNode);
+//                toBeExplored.put(targetNode, targetNode.cost);
+//              }
+//            }
+//          }
+//        }
+//
+//        for (ForeignKeyConstraint c: rel.dependentConstraints) {
+//          if (c.reverseCost() >= 0
+//          && (!ignoreHiddenFields
+//          || (c.sourceColumns().stream().noneMatch(f -> !f.equals("_id") && f.charAt(0) == '_')
+//          &&  c.targetColumns().stream().noneMatch(f -> !f.equals("_id") && f.charAt(0) == '_')))) {
+//            Node sourceNode = new Node(node, c, true);
+//            if (!explored.contains(sourceNode)
+//             && !toBeExplored.containsKey(sourceNode)) {
+//              toExplore.add(sourceNode);
+//              toBeExplored.put(sourceNode, sourceNode.cost);
+//
+//            } else if (toBeExplored.containsKey(sourceNode)
+//                    && toBeExplored.get(sourceNode) > sourceNode.cost) {
+//              toExplore.remove(sourceNode);
+//              toExplore.add(sourceNode);
+//              toBeExplored.remove(sourceNode);
+//              toBeExplored.put(sourceNode, sourceNode.cost);
+//            }
+//          }
+//        }
+//      }
+//    }
+//    return emptyList();
+//  }
 
   public UUID id() {
     return id;

@@ -37,10 +37,12 @@ public class EsqlTranslator extends AbstractTranslator {
     StringBuilder st = new StringBuilder("select ");
     if (select.distinct()) {
       st.append("distinct ");
-      List<Expression<?, String>> distinctOn = select.distinctOn();
+      List<Expression<?, ?>> distinctOn = select.distinctOn();
       if (distinctOn != null && !distinctOn.isEmpty()) {
         st.append("on (")
-          .append(distinctOn.stream().map(e -> e.translate(target(), esqlCon, path.add(e), parameters, env)).collect(joining(", ")))
+          .append(distinctOn.stream()
+                            .map(e -> e.translate(target(), esqlCon, path.add(e), parameters, env).toString())
+                            .collect(joining(", ")))
           .append(") ");
       }
     }

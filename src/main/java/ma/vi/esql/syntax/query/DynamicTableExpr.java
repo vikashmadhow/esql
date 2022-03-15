@@ -14,6 +14,7 @@ import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
+import ma.vi.esql.exec.Filter;
 import ma.vi.esql.syntax.define.Metadata;
 import ma.vi.esql.syntax.define.NameWithMetadata;
 import ma.vi.esql.syntax.expression.ColumnRef;
@@ -79,12 +80,22 @@ public class DynamicTableExpr extends AbstractAliasTableExpr {
   }
 
   @Override
+  public ShortestPath findShortestPath(Filter filter) {
+    return null;
+  }
+
+  @Override
+  public AppliedShortestPath applyShortestPath(ShortestPath shortest) {
+    return null;
+  }
+
+  @Override
   public boolean exists(EsqlPath path) {
     return true;
   }
 
   @Override
-  public TableExpr named(String name) {
+  public TableExpr aliased(String name) {
     return name == null || name.equals(alias()) ? this : null;
   }
 

@@ -11,12 +11,12 @@ import ma.vi.esql.exec.EsqlConnection;
 import ma.vi.esql.exec.Result;
 import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.semantic.type.BaseRelation;
+import ma.vi.esql.semantic.type.Column;
 import ma.vi.esql.semantic.type.Relation;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.expression.ColumnRef;
-import ma.vi.esql.semantic.type.Column;
 import org.pcollections.PMap;
 
 import java.sql.Connection;
@@ -86,9 +86,11 @@ public class AlterTable extends Define {
   }
 
   @Override
-  protected Object postTransformExec(Target target, EsqlConnection esqlCon,
-                                     EsqlPath path,
-                                     PMap<String, Object> parameters, Environment env) {
+  protected Object postTransformExec(Target               target,
+                                     EsqlConnection       esqlCon,
+                                     EsqlPath             path,
+                                     PMap<String, Object> parameters,
+                                     Environment          env) {
     Database db = esqlCon.database();
     Connection con = esqlCon.con();
     String name = name();
@@ -120,7 +122,7 @@ public class AlterTable extends Define {
           s.remove(relation);
           relation.name(newFullName);
           s.relation(relation);
-          s.database.renameTable(con, relation.id(), newFullName);
+          s.database.renameTable(esqlCon, relation.id(), newFullName);
 
         } else if (alteration instanceof AddTableDefinition addTable) {
           /*
@@ -149,7 +151,7 @@ public class AlterTable extends Define {
 //            } else {
 //              col.parent = new Esql<>(column.context, relation);
 //            }
-            s.database.column(con, relation.id(), col);
+            s.database.column(esqlCon, relation.id(), col);
             relation.addColumn(col);
 
           } else if (definition instanceof ConstraintDefinition constraint) {
@@ -161,7 +163,7 @@ public class AlterTable extends Define {
               con.createStatement().executeUpdate("ALTER TABLE " + dbName +
                                                   " ADD " + constraint.translate(db.target(), esqlCon, path.add(constraint), env));
             }
-            s.database.constraint(con, relation.id(), constraint);
+            s.database.constraint(esqlCon, relation.id(), constraint);
             relation.constraint(constraint);
 
             if (constraint instanceof ForeignKeyConstraint foreign) {
@@ -175,8 +177,8 @@ public class AlterTable extends Define {
             /*
              * add table metadata, removing previous ones
              */
-            s.database.clearTableMetadata(con, relation.id());
-            s.database.tableMetadata(con, relation.id(), metadata);
+            s.database.clearTableMetadata(esqlCon, relation.id());
+            s.database.tableMetadata(esqlCon, relation.id(), metadata);
 
             relation.clearAttributes();
             relation.attributes(metadata.attributes().values());
@@ -206,7 +208,7 @@ public class AlterTable extends Define {
                         "\" RENAME TO \"" + def.toName() + '"');
               }
             }
-            s.database.columnName(con, column.id(), def.toName());
+            s.database.columnName(esqlCon, column.id(), def.toName());
             relation.removeColumn(alterCol.columnName());
             column = column.name(def.toName());
             relation.addColumn(column);
@@ -228,7 +230,7 @@ public class AlterTable extends Define {
                         "\" " + def.toType().translate(db.target(), esqlCon, path.add(def), env));
               }
             }
-            s.database.columnType(con, column.id(), def.toType().translate(ESQL, esqlCon, path.add(def), env));
+            s.database.columnType(esqlCon, column.id(), def.toType().translate(ESQL, esqlCon, path.add(def), env));
 //            column = column.type(def.toType());
             column.type(def.toType());
             relation.addOrReplaceColumn(column);
@@ -263,7 +265,7 @@ public class AlterTable extends Define {
                 con.createStatement().executeUpdate(
                   "ALTER TABLE " + dbName + " ALTER COLUMN \"" + column.name() + "\" DROP DEFAULT");
               }
-              s.database.defaultValue(con, column.id(), null);
+              s.database.defaultValue(esqlCon, column.id(), null);
               relation.addOrReplaceColumn(column.defaultExpression(null));
             }
           }
@@ -284,7 +286,7 @@ public class AlterTable extends Define {
                         " ALTER COLUMN \"" + column.name() +
                         "\" SET DEFAULT " + def.setDefault().translate(db.target(), esqlCon, path.add(def.setDefault()), env));
               }
-              s.database.defaultValue(con, column.id(), def.setDefault().translate(ESQL, esqlCon, path.add(def.setDefault()), env));
+              s.database.defaultValue(esqlCon, column.id(), def.setDefault().translate(ESQL, esqlCon, path.add(def.setDefault()), env).toString());
               relation.addOrReplaceColumn(column.defaultExpression(def.setDefault()));
             }
           }
@@ -305,7 +307,7 @@ public class AlterTable extends Define {
                         " ALTER COLUMN \"" + column.name() +
                         "\" SET NOT NULL");
               }
-              s.database.notNull(con, column.id(), (db.target() == SQLSERVER ? "1" : "true"));
+              s.database.notNull(esqlCon, column.id(), (db.target() == SQLSERVER ? "1" : "true"));
               relation.addOrReplaceColumn(column.notNull(true));
             }
           }
@@ -325,7 +327,7 @@ public class AlterTable extends Define {
                         " ALTER COLUMN \"" + column.name() +
                         "\" DROP NOT NULL");
               }
-              s.database.notNull(con, column.id(), db.target() == SQLSERVER ? "0" : "false");
+              s.database.notNull(esqlCon, column.id(), db.target() == SQLSERVER ? "0" : "false");
               relation.addOrReplaceColumn(column.notNull(false));
             }
           }
@@ -336,7 +338,7 @@ public class AlterTable extends Define {
             /*
              * add field metadata, removing previous ones
              */
-            s.database.columnMetadata(con, column.id(), def.metadata());
+            s.database.columnMetadata(esqlCon, column.id(), def.metadata());
             Map<String, Attribute> attrs = new LinkedHashMap<>(column.metadata().attributes());
             attrs.putAll(def.metadata().attributes());
             Metadata metadata = new Metadata(def.context, new ArrayList<>(attrs.values()));
@@ -367,7 +369,7 @@ public class AlterTable extends Define {
             con.createStatement().executeUpdate(
                 "ALTER TABLE " + dbName + " DROP COLUMN \"" + drop.columnName() + '"');
           }
-          s.database.dropColumn(con, column.id());
+          s.database.dropColumn(esqlCon, column.id());
           relation.removeColumn(drop.columnName());
 
         } else if (alteration instanceof DropConstraint drop) {
@@ -382,14 +384,14 @@ public class AlterTable extends Define {
           con.createStatement().executeUpdate(
             "ALTER TABLE " + dbName + " DROP CONSTRAINT IF EXISTS \"" + drop.constraintName() + '"');
 
-          s.database.dropConstraint(con, relation.id(), drop.constraintName());
+          s.database.dropConstraint(esqlCon, relation.id(), drop.constraintName());
           relation.removeConstraint(drop.constraintName());
 
         } else if (alteration instanceof DropMetadata) {
           /*
            * Drop all metadata for the table.
            */
-          s.database.clearTableMetadata(con, relation.id());
+          s.database.clearTableMetadata(esqlCon, relation.id());
           relation.clearAttributes();
         }
       }

@@ -11,11 +11,11 @@ import ma.vi.esql.exec.function.NamedParameter;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.EsqlTransformer;
-import ma.vi.esql.syntax.expression.literal.Literal;
 import ma.vi.esql.syntax.expression.literal.NullLiteral;
 import ma.vi.esql.syntax.macro.Macro;
 import ma.vi.esql.syntax.macro.TypedMacro;
 import ma.vi.esql.syntax.macro.UntypedMacro;
+import ma.vi.esql.syntax.query.QueryTranslation;
 import ma.vi.esql.translation.TranslationException;
 import org.pcollections.HashPMap;
 import org.pcollections.IntTreePMap;
@@ -24,8 +24,10 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Stack;
 
 import static ma.vi.base.lang.Errors.unchecked;
+import static ma.vi.esql.syntax.expression.literal.Literal.makeLiteral;
 import static ma.vi.esql.syntax.macro.Macro.ONGOING_MACRO_EXPANSION;
 
 /**
@@ -34,9 +36,10 @@ import static ma.vi.esql.syntax.macro.Macro.ONGOING_MACRO_EXPANSION;
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 public class EsqlConnectionImpl implements EsqlConnection {
-  public EsqlConnectionImpl(Database db, Connection con) {
+  public EsqlConnectionImpl(Database db, Connection con, Stack<Connection> cons) {
     this.db = db;
     this.con = con;
+    this.cons = cons;
   }
 
   public Connection connection() {
@@ -77,18 +80,18 @@ public class EsqlConnectionImpl implements EsqlConnection {
     return con;
   }
 
-  public <R> R exec(Esql<?, ?> esql, Param... params) {
+  @Override
+  public Esql<?, ?> prepare(Esql<?, ?> esql, QueryParams qp) {
     Esql<?, ?> st = esql;
 
     /*
      * Substitute parameters into statement.
      */
-    if (params.length > 0) {
+    if (qp !=null && !qp.params.isEmpty()) {
       final Map<String, Param> parameters = new HashMap<>();
-      for (Param p: params) {
+      for (Param p: qp.params) {
         parameters.put(p.a, p);
       }
-      // Parser parser = new Parser(esql.context.structure);
       st = esql.map((e, p) -> {
         if (e instanceof NamedParameter) {
           String paramName = ((NamedParameter)e).name();
@@ -99,15 +102,10 @@ public class EsqlConnectionImpl implements EsqlConnection {
           if (parameters.containsKey(paramName)) {
             Param param = parameters.get(paramName);
             Object value = param.b;
-            if (value instanceof Esql) {
-              return (Esql<?, ?>)value;
-
-            } else if (value == null) {
-              return new NullLiteral(esql.context);
-
-            } else {
-              return Literal.makeLiteral(esql.context, value);
-            }
+            return value instanceof Esql             ? (Esql<?, ?>)value
+                                                     : value == null                     ? new NullLiteral(esql.context)
+                                                                                         : value instanceof QueryTranslation ? makeLiteral(esql.context, value.toString())
+                                                                                                                             : makeLiteral(esql.context, value);
           }
         }
         return e;
@@ -147,9 +145,34 @@ public class EsqlConnectionImpl implements EsqlConnection {
       st = t.transform(db, st);
     }
 
+    if (qp != null && !qp.filters.isEmpty()) {
+      for (Filter filter: qp.filters) {
+        st = st.map((e, p) -> e.filter(filter));
+      }
+    }
+    return st;
+  }
+
+  @Override
+  public <R> R execPrepared(Esql<?, ?> esql, QueryParams qp) {
     Environment env = new ProgramEnvironment(db.structure());
-    for (Param p: params) env.add(p.a, p.b);
-    return (R)st.exec(database().target(), this, new EsqlPath(st), HashPMap.empty(IntTreePMap.empty()), env);
+    if (qp != null) {
+      for (Param p : qp.params) env.add(p.a, p.b);
+    }
+    return (R)esql.exec(database().target(),
+                        this,
+                        new EsqlPath(esql),
+                        HashPMap.empty(IntTreePMap.empty()),
+                        env);
+  }
+
+  @Override
+  public void close() {
+    try {
+      EsqlConnection.super.close();
+    } finally {
+      cons.remove(con);
+    }
   }
 
   private static <T extends Esql<?, ?>,
@@ -178,4 +201,10 @@ public class EsqlConnectionImpl implements EsqlConnection {
    * Underlying connection.
    */
   protected final Connection con;
+
+  /**
+   * The connection stack linked to the thread from which this connection must
+   * be removed from when it's closed.
+   */
+  private final Stack<Connection> cons;
 }

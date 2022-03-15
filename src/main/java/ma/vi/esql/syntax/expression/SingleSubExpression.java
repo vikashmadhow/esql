@@ -21,7 +21,7 @@ public abstract class SingleSubExpression extends Expression<String, String> {
   @SafeVarargs
   public SingleSubExpression(Context context,
                              String value,
-                             Expression<?, String> expr,
+                             Expression<?, ?> expr,
                              T2<String, ? extends Esql<?, ?>>... children) {
     super(context, value,
           Stream.concat(

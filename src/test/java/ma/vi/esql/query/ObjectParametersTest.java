@@ -6,6 +6,7 @@ package ma.vi.esql.query;
 
 import ma.vi.esql.DataTest;
 import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.exec.QueryParams;
 import ma.vi.esql.exec.Result;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
@@ -42,21 +43,21 @@ public class ObjectParametersTest extends DataTest {
                                select ta:t.a, tb:t.b, t.s_id, s.a, s.b, s.e, s.h, s.j
                                  from t:a.b.T
                                  join s:S on t.s_id=s._id
-                                where a<=@a""", new A(10, "x"));
+                                where a<=@a""", new QueryParams().add(new A(10, "x")));
                      printResult(rs, 20);
 
                      rs = con.exec("""
                                select ta:t.a, tb:t.b, t.s_id, s.a, s.b, s.e, s.h, s.j
                                  from t:a.b.T
                                  join s:S on t.s_id=s._id
-                                where a<=@a""", new B(10, "x"));
+                                where a<=@a""", new QueryParams().add(new B(10, "x")));
                      printResult(rs, 20);
 
                      rs = con.exec("""
                                select ta:t.a, tb:t.b, t.s_id, s.a, s.b, s.e, s.h, s.j
                                  from t:a.b.T
                                  join s:S on t.s_id=s._id
-                                where a<=@a""", new C(10, "x"));
+                                where a<=@a""", new QueryParams().add(new C(10, "x")));
                      printResult(rs, 20);
                    }
                  }));

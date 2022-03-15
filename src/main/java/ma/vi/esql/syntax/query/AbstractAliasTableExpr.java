@@ -8,7 +8,7 @@ import ma.vi.base.tuple.T2;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 
-import java.util.Arrays;
+import java.util.*;
 import java.util.stream.Stream;
 
 /**
@@ -41,6 +41,15 @@ public abstract class AbstractAliasTableExpr extends TableExpr {
 
   @Override
   public abstract AbstractAliasTableExpr copy();
+
+  public List<TableExpr> tables() {
+    return Collections.singletonList(this);
+  }
+
+  @Override
+  public Set<String> aliases() {
+    return Collections.singleton(alias());
+  }
 
   /**
    * Returns a shallow copy of this object replacing the value in the copy with

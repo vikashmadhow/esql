@@ -26,18 +26,18 @@ import static ma.vi.esql.builder.Attributes.DERIVED;
  * @author vikash.madhow@gmail.com
  */
 public class DerivedColumnDefinition extends ColumnDefinition {
-  public DerivedColumnDefinition(Context context,
-                                 String name,
-                                 Expression<?, String> expression,
-                                 Metadata metadata) {
+  public DerivedColumnDefinition(Context          context,
+                                 String           name,
+                                 Expression<?, ?> expression,
+                                 Metadata         metadata) {
     this(context, name, null, expression, addDerived(context, metadata));
   }
 
-  private DerivedColumnDefinition(Context context,
-                                  String name,
-                                  Type type,
-                                  Expression<?, String> expression,
-                                  Metadata metadata) {
+  private DerivedColumnDefinition(Context          context,
+                                  String           name,
+                                  Type             type,
+                                  Expression<?, ?> expression,
+                                  Metadata         metadata) {
     super(context, name, type, false, expression, addDerived(context, metadata));
   }
 

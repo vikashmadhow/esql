@@ -100,7 +100,7 @@ public class DropTable extends Define {
       /*
        * Remove from information tables and cached structure.
        */
-      structure.database.dropTable(con, table.id());
+      structure.database.dropTable(esqlCon, table.id());
       structure.remove(table);
     }
   }

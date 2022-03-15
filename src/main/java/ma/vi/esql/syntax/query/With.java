@@ -25,7 +25,10 @@ import static ma.vi.esql.translation.Translatable.Target.POSTGRESQL;
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 public class With extends QueryUpdate {
-  public With(Context context, boolean recursive, List<Cte> ctes, QueryUpdate query) {
+  public With(Context     context,
+              boolean     recursive,
+              List<Cte>   ctes,
+              QueryUpdate query) {
     super(context, "With",
           T2.of("recursive", new Esql<>(context, recursive)),
           T2.of("ctes",      new Esql<>(context, "ctes", ctes)),
@@ -61,7 +64,7 @@ public class With extends QueryUpdate {
 
   @Override
   public Selection computeType(EsqlPath path) {
-    return query().computeType(path.add(query()));
+    return (Selection)query().computeType(path.add(query()));
   }
 
   @Override
@@ -94,6 +97,13 @@ public class With extends QueryUpdate {
     }
     return false;
   }
+
+//  public With filter(Filter filter) {
+//    return new With(context,
+//                    recursive(),
+//                    ctes().stream().map(c -> c.filter(filter)).toList(),
+//                    query().filter(filter));
+//  }
 
 //  @Override
 //  public T2<Boolean, String> restrict(Restriction restriction,

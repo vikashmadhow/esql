@@ -10,6 +10,7 @@ import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
+import ma.vi.esql.exec.Filter;
 import ma.vi.esql.syntax.expression.Expression;
 import org.pcollections.PMap;
 
@@ -21,11 +22,11 @@ import org.pcollections.PMap;
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 public class JoinTableExpr extends AbstractJoinTableExpr {
-  public JoinTableExpr(Context context,
-                       String joinType,
-                       boolean lateral,
-                       TableExpr left,
-                       TableExpr right,
+  public JoinTableExpr(Context    context,
+                       String     joinType,
+                       boolean    lateral,
+                       TableExpr  left,
+                       TableExpr  right,
                        Expression<?, String> on) {
     super(context,
           joinType,
@@ -57,6 +58,35 @@ public class JoinTableExpr extends AbstractJoinTableExpr {
   @Override
   public JoinTableExpr copy(String value, T2<String, ? extends Esql<?, ?>>... children) {
     return new JoinTableExpr(this, value, children);
+  }
+
+  /**
+   * For left and right outer-joins, only consider the side of the join which
+   * is more restrictive (left for left joins and right for right joins). For
+   * full outer joins, we consider both sides as the side producing the least
+   * number of records is the more restrictive and we cannot predict which side
+   * is going to be the more restrictive one at this point.
+   */
+  @Override
+  public ShortestPath findShortestPath(Filter filter) {
+    String joinType = joinType();
+    return joinType == null
+        || joinType.equals("outer")  ? super.findShortestPath(filter)
+         : joinType.equals("left")   ? left().findShortestPath(filter)
+         : right().findShortestPath(filter);
+  }
+
+  @Override
+  public AppliedShortestPath applyShortestPath(ShortestPath shortest) {
+    String joinType = joinType();
+    return joinType == null
+        || joinType.equals("outer")  ? super.applyShortestPath(shortest)
+         : joinType.equals("left")   ? left().applyShortestPath(shortest)
+         : right().applyShortestPath(shortest);
+  }
+
+  protected AbstractJoinTableExpr join(TableExpr left, TableExpr right) {
+    return new JoinTableExpr(context, joinType(), lateral(), left, right, on());
   }
 
   @Override

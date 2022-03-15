@@ -13,12 +13,22 @@ import ma.vi.esql.semantic.type.*;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
+import ma.vi.esql.exec.Filter;
 import ma.vi.esql.syntax.expression.ColumnRef;
+import ma.vi.esql.syntax.expression.Expression;
+import ma.vi.esql.syntax.expression.comparison.Equality;
+import ma.vi.esql.syntax.expression.logical.And;
 import ma.vi.esql.syntax.macro.Macro;
 import ma.vi.esql.translation.TranslationException;
 import org.pcollections.PMap;
 
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
+
+import static ma.vi.base.string.Strings.makeUnique;
+import static ma.vi.esql.semantic.type.Type.unqualifiedName;
 
 /**
  * Represents a single table in the from clause; a single table can either refer
@@ -32,7 +42,7 @@ public class SingleTableExpr extends AbstractAliasTableExpr {
                          String tableName,
                          String alias) {
     super(context, "SingleTable",
-          alias == null ? Type.unqualifiedName(tableName) : alias,
+          alias == null ? unqualifiedName(tableName) : alias,
           T2.of("table", new Esql<>(context, tableName)));
   }
 
@@ -61,6 +71,98 @@ public class SingleTableExpr extends AbstractAliasTableExpr {
   }
 
   @Override
+  public ShortestPath findShortestPath(Filter filter) {
+    if (context.structure.relationExists(tableName())) {
+      BaseRelation rel = context.structure.relation(tableName());
+      BaseRelation.Path path = rel.path(filter.table());
+      return path == null ? null
+                          : new ShortestPath(this, path, filter);
+    }
+    return null;
+  }
+
+  @Override
+  public AppliedShortestPath applyShortestPath(ShortestPath shortest) {
+    if (shortest.source() == this) {
+      Set<String> aliases = new HashSet<>(aliases());
+      String lastAlias = shortest.filter().alias();
+      if (lastAlias != null) {
+        lastAlias = makeUnique(aliases, lastAlias);
+      }
+
+      String targetAlias;
+      String sourceAlias = alias();
+      TableExpr pathJoin = this;
+      for (Iterator<BaseRelation.Link> i = shortest.path().elements().iterator();
+           i.hasNext();) {
+        BaseRelation.Link link = i.next();
+        String target = link.reverse() ? link.constraint().table()
+                                       : link.constraint().targetTable();
+        if (!i.hasNext()) {
+          /*
+           * filter table (last table in path): use specified alias
+           */
+          targetAlias = lastAlias != null
+                      ? lastAlias
+                      : makeUnique(aliases, unqualifiedName(target)); // "t" + Strings.random();
+        } else {
+          targetAlias = makeUnique(aliases, unqualifiedName(target)); // "t" + Strings.random();
+        }
+
+        Expression<?, String> on = joinLink(link, sourceAlias, targetAlias, 0);
+        if (link.constraint().sourceColumns().size() > 1) {
+          for (int j = 1; j < link.constraint().sourceColumns().size(); j++) {
+            on = new And(context, on, joinLink(link, sourceAlias, targetAlias, j));
+          }
+        }
+        pathJoin = new JoinTableExpr(context,
+                                     null,
+                                     false,
+                                     pathJoin,
+                                     new SingleTableExpr(context,
+                                                         link.reverse()
+                                                       ? link.constraint().table()
+                                                       : link.constraint().targetTable(),
+                                                         targetAlias),
+                                     on);
+        sourceAlias = targetAlias;
+      }
+      if (shortest.path().elements().isEmpty()) {
+        /*
+         * If the shortest path is empty, it means that this table is the target
+         * table, in which case the alias for the target table should be the alias
+         * of this table as well.
+         */
+        lastAlias = alias();
+      }
+      return new AppliedShortestPath(shortest, pathJoin, lastAlias);
+    }
+    return null;
+  }
+
+  /**
+   * Links can be in reverse path. (foreign key from target to source). E.g.
+   * Com c <- Emp e:
+   *    from Com c join Emp t on c._id (target column in link)=e.com_id (source column in link)
+   * Or normal path (foreign key from source to target).
+   * E.g. Emp e -> Com c:
+   *    from Emp e join Com t on e.company_id=t._id
+   */
+  private Equality joinLink(BaseRelation.Link link,
+                            String            sourceAlias,
+                            String            targetAlias,
+                            int               colIndex) {
+    return new Equality(
+      context,
+      new ColumnRef(context, sourceAlias,
+                    link.reverse() ? link.constraint().targetColumns().get(colIndex)
+                                   : link.constraint().sourceColumns().get(colIndex)),
+      new ColumnRef(context, targetAlias,
+                    link.reverse() ? link.constraint().sourceColumns().get(colIndex)
+                                   : link.constraint().targetColumns().get(colIndex)));
+  }
+
+  @Override
   public boolean exists(EsqlPath path) {
     if (context.type(tableName()) != null) {
       return true;
@@ -78,7 +180,7 @@ public class SingleTableExpr extends AbstractAliasTableExpr {
   }
 
   @Override
-  public TableExpr named(String name) {
+  public TableExpr aliased(String name) {
     return name == null || name.equals(alias()) ? this : null;
   }
 
@@ -108,17 +210,6 @@ public class SingleTableExpr extends AbstractAliasTableExpr {
                                            new ColumnRef(c.context, alias(), c.name()),
                                            c.type(), null))
                       .toList();
-//            if (cte.fields() == null || cte.fields().isEmpty()) {
-//              return cte.columns().stream()
-//                        .map(c -> c.expression(ColumnRef.qualify(c.expression(), alias())))
-//                        .toList();
-//            } else {
-//              return cte.columns().stream()
-//                        .map(c -> new Column(c.context, c.name(),
-//                                             new ColumnRef(c.context, table, c.name()),
-//                                             c.type(), null))
-//                        .toList();
-//            }
           }
         }
       }

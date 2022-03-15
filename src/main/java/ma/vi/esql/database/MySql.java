@@ -83,9 +83,7 @@ public class MySql extends AbstractDatabase {
 
   @Override
   public Connection pooledConnection(boolean autoCommit,
-                                     int isolationLevel,
-                                     String username,
-                                     String password) {
+                                     int isolationLevel) {
     try {
 //      Connection con = dataSource.getConnection(username, password);
       Connection con = dataSource.getConnection();

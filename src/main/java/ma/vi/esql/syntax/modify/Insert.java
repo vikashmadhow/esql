@@ -68,6 +68,21 @@ public class Insert extends QueryUpdate {
     return true;
   }
 
+//  public Insert filter(Filter filter) {
+//    if (select() != null) {
+//      return new Insert(context,
+//                        (SingleTableExpr)tables(),
+//                        fields(),
+//                        rows(),
+//                        defaultValues(),
+//                        select().filter(filter),
+//                        metadata(),
+//                        columns());
+//    } else {
+//      return this;
+//    }
+//  }
+
 //  @Override
 //  public T2<Boolean, String> restrict(Restriction restriction,
 //                                      String targetAlias,

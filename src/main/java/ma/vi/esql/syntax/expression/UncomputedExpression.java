@@ -22,7 +22,7 @@ import org.pcollections.PMap;
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 public class UncomputedExpression extends BaseLiteral<String> {
-  public UncomputedExpression(Context context, Expression<?, String> expr) {
+  public UncomputedExpression(Context context, Expression<?, ?> expr) {
     super(context, "UncomputedExpr", T2.of("expr", expr));
   }
 
@@ -64,7 +64,8 @@ public class UncomputedExpression extends BaseLiteral<String> {
     return switch (target) {
       case JAVASCRIPT -> "`$(" + expr().translate(target, esqlCon, path.add(expr()), parameters, env) + ")`";
       case ESQL       ->  "$(" + expr().translate(target, esqlCon, path.add(expr()), parameters, env) + ')';
-      default         -> "'$(" + expr().translate(Target.ESQL, esqlCon, path.add(expr()), parameters, env).replace("'", "''") + ")'";
+      default         -> "'$(" + expr().translate(Target.ESQL, esqlCon, path.add(expr()), parameters, env)
+                                       .toString().replace("'", "''") + ")'";
     };
   }
 
@@ -83,7 +84,7 @@ public class UncomputedExpression extends BaseLiteral<String> {
     st.append(')');
   }
 
-  public Expression<?, String> expr() {
+  public Expression<?, ?> expr() {
     return child("expr");
   }
 }

@@ -48,6 +48,10 @@ public class CrossProductTableExpr extends AbstractJoinTableExpr {
     return new CrossProductTableExpr(this, value, children);
   }
 
+  protected AbstractJoinTableExpr join(TableExpr left, TableExpr right) {
+    return new CrossProductTableExpr(context, left, right);
+  }
+
   @Override
   protected String trans(Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
     return left().translate(target, esqlCon, path.add(left()), parameters, env)

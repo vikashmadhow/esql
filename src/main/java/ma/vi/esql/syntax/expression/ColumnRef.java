@@ -21,7 +21,6 @@ import ma.vi.esql.syntax.define.*;
 import ma.vi.esql.syntax.macro.TypedMacro;
 import ma.vi.esql.semantic.type.Column;
 import ma.vi.esql.syntax.query.QueryUpdate;
-import ma.vi.esql.syntax.query.SingleTableExpr;
 import ma.vi.esql.syntax.query.TableExpr;
 import ma.vi.esql.translation.TranslationException;
 import org.pcollections.PMap;
@@ -200,14 +199,14 @@ public class ColumnRef extends    Expression<String, String>
     String qualifier = ref.qualifier();
     while (column == null && qu != null) {
       TableExpr tables = qu.tables();
-      if (qualifier != null) {
+      if (tables != null && qualifier != null) {
         /*
          * In a correlated query, the qualifier might reference a table outside
          * of this query, resulting in the following statement returning null
          * when looking for that named table. This is handled below where the
          * parent of the current query is checked.
          */
-        tables = tables.named(qualifier);
+        tables = tables.aliased(qualifier);
       }
       if (tables != null && tables.exists(path)) {
         column = tables.columnList(path).stream()

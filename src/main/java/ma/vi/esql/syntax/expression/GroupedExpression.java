@@ -18,8 +18,8 @@ import org.pcollections.PMap;
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 public class GroupedExpression extends SingleSubExpression {
-  public GroupedExpression(Context context, Expression<?, String> expr) {
-    super(context, "GroupedExpr", expr);
+  public GroupedExpression(Context context, Expression<?, ?> expr) {
+    super(context, "GroupedExpr", peel(expr));
   }
 
   public GroupedExpression(GroupedExpression other) {
@@ -44,6 +44,15 @@ public class GroupedExpression extends SingleSubExpression {
   @Override
   public GroupedExpression copy(String value, T2<String, ? extends Esql<?, ?>>... children) {
     return new GroupedExpression(this, value, children);
+  }
+
+  /**
+   * Peel off unnecessary groupings.
+   */
+  private static Expression<?, ?> peel(Expression<?, ?> expr) {
+    Expression<?, ?> in = expr;
+    while (in instanceof GroupedExpression g) in = g.expr();
+    return in;
   }
 
   @Override

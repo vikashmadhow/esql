@@ -34,11 +34,11 @@ import static ma.vi.esql.translation.Translatable.Target.ESQL;
  */
 public class Column extends MetadataContainer<String> {
   @SafeVarargs
-  public Column(Context context,
-                String name,
-                Expression<?, String> expression,
-                Type type,
-                Metadata metadata,
+  public Column(Context          context,
+                String           name,
+                Expression<?, ?> expression,
+                Type             type,
+                Metadata         metadata,
                 T2<String, ? extends Esql<?, ?>>... children) {
     super(context, "Column",
           Stream.concat(
@@ -99,7 +99,7 @@ public class Column extends MetadataContainer<String> {
       columnType = UnknownType;
     }
     Boolean notNull = def.notNull();
-    Expression<?, String> defaultExpr = def.expression();
+    Expression<?, ?> defaultExpr = def.expression();
 
     Map<String, Attribute> attributes = new HashMap<>();
     if (def.metadata() != null) {
@@ -199,7 +199,7 @@ public class Column extends MetadataContainer<String> {
     }
   }
 
-  public Expression<?, String> defaultExpression() {
+  public Expression<?, ?> defaultExpression() {
     if (metadata() != null
      && metadata().attribute(EXPRESSION) != null) {
       return metadata().attribute(EXPRESSION).attributeValue();
@@ -208,7 +208,7 @@ public class Column extends MetadataContainer<String> {
     }
   }
 
-  public Column defaultExpression(Expression<?, String> expr) {
+  public Column defaultExpression(Expression<?, ?> expr) {
     return setMetadata(EXPRESSION, expr);
   }
 
@@ -228,7 +228,7 @@ public class Column extends MetadataContainer<String> {
     return type;
   }
 
-  protected Attribute _attribute(String name, Expression<?, String> expr) {
+  protected Attribute _attribute(String name, Expression<?, ?> expr) {
     return _attribute(new Attribute(context, name, expr));
   }
 
@@ -244,7 +244,7 @@ public class Column extends MetadataContainer<String> {
     return attr;
   }
 
-  private Column setMetadata(String name, Expression<?, String> expr) {
+  private Column setMetadata(String name, Expression<?, ?> expr) {
     List<Attribute> attributes = new ArrayList<>();
     if (metadata() != null && metadata().attributes() != null) {
       attributes.addAll(metadata().attributes().values().stream().filter(a -> !a.name().equals(name)).toList());
@@ -272,11 +272,11 @@ public class Column extends MetadataContainer<String> {
     return childValue("name");
   }
 
-  public Expression<?, String> expression() {
+  public Expression<?, ?> expression() {
     return child("expression");
   }
 
-  public Column expression(Expression<?, String> expression) {
+  public Column expression(Expression<?, ?> expression) {
     return set("expression", expression);
   }
 

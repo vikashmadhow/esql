@@ -125,7 +125,7 @@ public class FunctionDefAndExecTest extends DataTest {
                                               i := i + 1;
                                             end;
                                             """);
-                     con.exec(prog, Param.of("b1", 5), Param.of("b2", 9));
+                     con.exec(prog, new QueryParams().add("b1", 5).add("b2", 9));
                       System.out.println(prog);
                    }
                  }));
@@ -155,7 +155,7 @@ public class FunctionDefAndExecTest extends DataTest {
                                               end;
                                             end;
                                             """);
-                     con.exec(prog, Param.of("b1", 6), Param.of("b2", 1));
+                     con.exec(prog, new QueryParams().add("b1", 6).add("b2", 1));
                      System.out.println(prog);
                    }
                  }));
@@ -185,7 +185,7 @@ public class FunctionDefAndExecTest extends DataTest {
                                               print('  ------------------------  ');
                                             end;
                                             """);
-                     con.exec(prog, Param.of("b1", 6), Param.of("b2", 1));
+                     con.exec(prog, new QueryParams().add("b1", 6).add("b2", 1));
                      System.out.println(prog);
                    }
                  }));
@@ -259,7 +259,7 @@ public class FunctionDefAndExecTest extends DataTest {
                                               print('  ------------------------  ');
                                             end;
                                             """);
-                     con.exec(prog, Param.of("b1", 6), Param.of("b2", 1));
+                     con.exec(prog, new QueryParams().add("b1", 6).add("b2", 1));
                      System.out.println(prog);
                    }
                  }));
@@ -289,8 +289,9 @@ public class FunctionDefAndExecTest extends DataTest {
                                             """);
                      TranslationException error = assertThrows(TranslationException.class,
                                                                () -> con.exec(prog,
-                                                                              Param.of("b1", 5),
-                                                                              Param.of("b2", 9)));
+                                                                              new QueryParams()
+                                                                                .add("b1", 5)
+                                                                                .add("b2", 9)));
                      assertEquals(error.esql.line, 11);
                    }
                  }));

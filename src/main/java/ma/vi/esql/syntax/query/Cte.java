@@ -28,10 +28,10 @@ import static java.util.stream.Collectors.joining;
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 public class Cte extends QueryUpdate {
-  public Cte(Context context,
-             String name,
+  public Cte(Context      context,
+             String       name,
              List<String> fields,
-             QueryUpdate query) {
+             QueryUpdate  query) {
     super(context, "CTE",
           Stream.concat(
             Stream.of(
@@ -69,13 +69,13 @@ public class Cte extends QueryUpdate {
       /*
        * Set the alias of columns to the name of the corresponding field
        */
-      if (query instanceof CompositeSelects com) {
+      if (query instanceof CompositeSelect com) {
         List<Select> aliased = new ArrayList<>();
         List<Select> selects = com.selects();
         for (Select q: selects) {
           aliased.add(renameColumns(q, fields));
         }
-        query = new CompositeSelects(com.context, com.operator(), aliased);
+        query = new CompositeSelect(com.context, com.operator(), aliased);
       } else {
         query = renameColumns(query, fields);
       }
@@ -144,6 +144,13 @@ public class Cte extends QueryUpdate {
   public boolean modifying() {
     return query().modifying();
   }
+
+//  public Cte filter(Filter filter) {
+//    return new Cte(context,
+//                   name(),
+//                   fields(),
+//                   query().filter(filter));
+//  }
 
   @Override
   public QueryTranslation trans(Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {

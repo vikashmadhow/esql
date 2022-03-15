@@ -31,9 +31,9 @@ import static ma.vi.esql.exec.EsqlConnection.NULL_CONNECTION;
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 public class Attribute extends Esql<String, String> {
-  public Attribute(Context context,
-                   String name,
-                   Expression<?, String> value) {
+  public Attribute(Context          context,
+                   String           name,
+                   Expression<?, ?> value) {
     super(context, name, T2.of("value", value));
   }
 
@@ -105,11 +105,11 @@ public class Attribute extends Esql<String, String> {
     return value;
   }
 
-  public Expression<?, String> attributeValue() {
+  public Expression<?, ?> attributeValue() {
     return child("value");
   }
 
-  public Attribute attributeValue(Expression<?, String> value) {
+  public Attribute attributeValue(Expression<?, ?> value) {
     return set("value", value);
   }
 
@@ -124,7 +124,7 @@ public class Attribute extends Esql<String, String> {
                                  EsqlPath             path,
                                  PMap<String, Object> parameters,
                                  Environment          env) {
-    Expression<?, String> expr = attributeValue();
+    Expression<?, ?> expr = attributeValue();
     return (T)expr.exec(Target.ESQL,
                         esqlCon,
                         path == null ? new EsqlPath(expr) : path.add(expr),

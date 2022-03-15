@@ -39,10 +39,12 @@ public class PostgresqlTranslator extends AbstractTranslator {
     StringBuilder st = new StringBuilder("select ");
     if (select.distinct()) {
       st.append("distinct ");
-      List<Expression<?, String>> distinctOn = select.distinctOn();
+      List<Expression<?, ?>> distinctOn = select.distinctOn();
       if (distinctOn != null && !distinctOn.isEmpty()) {
         st.append("on (")
-          .append(distinctOn.stream().map(e -> e.translate(target(), esqlCon, path.add(e), parameters, env)).collect(joining(", ")))
+          .append(distinctOn.stream()
+                            .map(e -> e.translate(target(), esqlCon, path.add(e), parameters, env).toString())
+                            .collect(joining(", ")))
           .append(") ");
       }
     }
@@ -151,7 +153,7 @@ public class PostgresqlTranslator extends AbstractTranslator {
       List<Attribute> set = new ArrayList<>(update.set().attributes().values());
       st.append("select \"").append(update.updateTableAlias()).append("\".ctid, ")
         .append(set.stream()
-                   .map(a -> a.attributeValue().translate(target(), esqlCon, path.add(a.attributeValue()), parameters, env))
+                   .map(a -> a.attributeValue().translate(target(), esqlCon, path.add(a.attributeValue()), parameters, env).toString())
                    .collect(joining(", ")))
         .append(" from ").append(from.translate(target(), esqlCon, path.add(from), parameters, env));
 
@@ -260,7 +262,8 @@ public class PostgresqlTranslator extends AbstractTranslator {
         throw new TranslationException(delete, "Could not find table with alias " + singleTableAlias);
       }
       if (deleteJoin.a instanceof JoinTableExpr join) {
-        delete = delete.where(join.on(), false);
+//        delete = delete.where(join.on(), false);
+        delete = delete.where(join.on());
       }
       st.append(" from ").append(deleteTable.a.translate(target(), esqlCon, path.add(deleteTable.a), parameters, env));
       st.append(" using ").append(from.translate(target(), esqlCon, path.add(from), parameters, env));

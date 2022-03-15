@@ -13,6 +13,7 @@ import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
+import ma.vi.esql.exec.Filter;
 import ma.vi.esql.syntax.expression.ColumnRef;
 import ma.vi.esql.syntax.macro.Macro;
 import org.pcollections.PMap;
@@ -62,12 +63,22 @@ public class SelectTableExpr extends AbstractAliasTableExpr {
   }
 
   @Override
+  public ShortestPath findShortestPath(Filter filter) {
+    return null;
+  }
+
+  @Override
+  public AppliedShortestPath applyShortestPath(ShortestPath shortest) {
+    return null;
+  }
+
+  @Override
   public boolean exists(EsqlPath path) {
     return select().tables().exists(path);
   }
 
   @Override
-  public TableExpr named(String name) {
+  public TableExpr aliased(String name) {
     return name == null || name.equals(alias()) ? this : null;
   }
 
@@ -85,7 +96,7 @@ public class SelectTableExpr extends AbstractAliasTableExpr {
   @Override
   public Selection computeType(EsqlPath path) {
     if (type == Types.UnknownType) {
-      Selection sel = select().computeType(path.add(select()));
+      Selection sel = (Selection)select().computeType(path.add(select()));
       Selection t = new Selection(sel.columns().stream()
                                      .map(c -> c.b.expression(new ColumnRef(c.b.context, alias(), c.b.name())))
                                      .toList(),

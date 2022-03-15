@@ -11,11 +11,10 @@ import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
+import ma.vi.esql.exec.Filter;
 import ma.vi.esql.syntax.macro.Macro;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Stream;
 
 /**
@@ -55,13 +54,26 @@ public abstract class AbstractJoinTableExpr extends TableExpr {
   @Override
   public abstract AbstractJoinTableExpr copy();
 
+  public List<TableExpr> tables() {
+    List<TableExpr> tables = new ArrayList<>(left().tables());
+    tables.addAll(right().tables());
+    return tables;
+  }
+
   @Override
-  public TableExpr named(String name) {
+  public Set<String> aliases() {
+    Set<String> aliases = new HashSet<>(left().aliases());
+    aliases.addAll(right().aliases());
+    return aliases;
+  }
+
+  @Override
+  public TableExpr aliased(String name) {
     if (name == null) {
       return this;
     } else {
-      TableExpr expr = left().named(name);
-      return expr != null ? expr : right().named(name);
+      TableExpr expr = left().aliased(name);
+      return expr != null ? expr : right().aliased(name);
     }
   }
 
@@ -72,6 +84,42 @@ public abstract class AbstractJoinTableExpr extends TableExpr {
    */
   @Override
   public abstract AbstractJoinTableExpr copy(String value, T2<String, ? extends Esql<?, ?>>... children);
+
+  @Override
+  public ShortestPath findShortestPath(Filter filter) {
+    ShortestPath left = left().findShortestPath(filter);
+    ShortestPath right = right().findShortestPath(filter);
+    return left  == null ? right
+         : right == null ? left
+         : left.path().cost() < right.path().cost() ? left
+         : right;
+  }
+
+  @Override
+  public AppliedShortestPath applyShortestPath(ShortestPath shortest) {
+    AppliedShortestPath left = left().applyShortestPath(shortest);
+    AppliedShortestPath right = right().applyShortestPath(shortest);
+
+    if (left == null && right == null) {
+      return null;
+    } else if (left == null) {
+      return new AppliedShortestPath(right.path(),
+                                     join(left(), right.result()),
+                                     right.targetAlias());
+    } else {
+      return new AppliedShortestPath(left.path(),
+                                     join(left.result(), right()),
+                                     left.targetAlias());
+    }
+  }
+
+  /**
+   * Creates a join of the proper type with the specified left and right branches.
+   * @param left The left branch.
+   * @param right The right branch.
+   * @return The created join.
+   */
+  protected abstract AbstractJoinTableExpr join(TableExpr left, TableExpr right);
 
   @Override
   public boolean exists(EsqlPath path) {

@@ -8,6 +8,7 @@ import ma.vi.base.lang.NotFoundException;
 import ma.vi.base.tuple.T1;
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.exec.Filter;
 import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.semantic.scope.Scope;
 import ma.vi.esql.semantic.type.Type;
@@ -624,6 +625,10 @@ public class Esql<V, T> implements Copy<Esql<V, T>>, Translatable<T> {
       }
     }
     return expanded;
+  }
+
+  public Esql<V, T> filter(Filter filter) {
+    return this;
   }
 
   @Override

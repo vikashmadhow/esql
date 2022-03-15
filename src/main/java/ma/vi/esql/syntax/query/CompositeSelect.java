@@ -19,15 +19,17 @@ import java.util.List;
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public class CompositeSelects extends Select {
-  public CompositeSelects(Context context, String operator, List<Select> selects) {
+public class CompositeSelect extends Select {
+  public CompositeSelect(Context      context,
+                         String       operator,
+                         List<Select> selects) {
     super(context,
           null,
           selects.get(0).distinct(),
           selects.get(0).distinctOn(),
           selects.get(0).explicit(),
           selects.get(0).columns(),
-          selects.get(0).tables() == null ? null : selects.get(0).tables().copy(),
+          selects.get(0).tables(),
           selects.get(0).where(),
           selects.get(0).groupBy(),
           selects.get(0).having(),
@@ -65,18 +67,18 @@ public class CompositeSelects extends Select {
 //    columnList(selects.get(0).columnList());
   }
 
-  public CompositeSelects(CompositeSelects other) {
+  public CompositeSelect(CompositeSelect other) {
     super(other);
   }
 
   @SafeVarargs
-  public CompositeSelects(CompositeSelects other, String value, T2<String, ? extends Esql<?, ?>>... children) {
+  public CompositeSelect(CompositeSelect other, String value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }
 
   @Override
-  public CompositeSelects copy() {
-    return new CompositeSelects(this);
+  public CompositeSelect copy() {
+    return new CompositeSelect(this);
   }
 
   /**
@@ -85,9 +87,17 @@ public class CompositeSelects extends Select {
    * of the copy.
    */
   @Override
-  public CompositeSelects copy(String value, T2<String, ? extends Esql<?, ?>>... children) {
-    return new CompositeSelects(this, value, children);
+  public CompositeSelect copy(String value, T2<String, ? extends Esql<?, ?>>... children) {
+    return new CompositeSelect(this, value, children);
   }
+
+//  public CompositeSelect filter(Filter filter) {
+//    return new CompositeSelect(context,
+//                               operator(),
+//                               selects().stream()
+//                                        .map(s -> s.filter(filter))
+//                                        .toList());
+//  }
 
   @Override
   public QueryTranslation trans(Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {

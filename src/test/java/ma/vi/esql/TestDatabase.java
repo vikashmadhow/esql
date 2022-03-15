@@ -9,6 +9,7 @@ import ma.vi.base.lang.NotFoundException;
 import ma.vi.esql.database.Database;
 import ma.vi.esql.database.Extension;
 import ma.vi.esql.database.Structure;
+import ma.vi.esql.exec.EsqlConnection;
 import ma.vi.esql.semantic.type.BaseRelation;
 import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.Context;
@@ -283,9 +284,7 @@ public class TestDatabase implements Database {
 
   @Override
   public Connection pooledConnection(boolean autoCommit,
-                                     int isolationLevel,
-                                     String username,
-                                     String password) {
+                                     int isolationLevel) {
     return null;
   }
 
@@ -294,6 +293,11 @@ public class TestDatabase implements Database {
                                   int isolationLevel,
                                   String username,
                                   String password) {
+    return null;
+  }
+
+  @Override
+  public EsqlConnection esql(Connection con) {
     return null;
   }
 
@@ -312,69 +316,69 @@ public class TestDatabase implements Database {
   }
 
   @Override
-  public void addTable(Connection con, BaseRelation table) {
+  public void addTable(EsqlConnection con, BaseRelation table) {
   }
 
   @Override
-  public UUID tableId(Connection con, String tableName) {
+  public UUID tableId(EsqlConnection con, String tableName) {
     return null;
   }
 
   @Override
-  public BaseRelation updateTable(Connection con, BaseRelation table) {
+  public BaseRelation updateTable(EsqlConnection con, BaseRelation table) {
     return null;
   }
 
   @Override
-  public void renameTable(Connection con, UUID tableId, String name) {
+  public void renameTable(EsqlConnection con, UUID tableId, String name) {
   }
 
   @Override
-  public void clearTableMetadata(Connection con, UUID tableId) {
+  public void clearTableMetadata(EsqlConnection con, UUID tableId) {
   }
 
   @Override
-  public void tableMetadata(Connection con, UUID tableId, Metadata metadata) {
+  public void tableMetadata(EsqlConnection con, UUID tableId, Metadata metadata) {
   }
 
   @Override
-  public void dropTable(Connection con, UUID tableId) {
+  public void dropTable(EsqlConnection con, UUID tableId) {
   }
 
   @Override
-  public void column(Connection con, UUID tableId, Column column) {
+  public void column(EsqlConnection con, UUID tableId, Column column) {
   }
 
   @Override
-  public void columnName(Connection con, UUID columnId, String name) {
+  public void columnName(EsqlConnection con, UUID columnId, String name) {
   }
 
   @Override
-  public void columnType(Connection con, UUID columnId, String type) {
+  public void columnType(EsqlConnection con, UUID columnId, String type) {
   }
 
   @Override
-  public void defaultValue(Connection con, UUID columnId, String defaultValue) {
+  public void defaultValue(EsqlConnection con, UUID columnId, String defaultValue) {
   }
 
   @Override
-  public void notNull(Connection con, UUID columnId, String notNull) {
+  public void notNull(EsqlConnection con, UUID columnId, String notNull) {
   }
 
   @Override
-  public void columnMetadata(Connection con, UUID columnId, Metadata metadata) {
+  public void columnMetadata(EsqlConnection con, UUID columnId, Metadata metadata) {
   }
 
   @Override
-  public void dropColumn(Connection con, UUID columnId) {
+  public void dropColumn(EsqlConnection con, UUID columnId) {
   }
 
   @Override
-  public void constraint(Connection con, UUID tableId, ConstraintDefinition constraint) {
+  public void constraint(EsqlConnection con, UUID tableId, ConstraintDefinition constraint) {
   }
 
   @Override
-  public void dropConstraint(Connection con, UUID tableId, String constraintName) {
+  public void dropConstraint(EsqlConnection con, UUID tableId, String constraintName) {
   }
 
   private Structure structure;

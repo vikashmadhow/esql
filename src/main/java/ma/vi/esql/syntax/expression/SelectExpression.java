@@ -7,15 +7,17 @@ package ma.vi.esql.syntax.expression;
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.exec.EsqlConnection;
 import ma.vi.esql.exec.env.Environment;
+import ma.vi.esql.semantic.type.Column;
 import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
-import ma.vi.esql.semantic.type.Column;
 import ma.vi.esql.syntax.query.Order;
+import ma.vi.esql.syntax.query.QueryTranslation;
 import ma.vi.esql.syntax.query.Select;
 import org.pcollections.PMap;
 
+import java.util.Collections;
 import java.util.List;
 
 import static java.util.stream.Collectors.joining;
@@ -26,9 +28,22 @@ import static ma.vi.esql.translation.SqlServerTranslator.DONT_ADD_IIF;
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public class SelectExpression extends Expression<String, String> {
+public class SelectExpression extends Select { // extends Expression<String, String> {
   public SelectExpression(Context context, Select select) {
-    super(context, "SelectExpression", T2.of("select", select));
+    super(context,
+          null,
+          select.distinct(),
+          select.distinctOn(),
+          select.explicit(),
+          select.columns(),
+          select.tables(),
+          select.where(),
+          select.groupBy(),
+          select.having(),
+          select.orderBy(),
+          select.offset(),
+          select.limit(),
+          T2.of("select", select));
   }
 
   public SelectExpression(SelectExpression other) {
@@ -62,17 +77,32 @@ public class SelectExpression extends Expression<String, String> {
   }
 
   @Override
-  protected String trans(Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
+  public boolean modifying() {
+    return false;
+  }
+
+//  public SelectExpression filter(Filter filter) {
+//    return new SelectExpression(context, select().filter(filter));
+//  }
+
+  @Override
+  protected QueryTranslation trans(Target               target,
+                                   EsqlConnection       esqlCon,
+                                   EsqlPath             path,
+                                   PMap<String, Object> parameters,
+                                   Environment          env) {
     if (target == Target.ESQL) {
       Select sel = select();
       StringBuilder st = new StringBuilder();
       st.append("(from ").append(sel.tables().translate(target, esqlCon, path.add(sel.tables()), parameters, env)).append(" select ");
       if (sel.distinct()) {
         st.append("distinct ");
-        List<Expression<?, String>> distinctOn = sel.distinctOn();
+        List<Expression<?, ?>> distinctOn = sel.distinctOn();
         if (distinctOn != null && !distinctOn.isEmpty()) {
           st.append("on (")
-            .append(distinctOn.stream().map(e -> e.translate(target, esqlCon, path.add(e), parameters, env)).collect(joining(", ")))
+            .append(distinctOn.stream()
+                              .map(e -> e.translate(target, esqlCon, path.add(e), parameters, env).toString())
+                              .collect(joining(", ")))
             .append(") ");
         }
       }
@@ -99,9 +129,15 @@ public class SelectExpression extends Expression<String, String> {
 //        st.append(" limit ").append(sel.limit().translate(target, esqlCon, path.add(sel.limit()), parameters, env));
 //      }
       st.append(')');
-      return st.toString();
+      return new QueryTranslation(this, st.toString(), Collections.emptyList(), Collections.emptyMap());
+
     } else {
-      return "(" + select().translate(target, esqlCon, path.add(select()), parameters.plusAll(DONT_ADD_IIF), env).translation() + ")";
+      QueryTranslation t = select().translate(target, esqlCon, path.add(select()), parameters.plusAll(DONT_ADD_IIF), env);
+      return new QueryTranslation(
+        this,
+        '(' + t.translation() + ')',
+        t.columns(),
+        t.resultAttributes());
     }
   }
 
@@ -117,7 +153,7 @@ public class SelectExpression extends Expression<String, String> {
       if (sel.distinctOn() != null && !sel.distinctOn().isEmpty()) {
         st.append('(');
         boolean first = true;
-        for (Expression<?, String> e: sel.distinctOn()) {
+        for (Expression<?, ?> e: sel.distinctOn()) {
           if (first) { first = false; }
           else       { st.append(", "); }
           e._toString(st, level, indent);

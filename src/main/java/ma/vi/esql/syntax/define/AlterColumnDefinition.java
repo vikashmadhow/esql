@@ -27,7 +27,7 @@ public class AlterColumnDefinition extends Define {
                                Type toType,
                                boolean setNotNull,
                                boolean dropNotNull,
-                               Expression<?, String> setDefault,
+                               Expression<?, ?> setDefault,
                                boolean dropDefault,
                                Metadata metadata) {
     super(context, "AlterColumn",
@@ -91,7 +91,7 @@ public class AlterColumnDefinition extends Define {
     return childValue("dropNotNull");
   }
 
-  public Expression<?, String> setDefault() {
+  public Expression<?, ?> setDefault() {
     return child("setDefault");
   }
 

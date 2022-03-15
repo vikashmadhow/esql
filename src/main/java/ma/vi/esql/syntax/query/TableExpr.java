@@ -5,13 +5,16 @@
 package ma.vi.esql.syntax.query;
 
 import ma.vi.base.tuple.T2;
+import ma.vi.esql.semantic.type.BaseRelation;
 import ma.vi.esql.semantic.type.Column;
 import ma.vi.esql.semantic.type.Relation;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
+import ma.vi.esql.exec.Filter;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * The table expression in the from clause of a select, update or delete statement
@@ -46,6 +49,17 @@ public abstract class TableExpr extends Esql<String, String> {
   @Override
   public abstract TableExpr copy(String value, T2<String, ? extends Esql<?, ?>>... children);
 
+  public record ShortestPath(SingleTableExpr    source,
+                             BaseRelation.Path  path,
+                             Filter filter) {}
+
+  public record AppliedShortestPath(ShortestPath path,
+                                    TableExpr    result,
+                                    String       targetAlias) {}
+
+  public abstract ShortestPath findShortestPath(Filter filter);
+  public abstract AppliedShortestPath applyShortestPath(ShortestPath shortest);
+
   /**
    * Returns true if the table(s) in this table expression exists.
    */
@@ -59,11 +73,25 @@ public abstract class TableExpr extends Esql<String, String> {
   public abstract List<Column> columnList(EsqlPath path);
 
   /**
+   * Returns the list of smallest table expressions composing this table expression.
+   * If this table expression cannot be split into smaller table expressions a list
+   * containing this table expression as the single element is returned.
+   * E.g., join table expression `a join b join c join d` will return [a, b, c, d]
+   * while single table expression `x.y.z` will [x.y.z].
+   */
+  public abstract List<TableExpr> tables();
+
+  /**
+   * @return The set of all table aliases for all tables in the table expression.
+   */
+  public abstract Set<String> aliases();
+
+  /**
    * Returns the table expression with the specified alias, which can be the alias
    * associated to this table expression or to one of its sub-components (as is
    * the case for joins).
    */
-  public abstract TableExpr named(String name);
+  public abstract TableExpr aliased(String name);
 
   @Override
   public abstract Relation computeType(EsqlPath path);

@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Manual transaction control (begin, commit, rollback, set isolation level, 
   savepoints, locking). Currently, transaction boundary is aligned to connection 
   or single-statement only.
+- Produce formatted multi-line translation to SQL.
 - Assignment to array, list and map subscripts.
 - Operations on JSON objects.
 - `Truncate table` statement.
@@ -67,11 +68,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Test translation of distinct over multiple columns in SQL Server.
 - Test window functions.
 - Test performance.
+- Test finding minimal cost paths between tables.
+- Test dynamic filtering.
 
 ### To fix
 - Apply result and column metadata overloading in column list expansion (currently,
   the overridden metadata are not being considered). (create tests for metadata 
   overriding)
+
+## [0.9.0] - 2022-03-15
+### Added
+- Simple transaction boundary management using a thread local variable to hold 
+  a stack of current active connections (and transactions). `Database.esql` method 
+  can now take a null `Connection` signaling that the first active connection at 
+  the top of the stack must be used (or a new current active connection is added 
+  to the top of the stack and used thereon until it is closed).
+- `SelectExpression` is now a subclass of `Select` instead of just `Expression`
+  and thus participates in all query-type operations.
+- Dynamic filtering where a set of filters can be composed into a query prior to 
+  its execution. Filters are specified against a table and, if the filter table
+  is not in the query being executed, the shortest path is looked for between the
+  tables in the query and filter table, based on the foreign key links between
+  them. If such a path exists, the query is rewritten to join all the tables
+  in the path in its from clause.
+- EsqlConnection `prepare` method prepares a query for execution by substituting
+  parameter values, expanding macros, applying filters, etc. After preparation,
+  the query can be executed without any other processing.
+- EsqlConnection `execPrepared` method to execute a prepared query. The existing
+  `exec` method is now implemented by calling `prepare` followed by `execPrepared`.
+- Query parameters and filters have been grouped into the `QueryParams` class 
+  which uses methods call chaining to simplify construction of parameters and
+  filters groups to pass to the EsqlConnection execution methods.
+- Combining `where` conditions with filters (with AND & OR operator) implemented.
+- Grouped expressions of grouped expressions are optimized to remove the useless 
+  groupings.
 
 ## [0.8.9] - 2022-03-05
 ### Added

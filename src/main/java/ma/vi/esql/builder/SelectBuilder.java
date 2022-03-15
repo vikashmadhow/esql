@@ -55,7 +55,7 @@ public class SelectBuilder implements Builder<Select> {
     return this;
   }
 
-  public SelectBuilder distinctOn(Expression<?, String> distinctOn) {
+  public SelectBuilder distinctOn(Expression<?, ?> distinctOn) {
     this.distinctOn.add(distinctOn);
     return this;
   }
@@ -204,14 +204,14 @@ public class SelectBuilder implements Builder<Select> {
   }
 
   private boolean distinct;
-  private final List<Expression<?, String>> distinctOn = new ArrayList<>();
+  private final List<Expression<?, ?>> distinctOn = new ArrayList<>();
   private boolean explicit;
   private final List<Attribute> metadata = new ArrayList<>();
   private final List<Column> columns = new ArrayList<>();
   private TableExpr from;
   private Expression<?, String> where;
   private final List<Order> orderBy = new ArrayList<>();
-  private final List<Expression<?, String>> groupBy = new ArrayList<>();
+  private final List<Expression<?, ?>> groupBy = new ArrayList<>();
   private GroupBy.Type groupType = Simple;
   private Expression<?, String> having;
   private Expression<?, String> offset;

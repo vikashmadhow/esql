@@ -4,14 +4,11 @@
 
 package ma.vi.esql.exec;
 
-import ma.vi.base.reflect.Dissector;
-import ma.vi.base.reflect.Property;
 import ma.vi.esql.database.Database;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.Parser;
 
 import java.sql.Connection;
-import java.util.Map;
 
 import static ma.vi.base.lang.Errors.unchecked;
 
@@ -27,71 +24,77 @@ import static ma.vi.base.lang.Errors.unchecked;
 public interface EsqlConnection extends AutoCloseable {
 
   /**
-   * Executes the ESQL statement using this connection after inserting the
-   * provided optional parameters.
+   * {@link #prepare(Esql, QueryParams) Prepares} and {@link #execPrepared(Esql, QueryParams) executes}
+   * the ESQL program using this connection. Preparation includes parameter substitution,
+   * macro expansion and filter applications.
    *
-   * @param esql   The esql statement to execute.
-   * @param params An optional list of parameters matching the parameter
-   *               placeholders in the statement.
+   * @param esql The esql statement to execute.
+   * @param qp Parameters to the esql including named parameter values and filters.
    * @return The result produced by the esql command on execution.
    */
-  <R> R exec(Esql<?, ?> esql, Param... params);
+  default <R> R exec(Esql<?, ?> esql, QueryParams qp) {
+    return execPrepared(prepare(esql, qp), qp);
+  }
 
-  default <R> Iterable<R> exec(Esql<?, ?>           esql,
-                               ResultTransformer<R> transformer,
-                               Param...             params) {
-    return transformer.transform(exec(esql, params));
+  default <R> R exec(Esql<?, ?> esql) {
+    return exec(esql, (QueryParams)null);
+  }
+
+  default <R> R exec(String esql, QueryParams qp) {
+    return exec(new Parser(database().structure()).parse(esql), qp);
+  }
+
+  default <R> R exec(String esql) {
+    return exec(esql, (QueryParams)null);
   }
 
   default <R> Iterable<R> exec(Esql<?, ?>           esql,
                                ResultTransformer<R> transformer,
-                               Object               objectAsParams) {
-    if (objectAsParams instanceof Param p) {
-      return exec(esql, transformer, new Param[] { p });
-    } else {
-      return exec(esql, transformer, asParams(objectAsParams));
-    }
+                               QueryParams          qp) {
+    return transformer.transform(exec(esql, qp));
   }
 
-  default <R> R exec(Esql<?, ?> esql, Object objectAsParams) {
-    if (objectAsParams instanceof Param p) {
-      return exec(esql, new Param[] { p });
-    } else {
-      return exec(esql, asParams(objectAsParams));
-    }
+  default <R> Iterable<R> exec(Esql<?, ?>           esql,
+                               ResultTransformer<R> transformer) {
+    return exec(esql, transformer, null);
   }
 
-  default <R> R exec(String esql, Param... params) {
-    return exec(new Parser(database().structure()).parse(esql), params);
-  }
-
-  default <R> R exec(String esql, Object objectAsParams) {
-    if (objectAsParams instanceof Param p) {
-      return exec(new Parser(database().structure()).parse(esql), new Param[] { p });
-    } else {
-      return exec(new Parser(database().structure()).parse(esql), asParams(objectAsParams));
-    }
+  default <R> Iterable<R> exec(String               esql,
+                               ResultTransformer<R> transformer,
+                               QueryParams          qp) {
+    return exec(new Parser(database().structure()).parse(esql), transformer, qp);
   }
 
   default <R> Iterable<R> exec(String               esql,
                                ResultTransformer<R> transformer) {
-    return transformer.transform(exec(new Parser(database().structure()).parse(esql)));
+    return exec(esql, transformer, null);
   }
 
-  default <R> Iterable<R> exec(String               esql,
-                               ResultTransformer<R> transformer,
-                               Object               objectAsParams) {
-    if (objectAsParams instanceof Param p) {
-      return exec(esql, transformer, new Param[] { p });
-    } else {
-      return exec(esql, transformer, asParams(objectAsParams));
-    }
+  /**
+   * Prepares the query by substituting parameters, expanding macros, computing
+   * types, applying filters, and so on.
+   */
+  Esql<?, ?> prepare(Esql<?, ?> esql, QueryParams qp);
+
+  default Esql<?, ?> prepare(Esql<?, ?> esql) {
+    return prepare(esql, null);
   }
 
-  default <R> Iterable<R> exec(String               esql,
-                               ResultTransformer<R> transformer,
-                               Param...             params) {
-    return transformer.transform(exec(new Parser(database().structure()).parse(esql), params));
+  default Esql<?, ?> prepare(String esql, QueryParams qp) {
+    return prepare(new Parser(database().structure()).parse(esql), qp);
+  }
+
+  default Esql<?, ?> prepare(String esql) {
+    return prepare(esql, null);
+  }
+
+  /**
+   * Execute a prepared esql program.
+   */
+  <R> R execPrepared(Esql<?, ?> esql, QueryParams qp);
+
+  default <R> R execPrepared(Esql<?, ?> esql) {
+    return execPrepared(esql, null);
   }
 
   /**
@@ -156,20 +159,14 @@ public interface EsqlConnection extends AutoCloseable {
     }
   }
 
-  private static Param[] asParams(Object objectAsParams) {
-    Map<String, Property> props = Dissector.properties(objectAsParams.getClass());
-    Param[] params = new Param[props.size()];
-    int i = 0;
-    for (Map.Entry<String, Property> prop: props.entrySet()) {
-      params[i] = Param.of(prop.getKey(), prop.getValue().get(objectAsParams));
-      i++;
-    }
-    return params;
-  }
-
   EsqlConnection NULL_CONNECTION = new EsqlConnection() {
     @Override
-    public <R> R exec(Esql<?, ?> esql, Param... params) {
+    public Esql<?, ?> prepare(Esql<?, ?> esql, QueryParams qp) {
+      return null;
+    }
+
+    @Override
+    public <R> R execPrepared(Esql<?, ?> esql, QueryParams qp) {
       return null;
     }
 

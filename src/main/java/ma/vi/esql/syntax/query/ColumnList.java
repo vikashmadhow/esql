@@ -111,7 +111,7 @@ public class ColumnList extends Esql<String, String> implements UntypedMacro {
           changed = true;
           String qualifier = all.qualifier();
           List<Column> columnList = columnLists.computeIfAbsent(qualifier == null ? "/" : qualifier,
-                                                                q -> from.named(q.equals("/") ? null : q)
+                                                                q -> from.aliased(q.equals("/") ? null : q)
                                                                          .columnList(path));
           if (qualifier != null || fromAlias != null) {
             for (Column col: columnList) {
@@ -144,7 +144,7 @@ public class ColumnList extends Esql<String, String> implements UntypedMacro {
           }
           String qualifier = ref.qualifier();
           List<Column> columnList = columnLists.computeIfAbsent(qualifier == null ? "/" : qualifier,
-                                                                q -> from.named(q.equals("/") ? null : q)
+                                                                q -> from.aliased(q.equals("/") ? null : q)
                                                                          .columnList(path))
                                                .stream()
                                                .filter(c -> c.name().equals(ref.columnName())

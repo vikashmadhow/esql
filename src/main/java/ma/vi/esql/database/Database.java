@@ -7,12 +7,11 @@ package ma.vi.esql.database;
 import ma.vi.base.config.Configuration;
 import ma.vi.base.lang.NotFoundException;
 import ma.vi.esql.exec.EsqlConnection;
-import ma.vi.esql.exec.EsqlConnectionImpl;
 import ma.vi.esql.semantic.type.BaseRelation;
+import ma.vi.esql.semantic.type.Column;
 import ma.vi.esql.syntax.EsqlTransformer;
 import ma.vi.esql.syntax.define.ConstraintDefinition;
 import ma.vi.esql.syntax.define.Metadata;
-import ma.vi.esql.semantic.type.Column;
 import ma.vi.esql.translation.Translatable;
 
 import java.sql.Connection;
@@ -174,24 +173,10 @@ public interface Database {
    * Returns a connection from the pool to the underlying database.
    */
   Connection pooledConnection(boolean autoCommit,
-                              int isolationLevel,
-                              String username,
-                              String password);
-
-  default Connection pooledConnection(boolean autoCommit,
-                                      int isolationLevel) {
-    return pooledConnection(autoCommit,
-                            isolationLevel,
-                            config().get("database.user.name"),
-                            config().get("database.user.password"));
-  }
+                              int isolationLevel);
 
   default Connection pooledConnection() {
     return pooledConnection(false, -1);
-  }
-
-  default Connection pooledConnection(String username, String password) {
-    return pooledConnection(false, -1, username, password);
   }
 
   /**
@@ -220,10 +205,16 @@ public interface Database {
   }
 
   /**
-   * Returns a connection through which Esql commands can be executed.
+   * Returns a connection through which Esql commands can be executed. If the
+   * @param con The underlying database connection to use. If this is null, the
+   *            last created connection for this thread is used, if it is still
+   *            opened and valid. Otherwise a new connection is created and set
+   *            as the current active one.
    */
-  default EsqlConnection esql(Connection con) {
-    return new EsqlConnectionImpl(this, con);
+  EsqlConnection esql(Connection con);
+
+  default EsqlConnection esql() {
+    return esql(null);
   }
 
   /**
@@ -269,48 +260,48 @@ public interface Database {
   /**
    * Adds a table to the core information tables if latter are present.
    */
-  void addTable(Connection con, BaseRelation table);
+  void addTable(EsqlConnection con, BaseRelation table);
 
   /**
    * Returns the table id of the table with the specified name in the core
    * information table if it exists, or returns null otherwise.
    */
-  UUID tableId(Connection con, String tableName);
+  UUID tableId(EsqlConnection con, String tableName);
 
   /**
    * Updates the table data in the core information tables; returns a new
    * BaseRelation table representing the updated table.
    */
-  BaseRelation updateTable(Connection con, BaseRelation table);
+  BaseRelation updateTable(EsqlConnection con, BaseRelation table);
 
   /**
    * Rename the table in the core information tables, if latter are present.
    */
-  void renameTable(Connection con, UUID tableId, String name);
+  void renameTable(EsqlConnection con, UUID tableId, String name);
 
-  void clearTableMetadata(Connection con, UUID tableId);
+  void clearTableMetadata(EsqlConnection con, UUID tableId);
 
-  void tableMetadata(Connection con, UUID tableId, Metadata metadata);
+  void tableMetadata(EsqlConnection con, UUID tableId, Metadata metadata);
 
-  void dropTable(Connection con, UUID tableId);
+  void dropTable(EsqlConnection con, UUID tableId);
 
-  void column(Connection con, UUID tableId, Column column);
+  void column(EsqlConnection con, UUID tableId, Column column);
 
-  void columnName(Connection con, UUID columnId, String name);
+  void columnName(EsqlConnection con, UUID columnId, String name);
 
-  void columnType(Connection con, UUID columnId, String type);
+  void columnType(EsqlConnection con, UUID columnId, String type);
 
-  void defaultValue(Connection con, UUID columnId, String defaultValue);
+  void defaultValue(EsqlConnection con, UUID columnId, String defaultValue);
 
-  void notNull(Connection con, UUID columnId, String notNull);
+  void notNull(EsqlConnection con, UUID columnId, String notNull);
 
-  void columnMetadata(Connection con, UUID columnId, Metadata metadata);
+  void columnMetadata(EsqlConnection con, UUID columnId, Metadata metadata);
 
-  void dropColumn(Connection con, UUID columnId);
+  void dropColumn(EsqlConnection con, UUID columnId);
 
-  void constraint(Connection con, UUID tableId, ConstraintDefinition constraint);
+  void constraint(EsqlConnection con, UUID tableId, ConstraintDefinition constraint);
 
-  void dropConstraint(Connection con, UUID tableId, String constraintName);
+  void dropConstraint(EsqlConnection con, UUID tableId, String constraintName);
 
   Database NULL_DB = new Database() {
     @Override
@@ -353,12 +344,17 @@ public interface Database {
     }
 
     @Override
-    public Connection pooledConnection(boolean autoCommit, int isolationLevel, String username, String password) {
+    public Connection pooledConnection(boolean autoCommit, int isolationLevel) {
       return null;
     }
 
     @Override
     public Connection rawConnection(boolean autoCommit, int isolationLevel, String username, String password) {
+      return null;
+    }
+
+    @Override
+    public EsqlConnection esql(Connection con) {
       return null;
     }
 
@@ -376,55 +372,55 @@ public interface Database {
     public void setArray(PreparedStatement ps, int paramIndex, Object array) {}
 
     @Override
-    public void addTable(Connection con, BaseRelation table) {}
+    public void addTable(EsqlConnection con, BaseRelation table) {}
 
     @Override
-    public UUID tableId(Connection con, String tableName) {
+    public UUID tableId(EsqlConnection con, String tableName) {
       return null;
     }
 
     @Override
-    public BaseRelation updateTable(Connection con, BaseRelation table) {
+    public BaseRelation updateTable(EsqlConnection con, BaseRelation table) {
       return null;
     }
 
     @Override
-    public void renameTable(Connection con, UUID tableId, String name) {}
+    public void renameTable(EsqlConnection con, UUID tableId, String name) {}
 
     @Override
-    public void clearTableMetadata(Connection con, UUID tableId) {}
+    public void clearTableMetadata(EsqlConnection con, UUID tableId) {}
 
     @Override
-    public void tableMetadata(Connection con, UUID tableId, Metadata metadata) {}
+    public void tableMetadata(EsqlConnection con, UUID tableId, Metadata metadata) {}
 
     @Override
-    public void dropTable(Connection con, UUID tableId) {}
+    public void dropTable(EsqlConnection con, UUID tableId) {}
 
     @Override
-    public void column(Connection con, UUID tableId, Column column) {}
+    public void column(EsqlConnection con, UUID tableId, Column column) {}
 
     @Override
-    public void columnName(Connection con, UUID columnId, String name) {}
+    public void columnName(EsqlConnection con, UUID columnId, String name) {}
 
     @Override
-    public void columnType(Connection con, UUID columnId, String type) {}
+    public void columnType(EsqlConnection con, UUID columnId, String type) {}
 
     @Override
-    public void defaultValue(Connection con, UUID columnId, String defaultValue) {}
+    public void defaultValue(EsqlConnection con, UUID columnId, String defaultValue) {}
 
     @Override
-    public void notNull(Connection con, UUID columnId, String notNull) {}
+    public void notNull(EsqlConnection con, UUID columnId, String notNull) {}
 
     @Override
-    public void columnMetadata(Connection con, UUID columnId, Metadata metadata) {}
+    public void columnMetadata(EsqlConnection con, UUID columnId, Metadata metadata) {}
 
     @Override
-    public void dropColumn(Connection con, UUID columnId) {}
+    public void dropColumn(EsqlConnection con, UUID columnId) {}
 
     @Override
-    public void constraint(Connection con, UUID tableId, ConstraintDefinition constraint) {}
+    public void constraint(EsqlConnection con, UUID tableId, ConstraintDefinition constraint) {}
 
     @Override
-    public void dropConstraint(Connection con, UUID tableId, String constraintName) {}
+    public void dropConstraint(EsqlConnection con, UUID tableId, String constraintName) {}
   };
 }

@@ -23,9 +23,9 @@ import java.util.Date;
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 public class LessThan extends ComparisonOperator {
-  public LessThan(Context context,
-                  Expression<?, String> expr1,
-                  Expression<?, String> expr2) {
+  public LessThan(Context          context,
+                  Expression<?, ?> expr1,
+                  Expression<?, ?> expr2) {
     super(context, "<", expr1, expr2);
   }
 

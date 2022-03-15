@@ -49,7 +49,7 @@ public class SqlServerTranslator extends AbstractTranslator {
     boolean hasComplexGroups = false;
     GroupBy groupBy = select.groupBy();
     if (groupBy != null) {
-      List<Expression<?, String>> newGroupExpressions = new ArrayList<>();
+      List<Expression<?, ?>> newGroupExpressions = new ArrayList<>();
       boolean groupExpressionsChanged = false;
       for (Expression<?, String> expr: groupBy.groupBy()) {
         if (expr.descendent(Select.class) != null) {
@@ -72,7 +72,7 @@ public class SqlServerTranslator extends AbstractTranslator {
       }
     }
 
-    List<Expression<?, String>> distinctOn = select.distinctOn();
+    List<Expression<?, ?>> distinctOn = select.distinctOn();
     boolean subSelect = path.ancestor(Cte.class) != null;
     if (!subSelect) {
       T2<QueryUpdate, EsqlPath> qu = path.ancestorAndPath(QueryUpdate.class);
@@ -92,7 +92,7 @@ public class SqlServerTranslator extends AbstractTranslator {
       st.append(columns);
       st.append(", ").append("row_number() over (partition by ");
       String partition = distinctOn.stream()
-                                   .map(e -> e.translate(target(), esqlCon, path.add(e), parameters, env))
+                                   .map(e -> e.translate(target(), esqlCon, path.add(e), parameters, env).toString())
                                    .collect(joining(", "));
       st.append(partition);
       st.append(" order by ");
@@ -206,11 +206,11 @@ public class SqlServerTranslator extends AbstractTranslator {
         String innerSelectAlias = "t" + Strings.random(4);
         List<Column> innerCols = new ArrayList<>();
         List<Column> outerCols = new ArrayList<>();
-        List<Expression<?, String>> outerGroups = new ArrayList<>();
+        List<Expression<?, ?>> outerGroups = new ArrayList<>();
         Map<String, String> addedInnerCols = new HashMap<>();
-        Set<Expression<?, String>> groups = new HashSet<>(select.groupBy().groupBy());
+        Set<Expression<?, ?>> groups = new HashSet<>(select.groupBy().groupBy());
         for (Column column: select.columns()) {
-          Expression<?, String> colExpr = column.expression();
+          Expression<?, ?> colExpr = column.expression();
           AtomicBoolean aggregate = new AtomicBoolean();
           Context context = select.context;
           colExpr.forEach((e, p) -> {

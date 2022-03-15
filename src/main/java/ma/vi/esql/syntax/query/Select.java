@@ -11,9 +11,15 @@ import ma.vi.esql.exec.function.FunctionCall;
 import ma.vi.esql.semantic.type.Column;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
+import ma.vi.esql.exec.Filter;
+import ma.vi.esql.syntax.Parser;
 import ma.vi.esql.syntax.define.Metadata;
 import ma.vi.esql.syntax.expression.ColumnRef;
 import ma.vi.esql.syntax.expression.Expression;
+import ma.vi.esql.syntax.expression.GroupedExpression;
+import ma.vi.esql.syntax.expression.logical.And;
+import ma.vi.esql.syntax.expression.logical.Not;
+import ma.vi.esql.syntax.expression.logical.Or;
 
 import java.util.HashSet;
 import java.util.List;
@@ -21,6 +27,8 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 import static ma.vi.base.tuple.T2.of;
+import static ma.vi.esql.exec.Filter.Op.AND;
+import static ma.vi.esql.exec.Filter.Op.OR;
 
 /**
  * An ESQL select statement.
@@ -29,19 +37,19 @@ import static ma.vi.base.tuple.T2.of;
  */
 public class Select extends QueryUpdate {
   @SafeVarargs
-  public Select(Context                     context,
-                Metadata                    metadata,
-                boolean                     distinct,
-                List<Expression<?, String>> distinctOn,
-                boolean                     explicit,
-                List<Column>                columns,
-                TableExpr                   from,
-                Expression<?, String>       where,
-                GroupBy                     groupBy,
-                Expression<?, String>       having,
-                List<Order>                 orderBy,
-                Expression<?, String>       offset,
-                Expression<?, String>       limit,
+  public Select(Context                  context,
+                Metadata                 metadata,
+                boolean                  distinct,
+                List<Expression<?, ?>>   distinctOn,
+                boolean                  explicit,
+                List<Column>             columns,
+                TableExpr                from,
+                Expression<?, String>    where,
+                GroupBy                  groupBy,
+                Expression<?, String>    having,
+                List<Order>              orderBy,
+                Expression<?, String>    offset,
+                Expression<?, String>    limit,
                 T2<String, ? extends Esql<?, ?>>... children) {
     super(context, "Select",
           Stream.concat(
@@ -99,7 +107,7 @@ public class Select extends QueryUpdate {
        * such as count or max.
        */
       Column col = columns().get(0);
-      Expression<?, String> expr = col.expression();
+      Expression<?, ?> expr = col.expression();
       if (expr instanceof FunctionCall fc) {
         Function function = context.structure.function(fc.functionName());
         return function != null && function.aggregate;
@@ -117,10 +125,10 @@ public class Select extends QueryUpdate {
    *         the outer query.</li>
    * </ol>
    */
-  public Expression<?, String> remapExpression(Expression<?, String> expression,
-                                               Map<String, String> addedInnerCols,
-                                               List<Column> innerCols,
-                                               String innerSelectAlias) {
+  public Expression<?, String> remapExpression(Expression<?, ?>     expression,
+                                               Map<String, String>  addedInnerCols,
+                                               List<Column>         innerCols,
+                                               String               innerSelectAlias) {
     /*
      * Find column references in the expression and add to the columns
      * of the inner query.
@@ -151,11 +159,176 @@ public class Select extends QueryUpdate {
     });
   }
 
+  @Override
+  public Select filter(Filter filter) {
+    TableExpr from = tables();
+    TableExpr.ShortestPath shortest = from.findShortestPath(filter);
+    if (shortest != null) {
+      TableExpr.AppliedShortestPath applied = from.applyShortestPath(shortest);
+      List<Column> cols = columns();
+      if (cols.size() == 1
+       && cols.get(0) instanceof StarColumn star
+       && star.qualifier() == null) {
+        /*
+         * If the column list was a single unqualified `*`, change to add the
+         * qualifier of the source table to exclude columns from the automatically
+         * linked tables.
+         */
+        cols = List.of(new StarColumn(context, shortest.source().alias()));
+      }
+
+      Expression<?, String> where = where();
+      if (filter.condition() != null) {
+        /*
+         * Add filter condition, changing its target table alias if needed.
+         */
+        Expression<?, String> condition = new Parser(context.structure).parseExpression(filter.condition());
+        if (filter.alias() != null
+        && !filter.alias().equals(applied.targetAlias())) {
+          condition = (Expression<?, String>)condition.map((e, p) -> {
+            if (e instanceof ColumnRef ref
+             && filter.alias().equals(ref.qualifier())) {
+              return new ColumnRef(e.context, applied.targetAlias(), ref.columnName(), ref.type());
+            }
+            return e;
+          });
+        }
+        if (filter.exclude()) {
+          condition = new Not(context, condition);
+        }
+        where = where == null ? condition
+                              : combine(where, condition, filter.op());
+      }
+      return new Select(context,
+                        metadata(),
+                        shortest.path().hasReverseLink() || distinct(),
+                        distinctOn(),
+                        explicit(),
+                        cols,
+                        applied.result(),
+                        where,
+                        groupBy(),
+                        having(),
+                        orderBy(),
+                        offset(),
+                        limit());
+    } else {
+      return this;
+    }
+  }
+
+  private static Expression<?, String> combine(Expression<?, String> condition,
+                                               Expression<?, String> expression,
+                                               Filter.Op op) {
+    if (condition instanceof And and) {
+      if (op == AND) {
+        return new And(condition.context, condition, expression);
+      } else {
+        return new Or(condition.context,
+                      new GroupedExpression(condition.context, and),
+                      expression);
+      }
+    } else if (condition instanceof Or or) {
+      if (op == OR) {
+        return new Or(condition.context, condition, expression);
+      } else {
+        return new And(condition.context,
+                       new GroupedExpression(condition.context, or),
+                       expression);
+      }
+    } else {
+      return op == AND ? new And(condition.context, condition, expression)
+                       : new  Or(condition.context, condition, expression);
+    }
+  }
+
+//  public Select filter(Filter filter) {
+//    TableExpr from = tables();
+//    from = from.map((e, p) -> {
+//      if (e instanceof SelectTableExpr s) {
+//        Select sel = s.select().filter(filter);
+//        return sel != s.select()
+//             ? new SelectTableExpr(s.context, sel, s.alias())
+//             : s;
+//      }
+//      return e;
+//    });
+//    TableExpr.ShortestPath shortest = from.findShortestPath(filter);
+//    if (shortest != null) {
+//      TableExpr.AppliedShortestPath applied = from.applyShortestPath(shortest);
+//      List<Column> cols = columns();
+//      if (cols.size() == 1
+//       && cols.get(0) instanceof StarColumn star
+//       && star.qualifier() == null) {
+//        /*
+//         * If the column list was a single unqualified `*`, change to add the
+//         * qualifier of the source table to exclude columns from the automatically
+//         * linked tables.
+//         */
+//        cols = List.of(new StarColumn(context, shortest.source().alias()));
+//      }
+//
+//      Expression<?, String> where = where();
+//      if (filter.condition() != null) {
+//        /*
+//         * Add filter condition, changing its target table alias if needed.
+//         */
+//        Expression<?, String> condition = new Parser(context.structure).parseExpression(filter.condition());
+//        if (filter.alias() != null
+//        && !filter.alias().equals(applied.targetAlias())) {
+//          condition = (Expression<?, String>)condition.map((e, p) -> {
+//            if (e instanceof ColumnRef ref
+//             && filter.alias().equals(ref.qualifier())) {
+//              return new ColumnRef(e.context, applied.targetAlias(), ref.columnName(), ref.type());
+//            }
+//            return e;
+//          });
+//        }
+//        if (filter.exclude()) {
+//          condition = new Not(context, condition);
+//        }
+//        where = where == null               ? condition
+//              : filter.op() == FilterOp.AND ? new And(context, where, condition)
+//              : new Or(context, new GroupedExpression(context, where),
+//                                new GroupedExpression(context, condition));
+//      }
+//      return new Select(context,
+//                        metadata(),
+//                        shortest.path().hasReverseLink() || distinct(),
+//                        distinctOn(),
+//                        explicit(),
+//                        cols,
+//                        applied.result(),
+//                        where,
+//                        groupBy(),
+//                        having(),
+//                        orderBy(),
+//                        offset(),
+//                        limit());
+//    } else if (from != tables()) {
+//      return new Select(context,
+//                        metadata(),
+//                        distinct(),
+//                        distinctOn(),
+//                        explicit(),
+//                        columns(),
+//                        from,
+//                        where(),
+//                        groupBy(),
+//                        having(),
+//                        orderBy(),
+//                        offset(),
+//                        limit());
+//    } else {
+//      return this;
+//    }
+//  }
+
   public Boolean distinct() {
     return childValue("distinct");
   }
 
-  public List<Expression<?, String>> distinctOn() {
+  public List<Expression<?, ?>> distinctOn() {
     return child("distinctOn").children();
   }
 

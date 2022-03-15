@@ -302,8 +302,8 @@ public class SyntaxAnalyser extends EsqlBaseListener {
   @Override
   public void exitCompositeSelection(CompositeSelectionContext ctx) {
     String operator = value(ctx.setop());
-    put(ctx, new CompositeSelects(context, operator.equals("unionall") ? "union all" : operator,
-                                  ctx.select().stream()
+    put(ctx, new CompositeSelect(context, operator.equals("unionall") ? "union all" : operator,
+                                 ctx.select().stream()
                                      .map(s -> (Select)get(s))
                                      .toList()));
   }
