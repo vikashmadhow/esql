@@ -56,7 +56,7 @@ public class Concatenation extends MultipleSubExpressions {
     switch (target) {
       case JSON, JAVASCRIPT -> {
         StringBuilder st = new StringBuilder();
-        for (Expression<?, String> e: expressions()) {
+        for (Expression<?, ?> e: expressions()) {
           st.append(st.length() == 0 ? "" : " + ")
             .append('(')
             .append(e.translate(target, esqlCon, path.add(e), parameters, env))
@@ -70,7 +70,7 @@ public class Concatenation extends MultipleSubExpressions {
       }
       case SQLSERVER -> {
         StringBuilder st = new StringBuilder();
-        for (Expression<?, String> e: expressions()) {
+        for (Expression<?, ?> e: expressions()) {
           st.append(st.length() == 0 ? "" : " + ")
             .append(e.translate(target, esqlCon, path.add(e), parameters, env));
         }
@@ -78,7 +78,7 @@ public class Concatenation extends MultipleSubExpressions {
       }
       default -> {
         StringBuilder st = new StringBuilder();
-        for (Expression<?, String> e: expressions()) {
+        for (Expression<?, ?> e: expressions()) {
           st.append(st.length() == 0 ? "" : " || ")
             .append(e.translate(target, esqlCon, path.add(e), parameters, env));
         }

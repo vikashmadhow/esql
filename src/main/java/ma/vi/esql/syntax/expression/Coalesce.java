@@ -58,11 +58,11 @@ public class Coalesce extends MultipleSubExpressions {
     switch (target) {
       case JSON, JAVASCRIPT -> {
         StringBuilder st = new StringBuilder();
-        for (Expression<?, String> e: expressions()) {
+        for (Expression<?, ?> e: expressions()) {
           if (st.length() > 0) {
             st.append(" || ");
           }
-          String t = e.translate(target, esqlCon, path.add(e), parameters, env);
+          String t = e.translate(target, esqlCon, path.add(e), parameters, env).toString();
           st.append("((" + t + ") || (" + t + ") === 0 || (" + t + ") === '' ? " + t + " : null)");
         }
         String translation = "(" + st + ")";
@@ -74,7 +74,7 @@ public class Coalesce extends MultipleSubExpressions {
 
       case ESQL -> {
         StringBuilder st = new StringBuilder();
-        for (Expression<?, String> e: expressions()) {
+        for (Expression<?, ?> e: expressions()) {
           st.append(st.length() == 0 ? "" : "?").append(e.translate(target, esqlCon, path.add(e), parameters, env));
         }
         return st.toString();
@@ -91,7 +91,7 @@ public class Coalesce extends MultipleSubExpressions {
         }
         st.append("coalesce(");
         boolean first = true;
-        for (Expression<?, String> e: expressions()) {
+        for (Expression<?, ?> e: expressions()) {
           if (first) { first = false;   }
           else       { st.append(", "); }
           st.append(e.translate(target, esqlCon, path.add(e), parameters, env));

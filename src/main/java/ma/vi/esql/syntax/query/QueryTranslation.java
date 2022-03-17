@@ -34,9 +34,4 @@ public record QueryTranslation(QueryUpdate          query,
   public String toString() {
     return translation;
   }
-
-// resultAttributeIndices List of result attributes which are loaded from
-//                        the resultset. Each entry in the list consists
-//                        of the position in the resultset of the value of
-//                        that attribute, its name and its type.
 }

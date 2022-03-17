@@ -62,7 +62,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the overridden metadata are not being considered). (create tests for metadata 
   overriding)
 
-## [0.9.1]
+## [0.9.1] - 2022-03-17
 ### Added
 - Filtering on Deletes.
 - Filtering on Updates.
@@ -83,7 +83,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   be similar as the translation for updates as this works better for all types of
   complex joins (the existing translation was using the `using` clause which limits
   the type of table expressions that can be added to it).
-
+- Fixed concatenation of select expressions which was expecting expressions to 
+  return String instead of arbitrary objects now (as SelectExpression returns
+  QueryTranslation now, being a subclass of Select).
+  
 ## [0.9.0] - 2022-03-15
 ### Added
 - Simple transaction boundary management using a thread local variable to hold 

@@ -10,5 +10,9 @@ package ma.vi.esql.syntax;
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 public interface Copy<T> {
+  /**
+   * Make and return a copy of the object.
+   * @return A copy of this object.
+   */
   T copy();
 }

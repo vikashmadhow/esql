@@ -19,7 +19,9 @@ import java.util.List;
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 public abstract class MultipleSubExpressions extends Expression<String, String> {
-  public MultipleSubExpressions(Context context, String value, List<Expression<?, ?>> expressions) {
+  public MultipleSubExpressions(Context context,
+                                String  value,
+                                List<Expression<?, ?>> expressions) {
     super(context, value, expressions);
   }
 
@@ -66,7 +68,7 @@ public abstract class MultipleSubExpressions extends Expression<String, String> 
     st.append(')');
   }
 
-  public List<Expression<?, String>> expressions() {
+  public List<Expression<?, ?>> expressions() {
     return children();
   }
 }

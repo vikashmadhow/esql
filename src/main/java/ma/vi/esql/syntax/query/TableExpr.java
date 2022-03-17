@@ -49,16 +49,42 @@ public abstract class TableExpr extends Esql<String, String> {
   @Override
   public abstract TableExpr copy(String value, T2<String, ? extends Esql<?, ?>>... children);
 
+  /**
+   * Find the shortest path between the tables in this table expressions and the
+   * filtered table, if any. Null if no path exists.
+   * @param filter Filter whose table is the target of the shortest path.
+   * @return A shortest path, if found, or null.
+   */
+  public abstract ShortestPath findShortestPath(Filter filter);
+
+  /**
+   * Applies the shortest path found by {@link #findShortestPath(Filter)} to this
+   * table expression, returning the result of this application containing the
+   * changed table expression and the alias set on the target table, that can be
+   * used to modify the filter condition.
+   *
+   * @param shortest Shortest path to apply.
+   * @return The result of applying the shortest path.
+   */
+  public abstract AppliedShortestPath applyShortestPath(ShortestPath shortest);
+
+  /**
+   * A shortest path found by {@link #findShortestPath(Filter)} for a filter
+   * consists of the source table of a path and the path itself consisting of a
+   * sequence of links (foreign keys or reverse foreign keys).
+   */
   public record ShortestPath(SingleTableExpr    source,
                              BaseRelation.Path  path,
                              Filter filter) {}
 
+  /**
+   * The application of a shortest path produced by {@link #applyShortestPath(ShortestPath)}
+   * consists of the resulting table expression and the  alias of the target table
+   * which can be used to modify the filter condition, if needed.
+   */
   public record AppliedShortestPath(ShortestPath path,
                                     TableExpr    result,
                                     String       targetAlias) {}
-
-  public abstract ShortestPath findShortestPath(Filter filter);
-  public abstract AppliedShortestPath applyShortestPath(ShortestPath shortest);
 
   /**
    * Returns true if the table(s) in this table expression exists.
