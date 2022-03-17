@@ -101,7 +101,7 @@ public class MariaDbTranslator extends AbstractTranslator {
        * Maria DB allows a form of delete using joins which is close to ESQL
        * but uses the table name instead of the alias.
        */
-      SingleTableExpr deleteTable = Delete.findSingleTable((AbstractJoinTableExpr)from, delete.deleteTableAlias());
+      SingleTableExpr deleteTable = (SingleTableExpr)from.aliased(delete.deleteTableAlias());
       if (deleteTable == null) {
         throw new TranslationException(delete, "Could not find table with alias " + delete.deleteTableAlias());
       }

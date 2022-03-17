@@ -158,3 +158,98 @@ select "S"."_id"                                           "_id",
        (select min("T"."a") "col" from "a.b"."T" "T")      "g/m1"
 from "public"."S" "S";
 
+
+
+select "z"."_id"           "_id",
+       "z"."a"             "a",
+       "z"."y_id"          "y_id",
+       (select distinct min("pA"."a") "column1"
+        from "test"."pA" "pA"
+               join "test"."pY" "pY" on "pA"."_id" = "pY"."a_id"
+               join "test"."pB" "pB" on "pY"."b_id" = "pB"."_id"
+               join "test"."pX" "x" on "pB"."x_id" = "x"."_id"
+        where "x"."a" = 3) "column1"
+from "test"."pZ" "z"
+       cross join (values (1, 2), (3, 4), (4, 5)) as "t1"("a", "b")
+       join (select "z1"."a" "a", 'int' "a/type"
+             from "test"."pZ" "z1"
+                    join "test"."pY" "pY" on "z1"."y_id" = "pY"."_id"
+                    join "test"."pB" "pB" on "pY"."b_id" = "pB"."_id"
+                    join "test"."pX" "x" on "pB"."x_id" = "x"."_id"
+             where "x"."a" = 3) "s1" on "s1"."a" = "z"."a"
+       join "test"."pY" "y" on "z"."y_id" = "y"."_id"
+       full join "test"."pC" "c" on "z"."a" = "c"."a"
+       join "test"."pX" "x" on "c"."x_id" = "x"."_id"
+where "z"."a" < 2
+  and exists(select "pC"."_id" "_id", 'uuid' "_id/type", true "_id/required", true "_id/primary_key"
+             from "test"."pC" "pC"
+                    join "test"."pX" "x" on "pC"."x_id" = "x"."_id"
+                    join "test"."pY" "pY" on "pC"."a" = "pY"."a"
+             where "x"."a" = 3)
+  and "x"."a" = 3
+
+
+
+with "!!"(id, v1, v2) as (select "z".ctid, "c"."a", "y"."_id"
+                          from "test"."pZ" "z"
+                                 join "test"."pY" "y" on "z"."y_id" = "y"."_id"
+                                 join "test"."pC" "c" on "z"."a" = "c"."a"
+                                 join "test"."pX" "x" on "c"."x_id" = "x"."_id"
+                          where "z"."a" < 2
+                            and "x"."a" = 3)
+update "test"."pZ" "z"
+set a="!!".v1,
+    _id="!!".v2
+from "!!"
+where "z".ctid = "!!".id
+
+with "!!"(id, v1, v2) as (select "z".ctid, "c"."a", "y"."_id"
+                          from "test"."pZ" "z"
+                                 join "test"."pY" "y" on "z"."y_id" = "y"."_id"
+                                 join "test"."pB" "pB" on "y"."b_id" = "pB"."_id"
+                                 join "test"."pX" "x" on "pB"."x_id" = "x"."_id"
+                                 left join "test"."pC" "c" on "z"."a" = "c"."a"
+                          where "z"."a" < 2
+                            and "x"."a" = 3)
+update "test"."pZ" "z"
+set a="!!".v1,
+    _id="!!".v2
+from "!!"
+where "z".ctid = "!!".id;
+
+
+
+delete
+  from "test"."pZ" "z"
+ using "test"."pY" "y",
+       "test"."pC" "c",
+       "test"."pX" "x"
+ where ("z"."a" < 2 and "x"."a" = 3)
+   and ("z"."y_id" = "y"."_id")
+   and "z"."a" = "c"."a"
+   and "c"."x_id" = "x"."_id";
+
+
+with "!!"(id) as (select "z".ctid
+                  from "test"."pZ" "z"
+                         join "test"."pY" "y" on "z"."y_id" = "y"."_id"
+                         join "test"."pC" "c" on "z"."a" = "c"."a"
+                         join "test"."pX" "x" on "c"."x_id" = "x"."_id"
+                  where "z"."a" < 2
+                    and "x"."a" = 3)
+delete
+from "test"."pZ" "z" using "!!"
+where "z".ctid = "!!".id;
+
+
+with "!!"(id) as (select "z".ctid
+                  from "test"."pZ" "z"
+                         join "test"."pY" "y" on "z"."y_id" = "y"."_id"
+                         join "test"."pB" "pB" on "y"."b_id" = "pB"."_id"
+                         join "test"."pX" "x" on "pB"."x_id" = "x"."_id"
+                         left join "test"."pC" "c" on "z"."a" = "c"."a"
+                  where "z"."a" < 2
+                    and "x"."a" = 3)
+delete
+from "test"."pZ" "z" using "!!"
+where "z".ctid = "!!".id;

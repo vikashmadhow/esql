@@ -350,7 +350,7 @@ qualifiedName
 tableExpr
     : (alias ':')? qualifiedName                              #SingleTableExpr
     | alias ':' '(' select ')'                                #SelectTableExpr
-    | alias  dynamicColumns ':' '(' rows ')' #DynamicTableExpr
+    | alias  dynamicColumns ':' '(' rows ')'                  #DynamicTableExpr
     | left=tableExpr 'times' right=tableExpr                  #CrossProductTableExpr
 
       /**
@@ -359,7 +359,7 @@ tableExpr
        * expression; when none of those are provided, an inner join is assumed.
        */
     | left=tableExpr
-      (joinType='left'|'right'|'full')? 'join' lateral?
+      joinType=('left'|'right'|'full')? 'join' lateral?
       right=tableExpr 'on' expr                               #JoinTableExpr
     ;
 
@@ -646,10 +646,10 @@ expr
     | noop                                                      #NoopStatement
 
       /*
-       * `left` and `right` are keywords used in table joins. These two specical
+       * `left` and `right` are keywords used in table joins. These two special
        * rules allow them to be parsed as function calls when they are followed
        * by an opening brace, two arguments and a closing brace. Without these
-       * two rules the parser will fail to parse as function calls.
+       * two rules the parser will fail to parse these as function calls.
        */
     | 'left'  '(' str=expr ',' count=expr ')'                   #LeftOfString
     | 'right' '(' str=expr ',' count=expr ')'                   #RightOfString

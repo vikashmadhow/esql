@@ -12,6 +12,7 @@ import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.SyntaxException;
+import ma.vi.esql.syntax.define.Metadata;
 import ma.vi.esql.syntax.expression.ColumnRef;
 import ma.vi.esql.translation.TranslationException;
 import org.pcollections.PMap;
@@ -85,6 +86,21 @@ public class Cte extends QueryUpdate {
         T2.of("tables",   query.tables()),
         T2.of("metadata", query.metadata()),
         T2.of("columns",  query.columnList())};
+  }
+
+  @Override
+  public TableExpr tables() {
+    return query().tables();
+  }
+
+  @Override
+  public Metadata metadata() {
+    return query().metadata();
+  }
+
+  @Override
+  public List<Column> columns() {
+    return query().columns();
   }
 
   private static <Q extends QueryUpdate> Q renameColumns(Q query, List<String> fields) {

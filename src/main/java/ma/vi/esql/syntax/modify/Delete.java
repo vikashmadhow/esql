@@ -5,12 +5,16 @@
 package ma.vi.esql.syntax.modify;
 
 import ma.vi.base.tuple.T2;
+import ma.vi.esql.exec.Filter;
 import ma.vi.esql.semantic.type.Column;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.define.Metadata;
 import ma.vi.esql.syntax.expression.Expression;
-import ma.vi.esql.syntax.query.*;
+import ma.vi.esql.syntax.query.ColumnList;
+import ma.vi.esql.syntax.query.QueryUpdate;
+import ma.vi.esql.syntax.query.Select;
+import ma.vi.esql.syntax.query.TableExpr;
 
 import java.util.List;
 
@@ -61,32 +65,26 @@ public class Delete extends QueryUpdate {
   }
 
   @Override
+  public Delete filter(Filter filter) {
+    Select.FilterResult result = Select.filter(tables(), where(), filter);
+    if (result != null) {
+      return new Delete(context,
+                        deleteTableAlias(),
+                        result.tables(),
+                        result.where(),
+                        metadata(),
+                        columns());
+    } else {
+      return this;
+    }
+  }
+
+  @Override
   public boolean modifying() {
     return true;
   }
 
   public String deleteTableAlias() {
     return childValue("deleteTableAlias");
-  }
-
-  public static SingleTableExpr findSingleTable(AbstractJoinTableExpr join,
-                                                String alias) {
-    if (join.left() instanceof SingleTableExpr
-     && alias.equals(((SingleTableExpr)join.left()).alias())) {
-      return (SingleTableExpr)join.left();
-
-    } else if (join.right() instanceof SingleTableExpr
-            && alias.equals(((SingleTableExpr)join.right()).alias())) {
-      return (SingleTableExpr)join.right();
-
-    } else if (join.left() instanceof AbstractJoinTableExpr) {
-      return findSingleTable((AbstractJoinTableExpr)join.left(), alias);
-
-    } else if (join.right() instanceof AbstractJoinTableExpr) {
-      return findSingleTable((AbstractJoinTableExpr)join.right(), alias);
-
-    } else {
-      return null;
-    }
   }
 }

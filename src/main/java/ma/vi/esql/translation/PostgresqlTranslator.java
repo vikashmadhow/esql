@@ -1,6 +1,5 @@
 package ma.vi.esql.translation;
 
-import ma.vi.base.tuple.T1;
 import ma.vi.esql.exec.EsqlConnection;
 import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.semantic.type.Type;
@@ -21,7 +20,6 @@ import java.util.stream.IntStream;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 import static java.util.stream.Collectors.joining;
-import static ma.vi.esql.syntax.modify.Delete.findSingleTable;
 
 /**
  * @author Vikash Madhow (vikash.madhow@gmail.com)
@@ -82,7 +80,11 @@ public class PostgresqlTranslator extends AbstractTranslator {
   }
 
   @Override
-  protected QueryTranslation translate(Update update, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
+  protected QueryTranslation translate(Update               update,
+                                       EsqlConnection       esqlCon,
+                                       EsqlPath             path,
+                                       PMap<String, Object> parameters,
+                                       Environment          env) {
     TableExpr from = update.tables();
     if (from instanceof SingleTableExpr) {
       StringBuilder st = new StringBuilder("update ");
@@ -162,8 +164,7 @@ public class PostgresqlTranslator extends AbstractTranslator {
       }
       st.append(") update ");
 
-      SingleTableExpr updateTable = findSingleTable((AbstractJoinTableExpr)from,
-                                                    update.updateTableAlias());
+      SingleTableExpr updateTable = (SingleTableExpr)from.aliased(update.updateTableAlias());
       if (updateTable == null) {
         throw new TranslationException(update, "Could not find table with alias " + update.updateTableAlias());
       }
@@ -203,90 +204,191 @@ public class PostgresqlTranslator extends AbstractTranslator {
       throw new TranslationException(update, "Wrong table type to update: " + from);
     }
   }
-
   @Override
-  protected QueryTranslation translate(Delete delete,
-                                       EsqlConnection esqlCon, EsqlPath path,
-                                       PMap<String, Object> parameters, Environment env) {
-    StringBuilder st = new StringBuilder("delete ");
-
+  protected QueryTranslation translate(Delete               delete,
+                                       EsqlConnection       esqlCon,
+                                       EsqlPath             path,
+                                       PMap<String, Object> parameters,
+                                       Environment          env) {
     TableExpr from = delete.tables();
     if (from instanceof SingleTableExpr) {
-      st.append(" from ").append(from.translate(target(), esqlCon, path.add(from), parameters, env));
-
+      StringBuilder st = new StringBuilder("delete from ");
+      st.append(from.translate(target(), esqlCon, path.add(from), parameters, env));
+      if (delete.where() != null) {
+        st.append(" where ").append(delete.where().translate(target(), esqlCon, path.add(delete.where()), parameters, env));
+      }
+      QueryTranslation q = null;
+      if (delete.columns() != null && !delete.columns().isEmpty()) {
+        st.append(" returning ");
+        q = delete.constructResult(st, target(), path, null, parameters);
+      }
+      if (q == null) {
+        return new QueryTranslation(delete, st.toString(), emptyList(), emptyMap());
+      } else {
+        return new QueryTranslation(delete,
+                                    st.toString(),
+                                    q.columns(),
+                                    q.resultAttributes());
+      }
     } else if (from instanceof AbstractJoinTableExpr) {
       /*
        * For postgresql the single table referred by the delete table alias must
        * be extracted from the table expression and added as the main table of
-       * the update statement; the rest of the table expression can then be added
-       * to the `using` clause of the delete; any join condition removed when
+       * the delete statement; the rest of the table expression can then be added
+       * to the `using` clause of the update; any join condition removed when
        * extracting the single update table must be moved to the `where` clause.
+       * However, the extracted single table cannot then be part of a join condition,
+       * which makes the rewriting of the query much more complicated. Also more
+       * complex join types are not supported.
+       *
+       * A simpler approach is to change the delete into a select and execute it
+       * in a `with` query whose result is then used to perform the delete. For
+       * instance:
+       *
+       *      delete ur
+       *        from  u:_user.User
+       *        join ur:_user.UserRole on ur.user_id=u._id
+       *        join  r:_user.Role     on ur.role_id=r._id
+       *       where u.email='xyz@yxz.com'
+       *      return ur.user_id
+       *
+       * becomes:
+       *
+       *      with del(id) as (
+       *        select ur.ctid
+       *          from _user.User     u
+       *          join _user.UserRole ur on ur.user_id = u._id
+       *          join _user.Role     r  on ur.role_id = r._id
+       *        where u.email = 'xyz@yxz.com'
+       *      )
+       *      delete from _user.UserRole ur
+       *       using upd
+       *       where ur.ctid=del.id
+       *      returning ur.user_id
        */
+      String withAlias = "\"!!\"";
+      StringBuilder st = new StringBuilder("with " + withAlias + "(id) as (");
+      st.append("select \"").append(delete.deleteTableAlias()).append("\".ctid ")
+        .append(" from ").append(from.translate(target(), esqlCon, path.add(from), parameters, env));
 
-      T1<AbstractJoinTableExpr> deleteJoin = new T1<>();
-      T1<SingleTableExpr> deleteTable = new T1<>();
-      String singleTableAlias = delete.deleteTableAlias();
-      delete = delete.map((e, p) -> {
-        if (e instanceof AbstractJoinTableExpr join) {
-          if (join.left() instanceof SingleTableExpr table
-           && singleTableAlias.equals(table.alias())) {
-            /*
-             *        J                    J
-             *      /  \    remove x     /  \
-             *     J    z  ---------->  y    z
-             *    / \
-             *   x  y
-             */
-            deleteJoin.a = join;
-            deleteTable.a = table;
-            return join.right();
-
-          } else if (join.right() instanceof SingleTableExpr table
-                  && singleTableAlias.equals(table.alias())) {
-            /*
-             *        J                     J
-             *      /  \   remove y       /  \
-             *     J    z ---------->    x    z
-             *    / \
-             *   x  y
-             */
-            deleteJoin.a = join;
-            deleteTable.a = table;
-            return join.left();
-          }
-        }
-        return e;
-      }, null, path.add(delete));
-
-      if (deleteTable.a == null) {
-        throw new TranslationException(delete, "Could not find table with alias " + singleTableAlias);
+      if (delete.where() != null) {
+        st.append(" where ").append(delete.where().translate(target(), esqlCon, path.add(delete.where()), parameters, env));
       }
-      if (deleteJoin.a instanceof JoinTableExpr join) {
-//        delete = delete.where(join.on(), false);
-        delete = delete.where(join.on());
+      st.append(") delete from ");
+
+      SingleTableExpr deleteTable = (SingleTableExpr)from.aliased(delete.deleteTableAlias());
+      if (deleteTable == null) {
+        throw new TranslationException(delete, "Could not find table with alias " + delete.deleteTableAlias());
       }
-      st.append(" from ").append(deleteTable.a.translate(target(), esqlCon, path.add(deleteTable.a), parameters, env));
-      st.append(" using ").append(from.translate(target(), esqlCon, path.add(from), parameters, env));
+      st.append(deleteTable.translate(target(), esqlCon, path.add(deleteTable), parameters, env));
 
+      st.append(" using ").append(withAlias)
+        .append(" where \"").append(delete.deleteTableAlias())
+        .append("\".ctid=").append(withAlias).append(".id");
+
+      QueryTranslation q = null;
+      if (delete.columns() != null && !delete.columns().isEmpty()) {
+        st.append(" returning ");
+        q = delete.constructResult(st, target(), path, null, parameters);
+      }
+      if (q == null) {
+        return new QueryTranslation(delete, st.toString(), emptyList(), emptyMap());
+      } else {
+        return new QueryTranslation(delete,
+                                    st.toString(),
+                                    q.columns(),
+                                    q.resultAttributes());
+      }
     } else {
-      throw new TranslationException(delete, "Wrong table type to delete: " + from);
-    }
-
-    if (delete.where() != null) {
-      st.append(" where ").append(delete.where().translate(target(), esqlCon, path.add(delete.where()), parameters, env));
-    }
-
-    if (delete.columns() != null && !delete.columns().isEmpty()) {
-      st.append(" returning ");
-      QueryTranslation q = delete.constructResult(st, target(), path, null, parameters);
-      return new QueryTranslation(delete,
-                                  st.toString(),
-                                  q.columns(),
-                                  q.resultAttributes());
-    } else {
-      return new QueryTranslation(delete, st.toString(), emptyList(), emptyMap());
+      throw new TranslationException(delete, "Wrong table type to delete from: " + from);
     }
   }
+
+//  @Override
+//  protected QueryTranslation translate(Delete               delete,
+//                                       EsqlConnection       esqlCon,
+//                                       EsqlPath             path,
+//                                       PMap<String, Object> parameters,
+//                                       Environment          env) {
+//    StringBuilder st = new StringBuilder("delete ");
+//
+//    TableExpr from = delete.tables();
+//    if (from instanceof SingleTableExpr) {
+//      st.append(" from ").append(from.translate(target(), esqlCon, path.add(from), parameters, env));
+//
+//    } else if (from instanceof AbstractJoinTableExpr) {
+//      /*
+//       * For postgresql the single table referred by the delete table alias must
+//       * be extracted from the table expression and added as the main table of
+//       * the update statement; the rest of the table expression can then be added
+//       * to the `using` clause of the delete; any join condition removed when
+//       * extracting the single update table must be moved to the `where` clause.
+//       */
+//
+//      T1<AbstractJoinTableExpr> deleteJoin = new T1<>();
+//      T1<SingleTableExpr> deleteTable = new T1<>();
+//      String singleTableAlias = delete.deleteTableAlias();
+//      delete = delete.map((e, p) -> {
+//        if (e instanceof AbstractJoinTableExpr join) {
+//          if (join.left() instanceof SingleTableExpr table
+//           && singleTableAlias.equals(table.alias())) {
+//            /*
+//             *        J                    J
+//             *      /  \    remove x     /  \
+//             *     J    z  ---------->  y    z
+//             *    / \
+//             *   x  y
+//             */
+//            deleteJoin.a = join;
+//            deleteTable.a = table;
+//            return join.right();
+//
+//          } else if (join.right() instanceof SingleTableExpr table
+//                  && singleTableAlias.equals(table.alias())) {
+//            /*
+//             *        J                     J
+//             *      /  \   remove y       /  \
+//             *     J    z ---------->    x    z
+//             *    / \
+//             *   x  y
+//             */
+//            deleteJoin.a = join;
+//            deleteTable.a = table;
+//            return join.left();
+//          }
+//        }
+//        return e;
+//      }, null, path.add(delete));
+//
+//      if (deleteTable.a == null) {
+//        throw new TranslationException(delete, "Could not find table with alias " + singleTableAlias);
+//      }
+//      if (deleteJoin.a instanceof JoinTableExpr join) {
+////        delete = delete.where(join.on(), false);
+//        delete = delete.where(join.on());
+//      }
+//      st.append(" from ").append(deleteTable.a.translate(target(), esqlCon, path.add(deleteTable.a), parameters, env));
+//      st.append(" using ").append(from.translate(target(), esqlCon, path.add(from), parameters, env));
+//
+//    } else {
+//      throw new TranslationException(delete, "Wrong table type to delete: " + from);
+//    }
+//
+//    if (delete.where() != null) {
+//      st.append(" where ").append(delete.where().translate(target(), esqlCon, path.add(delete.where()), parameters, env));
+//    }
+//
+//    if (delete.columns() != null && !delete.columns().isEmpty()) {
+//      st.append(" returning ");
+//      QueryTranslation q = delete.constructResult(st, target(), path, null, parameters);
+//      return new QueryTranslation(delete,
+//                                  st.toString(),
+//                                  q.columns(),
+//                                  q.resultAttributes());
+//    } else {
+//      return new QueryTranslation(delete, st.toString(), emptyList(), emptyMap());
+//    }
+//  }
 
   @Override
   protected QueryTranslation translate(Insert insert, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {

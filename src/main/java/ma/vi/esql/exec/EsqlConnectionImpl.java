@@ -145,6 +145,9 @@ public class EsqlConnectionImpl implements EsqlConnection {
       st = t.transform(db, st);
     }
 
+    /*
+     * Apply filters, if any.
+     */
     if (qp != null && !qp.filters.isEmpty()) {
       for (Filter filter: qp.filters) {
         st = st.map((e, p) -> e.filter(filter));

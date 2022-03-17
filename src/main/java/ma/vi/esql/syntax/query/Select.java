@@ -6,12 +6,12 @@ package ma.vi.esql.syntax.query;
 
 import ma.vi.base.string.Strings;
 import ma.vi.base.tuple.T2;
+import ma.vi.esql.exec.Filter;
 import ma.vi.esql.exec.function.Function;
 import ma.vi.esql.exec.function.FunctionCall;
 import ma.vi.esql.semantic.type.Column;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
-import ma.vi.esql.exec.Filter;
 import ma.vi.esql.syntax.Parser;
 import ma.vi.esql.syntax.define.Metadata;
 import ma.vi.esql.syntax.expression.ColumnRef;
@@ -161,28 +161,42 @@ public class Select extends QueryUpdate {
 
   @Override
   public Select filter(Filter filter) {
-    TableExpr from = tables();
-    TableExpr.ShortestPath shortest = from.findShortestPath(filter);
-    if (shortest != null) {
-      TableExpr.AppliedShortestPath applied = from.applyShortestPath(shortest);
-      List<Column> cols = columns();
-      if (cols.size() == 1
-       && cols.get(0) instanceof StarColumn star
-       && star.qualifier() == null) {
-        /*
-         * If the column list was a single unqualified `*`, change to add the
-         * qualifier of the source table to exclude columns from the automatically
-         * linked tables.
-         */
-        cols = List.of(new StarColumn(context, shortest.source().alias()));
-      }
+    FilterResult result = filter(tables(), where(), filter);
+    if (result != null) {
+      return new Select(context,
+                        metadata(),
+                        result.hasReverseLinks || distinct(),
+                        distinctOn(),
+                        explicit(),
+                        columns(),
+                        result.tables,
+                        result.where,
+                        groupBy(),
+                        having(),
+                        orderBy(),
+                        offset(),
+                        limit());
+    } else {
+      return this;
+    }
+  }
 
-      Expression<?, String> where = where();
+  public record FilterResult(TableExpr             tables,
+                             Expression<?, String> where,
+                             boolean               hasReverseLinks) {}
+
+  public static FilterResult filter(TableExpr             tables,
+                                    Expression<?, String> where,
+                                    Filter                filter) {
+    TableExpr.ShortestPath shortest = tables.findShortestPath(filter);
+    if (shortest != null) {
+      TableExpr.AppliedShortestPath applied = tables.applyShortestPath(shortest);
       if (filter.condition() != null) {
         /*
          * Add filter condition, changing its target table alias if needed.
          */
-        Expression<?, String> condition = new Parser(context.structure).parseExpression(filter.condition());
+        Parser parser = new Parser(tables.context.structure);
+        Expression<?, String> condition = parser.parseExpression(filter.condition());
         if (filter.alias() != null
         && !filter.alias().equals(applied.targetAlias())) {
           condition = (Expression<?, String>)condition.map((e, p) -> {
@@ -194,32 +208,73 @@ public class Select extends QueryUpdate {
           });
         }
         if (filter.exclude()) {
-          condition = new Not(context, condition);
+          condition = new Not(tables.context, condition);
         }
         where = where == null ? condition
                               : combine(where, condition, filter.op());
       }
-      return new Select(context,
-                        metadata(),
-                        shortest.path().hasReverseLink() || distinct(),
-                        distinctOn(),
-                        explicit(),
-                        cols,
-                        applied.result(),
-                        where,
-                        groupBy(),
-                        having(),
-                        orderBy(),
-                        offset(),
-                        limit());
+      return new FilterResult(rotateLeft(applied.result()),
+                              where,
+                              shortest.path().hasReverseLink());
     } else {
-      return this;
+      return null;
     }
   }
 
-  private static Expression<?, String> combine(Expression<?, String> condition,
-                                               Expression<?, String> expression,
-                                               Filter.Op op) {
+  /**
+   * When applying the shortest path to create joins the resulting table expressions
+   * may end up in the wrong orientation, which will cause translation to fail.
+   * The correct orientation is a left-oriented tree, as such:
+   * <pre>
+   *            j
+   *           / \
+   *          j   d
+   *         / \
+   *        j   c
+   *       / \
+   *      a   b
+   * </pre>
+   *
+   * However, after shortest path application, other tree forms, such as the
+   * following one, might be returned:
+   * <pre>
+   *             j
+   *           /   \
+   *          j     j
+   *         / \   / \
+   *        a   b c   d
+   * </pre>
+   *
+   * A left-form tree can be obtained by applying left-rotations to parts of the
+   * tree which are in the right-orientation, which is performed by this method.
+   */
+  public static TableExpr rotateLeft(TableExpr tableExpr) {
+    if (tableExpr instanceof AbstractJoinTableExpr j) {
+      if (j.right() instanceof AbstractJoinTableExpr jright) {
+        return jright.join(rotateLeft(j.join(j.left(), jright.left())),
+                           rotateLeft(jright.right()));
+      } else {
+        return j.join(rotateLeft(j.left()), j.right());
+      }
+    } else {
+      return tableExpr;
+    }
+  }
+
+  /**
+   * Combine expressions into a `where` condition using the filter operator provided.
+   * The combination maintains the following constraints:
+   * 1. Adding a new expression with an OR operator will add the result matching
+   *    that expression to the result matching the condition without that expression;
+   * 2. Adding a new expression with an AND operator will remove all result that
+   *    does not simultaneously match the previous condition and the new expression.
+   * In essence, adding a new expression should not result in changing the matching
+   * set of condition in unpredictable ways (which can happen if groupings are
+   * not applied correctly between combinations expressions with AND and OR).
+   */
+  public static Expression<?, String> combine(Expression<?, String> condition,
+                                              Expression<?, String> expression,
+                                              Filter.Op op) {
     if (condition instanceof And and) {
       if (op == AND) {
         return new And(condition.context, condition, expression);
@@ -241,88 +296,6 @@ public class Select extends QueryUpdate {
                        : new  Or(condition.context, condition, expression);
     }
   }
-
-//  public Select filter(Filter filter) {
-//    TableExpr from = tables();
-//    from = from.map((e, p) -> {
-//      if (e instanceof SelectTableExpr s) {
-//        Select sel = s.select().filter(filter);
-//        return sel != s.select()
-//             ? new SelectTableExpr(s.context, sel, s.alias())
-//             : s;
-//      }
-//      return e;
-//    });
-//    TableExpr.ShortestPath shortest = from.findShortestPath(filter);
-//    if (shortest != null) {
-//      TableExpr.AppliedShortestPath applied = from.applyShortestPath(shortest);
-//      List<Column> cols = columns();
-//      if (cols.size() == 1
-//       && cols.get(0) instanceof StarColumn star
-//       && star.qualifier() == null) {
-//        /*
-//         * If the column list was a single unqualified `*`, change to add the
-//         * qualifier of the source table to exclude columns from the automatically
-//         * linked tables.
-//         */
-//        cols = List.of(new StarColumn(context, shortest.source().alias()));
-//      }
-//
-//      Expression<?, String> where = where();
-//      if (filter.condition() != null) {
-//        /*
-//         * Add filter condition, changing its target table alias if needed.
-//         */
-//        Expression<?, String> condition = new Parser(context.structure).parseExpression(filter.condition());
-//        if (filter.alias() != null
-//        && !filter.alias().equals(applied.targetAlias())) {
-//          condition = (Expression<?, String>)condition.map((e, p) -> {
-//            if (e instanceof ColumnRef ref
-//             && filter.alias().equals(ref.qualifier())) {
-//              return new ColumnRef(e.context, applied.targetAlias(), ref.columnName(), ref.type());
-//            }
-//            return e;
-//          });
-//        }
-//        if (filter.exclude()) {
-//          condition = new Not(context, condition);
-//        }
-//        where = where == null               ? condition
-//              : filter.op() == FilterOp.AND ? new And(context, where, condition)
-//              : new Or(context, new GroupedExpression(context, where),
-//                                new GroupedExpression(context, condition));
-//      }
-//      return new Select(context,
-//                        metadata(),
-//                        shortest.path().hasReverseLink() || distinct(),
-//                        distinctOn(),
-//                        explicit(),
-//                        cols,
-//                        applied.result(),
-//                        where,
-//                        groupBy(),
-//                        having(),
-//                        orderBy(),
-//                        offset(),
-//                        limit());
-//    } else if (from != tables()) {
-//      return new Select(context,
-//                        metadata(),
-//                        distinct(),
-//                        distinctOn(),
-//                        explicit(),
-//                        columns(),
-//                        from,
-//                        where(),
-//                        groupBy(),
-//                        having(),
-//                        orderBy(),
-//                        offset(),
-//                        limit());
-//    } else {
-//      return this;
-//    }
-//  }
 
   public Boolean distinct() {
     return childValue("distinct");

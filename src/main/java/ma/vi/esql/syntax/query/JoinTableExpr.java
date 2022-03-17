@@ -6,11 +6,11 @@ package ma.vi.esql.syntax.query;
 
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.exec.Filter;
 import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
-import ma.vi.esql.exec.Filter;
 import ma.vi.esql.syntax.expression.Expression;
 import org.pcollections.PMap;
 
@@ -71,20 +71,32 @@ public class JoinTableExpr extends AbstractJoinTableExpr {
   public ShortestPath findShortestPath(Filter filter) {
     String joinType = joinType();
     return joinType == null
-        || joinType.equals("outer")  ? super.findShortestPath(filter)
-         : joinType.equals("left")   ? left().findShortestPath(filter)
+        || joinType.equals("outer") ? super.findShortestPath(filter)
+         : joinType.equals("left")  ? left().findShortestPath(filter)
          : right().findShortestPath(filter);
   }
 
   @Override
   public AppliedShortestPath applyShortestPath(ShortestPath shortest) {
     String joinType = joinType();
-    return joinType == null
-        || joinType.equals("outer")  ? super.applyShortestPath(shortest)
-         : joinType.equals("left")   ? left().applyShortestPath(shortest)
-         : right().applyShortestPath(shortest);
+    if (joinType == null || joinType.equals("outer")) {
+      return super.applyShortestPath(shortest);
+    } else if (joinType.equals("left")) {
+      AppliedShortestPath applied = left().applyShortestPath(shortest);
+      return applied == null ? null
+           : new AppliedShortestPath(applied.path(),
+                                     join(applied.result(), right()),
+                                     applied.targetAlias());
+    } else {
+      AppliedShortestPath applied = right().applyShortestPath(shortest);
+      return applied == null ? null
+                             : new AppliedShortestPath(applied.path(),
+                                                       join(left(), applied.result()),
+                                                       applied.targetAlias());
+    }
   }
 
+  @Override
   protected AbstractJoinTableExpr join(TableExpr left, TableExpr right) {
     return new JoinTableExpr(context, joinType(), lateral(), left, right, on());
   }

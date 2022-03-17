@@ -20,7 +20,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Support for creating and using views (including materialised views).
 - Complete documentation of ESQL grammar.
 - Fully document purpose and usage.
-- Result transformers and encoders.
 - Support for Oracle database.
 - Support for SQLite.
 - Make into Java 9 module.
@@ -44,17 +43,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   behaves like a normal table but does not need to exist on the database or may
   correspond to multiple tables. Queries and updates to virtual tables are rewritten
   as other queries/updates or whole programs.
-- Restriction on queries based on filters (merging with existing query). Merge 
-  joins must correctly account for different join types. Merging with an inner
-  join produces a restrictive query as required; however merging with an outer
-  join causes several problems which need to be dealt with carefully:
-  - such joins can be non-restrictive;
-  - if there are no match, one of the joined table will have null rows which need
-    to be kept in the result (as that was the reason that the outer join was used
-    in the first place). However, adding another join will remove the null rows 
-    as there will be nothing to join with (this is true irrespective of the type
-    of joins used). The only way around is to use a more complex join condition
-    where the null values are considered. E.g.: `on x._id=y._id or x._id is null`
 
 ### To test
 - Test composition of select statements (union, intersect, except).
@@ -68,13 +56,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Test translation of distinct over multiple columns in SQL Server.
 - Test window functions.
 - Test performance.
-- Test finding minimal cost paths between tables.
-- Test dynamic filtering.
 
 ### To fix
 - Apply result and column metadata overloading in column list expansion (currently,
   the overridden metadata are not being considered). (create tests for metadata 
   overriding)
+
+## [0.9.1]
+### Added
+- Filtering on Deletes.
+- Filtering on Updates.
+
+### Tested
+- Test finding minimal cost paths between tables.
+- Test dynamic filtering.
+
+### Fixed
+- Fixed ESQL grammar to correctly parse `right` and `full` joins.
+- Table expression trees created through filtering are now automatically left-rotated 
+  to translate correctly.
+- CTE and WITH `tables()` methods now return the tables of the query they contain,
+  which now reflects any changes made to that query (through filtering, e.g.). 
+  Previously CTE would return a copy of the tables that was made when the CTE was 
+  constructed and would thus be obsolete if the tables of its inner query changed.
+- Translation of delete on multiple tables for PostgreSQL has been rewritten to
+  be similar as the translation for updates as this works better for all types of
+  complex joins (the existing translation was using the `using` clause which limits
+  the type of table expressions that can be added to it).
 
 ## [0.9.0] - 2022-03-15
 ### Added
@@ -88,9 +96,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Dynamic filtering where a set of filters can be composed into a query prior to 
   its execution. Filters are specified against a table and, if the filter table
   is not in the query being executed, the shortest path is looked for between the
-  tables in the query and filter table, based on the foreign key links between
-  them. If such a path exists, the query is rewritten to join all the tables
-  in the path in its from clause.
+  tables in the query and the filter table, based on the foreign key links between
+  them. If such a path exists, the query is rewritten to join all the tables in 
+  the path in its from clause.
 - EsqlConnection `prepare` method prepares a query for execution by substituting
   parameter values, expanding macros, applying filters, etc. After preparation,
   the query can be executed without any other processing.
@@ -159,7 +167,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - An object or a record can now be passed as a parameter when executing a query;
   the properties/fields of the object is used to create an array of `Param` objects
   which is then passed to the query executioner.
-- Use Configuration class instead of Map of string to objects to pass configuration
+- Use Configuration class instead of Map of strings to objects to pass configuration
   information to the database for consistency.
 - DatabaseFactory to create database instance of the correct type based on passed 
   configuration.
@@ -272,7 +280,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   is still available and the iterator mechanism is a thin wrapper around it; this
   allows the result to be read with either mechanism separately or even combined.
 
-### Testing
+### Tested
 - Computing value of expressions:
   - literals.
   - arithmetic expressions and sub-expressions groupings with braces.

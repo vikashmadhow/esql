@@ -7,10 +7,12 @@ package ma.vi.esql.syntax.query;
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.exec.EsqlConnection;
 import ma.vi.esql.exec.env.Environment;
+import ma.vi.esql.semantic.type.Column;
 import ma.vi.esql.semantic.type.Selection;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
+import ma.vi.esql.syntax.define.Metadata;
 import org.pcollections.PMap;
 
 import java.util.List;
@@ -60,6 +62,21 @@ public class With extends QueryUpdate {
   @Override
   public With copy(String value, T2<String, ? extends Esql<?, ?>>... children) {
     return new With(this, value, children);
+  }
+
+  @Override
+  public TableExpr tables() {
+    return query().tables();
+  }
+
+  @Override
+  public Metadata metadata() {
+    return query().metadata();
+  }
+
+  @Override
+  public List<Column> columns() {
+    return query().columns();
   }
 
   @Override

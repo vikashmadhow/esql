@@ -5,13 +5,15 @@
 package ma.vi.esql.syntax.modify;
 
 import ma.vi.base.tuple.T2;
+import ma.vi.esql.exec.Filter;
+import ma.vi.esql.semantic.type.Column;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.define.Metadata;
 import ma.vi.esql.syntax.expression.Expression;
-import ma.vi.esql.semantic.type.Column;
 import ma.vi.esql.syntax.query.ColumnList;
 import ma.vi.esql.syntax.query.QueryUpdate;
+import ma.vi.esql.syntax.query.Select;
 import ma.vi.esql.syntax.query.TableExpr;
 
 import java.util.List;
@@ -62,6 +64,22 @@ public class Update extends QueryUpdate {
   @Override
   public Update copy(String value, T2<String, ? extends Esql<?, ?>>... children) {
     return new Update(this, value, children);
+  }
+
+  @Override
+  public Update filter(Filter filter) {
+    Select.FilterResult result = Select.filter(tables(), where(), filter);
+    if (result != null) {
+      return new Update(context,
+                        updateTableAlias(),
+                        result.tables(),
+                        set(),
+                        result.where(),
+                        metadata(),
+                        columns());
+    } else {
+      return this;
+    }
   }
 
   @Override

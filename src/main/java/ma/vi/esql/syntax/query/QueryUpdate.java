@@ -153,10 +153,10 @@ public abstract class QueryUpdate extends MetadataContainer<QueryTranslation> {
    *                                  of the result.
    * @return The query translation along with supporting information for its execution.
    */
-  public QueryTranslation constructResult(StringBuilder query,
-                                          Target target,
-                                          EsqlPath path,
-                                          String qualifier,
+  public QueryTranslation constructResult(StringBuilder        query,
+                                          Target               target,
+                                          EsqlPath             path,
+                                          String               qualifier,
                                           PMap<String, Object> parameters) {
 
     boolean addAttributes = (Boolean)parameters.getOrDefault("addAttributes", true);
