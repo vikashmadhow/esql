@@ -62,7 +62,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the overridden metadata are not being considered). (create tests for metadata 
   overriding)
 
-## [0.9.2]
+## [0.9.2] - 2022-03-22
 ### Added
 - Added EsqlPath parameter to `filter` method which can be used to determine the
   context of the current statement (i.e., which surrounding ESQL statement it is
