@@ -49,9 +49,14 @@ public class Order extends Esql<String, String> {
   }
 
   @Override
-  protected String trans(Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
+  protected String trans(Target               target,
+                         EsqlConnection       esqlCon,
+                         EsqlPath             path,
+                         PMap<String, Object> parameters,
+                         Environment          env) {
     String dir = dir();
-    return order().translate(target, esqlCon, path.add(order()), parameters, env) + (dir == null ? "" : ' ' + dir);
+    return order().translate(target, esqlCon, path.add(order()), parameters, env)
+        + (dir == null ? "" : ' ' + dir);
   }
 
   @Override

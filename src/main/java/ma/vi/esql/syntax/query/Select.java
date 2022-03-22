@@ -12,6 +12,7 @@ import ma.vi.esql.exec.function.FunctionCall;
 import ma.vi.esql.semantic.type.Column;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
+import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.Parser;
 import ma.vi.esql.syntax.define.Metadata;
 import ma.vi.esql.syntax.expression.ColumnRef;
@@ -29,6 +30,7 @@ import java.util.stream.Stream;
 import static ma.vi.base.tuple.T2.of;
 import static ma.vi.esql.exec.Filter.Op.AND;
 import static ma.vi.esql.exec.Filter.Op.OR;
+import static ma.vi.esql.translation.Translatable.Target.SQLSERVER;
 
 /**
  * An ESQL select statement.
@@ -160,23 +162,47 @@ public class Select extends QueryUpdate {
   }
 
   @Override
-  public Select filter(Filter filter) {
-    FilterResult result = filter(tables(), where(), filter);
-    if (result != null) {
-      return new Select(context,
-                        metadata(),
-                        result.hasReverseLinks || distinct(),
-                        distinctOn(),
-                        explicit(),
-                        columns(),
-                        result.tables,
-                        result.where,
-                        groupBy(),
-                        having(),
-                        orderBy(),
-                        offset(),
-                        limit());
+  public Select filter(Filter filter, EsqlPath path) {
+    if (getClass().equals(Select.class)) {
+      FilterResult result = filter(tables(), where(), filter);
+      if (result != null) {
+        /*
+         * For recursive `WITH` query on SQL Server, `distinct` is not supported in
+         * the first CTE. If this is the case, exclude putting distinct even when
+         * there are reverse links on the path.
+         */
+        boolean doNotPutDistinct = false;
+        if (context.structure.database.target() == SQLSERVER) {
+          With with = path.ancestor(With.class);
+          if (with != null && with.recursive()) {
+            CompositeSelect sel = path.ancestor(CompositeSelect.class);
+            if (sel == with.ctes().get(0).query()) {
+              doNotPutDistinct = true;
+            }
+          }
+        }
+        return new Select(context,
+                          metadata(),
+                          (result.hasReverseLinks && !doNotPutDistinct) || distinct(),
+                          distinctOn(),
+                          explicit(),
+                          columns(),
+                          result.tables,
+                          result.where,
+                          groupBy(),
+                          having(),
+                          orderBy(),
+                          offset(),
+                          limit());
+      } else {
+        return this;
+      }
     } else {
+      /*
+       * For subclasses, assume that filtering is already taken care of by filtering
+       * of their children (this is true for the current known subclasses which
+       * include CompositeSelect and SelectExpression).
+       */
       return this;
     }
   }

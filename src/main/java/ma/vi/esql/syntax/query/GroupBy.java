@@ -33,8 +33,8 @@ public class GroupBy extends Esql<String, String> {
                  List<Expression<?, ?>> groupBy,
                  Type groupType) {
     super(context, "GroupBy",
-          T2.of("groupBy", new Esql<>(context, "groupBy", groupBy)),
-          T2.of("type", new Esql<>(context, groupType)));
+          T2.of("groupBy", new Esql<>(context, "groupBy", groupBy, true)),
+          T2.of("type",    new Esql<>(context, groupType)));
   }
 
   public GroupBy(GroupBy other) {

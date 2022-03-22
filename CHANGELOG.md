@@ -40,7 +40,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `pkey` macro expands to the primary key columns of a table.
 - `fkey` macro expands to the columns of a foreign key between two tables.
 - Virtual tables implemented as Esql transformers: A virtual table looks and 
-  behaves like a normal table but does not need to exist on the database or may
+  behaves like a normal table but does not need to exist in the database or may
   correspond to multiple tables. Queries and updates to virtual tables are rewritten
   as other queries/updates or whole programs.
 
@@ -61,6 +61,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Apply result and column metadata overloading in column list expansion (currently,
   the overridden metadata are not being considered). (create tests for metadata 
   overriding)
+
+## [0.9.2]
+### Added
+- Added EsqlPath parameter to `filter` method which can be used to determine the
+  context of the current statement (i.e., which surrounding ESQL statement it is
+  part of). This is used to ensure that changes made to the query is compatible
+  with the surrounding expressions.
+- Add several filters to QueryParams using `filters` single method call.
+- QueryParams check if single or multiple filters are non-null before adding to
+  further simplify calling interface.
+
+### Fixed
+- For recursive `WITH` query on SQL Server, `distinct` is not supported in the 
+  first CTE. If this is the case, excludes putting distinct even when there are 
+  reverse links on the path.
+- Filtering of subclasses of `Select` was delegating to the Select superclass and
+  this was erroneous as the specific subclass was being replaced with an instance
+  of `Select`; the `filter` method in `Select` now returns `this` when it detects
+  that it is being run on a subclass; the filtering still works as the subclasses
+  are composed of other `Selects` which are filtered correctly.
+- SQL Server only support `union all` as the operator in the first CTE of a 
+  recursive WITH query. Other composite operators are changed to `union all` when
+  the first CTE of a recursive WITH query is being translated for SQL Server.
 
 ## [0.9.1] - 2022-03-17
 ### Added
@@ -84,8 +107,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   complex joins (the existing translation was using the `using` clause which limits
   the type of table expressions that can be added to it).
 - Fixed concatenation of select expressions which was expecting expressions to 
-  return String instead of arbitrary objects now (as SelectExpression returns
-  QueryTranslation now, being a subclass of Select).
+  return String instead of arbitrary objects now (as `SelectExpression`, being a 
+  subclass of `Select`, returns `QueryTranslation` now).
   
 ## [0.9.0] - 2022-03-15
 ### Added
@@ -136,7 +159,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   describing themselves to the containing (and target for foreign keys) relation 
   and, if they are set on a single column, the corresponding column.
 
-### Test
+### Tested
 - Test check constraints.
 
 ### Fixed

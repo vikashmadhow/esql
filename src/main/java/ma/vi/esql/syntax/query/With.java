@@ -93,9 +93,11 @@ public class With extends QueryUpdate {
 
     boolean first = true;
     for (Cte cte: ctes()) {
-      if (first) { first = false; }
-      else       { st.append(", "); }
-      st.append(cte.translate(target, esqlCon, path.add(cte), parameters, env).translation());
+      if (!first) st.append(", ");
+      st.append(cte.translate(target, esqlCon, path.add(cte),
+                              parameters.plus("recursive", first && recursive()),
+                              env).translation());
+      if (first) first = false;
     }
 
     QueryTranslation q = query().translate(target, esqlCon, path.add(query()), parameters, env);
@@ -114,41 +116,6 @@ public class With extends QueryUpdate {
     }
     return false;
   }
-
-//  public With filter(Filter filter) {
-//    return new With(context,
-//                    recursive(),
-//                    ctes().stream().map(c -> c.filter(filter)).toList(),
-//                    query().filter(filter));
-//  }
-
-//  @Override
-//  public T2<Boolean, String> restrict(Restriction restriction,
-//                                      String targetAlias,
-//                                      boolean ignoreHiddenFields,
-//                                      boolean followSubSelect) {
-//    boolean joined = false;
-//    String alias = null;
-//    boolean first = true;
-//    for (Cte cte: ctes()) {
-//      /*
-//       * For recursive with query, the first CTE does not support distinct for
-//       * SQL SERVER; thus for that part of the WITH query, disable the rewriting.
-//       */
-//      if (!(context.structure.database instanceof SqlServer)
-//          || !recursive()
-//          || !first) {
-//        T2<Boolean, String> res = cte.restrict(restriction, targetAlias, ignoreHiddenFields, followSubSelect);
-//        joined |= res.a;
-//        alias = res.b == null ? alias : res.b;
-//      }
-//      first = false;
-//    }
-//    T2<Boolean, String> res = query().restrict(restriction, targetAlias, ignoreHiddenFields, followSubSelect);
-//    joined |= res.a;
-//    alias = res.b == null ? alias : res.b;
-//    return T2.of(joined, alias);
-//  }
 
   public boolean recursive() {
     return childValue("recursive");

@@ -28,7 +28,7 @@ import static ma.vi.esql.translation.SqlServerTranslator.DONT_ADD_IIF;
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public class SelectExpression extends Select { // extends Expression<String, String> {
+public class SelectExpression extends Select {
   public SelectExpression(Context context, Select select) {
     super(context,
           null,
@@ -81,10 +81,6 @@ public class SelectExpression extends Select { // extends Expression<String, Str
     return false;
   }
 
-//  public SelectExpression filter(Filter filter) {
-//    return new SelectExpression(context, select().filter(filter));
-//  }
-
   @Override
   protected QueryTranslation trans(Target               target,
                                    EsqlConnection       esqlCon,
@@ -125,9 +121,6 @@ public class SelectExpression extends Select { // extends Expression<String, Str
       if (sel.offset() != null) {
         st.append(" offset ").append(sel.offset().translate(target, esqlCon, path.add(sel.offset()), parameters, env));
       }
-//      if (sel.limit() != null) {
-//        st.append(" limit ").append(sel.limit().translate(target, esqlCon, path.add(sel.limit()), parameters, env));
-//      }
       st.append(')');
       return new QueryTranslation(this, st.toString(), Collections.emptyList(), Collections.emptyMap());
 

@@ -32,7 +32,6 @@ import java.util.*;
 import static java.lang.System.Logger.Level.ERROR;
 import static java.sql.ResultSet.CONCUR_READ_ONLY;
 import static java.sql.ResultSet.TYPE_SCROLL_INSENSITIVE;
-import static java.util.Collections.unmodifiableList;
 import static java.util.Collections.unmodifiableMap;
 import static ma.vi.base.string.Strings.random;
 import static ma.vi.esql.database.Database.NULL_DB;
@@ -94,9 +93,10 @@ public abstract class QueryUpdate extends MetadataContainer<QueryTranslation> {
    * the path, normalizing how both QueryUpdate and SelectExpression are treated.
    */
   public static QueryUpdate ancestor(EsqlPath path) {
-    Esql<?, ?> closest = path.closestAncestor(QueryUpdate.class, SelectExpression.class);
-    return closest instanceof QueryUpdate q      ? q
-         : closest instanceof SelectExpression s ? s.select()
+    Esql<?, ?> closest = path.closestAncestor(QueryUpdate.class,
+                                              SelectExpression.class);
+    return closest instanceof SelectExpression s ? s.select()
+         : closest instanceof QueryUpdate      q ? q
          : null;
   }
 
@@ -104,10 +104,11 @@ public abstract class QueryUpdate extends MetadataContainer<QueryTranslation> {
    * Same as {@link #ancestor} but including the path.
    */
   public static T2<QueryUpdate, EsqlPath> ancestorAndPath(EsqlPath path) {
-    T2<Esql<?, ?>, EsqlPath> closest = path.closestAncestorAndPath(QueryUpdate.class, SelectExpression.class);
+    T2<Esql<?, ?>, EsqlPath> closest = path.closestAncestorAndPath(QueryUpdate.class,
+                                                                   SelectExpression.class);
     return closest == null                          ? null
-         : closest.a instanceof QueryUpdate q       ? T2.of(q, closest.b)
          : closest.a instanceof SelectExpression s  ? T2.of(s.select(), closest.b)
+         : closest.a instanceof QueryUpdate      q  ? T2.of(q, closest.b)
          : null;
   }
 
@@ -183,9 +184,9 @@ public abstract class QueryUpdate extends MetadataContainer<QueryTranslation> {
     Type type = computeType(path.add(this));
 
     if (type instanceof Selection selection) {
-    /*
-     * Output columns.
-     */
+      /*
+       * Output columns.
+       */
       for (T2<Relation, Column> c: selection.columns().stream()
                                             .filter(c -> !c.b.name().contains("/"))
                                             .toList()) {
@@ -289,7 +290,7 @@ public abstract class QueryUpdate extends MetadataContainer<QueryTranslation> {
       }
     }
     return new QueryTranslation(this, query.toString(),
-                                unmodifiableList(new ArrayList<>(columnMappings.values())),
+                                List.copyOf(columnMappings.values()),
                                 unmodifiableMap(resultAttributes));
   }
 

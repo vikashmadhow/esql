@@ -27,7 +27,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import static ma.vi.base.string.Strings.makeUnique;
+import static ma.vi.base.string.Strings.makeUniqueSeq;
 import static ma.vi.esql.semantic.type.Type.unqualifiedName;
 
 /**
@@ -87,7 +87,7 @@ public class SingleTableExpr extends AbstractAliasTableExpr {
       Set<String> aliases = new HashSet<>(aliases());
       String lastAlias = shortest.filter().alias();
       if (lastAlias != null) {
-        lastAlias = makeUnique(aliases, lastAlias);
+        lastAlias = makeUniqueSeq(aliases, lastAlias);
       }
 
       String targetAlias;
@@ -104,9 +104,9 @@ public class SingleTableExpr extends AbstractAliasTableExpr {
            */
           targetAlias = lastAlias != null
                       ? lastAlias
-                      : makeUnique(aliases, unqualifiedName(target)); // "t" + Strings.random();
+                      : makeUniqueSeq(aliases, unqualifiedName(target)); // "t" + Strings.random();
         } else {
-          targetAlias = makeUnique(aliases, unqualifiedName(target)); // "t" + Strings.random();
+          targetAlias = makeUniqueSeq(aliases, unqualifiedName(target)); // "t" + Strings.random();
         }
 
         Expression<?, String> on = joinLink(link, sourceAlias, targetAlias, 0);

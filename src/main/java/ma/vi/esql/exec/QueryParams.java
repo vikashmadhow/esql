@@ -3,10 +3,7 @@ package ma.vi.esql.exec;
 import ma.vi.base.reflect.Dissector;
 import ma.vi.base.reflect.Property;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author Vikash Madhow (vikash.madhow@gmail.com)
@@ -28,7 +25,12 @@ public class QueryParams {
   }
 
   public QueryParams filter(Filter filter) {
-    filters.add(filter);
+    if (filter != null) filters.add(filter);
+    return this;
+  }
+
+  public QueryParams filters(Collection<Filter> filters) {
+    if (filters != null) this.filters.addAll(filters);
     return this;
   }
 
@@ -59,6 +61,6 @@ public class QueryParams {
     return params;
   }
 
-  protected final List<Param> params = new ArrayList<>();
+  protected final List<Param>  params  = new ArrayList<>();
   protected final List<Filter> filters = new ArrayList<>();
 }

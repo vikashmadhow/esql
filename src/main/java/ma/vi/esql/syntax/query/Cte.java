@@ -135,16 +135,13 @@ public class Cte extends QueryUpdate {
         List<T2<Relation, Column>> typeCols = ((Selection)type).columns();
         if (typeCols.size() != fields.size()) {
           throw new TranslationException(this, "CTE " + name() + " has different number of fields and columns. Fields "
-                                       + "defined are [" + String.join(", ", fields) + "] while columns "
-                                       + "defined are [" + typeCols.stream().map(c -> c.b.name()).collect(joining(", ")) + ']');
+                                             + "defined are [" + String.join(", ", fields) + "] while columns "
+                                             + "defined are [" + typeCols.stream().map(c -> c.b.name()).collect(joining(", ")) + ']');
         }
         List<Column> typeFields = new ArrayList<>();
         for (int i = 0; i < fields.size(); i++) {
           Column col = typeCols.get(i).b();
           Type type = col.computeType(path.add(col));
-//          typeFields.add(col.type(type)
-//                            .expression(new ColumnRef(context, name(), fields.get(i)))
-//                            .name(fields.get(i)));
           col.type(type);
           typeFields.add(col.expression(new ColumnRef(context, name(), fields.get(i)))
                             .name(fields.get(i)));
@@ -160,13 +157,6 @@ public class Cte extends QueryUpdate {
   public boolean modifying() {
     return query().modifying();
   }
-
-//  public Cte filter(Filter filter) {
-//    return new Cte(context,
-//                   name(),
-//                   fields(),
-//                   query().filter(filter));
-//  }
 
   @Override
   public QueryTranslation trans(Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
@@ -185,14 +175,6 @@ public class Cte extends QueryUpdate {
                                 q.columns(),
                                 q.resultAttributes());
   }
-
-//  @Override
-//  public T2<Boolean, String> restrict(Restriction restriction,
-//                                      String targetAlias,
-//                                      boolean ignoreHiddenFields,
-//                                      boolean followSubSelect) {
-//    return query().restrict(restriction, targetAlias, ignoreHiddenFields, followSubSelect);
-//  }
 
   @Override
   public String name() {

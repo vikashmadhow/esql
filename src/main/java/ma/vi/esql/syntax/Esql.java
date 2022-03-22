@@ -627,7 +627,15 @@ public class Esql<V, T> implements Copy<Esql<V, T>>, Translatable<T> {
     return expanded;
   }
 
-  public Esql<V, T> filter(Filter filter) {
+  /**
+   * Transforms this ESQL by applying the supplied filter to it. The default
+   * version returns the ESQL as-is.
+   *
+   * @param filter Filter to apply.
+   * @param path The path to this ESQL providing context on the surrounding expressions.
+   * @return The ESQL resulting from applying the filter to this one.
+   */
+  public Esql<V, T> filter(Filter filter, EsqlPath path) {
     return this;
   }
 

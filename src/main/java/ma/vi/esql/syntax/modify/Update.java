@@ -9,6 +9,7 @@ import ma.vi.esql.exec.Filter;
 import ma.vi.esql.semantic.type.Column;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
+import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.define.Metadata;
 import ma.vi.esql.syntax.expression.Expression;
 import ma.vi.esql.syntax.query.ColumnList;
@@ -67,7 +68,7 @@ public class Update extends QueryUpdate {
   }
 
   @Override
-  public Update filter(Filter filter) {
+  public Update filter(Filter filter, EsqlPath path) {
     Select.FilterResult result = Select.filter(tables(), where(), filter);
     if (result != null) {
       return new Update(context,

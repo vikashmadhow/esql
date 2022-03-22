@@ -340,6 +340,44 @@ public class FilterTest extends DataTest {
                  }));
   }
 
+
+  @TestFactory
+  Stream<DynamicTest> filterOnWithRecursive() {
+    return Stream.of(databases)
+                 .map(db -> dynamicTest(db.target().toString(), () -> {
+                   try (EsqlConnection con = db.esql(db.pooledConnection())) {
+                     setupTables(con);
+                     Esql<?, ?> filtered =
+                       con.prepare("""
+                                   with recursive w1(a) (
+                                    select a from test.pA where a < 0
+                                    union
+                                    select pA.a
+                                      from w1 join test.pA on w1.a=pA.a
+                                     where pA.a > w1.a
+                                   ),
+                                   w2(
+                                    select a:max(a) from test.pZ
+                                   )
+                                   select w1.a, w2.a, pY.*
+                                     from w1 times test.pY times w2
+                                   """,
+                                   new QueryParams()
+                                     .and("test.pX", "x", "x.a=3"));
+                     System.out.println(filtered);
+//                     Select select = (Select)((Program)filtered).expressions().get(0);
+//                     TableExpr from = select.from();
+//                     Parser p = new Parser(db.structure());
+//                     fromEquals(from, "test.pZ", "z",
+//                                new Join("test.pY", "y", null, p.parseExpression("z.y_id=y._id")),
+//                                new Join("test.pC", "c", "full", p.parseExpression("z.a=c.a")),
+//                                new Join("test.pX", "x", null, p.parseExpression("c.x_id=x._id")));
+//                     assertEquals(p.parseExpression("z.a < 2 and x.a = 3"), select.where());
+                     con.execPrepared(filtered);
+                   }
+                 }));
+  }
+
   @TestFactory
   Stream<DynamicTest> filterOnUpdate() {
     return Stream.of(databases)

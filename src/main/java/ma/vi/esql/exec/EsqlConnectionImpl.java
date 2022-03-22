@@ -150,7 +150,7 @@ public class EsqlConnectionImpl implements EsqlConnection {
      */
     if (qp != null && !qp.filters.isEmpty()) {
       for (Filter filter: qp.filters) {
-        st = st.map((e, p) -> e.filter(filter));
+        st = st.map((e, p) -> e.filter(filter, p));
       }
     }
     return st;

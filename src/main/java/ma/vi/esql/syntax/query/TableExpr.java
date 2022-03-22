@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * The table expression in the from clause of a select, update or delete statement
+ * The table expression in the from clause of a select, update or delete statement.
  *
  * @author vikash.madhow@gmail.com
  */
