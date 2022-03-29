@@ -89,7 +89,7 @@ public class PostgresqlTranslator extends AbstractTranslator {
     if (from instanceof SingleTableExpr) {
       StringBuilder st = new StringBuilder("update ");
       st.append(from.translate(target(), esqlCon, path.add(from), parameters, env));
-      Util.addSet(st, update.set(), target(), false, path);
+      Util.addSet(st, update.set(), target(), false, path, env);
       if (update.where() != null) {
         st.append(" where ").append(update.where().translate(target(), esqlCon, path.add(update.where()), parameters, env));
       }

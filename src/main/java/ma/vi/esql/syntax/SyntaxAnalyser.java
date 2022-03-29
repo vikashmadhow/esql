@@ -304,8 +304,8 @@ public class SyntaxAnalyser extends EsqlBaseListener {
     String operator = value(ctx.setop());
     put(ctx, new CompositeSelect(context, operator.equals("unionall") ? "union all" : operator,
                                  ctx.select().stream()
-                                     .map(s -> (Select)get(s))
-                                     .toList()));
+                                    .map(s -> (Select)get(s))
+                                    .toList()));
   }
 
   @Override
@@ -348,8 +348,8 @@ public class SyntaxAnalyser extends EsqlBaseListener {
   @Override
   public void exitStarColumn(StarColumnContext ctx) {
     put(ctx, new StarColumn(context, ctx.qualifier() == null
-                                       ? null
-                                       : ctx.qualifier().Identifier().getText()));
+                                   ? null
+                                   : ctx.qualifier().Identifier().getText()));
   }
 
   @Override
@@ -496,7 +496,7 @@ public class SyntaxAnalyser extends EsqlBaseListener {
   @Override
   public void exitRows(RowsContext ctx) {
     /*
-     * rows becomes list of InsertRow where each row is a list of expressions
+     * rows become list of InsertRow where each row is a list of expressions
      */
     put(ctx, new Esql<>(context, ctx.row().stream()
                                     .map(this::get)

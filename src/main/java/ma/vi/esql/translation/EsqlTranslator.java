@@ -83,12 +83,16 @@ public class EsqlTranslator extends AbstractTranslator {
   }
 
   @Override
-  protected QueryTranslation translate(Update update, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
+  protected QueryTranslation translate(Update               update,
+                                       EsqlConnection       esqlCon,
+                                       EsqlPath             path,
+                                       PMap<String, Object> parameters,
+                                       Environment          env) {
     TableExpr from = update.tables();
     StringBuilder st = new StringBuilder();
     st.append("update ").append(update.updateTableAlias())
       .append(" from ") .append(from.translate(target(), esqlCon, path.add(from), parameters, env));
-    Util.addSet(st, update.set(), target(), false, path);
+    Util.addSet(st, update.set(), target(), false, path, env);
     if (update.where() != null) {
       st.append(" where ").append(update.where().translate(target(), esqlCon, path.add(update.where()), parameters, env));
     }

@@ -8,6 +8,7 @@ import ma.vi.esql.syntax.define.Attribute;
 import ma.vi.esql.syntax.define.Metadata;
 import org.pcollections.PMap;
 
+import static ma.vi.esql.translation.Translatable.Target;
 import static ma.vi.esql.translation.Translatable.Target.ESQL;
 
 /**
@@ -43,7 +44,7 @@ public interface Translator {
   /**
    * The target supported by this translator.
    */
-  Translatable.Target target();
+  Target target();
 
   /**
    * Call to translate an Esql node.
@@ -63,10 +64,11 @@ public interface Translator {
      * is here are it is almost the same for all targets.
      */
     public static void addSet(StringBuilder st,
-                              Metadata sets,
-                              Translatable.Target target,
-                              boolean removeQualifier,
-                              EsqlPath path) {
+                              Metadata      sets,
+                              Target        target,
+                              boolean       removeQualifier,
+                              EsqlPath      path,
+                              Environment   env) {
       boolean first = true;
       st.append(" set ");
       for (Attribute set: sets.attributes().values()) {
@@ -85,7 +87,7 @@ public interface Translator {
         if (target != ESQL) st.append('"');
         st.append(columnName);
         if (target != ESQL) st.append('"');
-        st.append('=').append(set.attributeValue().translate(target, null, path, null));
+        st.append('=').append(set.attributeValue().translate(target, null, path, env));
       }
     }
   }

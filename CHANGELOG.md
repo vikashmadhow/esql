@@ -20,8 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Support for creating and using views (including materialised views).
 - Complete documentation of ESQL grammar.
 - Fully document purpose and usage.
-- Support for Oracle database.
-- Support for SQLite.
+- Support for Firebird, Oracle database.
 - Make into Java 9 module.
 - Support for 'within group' for ordering in string and array aggregate functions.
 - Support for bulk copy manager in postgresql.
@@ -61,6 +60,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Apply result and column metadata overloading in column list expansion (currently,
   the overridden metadata are not being considered). (create tests for metadata 
   overriding)
+
+## [0.9.3] - 2022-03-29
+### Added
+- `StringForm` interface to standardise the use of the `_toString` method to 
+  construct a string representation of an object in a StringBuilder with support 
+  for hierarchies and indentation.
+
+### Fixed
+- Added `Environment` parameter to `addSet` method in Translator.Util which is used
+  to produce the `set` clause of an `Update`. This parameter allows the function
+  to receive the environment in which the update is being translated allowing 
+  named parameters to be translated correctly.
 
 ## [0.9.2] - 2022-03-22
 ### Added

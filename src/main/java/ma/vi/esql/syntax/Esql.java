@@ -13,6 +13,7 @@ import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.semantic.scope.Scope;
 import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.syntax.macro.Macro;
+import ma.vi.esql.translation.StringForm;
 import ma.vi.esql.translation.Translatable;
 import ma.vi.esql.translation.TranslationException;
 import ma.vi.esql.translation.TranslatorFactory;
@@ -40,7 +41,10 @@ import static org.apache.commons.lang3.StringUtils.repeat;
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public class Esql<V, T> implements Copy<Esql<V, T>>, Translatable<T> {
+public class Esql<V, T>
+  implements Copy<Esql<V, T>>,
+             Translatable<T>,
+             StringForm {
   public Esql(Context context) {
     this.value = getDefaultValue();
     this.context = context;
@@ -340,8 +344,8 @@ public class Esql<V, T> implements Copy<Esql<V, T>>, Translatable<T> {
     return setPath(path.split("/"), 0, child);
   }
 
-  private <X extends Esql<V, T>> X setPath(String[] path,
-                                           int indexInPath,
+  private <X extends Esql<V, T>> X setPath(String[]   path,
+                                           int        indexInPath,
                                            Esql<?, ?> child) {
     while (indexInPath < path.length
        && (path[indexInPath] == null || path[indexInPath].length() == 0)) {
@@ -660,7 +664,10 @@ public class Esql<V, T> implements Copy<Esql<V, T>>, Translatable<T> {
     return st.toString();
   }
 
-  public void _toString(StringBuilder st, int level, int indent) {
+  @Override
+  public void _toString(StringBuilder st,
+                        int           level,
+                        int           indent) {
     if (value != null) {
       st.append(value);
     }

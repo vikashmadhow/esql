@@ -78,7 +78,11 @@ public class HSqlDbTranslator extends AbstractTranslator {
   }
 
   @Override
-  protected QueryTranslation translate(Update update, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
+  protected QueryTranslation translate(Update               update,
+                                       EsqlConnection       esqlCon,
+                                       EsqlPath             path,
+                                       PMap<String, Object> parameters,
+                                       Environment          env) {
     StringBuilder st = new StringBuilder("update ");
 
     TableExpr from = update.tables();
@@ -86,7 +90,7 @@ public class HSqlDbTranslator extends AbstractTranslator {
       throw new TranslationException(update, target() + " does not support multiple tables or joins in updates");
     }
     st.append(from.translate(target(), esqlCon, path.add(from), parameters, env));
-    Util.addSet(st, update.set(), target(), false, path);
+    Util.addSet(st, update.set(), target(), false, path, env);
 
     if (update.where() != null) {
       st.append(" where ").append(update.where().translate(target(), esqlCon, path.add(update.where()), parameters, env));

@@ -375,14 +375,16 @@ public class SqlServerTranslator extends AbstractTranslator {
   }
 
   @Override
-  protected QueryTranslation translate(Update update,
-                                       EsqlConnection esqlCon, EsqlPath path,
-                                       PMap<String, Object> parameters, Environment env) {
+  protected QueryTranslation translate(Update               update,
+                                       EsqlConnection       esqlCon,
+                                       EsqlPath             path,
+                                       PMap<String, Object> parameters,
+                                       Environment          env) {
     StringBuilder st = new StringBuilder("update ");
 
     TableExpr from = update.tables();
     st.append('"').append(update.updateTableAlias()).append('"');
-    Util.addSet(st, update.set(), target(), true, path);
+    Util.addSet(st, update.set(), target(), true, path, env);
 
     // output clause for SQL Server if specified
     QueryTranslation q = null;
