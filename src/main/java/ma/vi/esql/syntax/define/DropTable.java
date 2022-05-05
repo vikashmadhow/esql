@@ -7,7 +7,7 @@ package ma.vi.esql.syntax.define;
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.database.Database;
 import ma.vi.esql.database.Structure;
-import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.database.EsqlConnection;
 import ma.vi.esql.exec.Result;
 import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.semantic.type.BaseRelation;
@@ -93,7 +93,7 @@ public class DropTable extends Define {
       /*
        * Drop in database.
        */
-      Connection con = esqlCon.con();
+      Connection con = esqlCon.connection();
       String dropSql = drop.translate(db.target());
       con.createStatement().executeUpdate(dropSql);
 

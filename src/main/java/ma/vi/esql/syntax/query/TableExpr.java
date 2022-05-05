@@ -66,7 +66,7 @@ public abstract class TableExpr extends Esql<String, String> {
    * @param shortest Shortest path to apply.
    * @return The result of applying the shortest path.
    */
-  public abstract AppliedShortestPath applyShortestPath(ShortestPath shortest);
+  public abstract AppliedShortestPath applyShortestPath(ShortestPath shortest, TableExpr root);
 
   /**
    * A shortest path found by {@link #findShortestPath(Filter)} for a filter
@@ -75,10 +75,10 @@ public abstract class TableExpr extends Esql<String, String> {
    */
   public record ShortestPath(SingleTableExpr    source,
                              BaseRelation.Path  path,
-                             Filter filter) {}
+                             Filter             filter) {}
 
   /**
-   * The application of a shortest path produced by {@link #applyShortestPath(ShortestPath)}
+   * The application of a shortest path produced by {@link #applyShortestPath(ShortestPath, TableExpr)}
    * consists of the resulting table expression and the  alias of the target table
    * which can be used to modify the filter condition, if needed.
    */

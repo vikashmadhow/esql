@@ -5,7 +5,7 @@
 package ma.vi.esql.syntax;
 
 import ma.vi.base.tuple.T2;
-import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.database.EsqlConnection;
 import ma.vi.esql.exec.env.Environment;
 import org.pcollections.PMap;
 

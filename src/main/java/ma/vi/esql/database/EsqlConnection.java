@@ -2,15 +2,16 @@
  * Copyright (c) 2020 Vikash Madhow
  */
 
-package ma.vi.esql.exec;
+package ma.vi.esql.database;
 
-import ma.vi.esql.database.Database;
+import ma.vi.esql.exec.Executor;
+import ma.vi.esql.exec.QueryParams;
+import ma.vi.esql.exec.ResultTransformer;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.Parser;
 
 import java.sql.Connection;
-
-import static ma.vi.base.lang.Errors.unchecked;
+import java.sql.SQLException;
 
 /**
  * An interface representing a connection to the database through which ESQL
@@ -24,6 +25,11 @@ import static ma.vi.base.lang.Errors.unchecked;
 public interface EsqlConnection extends AutoCloseable {
 
   /**
+   * @return The database that this connection works on.
+   */
+  Database database();
+
+  /**
    * {@link #prepare(Esql, QueryParams) Prepares} and {@link #execPrepared(Esql, QueryParams) executes}
    * the ESQL program using this connection. Preparation includes parameter substitution,
    * macro expansion and filter applications.
@@ -33,25 +39,30 @@ public interface EsqlConnection extends AutoCloseable {
    * @return The result produced by the esql command on execution.
    */
   default <R> R exec(Esql<?, ?> esql, QueryParams qp) {
-    return execPrepared(prepare(esql, qp), qp);
+    Executor exec = database().executor().with(this);
+    return exec.execPrepared(exec.prepare(esql, qp), qp);
   }
 
   default <R> R exec(Esql<?, ?> esql) {
-    return exec(esql, (QueryParams)null);
+    return database().executor().with(this).exec(esql, null);
   }
 
   default <R> R exec(String esql, QueryParams qp) {
-    return exec(new Parser(database().structure()).parse(esql), qp);
+    return database().executor().with(this)
+                     .exec(new Parser(database().structure()).parse(esql), qp);
   }
 
   default <R> R exec(String esql) {
-    return exec(esql, (QueryParams)null);
+    return database().executor().with(this)
+                     .exec(esql, null);
   }
 
   default <R> Iterable<R> exec(Esql<?, ?>           esql,
                                ResultTransformer<R> transformer,
                                QueryParams          qp) {
-    return transformer.transform(exec(esql, qp));
+    return transformer.transform(database().executor()
+                                           .with(this)
+                                           .exec(esql, qp));
   }
 
   default <R> Iterable<R> exec(Esql<?, ?>           esql,
@@ -74,7 +85,11 @@ public interface EsqlConnection extends AutoCloseable {
    * Prepares the query by substituting parameters, expanding macros, computing
    * types, applying filters, and so on.
    */
-  Esql<?, ?> prepare(Esql<?, ?> esql, QueryParams qp);
+  default Esql<?, ?> prepare(Esql<?, ?> esql, QueryParams qp) {
+    return database().executor()
+                     .with(this)
+                     .prepare(esql, qp);
+  }
 
   default Esql<?, ?> prepare(Esql<?, ?> esql) {
     return prepare(esql, null);
@@ -91,16 +106,15 @@ public interface EsqlConnection extends AutoCloseable {
   /**
    * Execute a prepared esql program.
    */
-  <R> R execPrepared(Esql<?, ?> esql, QueryParams qp);
+  default <R> R execPrepared(Esql<?, ?> esql, QueryParams qp) {
+    return database().executor()
+                     .with(this)
+                     .execPrepared(esql, qp);
+  }
 
   default <R> R execPrepared(Esql<?, ?> esql) {
     return execPrepared(esql, null);
   }
-
-  /**
-   * @return The database that this connection works on.
-   */
-  Database database();
 
   /**
    * Commits the current transaction on this connection.
@@ -128,36 +142,20 @@ public interface EsqlConnection extends AutoCloseable {
   /**
    * Underlying JDBC connection.
    */
-  Connection con();
+  Connection connection();
 
   /**
-   * Closes the connection, committing if the connection is not in auto-commit
-   * or rollback-only mode, otherwise rolling back the ongoing transaction.
+   * @return True if the underlying connection is closed, false otherwise.
    */
-  @Override
-  default void close() {
+  default boolean isClosed() {
     try {
-      if (!con().getAutoCommit()) {
-        if (isRollbackOnly()) {
-          con().rollback();
-        } else {
-          con().commit();
-        }
-      }
-    } catch (Exception sqle) {
-      unchecked(() -> {
-        if (!con().getAutoCommit()) {
-          try {
-            con().rollback();
-          } catch (Exception e) {
-            throw unchecked(e);
-          }
-        }
-      });
-    } finally {
-      unchecked(con()::close);
+      return connection().isClosed();
+    } catch (SQLException sqle) {
+      throw new RuntimeException("Could not get status of underlying connection", sqle);
     }
   }
+
+  @Override void close();
 
   EsqlConnection NULL_CONNECTION = new EsqlConnection() {
     @Override
@@ -181,6 +179,8 @@ public interface EsqlConnection extends AutoCloseable {
     @Override
     public void rollback() {}
 
+    @Override public void close() {}
+
     @Override
     public void rollbackOnly() {}
 
@@ -190,7 +190,7 @@ public interface EsqlConnection extends AutoCloseable {
     }
 
     @Override
-    public Connection con() {
+    public Connection connection() {
       return null;
     }
   };

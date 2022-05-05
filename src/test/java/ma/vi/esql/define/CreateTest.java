@@ -1,23 +1,13 @@
 package ma.vi.esql.define;
 
 import ma.vi.esql.DataTest;
-import ma.vi.esql.exec.EsqlConnection;
-import ma.vi.esql.exec.Result;
+import ma.vi.esql.database.EsqlConnection;
 import ma.vi.esql.syntax.Parser;
-import ma.vi.esql.syntax.Program;
-import ma.vi.esql.translation.Translatable;
-import org.json.JSONArray;
-import org.json.JSONObject;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
 
-import java.util.List;
-import java.util.Map;
 import java.util.stream.Stream;
 
-import static java.util.Collections.singletonList;
-import static ma.vi.esql.builder.Attributes.*;
-import static ma.vi.esql.translation.Translatable.Target.ESQL;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.DynamicTest.dynamicTest;

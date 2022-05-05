@@ -9,7 +9,7 @@ import ma.vi.base.reflect.Property;
 import ma.vi.base.tuple.T2;
 import ma.vi.base.util.Classes;
 import ma.vi.base.util.Numbers;
-import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.database.EsqlConnection;
 import ma.vi.esql.exec.ExecutionException;
 import ma.vi.esql.exec.Result;
 import ma.vi.esql.exec.env.Environment;

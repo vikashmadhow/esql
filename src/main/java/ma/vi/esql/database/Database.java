@@ -6,7 +6,8 @@ package ma.vi.esql.database;
 
 import ma.vi.base.config.Configuration;
 import ma.vi.base.lang.NotFoundException;
-import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.exec.DefaultExecutor;
+import ma.vi.esql.exec.Executor;
 import ma.vi.esql.semantic.type.BaseRelation;
 import ma.vi.esql.semantic.type.Column;
 import ma.vi.esql.syntax.EsqlTransformer;
@@ -166,6 +167,12 @@ public interface Database {
    * NotFoundException if no such extension has been loaded.
    */
   <E extends Extension> E extension(Class<? extends Extension> e) throws NotFoundException;
+
+  default Executor executor() {
+    return new DefaultExecutor();
+  }
+
+  default void executor(Executor executor) {}
 
   // Connections
   //////////////////////////////////////////////////////

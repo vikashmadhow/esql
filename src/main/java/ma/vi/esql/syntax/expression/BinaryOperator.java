@@ -5,7 +5,7 @@
 package ma.vi.esql.syntax.expression;
 
 import ma.vi.base.tuple.T2;
-import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.database.EsqlConnection;
 import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.syntax.Context;
@@ -30,7 +30,6 @@ public abstract class BinaryOperator extends Expression<String, String>  {
           T2.of("op", new Esql<>(context, op)),
           T2.of("expr1", expr1),
           T2.of("expr2", expr2));
-
   }
 
   public BinaryOperator(BinaryOperator other) {
@@ -54,9 +53,11 @@ public abstract class BinaryOperator extends Expression<String, String>  {
   }
 
   @Override
-  protected String trans(Target target,
-                         EsqlConnection esqlCon, EsqlPath path,
-                         PMap<String, Object> parameters, Environment env) {
+  protected String trans(Target               target,
+                         EsqlConnection       esqlCon,
+                         EsqlPath             path,
+                         PMap<String, Object> parameters,
+                         Environment          env) {
     String e = expr1().translate(target, esqlCon, path.add(expr1()), parameters, env)
              + ' ' + op() + ' '
              + expr2().translate(target, esqlCon, path.add(expr2()), parameters, env);

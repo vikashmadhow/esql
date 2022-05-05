@@ -7,7 +7,7 @@ package ma.vi.esql.syntax.query;
 import ma.vi.base.lang.NotFoundException;
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.database.Structure;
-import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.database.EsqlConnection;
 import ma.vi.esql.exec.Filter;
 import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.semantic.type.*;
@@ -82,13 +82,14 @@ public class SingleTableExpr extends AbstractAliasTableExpr {
   }
 
   @Override
-  public AppliedShortestPath applyShortestPath(ShortestPath shortest) {
+  public AppliedShortestPath applyShortestPath(ShortestPath shortest, TableExpr root) {
     if (shortest.source() == this) {
-      Set<String> aliases = new HashSet<>(aliases());
+      Set<String> aliases = new HashSet<>(root.aliases());
       String lastAlias = shortest.filter().alias();
-      if (lastAlias != null) {
-        lastAlias = makeUniqueSeq(aliases, lastAlias);
+      if (lastAlias == null) {
+        lastAlias = Type.unqualifiedName(shortest.filter().table());
       }
+      lastAlias = makeUniqueSeq(aliases, lastAlias);
 
       String targetAlias;
       String sourceAlias = alias();

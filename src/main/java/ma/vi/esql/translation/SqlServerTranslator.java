@@ -2,7 +2,7 @@ package ma.vi.esql.translation;
 
 import ma.vi.base.string.Strings;
 import ma.vi.base.tuple.T2;
-import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.database.EsqlConnection;
 import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.exec.function.Function;
 import ma.vi.esql.exec.function.FunctionCall;

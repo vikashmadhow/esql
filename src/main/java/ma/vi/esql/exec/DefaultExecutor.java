@@ -1,10 +1,6 @@
-/*
- * Copyright (c) 2020 Vikash Madhow
- */
-
 package ma.vi.esql.exec;
 
-import ma.vi.esql.database.Database;
+import ma.vi.esql.database.EsqlConnection;
 import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.exec.env.ProgramEnvironment;
 import ma.vi.esql.exec.function.NamedParameter;
@@ -20,64 +16,27 @@ import ma.vi.esql.translation.TranslationException;
 import org.pcollections.HashPMap;
 import org.pcollections.IntTreePMap;
 
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Stack;
+import java.util.concurrent.atomic.AtomicBoolean;
 
-import static ma.vi.base.lang.Errors.unchecked;
 import static ma.vi.esql.syntax.expression.literal.Literal.makeLiteral;
 import static ma.vi.esql.syntax.macro.Macro.ONGOING_MACRO_EXPANSION;
 
 /**
- * The implementation of {@link EsqlConnection}.
+ * The default ESQL execution engine. This can be replaced by a custom executor
+ * with the {@link ma.vi.esql.database.Database#executor(Executor)} method by
+ * extensions.
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public class EsqlConnectionImpl implements EsqlConnection {
-  public EsqlConnectionImpl(Database db, Connection con, Stack<Connection> cons) {
-    this.db = db;
-    this.con = con;
-    this.cons = cons;
-  }
-
-  public Connection connection() {
-    return con;
+public class DefaultExecutor implements Executor {
+  @Override
+  public DefaultExecutor with(EsqlConnection con) {
+    return new DefaultExecutor(con);
   }
 
   @Override
-  public Database database() {
-    return db;
-  }
-
-  @Override
-  public void commit() {
-    unchecked(con::commit);
-  }
-
-  @Override
-  public void rollback() {
-    try {
-      con.rollback();
-    } catch (SQLException sqle) {
-      throw unchecked(sqle);
-    }
-  }
-
-  @Override
-  public void rollbackOnly() {
-    rollbackOnly = true;
-  }
-
-  @Override
-  public boolean isRollbackOnly() {
-    return rollbackOnly;
-  }
-
-  @Override
-  public Connection con() {
-    return con;
+  public EsqlConnection connection() {
+    return connection;
   }
 
   @Override
@@ -88,24 +47,16 @@ public class EsqlConnectionImpl implements EsqlConnection {
      * Substitute parameters into statement.
      */
     if (qp !=null && !qp.params.isEmpty()) {
-      final Map<String, Param> parameters = new HashMap<>();
-      for (Param p: qp.params) {
-        parameters.put(p.a, p);
-      }
       st = esql.map((e, p) -> {
         if (e instanceof NamedParameter) {
           String paramName = ((NamedParameter)e).name();
-//          if (!parameters.containsKey(paramName)) {
-//            throw new TranslationException("Parameter named " + paramName
-//                                               + " is present but not supplied in " + esql);
-//          } else {
-          if (parameters.containsKey(paramName)) {
-            Param param = parameters.get(paramName);
+          if (qp.params.containsKey(paramName)) {
+            Param param = qp.params.get(paramName);
             Object value = param.b;
             return value instanceof Esql             ? (Esql<?, ?>)value
-                                                     : value == null                     ? new NullLiteral(esql.context)
-                                                                                         : value instanceof QueryTranslation ? makeLiteral(esql.context, value.toString())
-                                                                                                                             : makeLiteral(esql.context, value);
+                 : value == null                     ? new NullLiteral(esql.context)
+                 : value instanceof QueryTranslation ? makeLiteral(esql.context, value.toString())
+                                                     : makeLiteral(esql.context, value);
           }
         }
         return e;
@@ -128,6 +79,7 @@ public class EsqlConnectionImpl implements EsqlConnection {
     /*
      * Scope symbols.
      */
+    var db = connection().database();
     st.scope(db.structure(), new EsqlPath(st));
 
     /*
@@ -149,8 +101,10 @@ public class EsqlConnectionImpl implements EsqlConnection {
      * Apply filters, if any.
      */
     if (qp != null && !qp.filters.isEmpty()) {
+      AtomicBoolean first = new AtomicBoolean(true);
       for (Filter filter: qp.filters) {
-        st = st.map((e, p) -> e.filter(filter, p));
+        st = st.map((e, p) -> e.filter(filter, first.get(), p));
+        first.set(false);
       }
     }
     return st;
@@ -158,28 +112,20 @@ public class EsqlConnectionImpl implements EsqlConnection {
 
   @Override
   public <R> R execPrepared(Esql<?, ?> esql, QueryParams qp) {
+    var db = connection.database();
     Environment env = new ProgramEnvironment(db.structure());
     if (qp != null) {
-      for (Param p : qp.params) env.add(p.a, p.b);
+      for (Param p: qp.params.values()) env.add(p.a, p.b);
     }
-    return (R)esql.exec(database().target(),
-                        this,
+    return (R)esql.exec(db.target(),
+                        connection,
                         new EsqlPath(esql),
                         HashPMap.empty(IntTreePMap.empty()),
                         env);
   }
 
-  @Override
-  public void close() {
-    try {
-      EsqlConnection.super.close();
-    } finally {
-      cons.remove(con);
-    }
-  }
-
   private static <T extends Esql<?, ?>,
-                  M extends Macro> T expand(T esql, Class<M> macroType) {
+    M extends Macro> T expand(T esql, Class<M> macroType) {
     T expanded;
     int iteration = 0;
     while ((expanded = (T)esql.map((e, p) -> macroType.isAssignableFrom(e.getClass())
@@ -188,26 +134,20 @@ public class EsqlConnectionImpl implements EsqlConnection {
       esql = expanded;
       iteration++;
       if (iteration > 50) {
-        throw new TranslationException(esql,
-            "Macro expansion continued for more than 50 iterations and was stopped. "
-          + "A macro could be expanding recursively into other macros. Esql: " + esql);
+        throw new TranslationException(esql, "Macro expansion continued for more than 50 iterations and was stopped. "
+                                           + "A macro could be expanding recursively into other macros. Esql: " + esql);
       }
     }
     return expanded;
   }
 
-  protected final Database db;
+  public DefaultExecutor() {
+    this.connection = null;
+  }
 
-  private boolean rollbackOnly;
+  private DefaultExecutor(EsqlConnection connection) {
+    this.connection = connection;
+  }
 
-  /**
-   * Underlying connection.
-   */
-  protected final Connection con;
-
-  /**
-   * The connection stack linked to the thread from which this connection must
-   * be removed from when it's closed.
-   */
-  private final Stack<Connection> cons;
+  protected final EsqlConnection connection;
 }

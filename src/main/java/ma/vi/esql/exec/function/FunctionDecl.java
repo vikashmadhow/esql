@@ -5,7 +5,7 @@
 package ma.vi.esql.exec.function;
 
 import ma.vi.base.tuple.T2;
-import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.database.EsqlConnection;
 import ma.vi.esql.exec.Result;
 import ma.vi.esql.exec.env.AbstractEnvironment;
 import ma.vi.esql.exec.env.Environment;

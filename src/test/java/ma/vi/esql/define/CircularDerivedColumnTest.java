@@ -1,7 +1,7 @@
 package ma.vi.esql.define;
 
 import ma.vi.esql.DataTest;
-import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.database.EsqlConnection;
 import ma.vi.esql.syntax.CircularReferenceException;
 import ma.vi.esql.syntax.Parser;
 import ma.vi.esql.syntax.Program;

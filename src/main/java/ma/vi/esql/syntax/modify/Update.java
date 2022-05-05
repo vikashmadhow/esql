@@ -68,14 +68,14 @@ public class Update extends QueryUpdate {
   }
 
   @Override
-  public Update filter(Filter filter, EsqlPath path) {
-    Select.FilterResult result = Select.filter(tables(), where(), filter);
+  public Update filter(Filter filter, boolean firstFilter, EsqlPath path) {
+    Select.FilterResult result = Select.filter(tables(), filter, firstFilter, where());
     if (result != null) {
       return new Update(context,
                         updateTableAlias(),
                         result.tables(),
                         set(),
-                        result.where(),
+                        result.condition(),
                         metadata(),
                         columns());
     } else {

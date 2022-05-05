@@ -10,18 +10,30 @@ import java.util.*;
  */
 public class QueryParams {
   public QueryParams add(Param p) {
-    params.add(p);
+    params.put(p.a, p);
     return this;
   }
 
   public QueryParams add(String name, Object value) {
-    params.add(Param.of(name, value));
+    params.put(name, Param.of(name, value));
     return this;
   }
 
   public QueryParams add(Object objectAsParams) {
-    params.addAll(Arrays.asList(asParams(objectAsParams)));
+    for (Param p: asParams(objectAsParams)) add(p);
     return this;
+  }
+
+  /**
+   * Return a parameter value by name, if found in the parameter list, or empty
+   * if not.
+   * @param name The parameter name.
+   * @return The parameter value if found in the parameter list, or empty otherwise.
+   */
+  public <T> Optional<T> find(String name) {
+    return params.containsKey(name)
+         ? Optional.of((T)params.get(name).b)
+         : Optional.empty();
   }
 
   public QueryParams filter(Filter filter) {
@@ -61,6 +73,7 @@ public class QueryParams {
     return params;
   }
 
-  protected final List<Param>  params  = new ArrayList<>();
+  protected final Map<String, Param> params = new LinkedHashMap<>();
+
   protected final List<Filter> filters = new ArrayList<>();
 }

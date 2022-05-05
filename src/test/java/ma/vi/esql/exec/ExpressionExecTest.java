@@ -5,6 +5,7 @@
 package ma.vi.esql.exec;
 
 import ma.vi.esql.DataTest;
+import ma.vi.esql.database.EsqlConnection;
 import ma.vi.esql.syntax.Parser;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;

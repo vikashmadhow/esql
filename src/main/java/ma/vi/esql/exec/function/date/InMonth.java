@@ -27,7 +27,7 @@ import java.util.List;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static ma.vi.esql.database.Database.NULL_DB;
-import static ma.vi.esql.exec.EsqlConnection.NULL_CONNECTION;
+import static ma.vi.esql.database.EsqlConnection.NULL_CONNECTION;
 import static ma.vi.esql.translation.Translatable.Target.ESQL;
 
 /**

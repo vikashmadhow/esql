@@ -7,10 +7,7 @@ package ma.vi.esql.database;
 import ma.vi.base.config.Configuration;
 import ma.vi.base.lang.NotFoundException;
 import ma.vi.base.tuple.T2;
-import ma.vi.esql.exec.EsqlConnection;
-import ma.vi.esql.exec.EsqlConnectionImpl;
-import ma.vi.esql.exec.QueryParams;
-import ma.vi.esql.exec.Result;
+import ma.vi.esql.exec.*;
 import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.semantic.type.*;
 import ma.vi.esql.syntax.Context;
@@ -200,11 +197,10 @@ public abstract class AbstractDatabase implements Database {
                         "   and constraint_name='" + constraintName + "'")) {
                   r.next();
                   c = new CheckConstraint(
-                      context,
-                      constraintName,
-                      tableName,
-                      dbExpressionToEsql(r.getString("check_clause"), parser));
-//                      parser.parseExpression(r.getString("check_clause")));
+                            context,
+                            constraintName,
+                            tableName,
+                            dbExpressionToEsql(r.getString("check_clause"), parser));
                 }
                 break;
 
@@ -285,15 +281,25 @@ public abstract class AbstractDatabase implements Database {
   @Override
   public EsqlConnection esql(Connection con) {
     try {
-      Stack<Connection> cons = current.get();
-      while (!cons.isEmpty() && cons.peek().isClosed()) {
-        cons.pop();
+      /*
+       * Clean up closed connections from the thread-local connection stack.
+       */
+      Stack<EsqlConnectionImpl> cons = current.get();
+      while (!cons.isEmpty() && cons.peek().isClosed()) cons.pop();
+
+      EsqlConnectionImpl esql;
+      if (con != null) {
+        esql = new EsqlConnectionImpl(this, con);
+      } else {
+        if (cons.isEmpty()) {
+          esql = new EsqlConnectionImpl(this, pooledConnection());
+        } else {
+          esql = cons.pop();
+          esql.incOpenCount();
+        }
       }
-      if (con == null) {
-        con = cons.isEmpty() ? pooledConnection() : cons.pop();
-      }
-      cons.push(con);
-      return new EsqlConnectionImpl(this, con, cons);
+      cons.push(esql);
+      return esql;
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
@@ -882,6 +888,20 @@ public abstract class AbstractDatabase implements Database {
     return unmodifiableList(transformers);
   }
 
+
+  @Override
+  public Executor executor() {
+    if (executor == null) {
+      executor = new DefaultExecutor();
+    }
+    return executor;
+  }
+
+  @Override
+  public void executor(Executor executor) {
+    this.executor = executor;
+  }
+
   private T2<String, List<String>> keyColumns(Statement stmt,
                                               String constraintSchema,
                                               String constraintName) {
@@ -986,7 +1006,7 @@ public abstract class AbstractDatabase implements Database {
         attributes.put(TYPE, Attribute.from(context, TYPE, columnType));
         attributes.put(ID, Attribute.from(context, ID, columnId));
         attributes.put(REQUIRED, Attribute.from(context, REQUIRED, notNull));
-        attributes.put(SEQUENCE, Attribute.from(context, SEQUENCE, columnNumber));
+        // attributes.put(SEQUENCE, Attribute.from(context, SEQUENCE, columnNumber));
 
         attrStmt.setObject(1, columnId);
         try (ResultSet ars = attrStmt.executeQuery()) {
@@ -1168,8 +1188,8 @@ public abstract class AbstractDatabase implements Database {
    */
   @Override
   public UUID tableId(EsqlConnection con, String tableName) {
-    if (hasCoreTables(con.con())) {
-      try (ResultSet rs = con.con().createStatement().executeQuery("select _id " +
+    if (hasCoreTables(con.connection())) {
+      try (ResultSet rs = con.connection().createStatement().executeQuery("select _id " +
                                                              "  from _core.relations " +
                                                              " where name='" + tableName + "'")) {
         return rs.next() ? UUID.fromString(rs.getString(1)) : null;
@@ -1182,7 +1202,7 @@ public abstract class AbstractDatabase implements Database {
 
   @Override
   public void addTable(EsqlConnection con, BaseRelation table) {
-    if (hasCoreTables(con.con())) {
+    if (hasCoreTables(con.connection())) {
       Parser p = new Parser(structure());
 //      EsqlConnection econ = esql(con);
       try (Result rs = con.exec(p.parse("select _id from _core.relations where name='" + table.name() + "'"))) {
@@ -1233,7 +1253,7 @@ public abstract class AbstractDatabase implements Database {
    */
   @Override
   public BaseRelation updateTable(EsqlConnection con, BaseRelation table) {
-    if (hasCoreTables(con.con())) {
+    if (hasCoreTables(con.connection())) {
       Parser p = new Parser(structure());
 //      EsqlConnection econ = esql(con);
       try (Result rs = con.exec(p.parse("select _id from _core.relations where name='" + table.name() + "'"))) {
@@ -1282,7 +1302,7 @@ public abstract class AbstractDatabase implements Database {
 
   @Override
   public void renameTable(EsqlConnection con, UUID tableId, String name) {
-    if (hasCoreTables(con.con())) {
+    if (hasCoreTables(con.connection())) {
       // EsqlConnection econ = esql(con);
       Parser p = new Parser(structure());
       con.exec(p.parse(
@@ -1295,7 +1315,7 @@ public abstract class AbstractDatabase implements Database {
 
   @Override
   public void dropTable(EsqlConnection con, UUID tableId) {
-    if (hasCoreTables(con.con())) {
+    if (hasCoreTables(con.connection())) {
 //      EsqlConnection econ = esql(con);
 //      // delete constraints
 //      con.createStatement().executeUpdate("DELETE FROM _core.constraints WHERE relation_id='" + tableId + "'");
@@ -1320,7 +1340,7 @@ public abstract class AbstractDatabase implements Database {
 
   @Override
   public void column(EsqlConnection con, UUID tableId, Column column) {
-    if (hasCoreTables(con.con())) {
+    if (hasCoreTables(con.connection())) {
 //      EsqlConnection econ = esql(con);
       Parser p = new Parser(structure());
       Insert insertCol = p.parse(INSERT_COLUMN, "insert");
@@ -1393,7 +1413,7 @@ public abstract class AbstractDatabase implements Database {
 
   @Override
   public void columnName(EsqlConnection con, UUID columnId, String name) {
-    if (hasCoreTables(con.con())) {
+    if (hasCoreTables(con.connection())) {
 //      EsqlConnection econ = esql(con);
       Parser p = new Parser(structure());
       con.exec(p.parse("update col from col:_core.columns set name='" + name + "' where _id='" + columnId + "'"));
@@ -1402,7 +1422,7 @@ public abstract class AbstractDatabase implements Database {
 
   @Override
   public void columnType(EsqlConnection con, UUID columnId, String type) {
-    if (hasCoreTables(con.con())) {
+    if (hasCoreTables(con.connection())) {
 //      EsqlConnection econ = esql(con);
       Parser p = new Parser(structure());
       con.exec(p.parse("update col from col:_core.columns set type='" + type + "' where _id='" + columnId + "'"));
@@ -1411,7 +1431,7 @@ public abstract class AbstractDatabase implements Database {
 
   @Override
   public void defaultValue(EsqlConnection con, UUID columnId, String defaultValue) {
-    if (hasCoreTables(con.con())) {
+    if (hasCoreTables(con.connection())) {
 //      EsqlConnection econ = esql(con);
       Parser p = new Parser(structure());
       con.exec(p.parse(
@@ -1425,7 +1445,7 @@ public abstract class AbstractDatabase implements Database {
 
   @Override
   public void notNull(EsqlConnection con, UUID columnId, String notNull) {
-    if (hasCoreTables(con.con())) {
+    if (hasCoreTables(con.connection())) {
 //      EsqlConnection econ = esql(con);
       Parser p = new Parser(structure());
       con.exec(p.parse(
@@ -1440,7 +1460,7 @@ public abstract class AbstractDatabase implements Database {
   public void columnMetadata(EsqlConnection con,
                              UUID columnId,
                              Metadata metadata) {
-    if (hasCoreTables(con.con())) {
+    if (hasCoreTables(con.connection())) {
 //      EsqlConnection econ = esql(con);
       Parser p = new Parser(structure());
       Insert insertColAttr = p.parse(INSERT_COLUMN_ATTRIBUTE, "insert");
@@ -1467,7 +1487,7 @@ public abstract class AbstractDatabase implements Database {
 
   @Override
   public void dropColumn(EsqlConnection con, UUID columnId) {
-    if (hasCoreTables(con.con())) {
+    if (hasCoreTables(con.connection())) {
 //      EsqlConnection econ = esql(con);
       Parser p = new Parser(structure());
       con.exec(p.parse("delete col from col:_core.columns where _id='" + columnId + "'"));
@@ -1478,7 +1498,7 @@ public abstract class AbstractDatabase implements Database {
   public void constraint(EsqlConnection con,
                          UUID tableId,
                          ConstraintDefinition constraint) {
-    if (hasCoreTables(con.con())) {
+    if (hasCoreTables(con.connection())) {
       Parser p = new Parser(structure());
       Insert insertConstraint = p.parse(INSERT_CONSTRAINT, "insert");
       addConstraint(con, tableId, constraint, insertConstraint);
@@ -1561,7 +1581,7 @@ public abstract class AbstractDatabase implements Database {
   public void dropConstraint(EsqlConnection con,
                              UUID tableId,
                              String constraintName) {
-    if (hasCoreTables(con.con())) {
+    if (hasCoreTables(con.connection())) {
 //      EsqlConnection econ = esql(con);
       Parser p = new Parser(structure());
       con.exec(p.parse(
@@ -1574,7 +1594,7 @@ public abstract class AbstractDatabase implements Database {
 
   @Override
   public void clearTableMetadata(EsqlConnection con, UUID tableId) {
-    if (hasCoreTables(con.con())) {
+    if (hasCoreTables(con.connection())) {
 //      EsqlConnection econ = esql(con);
       Parser p = new Parser(structure());
       con.exec(p.parse("delete att " +
@@ -1585,7 +1605,7 @@ public abstract class AbstractDatabase implements Database {
 
   @Override
   public void tableMetadata(EsqlConnection con, UUID tableId, Metadata metadata) {
-    if (hasCoreTables(con.con())) {
+    if (hasCoreTables(con.connection())) {
 //      EsqlConnection econ = esql(con);
       if (metadata != null && metadata.attributes() != null) {
         Parser p = new Parser(structure());
@@ -1640,6 +1660,8 @@ public abstract class AbstractDatabase implements Database {
 
   private final List<EsqlTransformer> transformers = new ArrayList<>();
 
+  private Executor executor;
+
   /**
    * Loaded extensions.
    */
@@ -1654,9 +1676,9 @@ public abstract class AbstractDatabase implements Database {
    * Simple transaction boundary management using a thread local to hold the
    * current active connection (and transaction).
    */
-  private final ThreadLocal<Stack<Connection>> current = new ThreadLocal<>() {
+  private final ThreadLocal<Stack<EsqlConnectionImpl>> current = new ThreadLocal<>() {
     @Override
-    protected Stack<Connection> initialValue() {
+    protected Stack<EsqlConnectionImpl> initialValue() {
       return new Stack<>();
     }
   };

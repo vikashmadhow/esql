@@ -563,25 +563,25 @@ update
     ;
 
 /**
-   merge z:Z from x:(select ... ...) join y:Y
-            where z.a = ...
-           update set a=x.a, b=y.b
-            insert set ... different
+  merge z:Z from x:(select ... ...) join y:Y
+           where z.a = ...
+          update set a=x.a, b=y.b
+           insert set ... different
 
-merge test.X x
-using (select * from A) as a
-   on a.a=x.a and a.b=x.b
-when matched then update set c=a.e, d=a.a + a.b
-when not matched then insert(_id, a, b, c, d)
-                      values(newid(), a.a, a.b, a.e, a.a + a.e);
+  merge test.X x
+  using (select * from A) as a
+     on a.a=x.a and a.b=x.b
+   when matched then update set c=a.e, d=a.a + a.b
+   when not matched then insert(_id, a, b, c, d)
+                         values(newid(), a.a, a.b, a.e, a.a + a.e);
 
 
-merge test.X x
-using A as a
-   on a.a=x.a and a.b=x.b
-when matched then update set c=a.e, d=a.a + a.b
-when not matched then insert(_id, a, b, c, d)
-                      values(newid(), a.a, a.b, a.e, a.a + a.e);
+  merge test.X x
+  using A as a
+     on a.a=x.a and a.b=x.b
+   when matched then update set c=a.e, d=a.a + a.b
+   when not matched then insert(_id, a, b, c, d)
+                        values(newid(), a.a, a.b, a.e, a.a + a.e);
  */
 
 //merge
@@ -731,7 +731,7 @@ expr
     | left=expr op=('+' | '-') right=expr                       #AdditionExpr
 
       /*
-       * A named parameter consists of a name preceded with a dollar sign ($).
+       * A named parameter consists of a name preceded with an at sign (@).
        * Values for named parameters must be provided when a statement containing
        * them is executed.
        */
@@ -1079,11 +1079,11 @@ baseLiteral
 
       /*
        * An expression surrounded by '$(' and ')' is known as an uncomputed
-       * expression in that it is not computed by the interpreter and sent to
-       * the database (or client) as a string. Uncomputed expressions are
-       * useful when the expressions need to be computed outside of the
-       * database (e.g., validation check that can be executed on a client
-       * to the check the validity of a value before sending to the database).
+       * expression in that it is not computed by the interpreter and sent to the
+       * database (or client) as a string. Uncomputed expressions are useful when
+       * the expressions need to be computed outside of the database (e.g.,
+       * validation check that can be executed on a client to the check the
+       * validity of a value before sending to the database).
        */
     | '$(' expr ')'             #UncomputedExpr
     ;
@@ -1618,7 +1618,7 @@ fragment HexDigit
 /**
  * An identifier can start with a letter, an underscore or the dollar sign,
  * followed by zero or more letters, numbers, underscores and dollar signs. The
- * dollar sign is reserved for internal use (although ESQL does not enforce this.
+ * dollar sign is reserved for internal use (although ESQL does not enforce this).
  */
 Identifier
     : [$_a-zA-Z][$_a-zA-Z0-9]*

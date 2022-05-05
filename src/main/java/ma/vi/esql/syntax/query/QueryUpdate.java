@@ -7,7 +7,7 @@ package ma.vi.esql.syntax.query;
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.database.Database;
 import ma.vi.esql.exec.ColumnMapping;
-import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.database.EsqlConnection;
 import ma.vi.esql.exec.Result;
 import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.semantic.type.*;
@@ -35,7 +35,7 @@ import static java.sql.ResultSet.TYPE_SCROLL_INSENSITIVE;
 import static java.util.Collections.unmodifiableMap;
 import static ma.vi.base.string.Strings.random;
 import static ma.vi.esql.database.Database.NULL_DB;
-import static ma.vi.esql.exec.EsqlConnection.NULL_CONNECTION;
+import static ma.vi.esql.database.EsqlConnection.NULL_CONNECTION;
 import static ma.vi.esql.translation.SqlServerTranslator.ADD_IIF;
 
 /**
@@ -368,7 +368,7 @@ public abstract class QueryUpdate extends MetadataContainer<QueryTranslation> {
                                      PMap<String, Object> parameters,
                                      Environment          env) {
     Database db = esqlCon.database();
-    Connection con = esqlCon.con();
+    Connection con = esqlCon.connection();
     QueryTranslation q = translate(db.target(), esqlCon, path, env);
     try {
       Type type = computeType(path.add(this));

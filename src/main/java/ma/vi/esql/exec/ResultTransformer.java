@@ -1,5 +1,6 @@
 package ma.vi.esql.exec;
 
+import ma.vi.esql.database.EsqlConnection;
 import ma.vi.esql.syntax.Esql;
 
 /**

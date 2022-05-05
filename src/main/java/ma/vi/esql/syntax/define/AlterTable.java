@@ -7,7 +7,7 @@ package ma.vi.esql.syntax.define;
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.database.Database;
 import ma.vi.esql.database.Structure;
-import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.database.EsqlConnection;
 import ma.vi.esql.exec.Result;
 import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.semantic.type.BaseRelation;
@@ -92,7 +92,7 @@ public class AlterTable extends Define {
                                      PMap<String, Object> parameters,
                                      Environment          env) {
     Database db = esqlCon.database();
-    Connection con = esqlCon.con();
+    Connection con = esqlCon.connection();
     String name = name();
     String dbName = dbTableName(name, db.target());
     Structure s = context.structure;

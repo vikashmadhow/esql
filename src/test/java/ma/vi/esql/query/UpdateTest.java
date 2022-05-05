@@ -3,7 +3,7 @@ package ma.vi.esql.query;
 import ma.vi.esql.DataTest;
 import ma.vi.esql.Databases;
 import ma.vi.esql.database.Database;
-import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.database.EsqlConnection;
 import ma.vi.esql.exec.Result;
 import ma.vi.esql.syntax.Parser;
 import ma.vi.esql.syntax.modify.Update;

@@ -5,7 +5,7 @@
 package ma.vi.esql.syntax.define;
 
 import ma.vi.base.tuple.T2;
-import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.database.EsqlConnection;
 import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
@@ -23,7 +23,7 @@ import java.util.UUID;
 import java.util.regex.Pattern;
 
 import static ma.vi.esql.database.Database.NULL_DB;
-import static ma.vi.esql.exec.EsqlConnection.NULL_CONNECTION;
+import static ma.vi.esql.database.EsqlConnection.NULL_CONNECTION;
 
 /**
  * An attribute is a named expression used as a unit of metadata.

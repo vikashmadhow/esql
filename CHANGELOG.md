@@ -43,6 +43,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   correspond to multiple tables. Queries and updates to virtual tables are rewritten
   as other queries/updates or whole programs.
 
+
+- Optimisation: when filtering a `With`, do not apply filter on a CTE if that CTE
+  inner joins with another CTE, directly or transitively, which has already been 
+  filtered.
+
 ### To test
 - Test composition of select statements (union, intersect, except).
 - Test query translation and mapping of attributes (special columns such as `a/m1` 
@@ -60,7 +65,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Apply result and column metadata overloading in column list expansion (currently,
   the overridden metadata are not being considered). (create tests for metadata 
   overriding)
+- Modify queries return values don't seem to be supported correctly for SQL Server.
 
+## [0.9.4] - 2022-05-05
+### Added
+- `=` and `!=` on strings force case-sensitivity on SQL Server which, by default, 
+  uses a case-insensitive collation for the database and for string comparison.
+- ESQL parser rebuilt on latest Antlr version 4.10.
+- `Executor` interface to abstract query execution and allows different implementation
+  of executors to be plugged into the ESQL execution engine. This will be used,
+  e.g., by the `esql-user` extension to limit query execution based on user 
+  permissions.
+- Transaction and connection boundaries now uses a counter which tracks the number
+  of times that a connection has been used by functions in the same thread and
+  automatically commits/rollbacks the transaction and closes the connections when
+  the count reaches 0 (the count is decremented when the close() method is called;
+  this method is automatically invoked, as EsqlConnection is an AutoCloseable, at
+  the end of the try-with-resource block which opened/accessed the connection).
+  This simplifies transaction and connection boundary management as the opening 
+  of connection uses the same pattern irrespective of whether the connection is
+  inherited from the caller or a new connection is created. In both cases, the 
+  connection can be opened in a try-with-resources block and it will be closed 
+  automatically when the correct boundary is exited.
+- `find` method in `QueryParams` class to look for parameters by name.
+- New parameter `firstFilter` added to `filter` method and set to true when it is
+  invoked on the first filter in the set of active filters for the query, false
+  otherwise. This allows the filter application to be handled differently for the
+  first filter, such as grouping existing conditions properly so that they don't
+  interfere with the filter conditions in indeterminate ways.
+- Hierarchical filters where filters can have sub-filters and so on, creating an
+  and/or hierarchy of filters; application of hierarchical filters result in a 
+  condition clause (where clause) with the same structure as the hierarchy.
+  
 ## [0.9.3] - 2022-03-29
 ### Added
 - `StringForm` interface to standardise the use of the `_toString` method to 
@@ -68,10 +104,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   for hierarchies and indentation.
 
 ### Fixed
-- Added `Environment` parameter to `addSet` method in Translator.Util which is used
-  to produce the `set` clause of an `Update`. This parameter allows the function
-  to receive the environment in which the update is being translated allowing 
-  named parameters to be translated correctly.
+- Added `Environment` parameter to `addSet` method in `Translator.Util` which is 
+  used to produce the `set` clause of an `Update`. This parameter allows the 
+  function to receive the environment in which the update is being translated 
+  allowing named parameters to be translated correctly.
 
 ## [0.9.2] - 2022-03-22
 ### Added
@@ -132,8 +168,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   and thus participates in all query-type operations.
 - Dynamic filtering where a set of filters can be composed into a query prior to 
   its execution. Filters are specified against a table and, if the filter table
-  is not in the query being executed, the shortest path is looked for between the
-  tables in the query and the filter table, based on the foreign key links between
+  is not in the query being executed, the shortest path between the tables in the 
+  query and the filter table is searched for, based on foreign key links between
   them. If such a path exists, the query is rewritten to join all the tables in 
   the path in its from clause.
 - EsqlConnection `prepare` method prepares a query for execution by substituting
@@ -145,8 +181,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   which uses methods call chaining to simplify construction of parameters and
   filters groups to pass to the EsqlConnection execution methods.
 - Combining `where` conditions with filters (with AND & OR operator) implemented.
-- Grouped expressions of grouped expressions are optimized to remove the useless 
-  groupings.
+- Grouped expressions (`()`) of grouped expressions are optimized to remove the 
+  unnecessary groupings.
 
 ## [0.8.9] - 2022-03-05
 ### Added
@@ -155,9 +191,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   literal context).
 - Escaped identifiers can be used in attributes which allows reserved words and
   special characters in the identifier names.
-- Add `parameters` parameter to `exec` method so that it have the same signature
-  as the `translate` method; this is in preparation to the implementation of 
-  general-purpose assignment to values of composite types.
+- Add `parameters` parameter to `exec` method so that it has the same signature
+  as the `translate` method; this is in preparation for the implementation of 
+  general-purpose assignment to members of composite types.
 - `evaluateAttribute` method added to `Attribute` class to compute the value of
   the attribute's expression. This is useful for attributes with literal values.
 - Added auto-generated metadata columns for check, primary and foreign key constraints

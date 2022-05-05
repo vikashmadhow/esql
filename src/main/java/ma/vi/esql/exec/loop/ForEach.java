@@ -5,7 +5,7 @@
 package ma.vi.esql.exec.loop;
 
 import ma.vi.base.tuple.T2;
-import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.database.EsqlConnection;
 import ma.vi.esql.exec.ExecutionException;
 import ma.vi.esql.exec.Result;
 import ma.vi.esql.exec.env.BlockEnvironment;

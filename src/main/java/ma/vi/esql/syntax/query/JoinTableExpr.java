@@ -5,7 +5,7 @@
 package ma.vi.esql.syntax.query;
 
 import ma.vi.base.tuple.T2;
-import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.database.EsqlConnection;
 import ma.vi.esql.exec.Filter;
 import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.syntax.Context;
@@ -77,22 +77,22 @@ public class JoinTableExpr extends AbstractJoinTableExpr {
   }
 
   @Override
-  public AppliedShortestPath applyShortestPath(ShortestPath shortest) {
+  public AppliedShortestPath applyShortestPath(ShortestPath shortest, TableExpr root) {
     String joinType = joinType();
     if (joinType == null || joinType.equals("outer")) {
-      return super.applyShortestPath(shortest);
+      return super.applyShortestPath(shortest, root);
     } else if (joinType.equals("left")) {
-      AppliedShortestPath applied = left().applyShortestPath(shortest);
+      AppliedShortestPath applied = left().applyShortestPath(shortest, root);
       return applied == null ? null
            : new AppliedShortestPath(applied.path(),
                                      join(applied.result(), right()),
                                      applied.targetAlias());
     } else {
-      AppliedShortestPath applied = right().applyShortestPath(shortest);
+      AppliedShortestPath applied = right().applyShortestPath(shortest, root);
       return applied == null ? null
-                             : new AppliedShortestPath(applied.path(),
-                                                       join(left(), applied.result()),
-                                                       applied.targetAlias());
+           : new AppliedShortestPath(applied.path(),
+                                     join(left(), applied.result()),
+                                     applied.targetAlias());
     }
   }
 

@@ -4,7 +4,7 @@
 
 package ma.vi.esql.semantic.type;
 
-import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.database.EsqlConnection;
 import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.syntax.EsqlPath;
 import org.pcollections.PMap;

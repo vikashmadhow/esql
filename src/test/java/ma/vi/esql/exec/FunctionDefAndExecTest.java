@@ -5,6 +5,7 @@
 package ma.vi.esql.exec;
 
 import ma.vi.esql.DataTest;
+import ma.vi.esql.database.EsqlConnection;
 import ma.vi.esql.syntax.Parser;
 import ma.vi.esql.syntax.Program;
 import ma.vi.esql.syntax.expression.Expression;

@@ -162,9 +162,9 @@ public class Select extends QueryUpdate {
   }
 
   @Override
-  public Select filter(Filter filter, EsqlPath path) {
+  public Select filter(Filter filter, boolean firstFilter, EsqlPath path) {
     if (getClass().equals(Select.class)) {
-      FilterResult result = filter(tables(), where(), filter);
+      FilterResult result = filter(tables(), filter, firstFilter, where());
       if (result != null) {
         /*
          * For recursive `WITH` query on SQL Server, `distinct` is not supported in
@@ -188,7 +188,7 @@ public class Select extends QueryUpdate {
                           explicit(),
                           columns(),
                           result.tables,
-                          result.where,
+                          result.condition,
                           groupBy(),
                           having(),
                           orderBy(),
@@ -208,26 +208,48 @@ public class Select extends QueryUpdate {
   }
 
   public record FilterResult(TableExpr             tables,
-                             Expression<?, String> where,
+                             Expression<?, String> condition,
                              boolean               hasReverseLinks) {}
 
   public static FilterResult filter(TableExpr             tables,
-                                    Expression<?, String> where,
-                                    Filter                filter) {
+                                    Filter                filter,
+                                    boolean               firstFilter,
+                                    Expression<?, String> where) {
+    while (filter.children().length == 1) {
+      filter = filter.children()[0];
+    }
+    FilterResult result = filter.children().length == 0
+                        ? singleFilter(tables, filter)
+                        : multipleFilters(tables, filter.op(), filter.exclude(), filter.children());
+    if (result != null
+     && result.condition() != null
+     && where != null) {
+      where = combine(firstFilter ? new GroupedExpression(where.context, where)
+                                  : where,
+                      result.condition(),
+                      firstFilter && filter.table() == null ? AND : filter.op()); // combine the 1st filter when it has children
+                                                                                  // with the 'AND' connective as the filter.op
+                                                                                  // is for connective to use for the children.
+      result = new FilterResult(result.tables(), where, result.hasReverseLinks());
+    }
+    return result;
+  }
+
+  private static FilterResult singleFilter(TableExpr tables,
+                                           Filter    filter) {
     TableExpr.ShortestPath shortest = tables.findShortestPath(filter);
     if (shortest != null) {
-      TableExpr.AppliedShortestPath applied = tables.applyShortestPath(shortest);
+      TableExpr.AppliedShortestPath applied = tables.applyShortestPath(shortest, tables);
+      Expression<?, String> condition = null;
       if (filter.condition() != null) {
         /*
          * Add filter condition, changing its target table alias if needed.
          */
         Parser parser = new Parser(tables.context.structure);
-        Expression<?, String> condition = parser.parseExpression(filter.condition());
-        if (filter.alias() != null
-        && !filter.alias().equals(applied.targetAlias())) {
+        condition = parser.parseExpression(filter.condition());
+        if (!applied.targetAlias().equals(filter.alias())) {
           condition = (Expression<?, String>)condition.map((e, p) -> {
-            if (e instanceof ColumnRef ref
-             && filter.alias().equals(ref.qualifier())) {
+            if (e instanceof ColumnRef ref) {
               return new ColumnRef(e.context, applied.targetAlias(), ref.columnName(), ref.type());
             }
             return e;
@@ -236,15 +258,58 @@ public class Select extends QueryUpdate {
         if (filter.exclude()) {
           condition = new Not(tables.context, condition);
         }
-        where = where == null ? condition
-                              : combine(where, condition, filter.op());
       }
       return new FilterResult(rotateLeft(applied.result()),
-                              where,
+                              condition,
                               shortest.path().hasReverseLink());
     } else {
       return null;
     }
+  }
+
+  private static FilterResult multipleFilters(TableExpr  tables,
+                                              Filter.Op  filterOp,
+                                              boolean    exclude,
+                                              Filter...  filters) {
+    FilterResult result = null;
+    for (Filter filter: filters) {
+      while (filter.children().length == 1) {
+        filter = filter.children()[0];
+      }
+      FilterResult subResult = filter.children().length == 0
+                             ? singleFilter(tables, filter)
+                             : multipleFilters(tables, filter.op(), filter.exclude(), filter.children());
+
+      if (subResult != null) {
+        Expression<?, String> subCondition = subResult.condition();
+        if (result == null) {
+          result = new FilterResult(subResult.tables(),
+                                    subCondition,
+                                    subResult.hasReverseLinks());
+        } else {
+          /*
+           * Merge result
+           */
+          Expression<?, String> condition = result.condition();
+          result = new FilterResult(subResult.tables(),
+                                    condition    == null ? subCondition
+                                  : subCondition == null ? null
+                                  : filterOp     == AND  ? new And(condition.context, condition, subCondition)
+                                                         : new Or (condition.context, condition, subCondition),
+                                    result.hasReverseLinks() || subResult.hasReverseLinks());
+        }
+        tables = result.tables();
+      }
+    }
+    if (result != null && result.condition() != null) {
+      Expression<?, String> condition = result.condition();
+      condition = new GroupedExpression(condition.context, condition);
+      if (exclude) {
+        condition = new Not(condition.context, condition);
+      }
+      result = new FilterResult(result.tables, condition, result.hasReverseLinks);
+    }
+    return result;
   }
 
   /**
@@ -290,10 +355,12 @@ public class Select extends QueryUpdate {
   /**
    * Combine expressions into a `where` condition using the filter operator provided.
    * The combination maintains the following constraints:
-   * 1. Adding a new expression with an OR operator will add the result matching
-   *    that expression to the result matching the condition without that expression;
-   * 2. Adding a new expression with an AND operator will remove all result that
-   *    does not simultaneously match the previous condition and the new expression.
+   * <ol>
+   * <li>Adding a new expression with an OR operator will add the result matching
+   *     that expression to the result matching the condition without that expression;</li>
+   * <li>Adding a new expression with an AND operator will remove all result that
+   *     does not simultaneously match the previous condition and the new expression.</li>
+   * </ol>
    * In essence, adding a new expression should not result in changing the matching
    * set of condition in unpredictable ways (which can happen if groupings are
    * not applied correctly between combinations expressions with AND and OR).
@@ -302,21 +369,15 @@ public class Select extends QueryUpdate {
                                               Expression<?, String> expression,
                                               Filter.Op op) {
     if (condition instanceof And and) {
-      if (op == AND) {
-        return new And(condition.context, condition, expression);
-      } else {
-        return new Or(condition.context,
-                      new GroupedExpression(condition.context, and),
-                      expression);
-      }
+      return op == AND
+           ? new And(and.context, and, expression)
+           : new  Or(and.context, new GroupedExpression(and.context, and), expression);
+
     } else if (condition instanceof Or or) {
-      if (op == OR) {
-        return new Or(condition.context, condition, expression);
-      } else {
-        return new And(condition.context,
-                       new GroupedExpression(condition.context, or),
-                       expression);
-      }
+      return op == OR
+           ? new  Or(or.context, or, expression)
+           : new And(or.context, new GroupedExpression(or.context, or), expression);
+
     } else {
       return op == AND ? new And(condition.context, condition, expression)
                        : new  Or(condition.context, condition, expression);

@@ -5,7 +5,7 @@
 package ma.vi.esql.syntax.query;
 
 import ma.vi.base.tuple.T2;
-import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.database.EsqlConnection;
 import ma.vi.esql.exec.Filter;
 import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.semantic.type.Column;
@@ -68,7 +68,7 @@ public class SelectTableExpr extends AbstractAliasTableExpr {
   }
 
   @Override
-  public AppliedShortestPath applyShortestPath(ShortestPath shortest) {
+  public AppliedShortestPath applyShortestPath(ShortestPath shortest, TableExpr root) {
     return null;
   }
 

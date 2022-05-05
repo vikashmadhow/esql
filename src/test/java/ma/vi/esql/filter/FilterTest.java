@@ -5,7 +5,8 @@
 package ma.vi.esql.filter;
 
 import ma.vi.esql.DataTest;
-import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.database.EsqlConnection;
+import ma.vi.esql.exec.Filter;
 import ma.vi.esql.exec.QueryParams;
 import ma.vi.esql.semantic.type.BaseRelation;
 import ma.vi.esql.syntax.Esql;
@@ -108,10 +109,10 @@ public class FilterTest extends DataTest {
                    try (EsqlConnection con = db.esql(db.pooledConnection())) {
                      setupTables(con);
                      Esql<?, ?> filtered =
-                       con.prepare("select a from test.pZ where a < 2",
+                       con.prepare("select a from test.pZ where a < 2 or a > 5",
                                    new QueryParams()
                                      .and("test.pX", "x", "x.a=3")
-                                     .or("test.pX", "x", "x.a=4")
+                                     .or ("test.pX", "x", "x.a=4")
                                      .and("test.pB", "b", "b.a=5"));
                      System.out.println(filtered);
 
@@ -123,7 +124,38 @@ public class FilterTest extends DataTest {
                                 new Join("test.pB", "pB", null, p.parseExpression("pY.b_id=pB._id")),
                                 new Join("test.pX", "x",  null, p.parseExpression("pB.x_id=x._id")));
 
-                     assertEquals(p.parseExpression("((pZ.a < 2 and x.a = 3) or x.a = 4) and pB.a = 5"), select.where());
+                     assertEquals(p.parseExpression("(((pZ.a < 2 or pZ.a > 5) and x.a = 3) or x.a = 4) and pB.a = 5"), select.where());
+                     con.execPrepared(filtered);
+                   }
+                 }));
+  }
+
+  @TestFactory
+  Stream<DynamicTest> hierarchicalFilters() {
+    return Stream.of(databases)
+                 .map(db -> dynamicTest(db.target().toString(), () -> {
+                   try (EsqlConnection con = db.esql(db.pooledConnection())) {
+                     setupTables(con);
+                     Esql<?, ?> filtered =
+                       con.prepare("select a from test.pZ where a < 2 or a > 5",
+                                   new QueryParams()
+                                     .filter(new Filter(Filter.Op.OR,
+                                                        new Filter("test.pX", "x", "x.a=3"),
+                                                        new Filter(Filter.Op.AND,
+                                                                   new Filter("test.pX", "x", "x.a=4"),
+                                                                   new Filter("test.pY", "y", "y.a=7")),
+                                                        new Filter("test.pB", "b", "b.a=5"))));
+                     System.out.println(filtered);
+
+                     Select select = (Select)((Program)filtered).expressions().get(0);
+                     TableExpr from = select.from();
+                     Parser p = new Parser(db.structure());
+                     fromEquals(from, "test.pZ", "pZ",
+                                new Join("test.pY", "pY", null, p.parseExpression("pZ.y_id=pY._id")),
+                                new Join("test.pB", "pB", null, p.parseExpression("pY.b_id=pB._id")),
+                                new Join("test.pX", "x",  null, p.parseExpression("pB.x_id=x._id")));
+
+                     assertEquals(p.parseExpression("(pZ.a < 2 or pZ.a > 5) and (x.a = 3 or (x.a = 4 and pY.a=7) or pB.a = 5)"), select.where());
                      con.execPrepared(filtered);
                    }
                  }));
@@ -150,7 +182,7 @@ public class FilterTest extends DataTest {
                                 new Join("test.pY", "pY", null, p.parseExpression("a._id=pY.a_id")),
                                 new Join("test.pZ", "z",  null, p.parseExpression("pY._id=z.y_id")));
 
-                     assertEquals(p.parseExpression("pX.a < 2 and a.a=3 and z.a<4"), select.where());
+                     assertEquals(p.parseExpression("(pX.a < 2) and a.a=3 and z.a<4"), select.where());
                      con.execPrepared(filtered);
                    }
                  }));
@@ -181,7 +213,7 @@ public class FilterTest extends DataTest {
                                 new Join("test.pY", "y", null, p.parseExpression("z.y_id=y._id")),
                                 new Join("test.pC", "c", null, p.parseExpression("z.a=c.a")),
                                 new Join("test.pX", "x", null, p.parseExpression("c.x_id=x._id")));
-                     assertEquals(p.parseExpression("z.a < 2 and x.a = 3"), select.where());
+                     assertEquals(p.parseExpression("(z.a < 2) and x.a = 3"), select.where());
 
                      filtered =
                        con.prepare("""
@@ -202,7 +234,7 @@ public class FilterTest extends DataTest {
                                 new Join("test.pB", "pB", null, p.parseExpression("y.b_id=pB._id")),
                                 new Join("test.pX", "x", null, p.parseExpression("pB.x_id=x._id")),
                                 new Join("test.pC", "c", "left", p.parseExpression("z.a=c.a")));
-                     assertEquals(p.parseExpression("z.a < 2 and x.a = 3"), select.where());
+                     assertEquals(p.parseExpression("(z.a < 2) and x.a = 3"), select.where());
 
                      con.execPrepared(filtered);
                    }
@@ -234,7 +266,7 @@ public class FilterTest extends DataTest {
                                 new Join("test.pY", "y", null, p.parseExpression("z.y_id=y._id")),
                                 new Join("test.pC", "c", "right", p.parseExpression("z.a=c.a")),
                                 new Join("test.pX", "x", null, p.parseExpression("c.x_id=x._id")));
-                     assertEquals(p.parseExpression("z.a < 2 and x.a = 3"), select.where());
+                     assertEquals(p.parseExpression("(z.a < 2) and x.a = 3"), select.where());
                      con.execPrepared(filtered);
                    }
                  }));
@@ -265,7 +297,7 @@ public class FilterTest extends DataTest {
                                 new Join("test.pY", "y", null, p.parseExpression("z.y_id=y._id")),
                                 new Join("test.pC", "c", "full", p.parseExpression("z.a=c.a")),
                                 new Join("test.pX", "x", null, p.parseExpression("c.x_id=x._id")));
-                     assertEquals(p.parseExpression("z.a < 2 and x.a = 3"), select.where());
+                     assertEquals(p.parseExpression("(z.a < 2) and x.a = 3"), select.where());
                      con.execPrepared(filtered);
                    }
                  }));
@@ -405,7 +437,7 @@ public class FilterTest extends DataTest {
                                 new Join("test.pY", "y", null, p.parseExpression("z.y_id=y._id")),
                                 new Join("test.pC", "c", null, p.parseExpression("z.a=c.a")),
                                 new Join("test.pX", "x", null, p.parseExpression("c.x_id=x._id")));
-                     assertEquals(p.parseExpression("z.a < 2 and x.a = 3"), update.where());
+                     assertEquals(p.parseExpression("(z.a < 2) and x.a = 3"), update.where());
                      con.execPrepared(filtered);
 
                      filtered =
@@ -429,7 +461,7 @@ public class FilterTest extends DataTest {
                                 new Join("test.pB", "pB", null, p.parseExpression("y.b_id=pB._id")),
                                 new Join("test.pX", "x", null, p.parseExpression("pB.x_id=x._id")),
                                 new Join("test.pC", "c", "left", p.parseExpression("z.a=c.a")));
-                     assertEquals(p.parseExpression("z.a < 2 and x.a = 3"), update.where());
+                     assertEquals(p.parseExpression("(z.a < 2) and x.a = 3"), update.where());
                      con.execPrepared(filtered);
                    }
                  }));
@@ -460,7 +492,7 @@ public class FilterTest extends DataTest {
                                 new Join("test.pY", "y", null, p.parseExpression("z.y_id=y._id")),
                                 new Join("test.pC", "c", null, p.parseExpression("z.a=c.a")),
                                 new Join("test.pX", "x", null, p.parseExpression("c.x_id=x._id")));
-                     assertEquals(p.parseExpression("z.a < 2 and x.a = 3"), delete.where());
+                     assertEquals(p.parseExpression("(z.a < 2) and x.a = 3"), delete.where());
                      con.execPrepared(filtered);
 
                      filtered =
@@ -482,7 +514,7 @@ public class FilterTest extends DataTest {
                                 new Join("test.pB", "pB", null, p.parseExpression("y.b_id=pB._id")),
                                 new Join("test.pX", "x", null, p.parseExpression("pB.x_id=x._id")),
                                 new Join("test.pC", "c", "left", p.parseExpression("z.a=c.a")));
-                     assertEquals(p.parseExpression("z.a < 2 and x.a = 3"), delete.where());
+                     assertEquals(p.parseExpression("(z.a < 2) and x.a = 3"), delete.where());
                      con.execPrepared(filtered);
                    }
                  }));
@@ -514,7 +546,7 @@ public class FilterTest extends DataTest {
                                 new Join("test.pY", "y", null, p.parseExpression("z.y_id=y._id")),
                                 new Join("test.pC", "c", null, p.parseExpression("z.a=c.a")),
                                 new Join("test.pX", "x", null, p.parseExpression("c.x_id=x._id")));
-                     assertEquals(p.parseExpression("z.a < 2 and x.a = 3"), select.where());
+                     assertEquals(p.parseExpression("(z.a < 2) and x.a = 3"), select.where());
                      con.execPrepared(filtered);
 
                      filtered =
@@ -537,7 +569,7 @@ public class FilterTest extends DataTest {
                                 new Join("test.pB", "pB", null, p.parseExpression("y.b_id=pB._id")),
                                 new Join("test.pX", "x", null, p.parseExpression("pB.x_id=x._id")),
                                 new Join("test.pC", "c", "left", p.parseExpression("z.a=c.a")));
-                     assertEquals(p.parseExpression("z.a < 2 and x.a = 3"), select.where());
+                     assertEquals(p.parseExpression("(z.a < 2) and x.a = 3"), select.where());
                      con.execPrepared(filtered);
                    }
                  }));

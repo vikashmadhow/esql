@@ -7,7 +7,7 @@ package ma.vi.esql.syntax;
 import ma.vi.base.lang.NotFoundException;
 import ma.vi.base.tuple.T1;
 import ma.vi.base.tuple.T2;
-import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.database.EsqlConnection;
 import ma.vi.esql.exec.Filter;
 import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.semantic.scope.Scope;
@@ -639,7 +639,7 @@ public class Esql<V, T>
    * @param path The path to this ESQL providing context on the surrounding expressions.
    * @return The ESQL resulting from applying the filter to this one.
    */
-  public Esql<V, T> filter(Filter filter, EsqlPath path) {
+  public Esql<V, T> filter(Filter filter, boolean firstFilter, EsqlPath path) {
     return this;
   }
 

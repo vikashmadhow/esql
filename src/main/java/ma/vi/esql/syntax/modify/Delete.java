@@ -66,13 +66,13 @@ public class Delete extends QueryUpdate {
   }
 
   @Override
-  public Delete filter(Filter filter, EsqlPath path) {
-    Select.FilterResult result = Select.filter(tables(), where(), filter);
+  public Delete filter(Filter filter, boolean firstFilter, EsqlPath path) {
+    Select.FilterResult result = Select.filter(tables(), filter, firstFilter, where());
     if (result != null) {
       return new Delete(context,
                         deleteTableAlias(),
                         result.tables(),
-                        result.where(),
+                        result.condition(),
                         metadata(),
                         columns());
     } else {

@@ -5,8 +5,9 @@
 package ma.vi.esql.syntax.expression.comparison;
 
 import ma.vi.base.tuple.T2;
-import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.database.EsqlConnection;
 import ma.vi.esql.exec.env.Environment;
+import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
@@ -16,6 +17,7 @@ import org.pcollections.PMap;
 import java.util.Objects;
 
 import static ma.vi.base.string.Escape.escapeJsonString;
+import static ma.vi.esql.translation.SqlServerTranslator.requireIif;
 import static ma.vi.esql.translation.Translatable.Target.JSON;
 
 /**
@@ -53,15 +55,30 @@ public class Inequality extends ComparisonOperator {
   }
 
   @Override
-  protected String trans(Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
+  protected String trans(Target               target,
+                         EsqlConnection       esqlCon,
+                         EsqlPath             path,
+                         PMap<String, Object> parameters,
+                         Environment          env) {
     switch (target) {
       case JSON:
       case JAVASCRIPT:
-        String e = expr1().translate(target, null, path.add(expr1()), parameters, null) + " !== " + expr2().translate(target,
-                                                                                                                      null,
-                                                                                                                      path.add(expr2()), parameters,
-                                                                                                                      null);
+        String e = expr1().translate(target, null, path.add(expr1()), parameters, null) + " !== "
+                 + expr2().translate(target, null, path.add(expr2()), parameters, null);
         return target == JSON ? '"' + escapeJsonString(e) + '"' : e;
+
+      case SQLSERVER:
+        boolean string = expr1().type() == Types.StringType
+                      || expr1().type() == Types.TextType
+                      || expr2().type() == Types.StringType
+                      || expr2().type() == Types.TextType;
+        boolean iif = requireIif(path, parameters);
+        return (iif ? "iif(" : "")
+             + expr1().translate(target, esqlCon, path.add(expr1()), parameters, env)
+             + (string ? " collate Latin1_General_CS_AS != " : " != ")
+             + expr2().translate(target, esqlCon, path.add(expr2()), parameters, env)
+             + (string ? " collate Latin1_General_CS_AS" : "")
+             + (iif ? ", 1, 0)" : "");
 
       default:
         return super.trans(target, esqlCon, path, parameters, env);
@@ -69,10 +86,12 @@ public class Inequality extends ComparisonOperator {
   }
 
   @Override
-  public Object postTransformExec(Target target, EsqlConnection esqlCon,
-                                  EsqlPath path,
-                                  PMap<String, Object> parameters, Environment env) {
-    Object left = expr1().exec(target, esqlCon, path.add(expr1()), parameters, env);
+  public Object postTransformExec(Target               target,
+                                  EsqlConnection       esqlCon,
+                                  EsqlPath             path,
+                                  PMap<String, Object> parameters,
+                                  Environment          env) {
+    Object left  = expr1().exec(target, esqlCon, path.add(expr1()), parameters, env);
     Object right = expr2().exec(target, esqlCon, path.add(expr2()), parameters, env);
     return !Objects.equals(left, right);
   }

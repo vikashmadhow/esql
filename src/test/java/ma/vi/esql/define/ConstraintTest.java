@@ -2,7 +2,7 @@ package ma.vi.esql.define;
 
 import ma.vi.base.lang.NotFoundException;
 import ma.vi.esql.DataTest;
-import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.database.EsqlConnection;
 import ma.vi.esql.exec.Result;
 import ma.vi.esql.semantic.type.BaseRelation;
 import ma.vi.esql.semantic.type.Column;

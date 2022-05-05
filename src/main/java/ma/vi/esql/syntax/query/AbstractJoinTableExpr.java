@@ -96,21 +96,18 @@ public abstract class AbstractJoinTableExpr extends TableExpr {
   }
 
   @Override
-  public AppliedShortestPath applyShortestPath(ShortestPath shortest) {
-    AppliedShortestPath left = left().applyShortestPath(shortest);
-    AppliedShortestPath right = right().applyShortestPath(shortest);
+  public AppliedShortestPath applyShortestPath(ShortestPath shortest,
+                                               TableExpr    root) {
+    AppliedShortestPath left  = left() .applyShortestPath(shortest, root);
+    AppliedShortestPath right = right().applyShortestPath(shortest, root);
 
-    if (left == null && right == null) {
-      return null;
-    } else if (left == null) {
-      return new AppliedShortestPath(right.path(),
-                                     join(left(), right.result()),
-                                     right.targetAlias());
-    } else {
-      return new AppliedShortestPath(left.path(),
-                                     join(left.result(), right()),
-                                     left.targetAlias());
-    }
+    return left == null && right == null ? null
+         : left == null                  ? new AppliedShortestPath(right.path(),
+                                                                   join(left(), right.result()),
+                                                                   right.targetAlias())
+                                         : new AppliedShortestPath(left.path(),
+                                                                   join(left.result(), right()),
+                                                                   left.targetAlias());
   }
 
   /**

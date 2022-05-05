@@ -5,7 +5,7 @@
 package ma.vi.esql.syntax.define;
 
 import ma.vi.base.tuple.T2;
-import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.database.EsqlConnection;
 import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
@@ -19,7 +19,7 @@ import java.util.Map;
 
 import static java.util.stream.Collectors.joining;
 import static ma.vi.esql.database.Database.NULL_DB;
-import static ma.vi.esql.exec.EsqlConnection.NULL_CONNECTION;
+import static ma.vi.esql.database.EsqlConnection.NULL_CONNECTION;
 
 /**
  * A list of attributes (name expression pairs) describing

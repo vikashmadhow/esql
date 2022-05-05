@@ -4,7 +4,7 @@
 
 package ma.vi.esql.translation;
 
-import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.database.EsqlConnection;
 import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.syntax.EsqlPath;
 import org.pcollections.HashPMap;
@@ -29,7 +29,12 @@ public interface Translatable<T> {
     POSTGRESQL,
     SQLSERVER,
     HSQLDB,
+
     CUBRID,
+    FIREBIRD,
+    CLICKHOUSE,
+    METABASE,
+
     ORACLE,
     MARIADB,
     MYSQL,
@@ -78,10 +83,10 @@ public interface Translatable<T> {
               PMap<String, Object> parameters,
               Environment          env);
 
-  default Object exec(Target               target,
-                      EsqlConnection       esqlCon,
-                      EsqlPath             path,
-                      Environment          env) {
+  default Object exec(Target         target,
+                      EsqlConnection esqlCon,
+                      EsqlPath       path,
+                      Environment    env) {
     return exec(target, esqlCon, path, HashPMap.empty(IntTreePMap.empty()), env);
   }
 
