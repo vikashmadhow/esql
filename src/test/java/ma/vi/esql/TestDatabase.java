@@ -10,6 +10,7 @@ import ma.vi.esql.database.Database;
 import ma.vi.esql.database.Extension;
 import ma.vi.esql.database.Structure;
 import ma.vi.esql.database.EsqlConnection;
+import ma.vi.esql.exec.Executor;
 import ma.vi.esql.semantic.type.BaseRelation;
 import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.Context;
@@ -281,6 +282,14 @@ public class TestDatabase implements Database {
   public List<EsqlTransformer> esqlTransformers() {
     return null;
   }
+
+  @Override
+  public Iterator<Executor> executors() {
+    return Collections.emptyIterator();
+  }
+
+  @Override
+  public void addExecutor(Executor executor) {}
 
   @Override
   public Connection pooledConnection(boolean autoCommit,

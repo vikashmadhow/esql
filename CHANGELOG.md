@@ -43,10 +43,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   correspond to multiple tables. Queries and updates to virtual tables are rewritten
   as other queries/updates or whole programs.
 
-
-- Optimisation: when filtering a `With`, do not apply filter on a CTE if that CTE
-  inner joins with another CTE, directly or transitively, which has already been 
-  filtered.
+### To optimise
+- When filtering a `With`, do not apply filter on a CTE if that CTE inner joins 
+  with another CTE, directly or transitively, which has already been filtered.
 
 ### To test
 - Test composition of select statements (union, intersect, except).
@@ -66,6 +65,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the overridden metadata are not being considered). (create tests for metadata 
   overriding)
 - Modify queries return values don't seem to be supported correctly for SQL Server.
+
+## [0.9.5] - 2022-05-11
+### Added
+- Executors are added to a chain of executors for the database and an iterator 
+  over the chain is provided to the first executor; this iterator can then be used,
+  if needed, to obtain the next executor in the chain to delegate execution to.
+  Executor chain allows for multiple executors to be set up on the database in a  
+  specific order and execution of ESQL programs can make use of all of them, if 
+  needed. 
 
 ## [0.9.4] - 2022-05-05
 ### Added

@@ -890,16 +890,13 @@ public abstract class AbstractDatabase implements Database {
 
 
   @Override
-  public Executor executor() {
-    if (executor == null) {
-      executor = new DefaultExecutor();
-    }
-    return executor;
+  public Iterator<Executor> executors() {
+    return executors.iterator();
   }
 
   @Override
-  public void executor(Executor executor) {
-    this.executor = executor;
+  public void addExecutor(Executor executor) {
+    executors.addFirst(executor);
   }
 
   private T2<String, List<String>> keyColumns(Statement stmt,
@@ -1660,7 +1657,7 @@ public abstract class AbstractDatabase implements Database {
 
   private final List<EsqlTransformer> transformers = new ArrayList<>();
 
-  private Executor executor;
+  private final Deque<Executor> executors = new ArrayDeque<>(singleton(new DefaultExecutor()));
 
   /**
    * Loaded extensions.

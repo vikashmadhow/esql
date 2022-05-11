@@ -4,16 +4,25 @@ import ma.vi.esql.database.EsqlConnection;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.Parser;
 
+import java.util.Iterator;
+
 /**
+ * An executor is responsible for executing ESQL programs. The {@link DefaultExecutor}
+ * is the default execution engine; Custom executors can be added with the
+ * {@link ma.vi.esql.database.Database#addExecutor(Executor)} method by extensions.
+ * Executors are kept in a stack with the last one added used for execution first.
+ *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 public interface Executor {
   /**
-   * Instantiate the executor with the specified connection.
-   * @param con connection to use by the instantiated executor.
+   * Instantiate the executor with the specified connection and executor chain.
+   * @param con Connection to use by the instantiated executor.
+   * @param executors An iterator over the chain of iterators from which to obtain
+   *                  the next executor to delegate execution to, if needed.
    * @return Executor instantiated with the supplied connection.
    */
-  Executor with(EsqlConnection con);
+  Executor with(EsqlConnection con, Iterator<Executor> executors);
 
   /**
    * @return The connection that the executor uses to execute the program.

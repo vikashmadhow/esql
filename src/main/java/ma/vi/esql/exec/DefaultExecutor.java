@@ -16,21 +16,22 @@ import ma.vi.esql.translation.TranslationException;
 import org.pcollections.HashPMap;
 import org.pcollections.IntTreePMap;
 
+import java.util.Iterator;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static ma.vi.esql.syntax.expression.literal.Literal.makeLiteral;
 import static ma.vi.esql.syntax.macro.Macro.ONGOING_MACRO_EXPANSION;
 
 /**
- * The default ESQL execution engine. This can be replaced by a custom executor
- * with the {@link ma.vi.esql.database.Database#executor(Executor)} method by
- * extensions.
+ * The default ESQL execution engine. Custom executors can be added with the
+ * {@link ma.vi.esql.database.Database#addExecutor(Executor)} method by extensions.
+ * Executors are kept in a stack with the last one added used for execution first.
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 public class DefaultExecutor implements Executor {
   @Override
-  public DefaultExecutor with(EsqlConnection con) {
+  public DefaultExecutor with(EsqlConnection con, Iterator<Executor> executors) {
     return new DefaultExecutor(con);
   }
 

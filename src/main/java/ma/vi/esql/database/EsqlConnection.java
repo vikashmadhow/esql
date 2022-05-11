@@ -12,6 +12,7 @@ import ma.vi.esql.syntax.Parser;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.Iterator;
 
 /**
  * An interface representing a connection to the database through which ESQL
@@ -39,30 +40,33 @@ public interface EsqlConnection extends AutoCloseable {
    * @return The result produced by the esql command on execution.
    */
   default <R> R exec(Esql<?, ?> esql, QueryParams qp) {
-    Executor exec = database().executor().with(this);
+    Iterator<Executor> executors = database().executors();
+    Executor exec = executors.next().with(this, executors);
     return exec.execPrepared(exec.prepare(esql, qp), qp);
   }
 
   default <R> R exec(Esql<?, ?> esql) {
-    return database().executor().with(this).exec(esql, null);
+    Iterator<Executor> executors = database().executors();
+    return executors.next().with(this, executors).exec(esql, null);
   }
 
   default <R> R exec(String esql, QueryParams qp) {
-    return database().executor().with(this)
-                     .exec(new Parser(database().structure()).parse(esql), qp);
+    Iterator<Executor> executors = database().executors();
+    return executors.next().with(this, executors)
+                           .exec(new Parser(database().structure()).parse(esql), qp);
   }
 
   default <R> R exec(String esql) {
-    return database().executor().with(this)
+    Iterator<Executor> executors = database().executors();
+    return executors.next().with(this, executors)
                      .exec(esql, null);
   }
 
   default <R> Iterable<R> exec(Esql<?, ?>           esql,
                                ResultTransformer<R> transformer,
                                QueryParams          qp) {
-    return transformer.transform(database().executor()
-                                           .with(this)
-                                           .exec(esql, qp));
+    Iterator<Executor> executors = database().executors();
+    return transformer.transform(executors.next().with(this, executors).exec(esql, qp));
   }
 
   default <R> Iterable<R> exec(Esql<?, ?>           esql,
@@ -86,9 +90,8 @@ public interface EsqlConnection extends AutoCloseable {
    * types, applying filters, and so on.
    */
   default Esql<?, ?> prepare(Esql<?, ?> esql, QueryParams qp) {
-    return database().executor()
-                     .with(this)
-                     .prepare(esql, qp);
+    Iterator<Executor> executors = database().executors();
+    return executors.next().with(this, executors).prepare(esql, qp);
   }
 
   default Esql<?, ?> prepare(Esql<?, ?> esql) {
@@ -107,9 +110,9 @@ public interface EsqlConnection extends AutoCloseable {
    * Execute a prepared esql program.
    */
   default <R> R execPrepared(Esql<?, ?> esql, QueryParams qp) {
-    return database().executor()
-                     .with(this)
-                     .execPrepared(esql, qp);
+    Iterator<Executor> executors = database().executors();
+    return executors.next().with(this, executors)
+                           .execPrepared(esql, qp);
   }
 
   default <R> R execPrepared(Esql<?, ?> esql) {

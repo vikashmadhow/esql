@@ -6,7 +6,6 @@ package ma.vi.esql.database;
 
 import ma.vi.base.config.Configuration;
 import ma.vi.base.lang.NotFoundException;
-import ma.vi.esql.exec.DefaultExecutor;
 import ma.vi.esql.exec.Executor;
 import ma.vi.esql.semantic.type.BaseRelation;
 import ma.vi.esql.semantic.type.Column;
@@ -20,6 +19,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
 
@@ -168,11 +168,9 @@ public interface Database {
    */
   <E extends Extension> E extension(Class<? extends Extension> e) throws NotFoundException;
 
-  default Executor executor() {
-    return new DefaultExecutor();
-  }
+  Iterator<Executor> executors();
 
-  default void executor(Executor executor) {}
+  void addExecutor(Executor executor);
 
   // Connections
   //////////////////////////////////////////////////////
@@ -349,6 +347,22 @@ public interface Database {
     public List<EsqlTransformer> esqlTransformers() {
       return Collections.emptyList();
     }
+
+    /**
+     * @return An iterator over the chain of executors to use to execute an ESQL
+     *         program.
+     */
+    @Override
+    public Iterator<Executor> executors() {
+      return Collections.emptyIterator();
+    }
+
+    /**
+     * Add an executor to the chain of executors to use to execute ESQL programs.
+     * @param executor The executor to add.
+     */
+    @Override
+    public void addExecutor(Executor executor) {}
 
     @Override
     public Connection pooledConnection(boolean autoCommit, int isolationLevel) {
