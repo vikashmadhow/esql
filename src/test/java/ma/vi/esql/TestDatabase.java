@@ -25,6 +25,7 @@ import ma.vi.esql.translation.*;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.*;
 
 import static ma.vi.esql.builder.Attributes.DERIVED;
@@ -261,10 +262,6 @@ public class TestDatabase implements Database {
   }
 
   @Override
-  public void postInit(Connection con, Structure structure) {
-  }
-
-  @Override
   public <E extends Extension> E extension(Class<? extends Extension> e) throws NotFoundException {
     throw new NotFoundException("Extension " + e + " not loaded");
   }
@@ -292,16 +289,32 @@ public class TestDatabase implements Database {
   public void addExecutor(Executor executor) {}
 
   @Override
-  public Connection pooledConnection(boolean autoCommit,
-                                     int isolationLevel) {
+  public Subscription subscribe(String table, boolean includeHistory) {
     return null;
   }
 
   @Override
-  public Connection rawConnection(boolean autoCommit,
-                                  int isolationLevel,
+  public List<Subscription> subscriptions(String table) {
+    return null;
+  }
+
+  @Override
+  public void unsubscribe(Subscription subscription) {}
+
+  @Override
+  public Connection pooledConnection(int isolationLevel) {
+    return null;
+  }
+
+  @Override
+  public Connection rawConnection(int isolationLevel,
                                   String username,
                                   String password) {
+    return null;
+  }
+
+  @Override
+  public String transactionId(Connection con) {
     return null;
   }
 

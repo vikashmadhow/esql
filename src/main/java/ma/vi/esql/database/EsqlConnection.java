@@ -30,6 +30,13 @@ public interface EsqlConnection extends AutoCloseable {
    */
   Database database();
 
+  String user();
+
+  /**
+   * @return A unique identifier of the single active transaction of this connection.
+   */
+  String transactionId();
+
   /**
    * {@link #prepare(Esql, QueryParams) Prepares} and {@link #execPrepared(Esql, QueryParams) executes}
    * the ESQL program using this connection. Preparation includes parameter substitution,
@@ -59,7 +66,7 @@ public interface EsqlConnection extends AutoCloseable {
   default <R> R exec(String esql) {
     Iterator<Executor> executors = database().executors();
     return executors.next().with(this, executors)
-                     .exec(esql, null);
+                           .exec(esql, null);
   }
 
   default <R> Iterable<R> exec(Esql<?, ?>           esql,
@@ -120,27 +127,11 @@ public interface EsqlConnection extends AutoCloseable {
   }
 
   /**
-   * Commits the current transaction on this connection.
-   */
-  void commit();
-
-  /**
-   * Rolls back the current transaction on this connection.
-   */
-  void rollback();
-
-  /**
    * Sets the connection on rollback-only mode meaning that any executed
    * statements will be automatically rolled back when the connection is
    * closed.
    */
   void rollbackOnly();
-
-  /**
-   * @return true if {@link #rollbackOnly()} was previoulsy called on this
-   *         connection setting it to rollback-only mode.
-   */
-  boolean isRollbackOnly();
 
   /**
    * Underlying JDBC connection.
@@ -177,20 +168,19 @@ public interface EsqlConnection extends AutoCloseable {
     }
 
     @Override
-    public void commit() {}
+    public String user() {
+      return null;
+    }
 
     @Override
-    public void rollback() {}
+    public String transactionId() {
+      return null;
+    }
 
     @Override public void close() {}
 
     @Override
     public void rollbackOnly() {}
-
-    @Override
-    public boolean isRollbackOnly() {
-      return false;
-    }
 
     @Override
     public Connection connection() {

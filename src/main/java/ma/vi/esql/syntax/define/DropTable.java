@@ -6,8 +6,8 @@ package ma.vi.esql.syntax.define;
 
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.database.Database;
-import ma.vi.esql.database.Structure;
 import ma.vi.esql.database.EsqlConnection;
+import ma.vi.esql.database.Structure;
 import ma.vi.esql.exec.Result;
 import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.semantic.type.BaseRelation;
@@ -57,7 +57,11 @@ public class DropTable extends Define {
   }
 
   @Override
-  protected String trans(Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
+  protected String trans(Target               target,
+                         EsqlConnection       esqlCon,
+                         EsqlPath             path,
+                         PMap<String, Object> parameters,
+                         Environment          env) {
     return "drop table " + (target == ESQL ? name() : dbTableName(name(), target));
   }
 
@@ -66,9 +70,11 @@ public class DropTable extends Define {
    * @return
    */
   @Override
-  protected Object postTransformExec(Target target, EsqlConnection esqlCon,
-                                     EsqlPath path,
-                                     PMap<String, Object> parameters, Environment env) {
+  protected Object postTransformExec(Target               target,
+                                     EsqlConnection       esqlCon,
+                                     EsqlPath             path,
+                                     PMap<String, Object> parameters,
+                                     Environment          env) {
     try {
       /*
        * Execute drop cascading to dependents and updating internal structures.
@@ -86,7 +92,7 @@ public class DropTable extends Define {
     Structure structure = db.structure();
     if (structure.relationExists(drop.name())) {
       BaseRelation table = structure.relation(drop.name());
-      for (ForeignKeyConstraint constraint : table.dependentConstraints()) {
+      for (ForeignKeyConstraint constraint: table.dependentConstraints()) {
         cascadeDrop(new DropTable(drop.context, constraint.table()), esqlCon);
       }
 

@@ -19,8 +19,7 @@ public class Databases {
       hSqlDb = new HSqlDb(Configuration.of(
           CONFIG_DB_NAME, "file:" + userHome + "/testdb/data",
           CONFIG_DB_USER, "SA",
-          CONFIG_DB_PASSWORD, "",
-          CONFIG_DB_CREATE_CORE_TABLES, true));
+          CONFIG_DB_PASSWORD, ""));
     }
     return hSqlDb;
   }
@@ -30,8 +29,7 @@ public class Databases {
       postgresql = new Postgresql(Configuration.of(
           CONFIG_DB_NAME, "test",
           CONFIG_DB_USER, "test",
-          CONFIG_DB_PASSWORD, "test",
-          CONFIG_DB_CREATE_CORE_TABLES, true));
+          CONFIG_DB_PASSWORD, "test"));
 //      createTestTables(postgresql);
     }
     return postgresql;
@@ -42,8 +40,7 @@ public class Databases {
       sqlServer = new SqlServer(Configuration.of(
           CONFIG_DB_NAME, "test",
           CONFIG_DB_USER, "test",
-          CONFIG_DB_PASSWORD, "test",
-          CONFIG_DB_CREATE_CORE_TABLES, true));
+          CONFIG_DB_PASSWORD, "test"));
 //      createTestTables(sqlServer);
     }
     return sqlServer;
@@ -54,8 +51,7 @@ public class Databases {
       mariaDb = new MariaDb(Configuration.of(
           CONFIG_DB_NAME, "test",
           CONFIG_DB_USER, "test",
-          CONFIG_DB_PASSWORD, "test",
-          CONFIG_DB_CREATE_CORE_TABLES, true));
+          CONFIG_DB_PASSWORD, "test"));
 //      createTestTables(mariaDb);
     }
     return mariaDb;

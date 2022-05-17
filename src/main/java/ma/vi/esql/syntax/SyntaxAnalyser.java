@@ -574,6 +574,11 @@ public class SyntaxAnalyser extends EsqlBaseListener {
   }
 
   @Override
+  public void exitIntegerConstant(IntegerConstantContext ctx) {
+    put(ctx, new IntegerLiteral(context, parseLong(ctx.getText())));
+  }
+
+  @Override
   public void exitFloatingPoint(FloatingPointContext ctx) {
     put(ctx, new FloatingPointLiteral(context, ctx.getText()));
   }
@@ -1255,6 +1260,15 @@ public class SyntaxAnalyser extends EsqlBaseListener {
   @Override
   public void exitDropTableMetadata(DropTableMetadataContext ctx) {
     put(ctx, new DropMetadata(context));
+  }
+
+  @Override
+  public void exitCreateIndex(CreateIndexContext  ctx) {
+    put(ctx.parent, new CreateIndex(context,
+                                    ctx.unique != null,
+                                    ctx.Identifier().getText(),
+                                    value(ctx.qualifiedName()),
+                                    value(ctx.expressionList())));
   }
 
   // types

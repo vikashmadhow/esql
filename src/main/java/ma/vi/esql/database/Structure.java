@@ -21,6 +21,8 @@ import ma.vi.esql.semantic.type.BaseRelation;
 import ma.vi.esql.semantic.type.Sequence;
 import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.syntax.EsqlPath;
+import ma.vi.esql.syntax.define.ConstraintDefinition;
+import ma.vi.esql.syntax.define.ForeignKeyConstraint;
 import ma.vi.esql.translation.Translatable;
 import ma.vi.esql.translation.TranslationException;
 
@@ -56,7 +58,8 @@ public class Structure extends AbstractScope implements Environment {
     //////////////////////////
     function(new Function("count", LongType,
                           singletonList(new FunctionParam("count", TopType)),
-                          true, null));
+                          true, Map.of(POSTGRESQL, "count",
+                                                SQLSERVER, "count_big")));
 
     function(new Function("sum", AsPromotedNumericParameterType,
                           singletonList(new FunctionParam("sum", NumberType)),
@@ -381,10 +384,17 @@ public class Structure extends AbstractScope implements Environment {
 
     // @todo all window functions
     ////////////////////////////////
-    function(new Function("rownumber",
+    function(new Function("rownum",
                           LongType, emptyList(), false,
                           Map.of(POSTGRESQL, "row_number",
                                  SQLSERVER,  "row_number")));
+
+    // Transaction management
+    //////////////////////////////
+    function(new Function("curtrans",
+                          LongType, emptyList(), false,
+                          Map.of(POSTGRESQL, "pg_current_xact_id",
+                                 SQLSERVER,  "current_transaction_id")));
 
     // Range binning
     ///////////////////////////////////
@@ -481,6 +491,18 @@ public class Structure extends AbstractScope implements Environment {
   }
 
   public synchronized BaseRelation remove(BaseRelation relation) {
+//    /*
+//     * Before removing this table, remove all dependent constraints from other
+//     * tables that this table points to through a foreign key (if table A has a
+//     * foreign key to table B, then table B has a dependent constraints on table
+//     * A).
+//     */
+//    for (ConstraintDefinition c: relation.constraints()) {
+//      if (c instanceof ForeignKeyConstraint f) {
+//        BaseRelation rel = relation(f.targetTable());
+//        rel.removeDependentConstraint(f);
+//      }
+//    }
     relations.remove(relation.name());
     return relationsById.remove(relation.id());
   }

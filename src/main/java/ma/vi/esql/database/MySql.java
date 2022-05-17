@@ -35,7 +35,7 @@ public class MySql extends AbstractDatabase {
     dataSource = new HikariDataSource(new HikariConfig(props));
 
     init(config);
-    postInit(pooledConnection(), structure());
+    // postInit(pooledConnection(), structure());
   }
 
   @Override
@@ -44,19 +44,7 @@ public class MySql extends AbstractDatabase {
   }
 
   @Override
-  public void postInit(Connection con, Structure structure) {
-    super.postInit(con, structure);
-    try (Connection c = pooledConnection(true, -1)) {
-      // MySQL specific
-      c.createStatement().executeUpdate("CREATE SCHEMA IF NOT EXISTS \"" + CORE_SCHEMA + '"');
-    } catch (SQLException e) {
-      throw unchecked(e);
-    }
-  }
-
-  @Override
-  public Connection rawConnection(boolean autoCommit,
-                                  int isolationLevel,
+  public Connection rawConnection(int isolationLevel,
                                   String username,
                                   String password) {
     try {
@@ -69,7 +57,7 @@ public class MySql extends AbstractDatabase {
               + '/' + valueOf(config().get(CONFIG_DB_NAME)),
           username,
           password);
-      con.setAutoCommit(autoCommit);
+      con.setAutoCommit(false);
       if (isolationLevel != -1) {
         con.setTransactionIsolation(isolationLevel);
       } else {
@@ -82,18 +70,28 @@ public class MySql extends AbstractDatabase {
   }
 
   @Override
-  public Connection pooledConnection(boolean autoCommit,
-                                     int isolationLevel) {
+  public Connection pooledConnection(int isolationLevel) {
     try {
 //      Connection con = dataSource.getConnection(username, password);
       Connection con = dataSource.getConnection();
-      con.setAutoCommit(autoCommit);
+      con.setAutoCommit(false);
       if (isolationLevel != -1) {
         con.setTransactionIsolation(isolationLevel);
       }
       return con;
     } catch (Exception e) {
       throw unchecked(e);
+    }
+  }
+
+  @Override
+  public String transactionId(Connection con) {
+    try (ResultSet rs = con.createStatement().executeQuery(
+      "select cast(current_transaction_id() as varchar)")) {
+      rs.next();
+      return rs.getString(1);
+    } catch(SQLException sqle) {
+      throw new RuntimeException(sqle);
     }
   }
 

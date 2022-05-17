@@ -35,7 +35,7 @@ public class Postgresql extends AbstractDatabase {
     dataSource = new HikariDataSource(new HikariConfig(props));
 
     init(config);
-    postInit(pooledConnection(), structure());
+    // postInit(pooledConnection(), structure());
   }
 
   @Override
@@ -44,71 +44,136 @@ public class Postgresql extends AbstractDatabase {
   }
 
   @Override
-  public void postInit(Connection con, Structure structure) {
-    super.postInit(con, structure);
-    try (Connection c = pooledConnection(true, -1)) {
+  public void init(Configuration config) {
+    super.init(config);
+    try (Connection c = pooledConnection()) {
       // Postgresql specific
 
       // create UUID extension
-      c.createStatement().executeUpdate("CREATE SCHEMA IF NOT EXISTS \"" + CORE_SCHEMA + '"');
+      // c.createStatement().executeUpdate("CREATE SCHEMA IF NOT EXISTS \"" + CORE_SCHEMA + '"');
       c.createStatement().executeUpdate("CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\" SCHEMA pg_catalog");
 
       // function for getting type (_core.type_name(type_id))
       c.createStatement().executeUpdate("""
-                CREATE OR REPLACE FUNCTION "_core".type_name(typeid oid) RETURNS TEXT AS $$\s
-                DECLARE
-                    typename    text;
-                    namespace   text;
-                    elementtype int;
-                    isarray     bool = false;
-                BEGIN
-                    SELECT t.typname,
-                           n.nspname,
-                           t.typelem INTO typename, namespace, elementtype
-                    FROM   pg_catalog.pg_type t
-                    JOIN   pg_catalog.pg_namespace n ON t.typnamespace=n.oid
-                    WHERE  t.oid=typeid;
-                
-                    IF elementtype != 0 THEN
-                        SELECT t.typname,
-                               n.nspname,
-                               t.typelem INTO typename, namespace, elementtype
-                        FROM   pg_catalog.pg_type t
-                        JOIN   pg_catalog.pg_namespace n ON t.typnamespace=n.oid
-                        WHERE  t.oid=elementtype;
-                        isarray = true;
-                    END IF;
-                
-                    RETURN CASE WHEN namespace IN ('pg_catalog', 'public') THEN typename
-                                ELSE '"' || namespace || '"."' || typename || '"'
-                           END ||
-                           CASE WHEN isarray THEN '[]' ELSE '' END;
-                END;
-                $$ LANGUAGE plpgsql""");
+        CREATE OR REPLACE FUNCTION "_core".type_name(typeid oid) RETURNS TEXT AS $$\s
+        DECLARE
+            typename    text;
+            namespace   text;
+            elementtype int;
+            isarray     bool = false;
+        BEGIN
+            SELECT t.typname,
+                   n.nspname,
+                   t.typelem INTO typename, namespace, elementtype
+            FROM   pg_catalog.pg_type t
+            JOIN   pg_catalog.pg_namespace n ON t.typnamespace=n.oid
+            WHERE  t.oid=typeid;
+        
+            IF elementtype != 0 THEN
+                SELECT t.typname,
+                       n.nspname,
+                       t.typelem INTO typename, namespace, elementtype
+                FROM   pg_catalog.pg_type t
+                JOIN   pg_catalog.pg_namespace n ON t.typnamespace=n.oid
+                WHERE  t.oid=elementtype;
+                isarray = true;
+            END IF;
+        
+            RETURN CASE WHEN namespace IN ('pg_catalog', 'public') THEN typename
+                        ELSE '"' || namespace || '"."' || typename || '"'
+                   END ||
+                   CASE WHEN isarray THEN '[]' ELSE '' END;
+        END;
+        $$ LANGUAGE plpgsql""");
 
        c.createStatement().executeUpdate("""
-               create or replace function _core.range(val double precision, variadic intervals bigint[]) returns text as $$
-                 with range(lb, ub, label) as (
-                   select intervals[i], intervals[i + 1],
-                          case i when 0                         then '01. Less than ' || intervals[1]
-                                 when array_upper(intervals, 1) then lpad((array_upper(intervals, 1) + 1)::text, 2, '0') || '. ' || intervals[i] || ' or more'
-                                 else                                lpad((i + 1)::text, 2, '0') || '. ' || intervals[i] || ' to ' || (intervals[i+1]-1)
-                          end
-                   from generate_series(0, array_upper(intervals, 1)) t(i)
-                 )
-                 select label
-                   from range
-                  where val >= coalesce(lb, -2000000000)
-                    and val <  coalesce(ub,  2000000000)
-               $$ language sql immutable strict;""");
+         create or replace function _core.range(val double precision, variadic intervals bigint[]) returns text as $$
+           with range(lb, ub, label) as (
+             select intervals[i], intervals[i + 1],
+                    case i when 0                         then '01. Less than ' || intervals[1]
+                           when array_upper(intervals, 1) then lpad((array_upper(intervals, 1) + 1)::text, 2, '0') || '. ' || intervals[i] || ' or more'
+                           else                                lpad((i + 1)::text, 2, '0') || '. ' || intervals[i] || ' to ' || (intervals[i+1]-1)
+                    end
+             from generate_series(0, array_upper(intervals, 1)) t(i)
+           )
+           select label
+             from range
+            where val >= coalesce(lb, -2000000000)
+              and val <  coalesce(ub,  2000000000)
+         $$ language sql immutable strict;""");
+
+       /*
+        * Coarse-grain event capture trigger functions
+        */
+       c.createStatement().executeUpdate("""
+         create or replace function _core.capture_insert_event() returns trigger as $$
+         begin
+           if exists(select 1 from inserted) then
+             insert into _core._temp_history(trans_id, table_name, event, at_time)
+                                values(pg_current_xact_id()::text,
+                                       case tg_table_schema
+                                         when 'public' then ''
+                                         else tg_table_schema || '.'
+                                       end || tg_table_name,
+                                       'I', now());
+           end if;
+           return null;
+         end;
+         $$ language plpgsql""");
+
+       c.createStatement().executeUpdate("""
+         create or replace function _core.capture_delete_event() returns trigger as $$
+         begin
+           if exists(select 1 from deleted) then
+             insert into _core._temp_history(trans_id, table_name, event, at_time)
+                                values(pg_current_xact_id()::text,
+                                       case tg_table_schema
+                                         when 'public' then ''
+                                         else tg_table_schema || '.'
+                                       end || tg_table_name,
+                                       'D', now());
+           end if;
+           return null;
+         end;
+         $$ language plpgsql""");
+
+       c.createStatement().executeUpdate("""
+         create or replace function _core.capture_update_event() returns trigger as $$
+         begin
+           if exists(select 1 from inserted) then
+             insert into _core._temp_history(trans_id, table_name, event, at_time)
+                                values(pg_current_xact_id()::text,
+                                       case tg_table_schema
+                                         when 'public' then ''
+                                         else tg_table_schema || '.'
+                                       end || tg_table_name,
+                                       'U', now());
+           end if;
+           return null;
+         end;
+         $$ language plpgsql""");
+
+//      /*
+//       * Fine-grain event capture trigger functions
+//       */
+//      c.createStatement().executeUpdate("""
+//         create or replace function _core.capture_insert_history_event() returns trigger as $$
+//         begin
+//           insert into _core.history
+//                  select pg_current_xact_id(),
+//                         1, now(), null, inserted.*;
+//           return null;
+//         end;
+//         $$ language plpgsql""");
+
+      c.commit();
     } catch (SQLException e) {
       throw unchecked(e);
     }
   }
 
   @Override
-  public Connection rawConnection(boolean autoCommit,
-                                  int isolationLevel,
+  public Connection rawConnection(int isolationLevel,
                                   String username,
                                   String password) {
     try {
@@ -121,10 +186,8 @@ public class Postgresql extends AbstractDatabase {
               + '/' + valueOf(config().get(CONFIG_DB_NAME)),
           username,
           password);
-      con.setAutoCommit(autoCommit);
-      if (isolationLevel != -1) {
-        con.setTransactionIsolation(isolationLevel);
-      } else {
+      con.setAutoCommit(false);
+      if (isolationLevel != -1 && isolationLevel != SNAPSHOT_ISOLATION) {
         con.setTransactionIsolation(isolationLevel);
       }
       return con;
@@ -134,18 +197,28 @@ public class Postgresql extends AbstractDatabase {
   }
 
   @Override
-  public Connection pooledConnection(boolean autoCommit,
-                                     int isolationLevel) {
+  public Connection pooledConnection(int isolationLevel) {
     try {
 //      Connection con = dataSource.getConnection(username, password);
       Connection con = dataSource.getConnection();
-      con.setAutoCommit(autoCommit);
-      if (isolationLevel != -1) {
+      con.setAutoCommit(false);
+      if (isolationLevel != -1 && isolationLevel != SNAPSHOT_ISOLATION) {
         con.setTransactionIsolation(isolationLevel);
       }
       return con;
     } catch (Exception e) {
       throw unchecked(e);
+    }
+  }
+
+  @Override
+  public String transactionId(Connection con) {
+    try (ResultSet rs = con.createStatement().executeQuery(
+      "select pg_current_xact_id()::text")) {
+      rs.next();
+      return rs.getString(1);
+    } catch(SQLException sqle) {
+      throw new RuntimeException(sqle);
     }
   }
 

@@ -35,7 +35,7 @@ public class MariaDb extends AbstractDatabase {
     dataSource = new HikariDataSource(new HikariConfig(props));
 
     init(config);
-    postInit(pooledConnection(), structure());
+    // postInit(pooledConnection(), structure());
   }
 
   @Override
@@ -44,18 +44,7 @@ public class MariaDb extends AbstractDatabase {
   }
 
   @Override
-  public void postInit(Connection con, Structure structure) {
-    super.postInit(con, structure);
-    try (Connection c = pooledConnection(true, -1)) {
-      // MariaDB specific
-    } catch (SQLException e) {
-      throw unchecked(e);
-    }
-  }
-
-  @Override
-  public Connection rawConnection(boolean autoCommit,
-                                  int isolationLevel,
+  public Connection rawConnection(int isolationLevel,
                                   String username,
                                   String password) {
     try {
@@ -70,7 +59,7 @@ public class MariaDb extends AbstractDatabase {
           username,
           password);
 
-      con.setAutoCommit(autoCommit);
+      con.setAutoCommit(false);
       con.createStatement().executeUpdate("ALTER DATABASE " + db
                                         + " CHARACTER SET = utf8mb4 "
                                         + " COLLATE = utf8mb4_unicode_ci");
@@ -87,12 +76,11 @@ public class MariaDb extends AbstractDatabase {
   }
 
   @Override
-  public Connection pooledConnection(boolean autoCommit,
-                                     int isolationLevel) {
+  public Connection pooledConnection(int isolationLevel) {
     try {
 //      Connection con = dataSource.getConnection(username, password);
       Connection con = dataSource.getConnection();
-      con.setAutoCommit(autoCommit);
+      con.setAutoCommit(false);
       con.createStatement().executeUpdate("ALTER DATABASE " + database
                                               + " CHARACTER SET = utf8mb4 "
                                               + " COLLATE = utf8mb4_unicode_ci");
@@ -103,6 +91,17 @@ public class MariaDb extends AbstractDatabase {
       return con;
     } catch (Exception e) {
       throw unchecked(e);
+    }
+  }
+
+  @Override
+  public String transactionId(Connection con) {
+    try (ResultSet rs = con.createStatement().executeQuery(
+      "select cast(current_transaction_id() as varchar)")) {
+      rs.next();
+      return rs.getString(1);
+    } catch(SQLException sqle) {
+      throw new RuntimeException(sqle);
     }
   }
 

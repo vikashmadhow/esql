@@ -544,6 +544,43 @@ public class BaseRelation extends Relation {
     return null;
   }
 
+  public Map<String, Index> indices() {
+    return Collections.unmodifiableMap(indices);
+  }
+
+  public Optional<Index> index(String name) {
+    return indices.containsKey(name)
+         ? Optional.of(indices.get(name))
+         : Optional.empty();
+  }
+
+  public Optional<Index> index(List<String> columns) {
+    return indices.values().stream()
+                  .filter(i -> new HashSet<>(i.columns()).equals(new HashSet<>(columns)))
+                  .findFirst();
+  }
+
+  public void index(Index index) {
+    if (indices.containsKey(index.name())) {
+      throw new IllegalArgumentException("Index named " + index.name()
+                                       + " already exists on table " + name);
+    }
+    indices.put(index.name(), index);
+  }
+
+  public void removeIndex(String name) {
+    index(name).ifPresentOrElse(
+      this::removeIndex,
+      () -> {
+        throw new IllegalArgumentException("Could not find index named " + name
+                                         + " on table " + this.name());
+      });
+  }
+
+  public void removeIndex(Index index) {
+    indices.remove(index.name());
+  }
+
   private static void addAttributesForConstraints(BaseRelation rel, ConstraintDefinition constraint) {
     if      (constraint instanceof UniqueConstraint     u) addUniqueConstraint (rel, u);
     else if (constraint instanceof CheckConstraint      c) addCheckConstraint  (rel, c);
@@ -1062,6 +1099,8 @@ public class BaseRelation extends Relation {
    * Constraints set on the table (including field constraints but excluding non-null field's constraints).
    */
   private final List<ConstraintDefinition> constraints = new ArrayList<>();
+
+  private final Map<String, Index> indices = new HashMap<>();
 
   /**
    * Foreign key constraints pointing to this relation.

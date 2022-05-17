@@ -233,6 +233,18 @@ public class Result implements Iterator<Result.Row>,
   }
 
   /**
+   * Returns the current row as map of column names to value.
+   */
+  public Map<String, Object> valueRow() {
+    Map<String, Object> row = new LinkedHashMap<>();
+    for (int i = 1; i <= columnsCount(); i++) {
+      ResultColumn<Object> col = get(i);
+      row.put(col.column().name(), col.value());
+    }
+    return row;
+  }
+
+  /**
    * Returns the computed result attributes for the current row.
    */
   public Map<String, Object> resultAttributes() {

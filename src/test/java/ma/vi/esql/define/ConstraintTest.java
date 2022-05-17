@@ -15,6 +15,7 @@ import org.json.JSONObject;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
@@ -169,7 +170,7 @@ public class ConstraintTest extends DataTest {
                      assertEquals(rs.resultAttributes().get("name"), "X");
                      assertEquals(rs.resultAttributes().get("description"), "X test table");
                      assertTrue(new JSONArray(singletonList("_id")).similar(rs.resultAttributes().get(PRIMARY_KEY)));
-                     assertTrue(new JSONArray(
+                     assertEquals(new HashSet<>(new JSONArray(
                        List.of(
                          new JSONObject(Map.of(
                            "from_columns", new JSONArray(singletonList("s_id")),
@@ -182,7 +183,10 @@ public class ConstraintTest extends DataTest {
                            "to_columns", new JSONArray(singletonList("_id"))
                          ))
                        )
-                     ).similar(rs.resultAttributes().get(REFERENCES)));
+                     ).toList()),
+                     new HashSet<>(
+                       ((JSONArray)rs.resultAttributes().get(REFERENCES)).toList()));
+
                      assertTrue(new JSONArray(
                        List.of(
                          new JSONObject(Map.of(

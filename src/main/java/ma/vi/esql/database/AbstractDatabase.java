@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Vikash Madhow
+ * Copyright (c) 2018-2022 Vikash Madhow
  */
 
 package ma.vi.esql.database;
@@ -7,7 +7,10 @@ package ma.vi.esql.database;
 import ma.vi.base.config.Configuration;
 import ma.vi.base.lang.NotFoundException;
 import ma.vi.base.tuple.T2;
-import ma.vi.esql.exec.*;
+import ma.vi.esql.exec.DefaultExecutor;
+import ma.vi.esql.exec.Executor;
+import ma.vi.esql.exec.QueryParams;
+import ma.vi.esql.exec.Result;
 import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.semantic.type.*;
 import ma.vi.esql.syntax.Context;
@@ -27,6 +30,8 @@ import org.pcollections.IntTreePMap;
 
 import java.sql.*;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.LinkedBlockingDeque;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -38,6 +43,7 @@ import static ma.vi.base.string.Escape.escapeSqlString;
 import static ma.vi.esql.builder.Attributes.*;
 import static ma.vi.esql.syntax.define.ConstraintDefinition.ForeignKeyChangeAction.fromInformationSchema;
 import static ma.vi.esql.syntax.define.ConstraintDefinition.Type.fromMarker;
+import static ma.vi.esql.syntax.expression.literal.StringLiteral.escapeEsqlString;
 import static ma.vi.esql.translation.Translatable.Target.*;
 import static org.apache.commons.lang3.StringUtils.repeat;
 
@@ -52,6 +58,7 @@ public abstract class AbstractDatabase implements Database {
   @Override
   public void init(Configuration config) {
     this.config = config;
+    structure = new Structure(this);
 
     /*
      * Register translators.
@@ -63,9 +70,36 @@ public abstract class AbstractDatabase implements Database {
     TranslatorFactory.register(HSQLDB,     new HSqlDbTranslator());
 
     /*
-     * Load database structure.
+     * Create core tables.
      */
-    structure();
+    try (EsqlConnection con = esql()) {
+      createCoreRelations(con);
+      createCoreRelationAttributes(con);
+      createCoreColumns(con);
+      createCoreColumnAttributes(con);
+      createCoreConstraints(con);
+      createCoreHistory(con);
+    }
+
+    /*
+     * Load database structure from information schemas.
+     */
+    loadInformationSchemas();
+
+    /*
+     * Update core tables from information schemas.
+     */
+    updateCoreTables();
+
+    /*
+     * Load database structure from core tables.
+     */
+    loadCoreTables();
+
+    /*
+     * Load extensions.
+     */
+    loadExtensions(config.get(CONFIG_DB_EXTENSIONS, emptyMap()), new HashSet<>(), 0);
   }
 
   /**
@@ -74,207 +108,6 @@ public abstract class AbstractDatabase implements Database {
    */
   @Override
   public synchronized Structure structure() {
-    if (structure == null) {
-      structure = new Structure(this);
-      try (Connection con = pooledConnection(true, -1);
-           Statement stmt = con.createStatement()) {
-
-        Context context = new Context(structure);
-        Parser parser = new Parser(structure);
-
-        /*
-         * Load table information from information schemas.
-         */
-        try (ResultSet rs = stmt.executeQuery("select table_schema, table_name "
-                                                + "  from information_schema.tables "
-                                                + " where table_type='BASE TABLE'"
-                                                + "   and upper(table_schema) not in ("
-                                                + ignoredSchemas.stream()
-                                                                .map(s -> "'" + s + "'")
-                                                                .collect(Collectors.joining(","))
-                                                + ")")) {
-          while (rs.next()) {
-            /*
-             * Load table
-             */
-            UUID tableId = UUID.randomUUID();
-            String schema = rs.getString("table_schema");
-            String name = rs.getString("table_name");
-            String tableName = Type.esqlTableName(schema, name, target());
-
-            /*
-             * Load columns.
-             */
-            List<Column> columns = new ArrayList<>();
-            try (ResultSet crs = con.createStatement().executeQuery(
-                "select column_name, ordinal_position, data_type, " +
-                    "       column_default, is_nullable " +
-                    "  from information_schema.columns " +
-                    " where table_schema='" + schema + "' " +
-                    "   and table_name='" + name + "'" +
-                    " order by ordinal_position")) {
-
-              while (crs.next()) {
-                UUID columnId = UUID.randomUUID();
-                String columnName = crs.getString("column_name");
-                // int fieldNumber = frs.getInt("ordinal_position");
-                String colType = crs.getString("data_type");
-                String columnType = Types.esqlType(colType, target());
-                if (columnType == null) {
-                  throw new IllegalArgumentException("ESQL type equivalent for " + target() + " type "
-                                                         + colType + " is not known");
-                }
-                boolean notNull = crs.getString("is_nullable").equals("NO");
-                String defaultValue = crs.getString("column_default");
-
-                /*
-                 * Load custom columns attributes
-                 */
-                List<Attribute> attributes = new ArrayList<>();
-                attributes.add(new Attribute(context, TYPE, new StringLiteral(context, columnType)));
-                if (defaultValue != null) {
-                  attributes.add(new Attribute(context, EXPRESSION, dbExpressionToEsql(defaultValue, parser)));
-                }
-                attributes.add(new Attribute(context, ID, new UuidLiteral(context, columnId)));
-                attributes.add(new Attribute(context, REQUIRED, new BooleanLiteral(context, notNull)));
-                Metadata metadata = new Metadata(context, attributes);
-                Type type = Types.typeOf(columnType);
-                columns.add(new Column(context,
-                                       columnName,
-                                       new ColumnRef(context, null, columnName, type),
-                                       type,
-                                       metadata));
-              }
-            }
-            BaseRelation relation = new BaseRelation(context,
-                                                     tableId,
-                                                     tableName,
-                                                     tableName,
-                                                     null,
-                                                     null,
-                                                     columns,
-                                                     new ArrayList<>());
-            structure.relation(relation);
-            Types.customType(relation.name(), relation);
-          }
-        }
-
-        /*
-         * Load constraints from information schema for tables which do not
-         * already exist in the core tables.
-         */
-        try (ResultSet crs = con.createStatement().executeQuery(
-            "select table_schema, table_name, constraint_schema, "
-              + "       constraint_name, constraint_type "
-              + "  from information_schema.table_constraints"
-              + " where upper(table_schema) not in "
-              + "(" + ignoredSchemas.stream()
-                                    .map(s -> "'" + s + "'")
-                                    .collect(Collectors.joining(",")) + ")"
-              + "   and upper(constraint_name) not like '%_NOT_NULL'"
-              + " order by table_schema, table_name")) {
-
-          while (crs.next()) {
-            String schema = crs.getString("table_schema");
-            String name = crs.getString("table_name");
-            String tableName = Type.esqlTableName(schema, name, target());
-
-            BaseRelation relation = structure.relation(tableName);
-            String constraintSchema = crs.getString("constraint_schema");
-            String constraintName = crs.getString("constraint_name");
-            String constraintType = crs.getString("constraint_type");
-
-            List<String> sourceColumns = keyColumns(con.createStatement(), constraintSchema, constraintName).b;
-            List<String> targetColumns;
-            BaseRelation targetRelation = null;
-            ConstraintDefinition c = null;
-            switch (constraintType) {
-              case "CHECK":
-                try (ResultSet r = con.createStatement().executeQuery(
-                    "select check_clause " +
-                        "  from information_schema.check_constraints " +
-                        " where constraint_schema='" + constraintSchema + "' " +
-                        "   and constraint_name='" + constraintName + "'")) {
-                  r.next();
-                  c = new CheckConstraint(
-                            context,
-                            constraintName,
-                            tableName,
-                            dbExpressionToEsql(r.getString("check_clause"), parser));
-                }
-                break;
-
-              case "UNIQUE":
-                c = new UniqueConstraint(context, constraintName, tableName, sourceColumns);
-                break;
-
-              case "PRIMARY KEY":
-                c = new PrimaryKeyConstraint(context, constraintName, tableName, sourceColumns);
-                break;
-
-              case "FOREIGN KEY":
-                try (ResultSet r = con.createStatement().executeQuery(
-                    "select unique_constraint_schema," +
-                        "       unique_constraint_name," +
-                        "       update_rule, " +
-                        "       delete_rule " +
-                        "  from information_schema.referential_constraints " +
-                        " where constraint_schema='" + constraintSchema + "' " +
-                        "   and constraint_name='" + constraintName + "'")) {
-                  r.next();
-                  String uniqueConstraintSchema = r.getString("unique_constraint_schema");
-                  String uniqueConstraintName = r.getString("unique_constraint_name");
-                  String updateRule = r.getString("update_rule");
-                  String deleteRule = r.getString("delete_rule");
-
-                  T2<String, List<String>> target = keyColumns(con.createStatement(),
-                                                               uniqueConstraintSchema,
-                                                               uniqueConstraintName);
-                  targetRelation = structure.relation(target.a);
-                  targetColumns = target.b;
-
-                  c = new ForeignKeyConstraint(context,
-                                               constraintName,
-                                               tableName,
-                                               sourceColumns,
-                                               target.a,
-                                               targetColumns,
-                                               0, 0,
-                                               fromInformationSchema(updateRule),
-                                               fromInformationSchema(deleteRule),
-                                               false);
-                }
-            }
-            relation.constraint(c);
-
-            // dependent relation:
-            // E.g., r1[a] -> r2[b]: r1 depends on r2. If r2 is dropped, so should r1.
-            if (targetRelation != null) {
-              targetRelation.dependentConstraint((ForeignKeyConstraint)c);
-            }
-
-//            // link referenced field to constraint
-//            // if the field is dropped, so should the constraint
-//            if (columns != null && !columns.isEmpty()) {
-//              for (Field f: columns) {
-//                f.dependentConstraint(c);
-//              }
-//            }
-//
-//            // link referring table for foreign keys to field;
-//            // if this field is dropped, so should the referring table.
-//            //      E.g., r1[a] -> r2[b]: r1 is the dependent relation for field b
-//            if (targetColumns != null && !targetColumns.isEmpty()) {
-//              for (Field f: targetColumns) {
-//                f.dependentForeignKey(relation);
-//              }
-//            }
-          }
-        }
-      } catch (SQLException sqle) {
-        throw new RuntimeException(sqle);
-      }
-    }
     return structure;
   }
 
@@ -305,547 +138,6 @@ public abstract class AbstractDatabase implements Database {
     }
   }
 
-  /**
-   * Hack to ensure that native database expressions are mapped to ESQL form (A
-   * better solution to this would require a parser for each target database as
-   * the default expressions read from the information schemas are expressed in
-   * those):
-   * 1. that all boolean value capitalisations are mapped to the lowercase esql
-   *    form.
-   * 2. String prefixes such as N'' and E'' are removed (this is done using a
-   *    regex which caters for most cases but will not catch all of them; for that
-   *    a parser is required).
-   * 3. Remove square brackets surrounding variables which are used in SQL Server.
-   */
-  private static Expression<?, String> dbExpressionToEsql(String expr, Parser parser) {
-    if (expr == null) {
-      return null;
-    } else {
-      expr = expr.trim();
-      if (expr.equalsIgnoreCase("true")) {
-        expr = "true";
-      } else if (expr.equalsIgnoreCase("false")) {
-        expr = "false";
-      }
-      if (expr.equalsIgnoreCase("null")) {
-        expr = "null";
-      }
-      expr = STRING_PREFIX.matcher(expr).replaceAll("$1");
-      expr = SQL_SERVER_SURROUNDED_VAR.matcher(expr).replaceAll("$1");
-      expr = SQL_SERVER_LEN.matcher(expr).replaceAll("length($1)");
-      expr = SQL_KEYWORDS.matcher(expr).replaceAll(m -> m.group().toLowerCase());
-      return parser.parseExpression(expr);
-    }
-  }
-
-  @Override
-  public void postInit(Connection con, Structure structure) {
-    Context context = new Context(structure);
-    Parser p = new Parser(structure);
-    if (createCoreTables() && !hasCoreTables(con)) {
-      // CREATE _core tables
-      ///////////////////////////////////////////
-      try (EsqlConnection c = esql(pooledConnection(true, -1))) {
-        c.exec(p.parse("create table _core.relations drop undefined(" +
-                           "_id             uuid    not null, " +
-                           "_can_delete     bool, " +
-                           "_can_edit       bool, " +
-                           "name            string  not null, " +
-                           "display_name    string, " +
-                           "description     string, " +
-                           "type            char    not null," +
-                           "view_definition text," +
-
-                           "constraint _core_relations_pk       primary key (_id)," +
-                           "constraint _core_relations_unq_name unique(name))"));
-
-        c.exec(p.parse("create table _core.columns drop undefined(" +
-                           "_id             uuid   not null, " +
-                           "_can_delete     bool, " +
-                           "_can_edit       bool, " +
-                           "relation_id     uuid   not null, " +
-                           "name            string not null, " +
-                           "derived_column  bool, " +
-                           "type            string not null, " +
-                           "not_null        bool, " +
-                           "expression      text, " +   // derived expression or default value
-                           "seq             int    not null, " +
-
-                           "constraint _core_columns_pk                primary key(_id), " +
-                           "constraint _core_columns_relation_id_fk    foreign key(relation_id) references _core.relations(_id) on delete cascade on update cascade, " +
-                           "constraint _core_columns_unq_relation_name unique(relation_id, name), " +
-                           "constraint _core_columns_unq_relation_seq  unique(relation_id, seq))"));
-
-//        if (target() != MARIADB && target() != MYSQL) {
-          /*
-           * create table for holding additional type information on tables.
-           */
-          c.exec(p.parse("create table _core.relation_attributes drop undefined(" +
-                             "_id         uuid    not null, " +
-                             "relation_id uuid    not null, " +
-                             "attribute   string  not null, " +
-                             "value       text, " +
-
-                             "constraint _core_rel_attr_pk           primary key(_id), " +
-                             "constraint _core_rel_attr_rel_fk       foreign key(relation_id) references _core.relations(_id) on delete cascade on update cascade, " +
-                             "constraint _core_rel_attr_unq_rel_attr unique(relation_id, attribute))"));
-
-          /*
-           * create table for holding additional type information on columns.
-           */
-          c.exec(p.parse("create table _core.column_attributes drop undefined(" +
-                             "_id       uuid    not null, " +
-                             "column_id uuid    not null, " +
-                             "attribute string  not null, " +
-                             "value     text, " +
-
-                             "constraint _core_column_attr_pk              primary key(_id), " +
-                             "constraint _core_column_attr_column_fk       foreign key(column_id) references _core.columns(_id) on delete cascade on update cascade, " +
-                             "constraint _core_column_attr_unq_column_attr unique(column_id, attribute))"));
-
-//        } else {
-//          /*
-//           * For some reasons, mariadb and mysql cannot create a foreign key from
-//           * a field (relation_id) that is also part of a composite unique key
-//           */
-//          c.exec(p.parse("create table _core.relation_attributes drop undefined(" +
-//                             "_id         uuid    not null, " +
-//                             "relation_id uuid    not null, " +
-//                             "attribute   string  not null, " +
-//                             "value       text, " +
-//
-//                             "constraint _core_rel_attr_pk           primary key(_id), " +
-//                             "constraint _core_rel_attr_rel_fk       foreign key(relation_id) references _core.relations(_id) on delete cascade on update cascade)"));
-//
-//          c.exec(p.parse("create table _core.column_attributes drop undefined(" +
-//                             "_id       uuid    not null, " +
-//                             "column_id uuid    not null, " +
-//                             "attribute string  not null, " +
-//                             "value     text, " +
-//
-//                             "constraint _core_column_attr_pk              primary key(_id), " +
-//                             "constraint _core_column_attr_column_fk       foreign key(column_id) references _core.columns(_id) on delete cascade on update cascade)"));
-//        }
-
-        c.exec(p.parse("create table _core.constraints drop undefined(" +
-                           "_id                 uuid    not null, " +
-                           "name                string  not null, " +
-                           "relation_id         uuid    not null, " +
-                           "type                char    not null, " +
-                           "check_expr          text, " +
-                           "source_columns      []string," +
-                           "target_relation_id  uuid," +
-                           "target_columns      []string," +
-                           "forward_cost        int     not null default 1," +
-                           "reverse_cost        int     not null default 2," +
-                           "on_update           char," +
-                           "on_delete           char," +
-
-                           "constraint _core_constraints_pk        primary key(_id), " +
-                           "constraint _core_constraints_rel_id_fk foreign key(relation_id) references _core.relations(_id) on delete cascade on update cascade)"));
-
-        c.exec(p.parse("create table _core.sequences drop undefined(" +
-                           "_id         uuid    not null, " +
-                           "name        string  not null, " +
-                           "start       long    not null default 1, " +
-                           "increment   long    not null default 1," +
-                           "maximum     long    not null default 9223372036854775807," +
-                           "cycles      bool    not null default true," +
-
-                           "constraint _core_seq_pk primary key(_id))"));
-
-        c.exec(p.parse("create table _core.indices drop undefined(" +
-                           "_id                     uuid    not null, " +
-                           "name                    string  not null, " +
-                           "relation_id             uuid    not null, " +
-                           "unique_index            bool, " +
-                           "columns                 []int," +
-                           "expressions             []text," +
-                           "partial_index_condition text," +
-
-                           "constraint _core_indices_pk        primary key(_id), " +
-                           "constraint _core_indices_rel_id_fk foreign key(relation_id) references _core.relations(_id) on delete cascade on update cascade)"));
-
-        /*
-         * Manually create self-references for the core tables so that they can be
-         * accessed through ESQL.
-         */
-        BaseRelation relations = structure.relation("_core.relations");
-        BaseRelation columns = structure.relation("_core.columns");
-        BaseRelation relationAttributes = structure.relation("_core.relation_attributes");
-        BaseRelation columnAttributes = structure.relation("_core.column_attributes");
-        BaseRelation constraints = structure.relation("_core.constraints");
-        BaseRelation sequences = structure.relation("_core.sequences");
-        BaseRelation indices = structure.relation("_core.indices");
-
-        UUID relationsId = relations.id();
-        UUID columnsId = columns.id();
-        UUID relationAttributesId = relationAttributes.id();
-        UUID columnAttributesId = columnAttributes.id();
-        UUID constraintsId = constraints.id();
-        UUID sequencesId = sequences.id();
-        UUID indicesId = indices.id();
-
-        c.exec(p.parse(
-            "insert into _core.relations(_id, name, display_name, type) values " +
-                "('" + relationsId + "',          '_core.relations',           'Relations',           'T'), " +
-                "('" + columnsId + "',            '_core.columns',             'Columns',             'T'), " +
-                "('" + relationAttributesId + "', '_core.relation_attributes', 'Relation attributes', 'T'), " +
-                "('" + columnAttributesId + "',   '_core.column_attributes',   'Column attributes',   'T'), " +
-                "('" + constraintsId + "',        '_core.constraints',         'Constraints',         'T'), " +
-                "('" + sequencesId + "',          '_core.sequences',           'Sequences',           'T'), " +
-                "('" + indicesId + "',            '_core.indices',             'Indices',             'T')"));
-
-        // add columns for all tables
-        c.exec(p.parse(
-            "insert into _core.columns(_id, relation_id, name, seq, type, not_null) values " +
-                "('" + relations.column("_id").id()             + "', '" + relationsId + "', '_id',             1, 'uuid',    true), " +
-                "('" + relations.column("_can_delete").id()     + "', '" + relationsId + "', '_can_delete',     2, 'bool',    false), " +
-                "('" + relations.column("_can_edit").id()       + "', '" + relationsId + "', '_can_edit',       3, 'bool',    false), " +
-                "('" + relations.column("name").id()            + "', '" + relationsId + "', 'name',            4, 'string',  true), " +
-                "('" + relations.column("display_name").id()    + "', '" + relationsId + "', 'display_name',    5, 'string',  false), " +
-                "('" + relations.column("description").id()     + "', '" + relationsId + "', 'description',     6, 'string',  false), " +
-                "('" + relations.column("type").id()            + "', '" + relationsId + "', 'type',            7, 'char',    true), " +
-                "('" + relations.column("view_definition").id() + "', '" + relationsId + "', 'view_definition', 8, 'text',    false), " +
-
-                "('" + columns.column("_id").id()               + "', '" + columnsId + "', '_id',             1, 'uuid',   true), " +
-                "('" + columns.column("_can_delete").id()       + "', '" + columnsId + "', '_can_delete',     2, 'bool',   false), " +
-                "('" + columns.column("_can_edit").id()         + "', '" + columnsId + "', '_can_edit',       3, 'bool',   false), " +
-                "('" + columns.column("relation_id").id()       + "', '" + columnsId + "', 'relation_id',     4, 'uuid',   true), " +
-                "('" + columns.column("name").id()              + "', '" + columnsId + "', 'name',            5, 'string', true), " +
-                "('" + columns.column("derived_column").id()    + "', '" + columnsId + "', 'derived_column',  6, 'bool',   false), " +
-                "('" + columns.column("type").id()              + "', '" + columnsId + "', 'type',            7, 'string', true), " +
-                "('" + columns.column("not_null").id()          + "', '" + columnsId + "', 'not_null',        8, 'bool',   false), " +
-                "('" + columns.column("expression").id()        + "', '" + columnsId + "', 'expression',      9, 'text',   false), " +
-                "('" + columns.column("seq").id()               + "', '" + columnsId + "', 'seq',            10, 'int',    true), " +
-
-                "('" + relationAttributes.column("_id").id()          + "', '" + relationAttributesId + "', '_id',         1, 'uuid',   true), " +
-                "('" + relationAttributes.column("relation_id").id()  + "', '" + relationAttributesId + "', 'relation_id', 2, 'uuid',   true), " +
-                "('" + relationAttributes.column("attribute").id()    + "', '" + relationAttributesId + "', 'attribute',   3, 'string', true), " +
-                "('" + relationAttributes.column("value").id()        + "', '" + relationAttributesId + "', 'value',       4, 'text',   false), " +
-
-                "('" + columnAttributes.column("_id").id()            + "', '" + columnAttributesId + "', '_id',       1, 'uuid',   true), " +
-                "('" + columnAttributes.column("column_id").id()      + "', '" + columnAttributesId + "', 'column_id', 2, 'uuid',   true), " +
-                "('" + columnAttributes.column("attribute").id()      + "', '" + columnAttributesId + "', 'attribute', 3, 'string', true), " +
-                "('" + columnAttributes.column("value").id()          + "', '" + columnAttributesId + "', 'value',     4, 'text',   false), " +
-
-                "('" + constraints.column("_id").id()                 + "', '" + constraintsId + "', '_id',                 1, 'uuid',     true), " +
-                "('" + constraints.column("name").id()                + "', '" + constraintsId + "', 'name',                2, 'string',   true), " +
-                "('" + constraints.column("relation_id").id()         + "', '" + constraintsId + "', 'relation_id',         3, 'uuid',     true), " +
-                "('" + constraints.column("type").id()                + "', '" + constraintsId + "', 'type',                4, 'char',     true), " +
-                "('" + constraints.column("check_expr").id()          + "', '" + constraintsId + "', 'check_expr',          5, 'text',     false), " +
-                "('" + constraints.column("source_columns").id()      + "', '" + constraintsId + "', 'source_columns',      6, '[]string', false), " +
-                "('" + constraints.column("target_relation_id").id()  + "', '" + constraintsId + "', 'target_relation_id',  7, 'uuid',     false), " +
-                "('" + constraints.column("target_columns").id()      + "', '" + constraintsId + "', 'target_columns',      8, '[]string', false), " +
-                "('" + constraints.column("forward_cost").id()        + "', '" + constraintsId + "', 'forward_cost',        9, 'int',      true), " +
-                "('" + constraints.column("reverse_cost").id()        + "', '" + constraintsId + "', 'reverse_cost',       10, 'int',      true), " +
-                "('" + constraints.column("on_update").id()           + "', '" + constraintsId + "', 'on_update',          11, 'char',     false), " +
-                "('" + constraints.column("on_delete").id()           + "', '" + constraintsId + "', 'on_delete',          12, 'char',     false), " +
-
-                "('" + sequences.column("_id").id()                   + "', '" + sequencesId + "', '_id',       1, 'uuid',   true), " +
-                "('" + sequences.column("name").id()                  + "', '" + sequencesId + "', 'name',      2, 'string', true), " +
-                "('" + sequences.column("start").id()                 + "', '" + sequencesId + "', 'start',     3, 'long',   true), " +
-                "('" + sequences.column("increment").id()             + "', '" + sequencesId + "', 'increment', 4, 'long',   true), " +
-                "('" + sequences.column("maximum").id()               + "', '" + sequencesId + "', 'maximum',   5, 'long',   true), " +
-                "('" + sequences.column("cycles").id()                + "', '" + sequencesId + "', 'cycles',    6, 'bool',   true), " +
-
-                "('" + indices.column("_id").id() +                   "', '" + indicesId + "', '_id',                     1, 'uuid',   true), " +
-                "('" + indices.column("name").id()                    + "', '" + indicesId + "', 'name',                    2, 'string', true), " +
-                "('" + indices.column("relation_id").id()             + "', '" + indicesId + "', 'relation_id',             3, 'uuid',   true), " +
-                "('" + indices.column("unique_index").id()            + "', '" + indicesId + "', 'unique_index',            4, 'bool',   false), " +
-                "('" + indices.column("columns").id()                 + "', '" + indicesId + "', 'columns',                 5, '[]int',  false), " +
-                "('" + indices.column("expressions").id()             + "', '" + indicesId + "', 'expressions',             6, '[]text', false), " +
-                "('" + indices.column("partial_index_condition").id() + "', '" + indicesId + "', 'partial_index_condition', 7, 'text',   false)"));
-
-//      // add columns as children of relations
-//      con.createStatement().executeUpdate(
-//      "insert into _core.relation_attributes(_id, relation_id, attribute, value) values " +
-//              "('" + UUID.randomUUID() + "', '" + relationsId + "', 'children', " +
-//              "'{ " +
-//              "    columns: {" +
-//              "      $m: {" +
-//              "        type: ''_core.columns'', " +
-//              "        parent_link_column: ''relation_id'', " +
-//              "        label: ''Columns''" +
-//              "      }," +
-//              "      columns: {" +
-//              "        _id: {" +
-//              "          $m: {" +
-//              "            type: ''uuid'', " +
-//              "            show: false" +
-//              "          }" +
-//              "        }," +
-//              "        column_id: {" +
-//              "          $m: {" +
-//              "            type: ''uuid'', " +
-//              "            show: false" +
-//              "          }" +
-//              "        }," +
-//              "        attribute: {" +
-//              "          $m: {" +
-//              "            type: ''string'', " +
-//              "            label: ''Attribute''," +
-//              "            mask: ''Iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii''," +
-//              "            required: true, " +
-//              "            link_table: ''_column_attribute''," +
-//              "            value_label: ''${lookuplabel(this.row.attribute.$v, \"_column_attribute\")}''" +
-//              "          }" +
-//              "        }," +
-//              "        value: {" +
-//              "          $m: {" +
-//              "            type: ''string''," +
-//              "            label: ''Value''," +
-//              "            required: true" +
-//              "          }" +
-//              "        }" +
-//              "      }," +
-//              "      columnsOrder: [''_id'', ''column_id'', ''attribute'', ''value'']" +
-//              "    }" +
-//              "}')");
-
-        // add column attributes as children of column
-        c.exec(p.parse(
-            "insert into _core.relation_attributes(_id, relation_id, attribute, value) values " +
-                "('" + UUID.randomUUID() + "', '" + columnsId + "', 'validate_unique', '[[''relation_id'', ''name'']]'), " +
-                "('" + UUID.randomUUID() + "', '" + columnsId + "', 'children', " +
-                "'{ " +
-                "    column_attributes: {" +
-                "      $m: {" +
-                "        type: ''_core.column_attributes'', " +
-                "        parent_link_column: ''column_id'', " +
-                "        label: ''Attributes''" +
-                "      }," +
-                "      columns: {" +
-                "        _id: {" +
-                "          $m: {" +
-                "            type: ''uuid'', " +
-                "            show: false" +
-                "          }" +
-                "        }," +
-                "        column_id: {" +
-                "          $m: {" +
-                "            type: ''uuid'', " +
-                "            show: false" +
-                "          }" +
-                "        }," +
-                "        attribute: {" +
-                "          $m: {" +
-                "            type: ''string'', " +
-                "            label: ''Attribute''," +
-                "            mask: ''Iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii''," +
-                "            required: true, " +
-                "            link_table: ''_column_attribute''," +
-                "            value_label: ''${lookuplabel(this.row.attribute.$v, \"_column_attribute\")}''" +
-                "          }" +
-                "        }," +
-                "        value: {" +
-                "          $m: {" +
-                "            type: ''string''," +
-                "            label: ''Value''," +
-                "            required: true" +
-                "          }" +
-                "        }" +
-                "      }," +
-                "      columnsOrder: [''_id'', ''column_id'', ''attribute'', ''value'']" +
-                "    }" +
-                "}')"));
-
-      } catch (Exception e) {
-        throw new RuntimeException(e);
-      } finally {
-        hasCoreTables = true;
-      }
-    }
-
-    if (hasCoreTables) {
-      try (EsqlConnection econ = esql(con);
-           Statement stmt = con.createStatement()) {
-        /*
-         * Load structure from the _core tables and save missing relations into core tables.
-         */
-
-        /*
-         * Create _core tables from data in information schema and drop columns and
-         * constraints that no longer exist in the information schema.
-         */
-        List<BaseRelation> updatedTables = new ArrayList<>();
-        for (BaseRelation rel: structure.relations().values()) {
-          String schema = Type.schema(rel.name());
-          if (schema == null || !ignoredSchemas.contains(schema.toUpperCase())) {
-            UUID tableId = tableId(econ, rel.name());
-            if (tableId == null) {
-              addTable(econ, rel);
-            } else {
-              econ.exec(p.parse(
-                  "update r from r:_core.relations "
-                      + "  set display_name=" + (rel.displayName == null ? "'" + rel.name() + "'" : "'" + escapeSqlString(rel.displayName) + "'") + ", "
-                      + "      description=" + (rel.description == null ? "null" : "'" + escapeSqlString(rel.description) + "'")
-                      + " where _id='" + tableId + "'"));
-
-              /*
-               * Delete non-derived columns which are not in information schema anymore.
-               */
-              if (rel.columns().isEmpty()) {
-                econ.exec(p.parse("delete c from c:_core.columns "
-                                + "  where relation_id='" + tableId + "'"
-                                + "    and coalesce(derived_column, false)=false "));
-              } else {
-                econ.exec(p.parse("delete c from c:_core.columns "
-                                      + "  where relation_id='" + tableId + "'"
-                                      + "    and coalesce(derived_column, false)=false "
-                                      + "    and name not in ("
-                                      + rel.columns().stream()
-                                           .map(c -> "'" + c.b.name() + "'")
-                                           .collect(joining(","))
-                                      + ")"));
-              }
-
-              /*
-               * Delete constraints which are not in information schema anymore.
-               */
-              if (rel.constraints().isEmpty()) {
-                econ.exec(p.parse("delete c from c:_core.constraints "
-                                      + "  where relation_id='" + tableId + "'"));
-              } else {
-                econ.exec(p.parse("delete c from c:_core.constraints "
-                                      + "  where relation_id='" + tableId + "'"
-                                      + "    and name not in ("
-                                      + rel.constraints().stream()
-                                           .map(c -> "'" + c.name() + "'")
-                                           .collect(joining(","))
-                                      + ")"));
-              }
-              if (!tableId.equals(rel.id())) {
-                updatedTables.add(rel.id(tableId));
-              }
-            }
-          }
-        }
-        if (!updatedTables.isEmpty()) {
-          for (BaseRelation rel: updatedTables) {
-            structure.relation(rel);
-          }
-        }
-
-        /*
-         * Load bare relations without columns, constraints, etc. as these may
-         * refer to other relations which are not loaded yet. After loading the
-         * relations their columns, constraints, indices, and so on are loaded
-         * as they can then refer freely to other relations.
-         */
-        try (ResultSet rs = stmt.executeQuery("select \"_id\", \"name\", \"display_name\", \"description\", " +
-                                                  "       \"type\", \"view_definition\" " +
-                                                  "  from \"_core\".\"relations\"");
-             PreparedStatement attrStmt = con.prepareStatement(
-                 "select \"attribute\", \"value\" " +
-                     "  from \"_core\".\"relation_attributes\" " +
-                     " where \"relation_id\"=?")) {
-          while (rs.next()) {
-            loadRelation(con, context, structure, p, attrStmt, rs);
-          }
-        }
-
-        /*
-         * load constraints after all tables are loaded so that foreign key
-         * constraints can be properly linked to their target tables.
-         */
-        try (Result rs = econ.exec(p.parse(
-            "select _id, name, relation_id, type, check_expr, " +
-                "        source_columns, target_relation_id, target_columns, " +
-                "        forward_cost, reverse_cost, on_update, on_delete " +
-                "   from _core.constraints"))) {
-          while (rs.toNext()) {
-            loadConstraints(context, structure, p, rs);
-          }
-        }
-
-        //          // load indices and link to covered tables
-        //          try (ResultSet rs = c.createStatement().executeQuery("SELECT _id, name, relation_id, unique_index, " +
-        //              "columns, expressions, partial_index_condition " +
-        //              "FROM _core.indices")) {
-        //            while (rs.next()) {
-        //              loadIndex(structure, rs);
-        //            }
-        //          }
-        //
-        //          // load sequences
-        //          try (ResultSet rs = c.createStatement().executeQuery("SELECT _id, name, start, increment, maximum, cycles " +
-        //              "FROM _core.sequences")) {
-        //            while (rs.next()) {
-        //              loadSequence(structure, rs);
-        //            }
-        //          }
-
-        //        // load indices and link to covered tables
-        //        try (ResultSet rs = stmt.executeQuery("select _id, name, relation_id, unique_index, " +
-        //                                                  "columns, expressions, partial_index_condition " +
-        //                                                  "from _core.indices")) {
-        //          while (rs.next()) {
-        //            loadIndex(structure, rs);
-        //          }
-        //        }
-        //
-        //        // load sequences
-        //        try (ResultSet rs = c.createStatement().executeQuery("SELECT _id, name, start, increment, maximum, cycles " +
-        //                                                                 "FROM _core.sequences")) {
-        //          while (rs.next()) {
-        //            loadSequence(structure, rs);
-        //          }
-        //        }
-
-        /*
-         * Find the correct type for derived columns (the derived column type are
-         * set to void by default).
-         */
-        for (BaseRelation rel: structure.relations().values()) {
-          for (T2<Relation, Column> column: rel.columns()) {
-            if (column.b.derived()) {
-              column.b.computeType(new EsqlPath(column.b));
-            }
-          }
-        }
-
-//        for (BaseRelation rel: structure.relations().values()) {
-//          rel.expandColumns();
-//        }
-
-        // Todo: parse expressions
-        // Todo: load the view sources by interpreting the view definition
-      } catch (SQLException e) {
-        throw new RuntimeException(e);
-      }
-    }
-
-    /*
-     * Load extensions.
-     */
-    loadExtensions(config.get(CONFIG_DB_EXTENSIONS, emptyMap()),
-                   new HashSet<>(), 0);
-  }
-
-  private void loadExtensions(Map<Class<? extends Extension>, Configuration> toLoad,
-                              Set<Class<? extends Extension>> loaded,
-                              int level) {
-    try {
-      for (Class<? extends Extension> extension: toLoad.keySet()) {
-        if (!loaded.contains(extension)) {
-          loaded.add(extension);
-          log.log(INFO, repeat(' ', level * 2) + extension.getName() + " loaded");
-
-          Extension e = extension.getDeclaredConstructor().newInstance();
-          if (e.dependsOn() != null && !e.dependsOn().isEmpty()) {
-            loadExtensions(e.dependsOn(), loaded, level + 1);
-          }
-          e.init(this, toLoad.get(extension));
-          extensions.put(extension, e);
-          log.log(INFO, repeat(' ', level * 2) + extension.getName() + " initialized");
-        }
-      }
-    } catch (Exception e) {
-      throw e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e);
-    }
-  }
-
   @Override
   public Configuration config() {
     return config;
@@ -870,7 +162,7 @@ public abstract class AbstractDatabase implements Database {
   }
 
   /**
-   * Removes a ESQL transformer from the list of transformers that was used to
+   * Removes an ESQL transformer from the list of transformers that was used to
    * transform ESQL statements prior to their executions, if it exists. Returns
    * true if the transformer was successfully removed.
    */
@@ -888,7 +180,6 @@ public abstract class AbstractDatabase implements Database {
     return unmodifiableList(transformers);
   }
 
-
   @Override
   public Iterator<Executor> executors() {
     return executors.iterator();
@@ -897,6 +188,356 @@ public abstract class AbstractDatabase implements Database {
   @Override
   public void addExecutor(Executor executor) {
     executors.addFirst(executor);
+  }
+
+  @Override
+  public Subscription subscribe(String table, boolean includeHistory) {
+    Subscription sub = new Subscription(table, includeHistory, new LinkedBlockingDeque<>());
+    subscriptions.computeIfAbsent(table, t -> new ArrayList<>()).add(sub);
+    return sub;
+  }
+
+  @Override
+  public List<Subscription> subscriptions(String table) {
+    return subscriptions.getOrDefault(table, emptyList());
+  }
+
+  @Override
+  public void unsubscribe(Subscription subscription) {
+    subscriptions.get(subscription.table()).remove(subscription);
+  }
+
+  private void loadInformationSchemas() {
+    try (Connection con = pooledConnection();
+         Statement stmt = con.createStatement()) {
+
+      Context context = new Context(structure);
+      Parser parser = new Parser(structure);
+
+      /*
+       * Load table information from information schemas.
+       */
+      try (ResultSet rs = stmt.executeQuery("select table_schema, table_name "
+                                              + "  from information_schema.tables "
+                                              + " where table_type='BASE TABLE'"
+                                              + "   and upper(table_schema) not in ("
+                                              + ignoredSchemas.stream()
+                                                              .map(s -> "'" + s + "'")
+                                                              .collect(Collectors.joining(","))
+                                              + ")")) {
+        while (rs.next()) {
+          /*
+           * Load table
+           */
+          UUID tableId = UUID.randomUUID();
+          String schema = rs.getString("table_schema");
+          String name = rs.getString("table_name");
+          String tableName = Type.esqlTableName(schema, name, target());
+
+          /*
+           * Load columns.
+           */
+          List<Column> columns = new ArrayList<>();
+          try (ResultSet crs = con.createStatement().executeQuery(
+            "select column_name, ordinal_position, data_type, " +
+              "       column_default, is_nullable " +
+              "  from information_schema.columns " +
+              " where table_schema='" + schema + "' " +
+              "   and table_name='" + name + "'" +
+              " order by ordinal_position")) {
+
+            while (crs.next()) {
+              UUID columnId = UUID.randomUUID();
+              String columnName = crs.getString("column_name");
+              // int fieldNumber = frs.getInt("ordinal_position");
+              String colType = crs.getString("data_type");
+              String columnType = Types.esqlType(colType, target());
+              if (columnType == null) {
+                throw new IllegalArgumentException("ESQL type equivalent for " + target() + " type "
+                                                     + colType + " is not known");
+              }
+              boolean notNull = crs.getString("is_nullable").equals("NO");
+              String defaultValue = crs.getString("column_default");
+
+              /*
+               * Load custom columns attributes
+               */
+              List<Attribute> attributes = new ArrayList<>();
+              attributes.add(new Attribute(context, TYPE, new StringLiteral(context, columnType)));
+              if (defaultValue != null) {
+                attributes.add(new Attribute(context, EXPRESSION, dbExpressionToEsql(defaultValue, parser)));
+              }
+              attributes.add(new Attribute(context, ID, new UuidLiteral(context, columnId)));
+              attributes.add(new Attribute(context, REQUIRED, new BooleanLiteral(context, notNull)));
+              Metadata metadata = new Metadata(context, attributes);
+              Type type = Types.typeOf(columnType);
+              columns.add(new Column(context,
+                                     columnName,
+                                     new ColumnRef(context, null, columnName, type),
+                                     type,
+                                     metadata));
+            }
+          }
+          BaseRelation relation = new BaseRelation(context,
+                                                   tableId,
+                                                   tableName,
+                                                   tableName,
+                                                   null,
+                                                   null,
+                                                   columns,
+                                                   new ArrayList<>());
+          structure.relation(relation);
+          Types.customType(relation.name(), relation);
+        }
+      }
+
+      /*
+       * Load constraints from information schema for tables which do not
+       * already exist in the core tables.
+       */
+      try (ResultSet crs = con.createStatement().executeQuery(
+        "select table_schema, table_name, constraint_schema, "
+          + "       constraint_name, constraint_type "
+          + "  from information_schema.table_constraints"
+          + " where upper(table_schema) not in "
+          + "(" + ignoredSchemas.stream()
+                                .map(s -> "'" + s + "'")
+                                .collect(Collectors.joining(",")) + ")"
+          + "   and upper(constraint_name) not like '%_NOT_NULL'"
+          + " order by table_schema, table_name")) {
+
+        while (crs.next()) {
+          String schema = crs.getString("table_schema");
+          String name = crs.getString("table_name");
+          String tableName = Type.esqlTableName(schema, name, target());
+
+          BaseRelation relation = structure.relation(tableName);
+          String constraintSchema = crs.getString("constraint_schema");
+          String constraintName = crs.getString("constraint_name");
+          String constraintType = crs.getString("constraint_type");
+
+          List<String> sourceColumns = keyColumns(con.createStatement(), constraintSchema, constraintName).b;
+          List<String> targetColumns;
+          BaseRelation targetRelation = null;
+          ConstraintDefinition c = null;
+          switch (constraintType) {
+            case "CHECK":
+              try (ResultSet r = con.createStatement().executeQuery(
+                "select check_clause " +
+                  "  from information_schema.check_constraints " +
+                  " where constraint_schema='" + constraintSchema + "' " +
+                  "   and constraint_name='" + constraintName + "'")) {
+                r.next();
+                c = new CheckConstraint(
+                  context,
+                  constraintName,
+                  tableName,
+                  dbExpressionToEsql(r.getString("check_clause"), parser));
+              }
+              break;
+
+            case "UNIQUE":
+              c = new UniqueConstraint(context, constraintName, tableName, sourceColumns);
+              break;
+
+            case "PRIMARY KEY":
+              c = new PrimaryKeyConstraint(context, constraintName, tableName, sourceColumns);
+              break;
+
+            case "FOREIGN KEY":
+              try (ResultSet r = con.createStatement().executeQuery(
+                "select unique_constraint_schema," +
+                  "       unique_constraint_name," +
+                  "       update_rule, " +
+                  "       delete_rule " +
+                  "  from information_schema.referential_constraints " +
+                  " where constraint_schema='" + constraintSchema + "' " +
+                  "   and constraint_name='" + constraintName + "'")) {
+                r.next();
+                String uniqueConstraintSchema = r.getString("unique_constraint_schema");
+                String uniqueConstraintName = r.getString("unique_constraint_name");
+                String updateRule = r.getString("update_rule");
+                String deleteRule = r.getString("delete_rule");
+
+                T2<String, List<String>> target = keyColumns(con.createStatement(),
+                                                             uniqueConstraintSchema,
+                                                             uniqueConstraintName);
+                targetRelation = structure.relation(target.a);
+                targetColumns = target.b;
+
+                c = new ForeignKeyConstraint(context,
+                                             constraintName,
+                                             tableName,
+                                             sourceColumns,
+                                             target.a,
+                                             targetColumns,
+                                             0, 0,
+                                             fromInformationSchema(updateRule),
+                                             fromInformationSchema(deleteRule),
+                                             false);
+              }
+          }
+          relation.constraint(c);
+
+          /*
+           * Dependent relation: E.g., r1[a] -> r2[b]: r1 depends on r2. If r2
+           * is dropped, so should r1.
+           */
+          if (targetRelation != null) {
+            targetRelation.dependentConstraint((ForeignKeyConstraint)c);
+          }
+        }
+      }
+    } catch (SQLException sqle) {
+      throw new RuntimeException(sqle);
+    }
+  }
+
+  /**
+   * Create tables from data in information schema and drop columns and constraints
+   * that no longer exist in the information schema.
+   */
+  private void updateCoreTables() {
+    Parser p = new Parser(structure);
+    try (EsqlConnection econ = esql()) {
+      List<BaseRelation> updatedTables = new ArrayList<>();
+      for (BaseRelation rel : structure.relations().values()) {
+        String schema = Type.schema(rel.name());
+        if (schema == null
+          || !schema.equals("_core")
+          || !ignoredSchemas.contains(schema.toUpperCase())) {
+          UUID tableId = tableId(econ, rel.name());
+          if (tableId == null) {
+            addTable(econ, rel);
+          } else {
+            econ.exec(p.parse(
+              "update r from r:_core.relations "
+                + "   set display_name=" + (rel.displayName == null ? "'" + rel.name() + "'" : "'" + escapeSqlString(rel.displayName) + "'") + ", "
+                + "       description=" + (rel.description == null ? "null" : "'" + escapeSqlString(rel.description) + "'")
+                + " where _id='" + tableId + "'"));
+
+            /*
+             * Delete non-derived columns which are not in information schema anymore.
+             */
+            if (rel.columns().isEmpty()) {
+              econ.exec(p.parse("delete c from c:_core.columns "
+                                  + "  where relation_id='" + tableId + "'"
+                                  + "    and coalesce(derived_column, false)=false"));
+            } else {
+              econ.exec(p.parse("delete c from c:_core.columns "
+                                  + "  where relation_id='" + tableId + "'"
+                                  + "    and coalesce(derived_column, false)=false "
+                                  + "    and name not in ("
+                                  + rel.columns().stream()
+                                       .map(c -> "'" + c.b.name() + "'")
+                                       .collect(joining(","))
+                                  + ")"));
+            }
+
+            /*
+             * Delete constraints which are not in information schema anymore.
+             */
+            if (rel.constraints().isEmpty()) {
+              econ.exec(p.parse("delete c from c:_core.constraints "
+                                  + "  where relation_id='" + tableId + "'"));
+            } else {
+              econ.exec(p.parse("delete c from c:_core.constraints "
+                                  + "  where relation_id='" + tableId + "'"
+                                  + "    and name not in ("
+                                  + rel.constraints().stream()
+                                       .map(c -> "'" + c.name() + "'")
+                                       .collect(joining(","))
+                                  + ")"));
+            }
+            if (!tableId.equals(rel.id())) {
+              updatedTables.add(rel.id(tableId));
+            }
+          }
+        }
+      }
+      if (!updatedTables.isEmpty()) {
+        for (BaseRelation rel : updatedTables) {
+          structure.relation(rel);
+        }
+      }
+    }
+  }
+
+  private void loadCoreTables() {
+    Context context = new Context(structure);
+    Parser p = new Parser(structure);
+
+    try (EsqlConnection econ = esql();
+         Statement stmt = econ.connection().createStatement()) {
+      /*
+       * Load bare relations without columns, constraints, etc. as these may refer
+       * to other relations which are not loaded yet. After loading the relations
+       * their columns, constraints, indices, and so on are loaded as they can
+       * then refer freely to other relations.
+       */
+      try (ResultSet rs = stmt.executeQuery("select \"_id\", \"name\", \"display_name\", \"description\", " +
+                                              "       \"type\", \"view_definition\" " +
+                                              "  from \"_core\".\"relations\"");
+           PreparedStatement attrStmt = econ.connection().prepareStatement(
+             "select \"attribute\", \"value\" " +
+               "  from \"_core\".\"relation_attributes\" " +
+               " where \"relation_id\"=?")) {
+        while (rs.next()) {
+          loadRelation(econ.connection(), context, structure, p, attrStmt, rs);
+        }
+      }
+
+      /*
+       * load constraints after all tables are loaded so that foreign key
+       * constraints can be properly linked to their target tables.
+       */
+      try (Result rs = econ.exec(p.parse(
+        "select _id, name, relation_id, type, check_expr, " +
+          "        source_columns, target_relation_id, target_columns, " +
+          "        forward_cost, reverse_cost, on_update, on_delete " +
+          "   from _core.constraints"))) {
+        while (rs.toNext()) {
+          loadConstraints(context, structure, p, rs);
+        }
+      }
+
+      /*
+       * Find the correct type for derived columns (the derived column type are
+       * set to void by default).
+       */
+      for (BaseRelation rel: structure.relations().values()) {
+        for (T2<Relation, Column> column: rel.columns()) {
+          if (column.b.derived()) {
+            column.b.computeType(new EsqlPath(column.b));
+          }
+        }
+      }
+    } catch (SQLException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  private void loadExtensions(Map<Class<? extends Extension>, Configuration> toLoad,
+                              Set<Class<? extends Extension>> loaded,
+                              int level) {
+    try {
+      for (Class<? extends Extension> extension: toLoad.keySet()) {
+        if (!loaded.contains(extension)) {
+          loaded.add(extension);
+          log.log(INFO, repeat(' ', level * 2) + extension.getName() + " loaded");
+
+          Extension e = extension.getDeclaredConstructor().newInstance();
+          if (e.dependsOn() != null && !e.dependsOn().isEmpty()) {
+            loadExtensions(e.dependsOn(), loaded, level + 1);
+          }
+          e.init(this, toLoad.get(extension));
+          extensions.put(extension, e);
+          log.log(INFO, repeat(' ', level * 2) + extension.getName() + " initialized");
+        }
+      }
+    } catch (Exception e) {
+      throw e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e);
+    }
   }
 
   private T2<String, List<String>> keyColumns(Statement stmt,
@@ -942,11 +583,13 @@ public abstract class AbstractDatabase implements Database {
     Types.customType(name, relation);
   }
 
+  /**
+   * Load custom relation attributes.
+   */
   protected List<Attribute> loadRelationAttributes(Context context,
                                                    Parser parser,
                                                    PreparedStatement attrStmt,
                                                    UUID relationId) throws SQLException {
-    // load custom relation attributes
     List<Attribute> attributes = new ArrayList<>();
     attrStmt.setObject(1, relationId);
     try (ResultSet ars = attrStmt.executeQuery()) {
@@ -959,18 +602,6 @@ public abstract class AbstractDatabase implements Database {
     }
     return attributes;
   }
-
-//  protected void loadSequence(Structure structure, ResultSet rs) throws SQLException {
-//    Sequence s = new Sequence(
-//        this,
-//        UUID.fromString(rs.getString("_id")),
-//        rs.getString("name"),
-//        rs.getLong("start"),
-//        rs.getLong("increment"),
-//        rs.getLong("maximum"),
-//        rs.getBoolean("cycles"));
-//    structure.sequence(s);
-//  }
 
   protected List<Column> loadColumns(Connection con,
                                      Context context,
@@ -1042,14 +673,13 @@ public abstract class AbstractDatabase implements Database {
     }
   }
 
+  /**
+   * Load constraints.
+   */
   protected void loadConstraints(Context context,
                                  Structure structure,
                                  Parser parser,
                                  Result rs) {
-    /*
-     * Load constraints.
-     */
-    // UUID id = UUID.fromString(rs.getString("_id"));
     String name = rs.value("name");
     BaseRelation relation = structure.relation((UUID)rs.value("relation_id"));
     ConstraintDefinition.Type type = fromMarker(((String)rs.value("type")).charAt(0));
@@ -1095,88 +725,13 @@ public abstract class AbstractDatabase implements Database {
     };
     relation.constraint(c);
 
-    // dependent relation:
-    // E.g., r1[a] -> r2[b]: r1 depends on r2. If r2 is dropped, so should r1.
+    /*
+     * dependent relation: E.g., r1[a] -> r2[b]: r1 depends on r2. If r2 is
+     * dropped, so should r1.
+     */
     if (targetRelation != null) {
-      // targetRelation.dependency(relation);
       targetRelation.dependentConstraint((ForeignKeyConstraint)c);
     }
-
-//    // link referenced field to constraint
-//    // if the field is dropped, so should the constraint
-//    if (fields != null && !fields.isEmpty()) {
-//      for (Field f: fields) {
-//        f.dependentConstraint(c);
-//      }
-//    }
-//
-//    // link referring table for foreign keys to field;
-//    // if this field is dropped, so should the referring table.
-//    //      E.g., r1[a] -> r2[b]: r1 is the dependent relation for field b
-//    if (targetFields != null && !targetFields.isEmpty()) {
-//      for (Field f: targetFields) {
-//        f.dependentForeignKey(relation);
-//      }
-//    }
-  }
-
-//    private []int intArrayFrom(String array) {
-//        if (array == null || array.trim().length() == 0) {
-//            return new [0]int;
-//        } else {
-//            String a[] = array.substring(1, array.length() - 1).split(",");
-//            []int values = new [a.length]int;
-//            for (int i=0; i < a.length; i++) {
-//                values[i] = Integer.parseInt(a[i]);
-//            }
-//            return values;
-//        }
-//    }
-
-//    protected void loadIndex(Structure structure, ResultSet rs) throws SQLException {
-//        Index index = new Index(
-//                this,
-//                UUID.fromString(rs.getString("_id")),
-//                rs.getString("name"),
-//                structure.relation(UUID.fromString(rs.getString("relation_id"))),
-//                rs.getBoolean("unique_index"),
-//                rs.getString("partial_index_condition"));
-//
-//        Array fieldsArray = rs.getArray("fields");
-//        if (fieldsArray != null) {
-//            Integer[] fields = (Integer[])fieldsArray.getArray();
-//            Map<Integer, Field> fieldsByNumber = index.indexedRelation.fieldsByNumber();
-//            for (Integer field: fields) {
-//                if (field != 0) {
-//                    index.indexFields.add(fieldsByNumber.get(field));
-//                }
-//            }
-//        }
-//
-//        Array expressionArray = rs.getArray("expressions");
-//        if (expressionArray  != null) {
-//            String[] exprs = (String[])expressionArray.getArray();
-//            for (String expr: exprs) {
-//                index.indexExpressions.add(new DbExpression(this, expr));
-//            }
-//        }
-//        index.indexedRelation.addIndex(index);
-//    }
-
-  public boolean hasCoreTables(Connection con) {
-    if (hasCoreTables == null) {
-      try (Statement stmt = con.createStatement();
-           ResultSet rs = stmt.executeQuery(
-               "select table_name " +
-                   "  from information_schema.tables " +
-                   " where table_schema='_core' " +
-                   "   and table_name='relations'")) {
-        hasCoreTables = rs.next();
-      } catch (SQLException e) {
-        throw new RuntimeException(e);
-      }
-    }
-    return hasCoreTables;
   }
 
   /**
@@ -1185,60 +740,61 @@ public abstract class AbstractDatabase implements Database {
    */
   @Override
   public UUID tableId(EsqlConnection con, String tableName) {
-    if (hasCoreTables(con.connection())) {
-      try (ResultSet rs = con.connection().createStatement().executeQuery("select _id " +
-                                                             "  from _core.relations " +
-                                                             " where name='" + tableName + "'")) {
-        return rs.next() ? UUID.fromString(rs.getString(1)) : null;
-      } catch (SQLException sqle) {
-        throw new RuntimeException(sqle);
-      }
+    try (ResultSet rs = con.connection().createStatement().executeQuery(
+        "select _id"
+      + "  from _core.relations "
+      + " where name='" + tableName + "'")) {
+      return rs.next() ? UUID.fromString(rs.getString(1)) : null;
+    } catch (SQLException sqle) {
+      throw new RuntimeException(sqle);
     }
-    return null;
   }
 
   @Override
   public void addTable(EsqlConnection con, BaseRelation table) {
-    if (hasCoreTables(con.connection())) {
-      Parser p = new Parser(structure());
-//      EsqlConnection econ = esql(con);
-      try (Result rs = con.exec(p.parse("select _id from _core.relations where name='" + table.name() + "'"))) {
-        if (!rs.toNext()) {
-          /*
-           * Add table, its columns and constraints
-           */
-          con.exec(p.parse(
-              "insert into _core.relations(_id, name, display_name, description, type) values(" +
-                  "u'" + table.id() + "', " +
-                  "'" + table.name() + "', " +
-                  (table.displayName == null ? "'" + table.name() + "'" : "'" + escapeSqlString(table.displayName) + "'") + ", " +
-                  (table.description == null ? "null" : "'" + escapeSqlString(table.description) + "'") + ", " +
-                  "'" + Relation.RelationType.TABLE.marker + "')"));
+    createCoreRelations(con);
+    Parser p = new Parser(structure());
+    try (Result rs = con.exec(p.parse("select _id"
+                                    + "  from _core.relations"
+                                    + " where name='" + table.name() + "'"))) {
+      if (!rs.toNext()) {
+        /*
+         * Add table, its columns and constraints
+         */
+        con.exec(p.parse(
+            "insert into _core.relations(_id, name, display_name, description, type) values(" +
+                "u'" + table.id() + "', " +
+                "'" + table.name() + "', " +
+                (table.displayName == null ? "'" + table.name() + "'" : "'" + escapeSqlString(table.displayName) + "'") + ", " +
+                (table.description == null ? "null" : "'" + escapeSqlString(table.description) + "'") + ", " +
+                "'" + Relation.RelationType.TABLE.marker + "')"));
 
-          if (table.attributes() != null) {
-            Insert insertRelAttr = p.parse(INSERT_TABLE_ATTRIBUTE, "insert");
-            for (Map.Entry<String, Attribute> a: table.attributes().entrySet()) {
-              con.exec(insertRelAttr,
-                        new QueryParams()
-                          .add("tableId", table.id())
-                          .add("name", a.getKey())
-                          .add("value", a.getValue().attributeValue().translate(ESQL)));
-            }
+        if (table.attributes() != null) {
+          createCoreRelationAttributes(con);
+          Insert insertRelAttr = p.parse(INSERT_TABLE_ATTRIBUTE, "insert");
+          for (Map.Entry<String, Attribute> a: table.attributes().entrySet()) {
+            con.exec(insertRelAttr,
+                      new QueryParams()
+                        .add("tableId", table.id())
+                        .add("name", a.getKey())
+                        .add("value", a.getValue().attributeValue().translate(ESQL)));
           }
+        }
 
-          // add columns
-          Insert insertCol = p.parse(INSERT_COLUMN, "insert");
-          Insert insertColAttr = p.parse(INSERT_COLUMN_ATTRIBUTE, "insert");
+        // add columns
+        createCoreColumns(con);
+        createCoreColumnAttributes(con);
+        Insert insertCol = p.parse(INSERT_COLUMN, "insert");
+        Insert insertColAttr = p.parse(INSERT_COLUMN_ATTRIBUTE, "insert");
+        for (T2<Relation, Column> column: table.columns()) {
+          addColumn(con, table.id(), column.b, insertCol, insertColAttr);
+        }
 
-          for (T2<Relation, Column> column: table.columns()) {
-            addColumn(con, table.id(), column.b, insertCol, insertColAttr);
-          }
-
-          // add constraints
-          Insert insertConstraint = p.parse(INSERT_CONSTRAINT, "insert");
-          for (ConstraintDefinition c: table.constraints()) {
-            addConstraint(con, table.id(), c, insertConstraint);
-          }
+        // add constraints
+        createCoreConstraints(con);
+        Insert insertConstraint = p.parse(INSERT_CONSTRAINT, "insert");
+        for (ConstraintDefinition c: table.constraints()) {
+          addConstraint(con, table.id(), c, insertConstraint);
         }
       }
     }
@@ -1250,48 +806,45 @@ public abstract class AbstractDatabase implements Database {
    */
   @Override
   public BaseRelation updateTable(EsqlConnection con, BaseRelation table) {
-    if (hasCoreTables(con.connection())) {
-      Parser p = new Parser(structure());
-//      EsqlConnection econ = esql(con);
-      try (Result rs = con.exec(p.parse("select _id from _core.relations where name='" + table.name() + "'"))) {
-        if (rs.toNext()) {
-          /*
-           * Update table, its columns and constraints
-           */
-          UUID tableId = rs.value(1);
-          con.exec(p.parse(
-              "update r from r:_core.relations "
-                  + "set display_name=" + (table.displayName == null ? "'" + table.name() + "'" : "'" + escapeSqlString(table.displayName) + "'") + ", "
-                  + "    description=" +(table.description == null ? "null" : "'" + escapeSqlString(table.description) + "'") + ", "
-                  + "    type='" + Relation.RelationType.TABLE.marker + "' "
-                  + "where _id='" + tableId + "'"));
+    Parser p = new Parser(structure());
+    try (Result rs = con.exec(p.parse("select _id from _core.relations where name='" + table.name() + "'"))) {
+      if (rs.toNext()) {
+        /*
+         * Update table, its columns and constraints
+         */
+        UUID tableId = rs.value(1);
+        con.exec(p.parse(
+            "update r from r:_core.relations "
+                + "set display_name=" + (table.displayName == null ? "'" + table.name() + "'" : "'" + escapeSqlString(table.displayName) + "'") + ", "
+                + "    description=" +(table.description == null ? "null" : "'" + escapeSqlString(table.description) + "'") + ", "
+                + "    type='" + Relation.RelationType.TABLE.marker + "' "
+                + "where _id='" + tableId + "'"));
 
-          clearTableMetadata(con, tableId);
-          if (table.attributes() != null) {
-            tableMetadata(con, tableId, new Metadata(table.context, table.attributesList()));
-          }
-
-          /*
-           * Clear and re-add columns
-           */
-          con.exec(p.parse("delete c from c:_core.columns where relation_id='" + tableId + "'"));
-          Insert insertCol = p.parse(INSERT_COLUMN, "insert");
-          Insert insertColAttr = p.parse(INSERT_COLUMN_ATTRIBUTE, "insert");
-          for (T2<Relation, Column> column: table.columns()) {
-            addColumn(con, tableId, column.b, insertCol, insertColAttr);
-          }
-
-          /*
-           * Clear and re-add constraints
-           */
-          con.exec(p.parse("delete c from c:_core.constraints where relation_id='" + tableId + "'"));
-          Insert insertConstraint = p.parse(INSERT_CONSTRAINT, "insert");
-          for (ConstraintDefinition c: table.constraints()) {
-            addConstraint(con, tableId, c, insertConstraint);
-          }
-
-          return tableId.equals(table.id()) ? table : table.id(tableId);
+        clearTableMetadata(con, tableId);
+        if (table.attributes() != null) {
+          tableMetadata(con, tableId, new Metadata(table.context, table.attributesList()));
         }
+
+        /*
+         * Clear and re-add columns
+         */
+        con.exec(p.parse("delete c from c:_core.columns where relation_id='" + tableId + "'"));
+        Insert insertCol = p.parse(INSERT_COLUMN, "insert");
+        Insert insertColAttr = p.parse(INSERT_COLUMN_ATTRIBUTE, "insert");
+        for (T2<Relation, Column> column: table.columns()) {
+          addColumn(con, tableId, column.b, insertCol, insertColAttr);
+        }
+
+        /*
+         * Clear and re-add constraints
+         */
+        con.exec(p.parse("delete c from c:_core.constraints where relation_id='" + tableId + "'"));
+        Insert insertConstraint = p.parse(INSERT_CONSTRAINT, "insert");
+        for (ConstraintDefinition c: table.constraints()) {
+          addConstraint(con, tableId, c, insertConstraint);
+        }
+
+        return tableId.equals(table.id()) ? table : table.id(tableId);
       }
     }
     return table;
@@ -1299,58 +852,36 @@ public abstract class AbstractDatabase implements Database {
 
   @Override
   public void renameTable(EsqlConnection con, UUID tableId, String name) {
-    if (hasCoreTables(con.connection())) {
-      // EsqlConnection econ = esql(con);
-      Parser p = new Parser(structure());
-      con.exec(p.parse(
-          "update rel " +
-              "   from rel:_core.relations " +
-              "    set name='" + name +
-              "' where _id='" + tableId + "'"));
-    }
+    createCoreRelations(con);
+    con.exec(
+        "update rel "
+      + "   from rel:_core.relations "
+      + "    set name='" + name
+      + "' where _id='" + tableId + "'");
   }
 
   @Override
   public void dropTable(EsqlConnection con, UUID tableId) {
-    if (hasCoreTables(con.connection())) {
-//      EsqlConnection econ = esql(con);
-//      // delete constraints
-//      con.createStatement().executeUpdate("DELETE FROM _core.constraints WHERE relation_id='" + tableId + "'");
-//
-//      // delete columns attributes
-//      con.createStatement().executeUpdate("DELETE FROM _core.column_attributes " +
-//                                              "WHERE field_id IN (" +
-//                                              "      SELECT _id FROM _core.columns " +
-//                                              "      WHERE relation_id='" + tableId + "')");
-//
-//      // delete columns
-//      con.createStatement().executeUpdate("DELETE FROM _core.columns WHERE relation_id='" + tableId + "'");
-//
-//      // delete relation attributes
-//      con.createStatement().executeUpdate("DELETE FROM _core.relation_attributes WHERE relation_id='" + tableId + "'");
-
-      // delete from in _core.relations
-      Parser p = new Parser(structure());
-      con.exec(p.parse("delete rel from rel:_core.relations where _id='" + tableId + "'"));
-    }
+    createCoreRelations(con);
+    con.exec("delete rel"
+           + "  from rel:_core.relations"
+           + " where _id='" + tableId + "'");
   }
 
   @Override
   public void column(EsqlConnection con, UUID tableId, Column column) {
-    if (hasCoreTables(con.connection())) {
-//      EsqlConnection econ = esql(con);
-      Parser p = new Parser(structure());
-      Insert insertCol = p.parse(INSERT_COLUMN, "insert");
-      Insert insertColAttr = p.parse(INSERT_COLUMN_ATTRIBUTE, "insert");
-      addColumn(con, tableId, column, insertCol, insertColAttr);
-    }
+    createCoreColumns(con);
+    Parser p = new Parser(structure());
+    Insert insertCol = p.parse(INSERT_COLUMN, "insert");
+    Insert insertColAttr = p.parse(INSERT_COLUMN_ATTRIBUTE, "insert");
+    addColumn(con, tableId, column, insertCol, insertColAttr);
   }
 
-  private Column addColumn(EsqlConnection econ,
-                           UUID tableId,
-                           Column column,
-                           Insert insertCol,
-                           Insert insertColAttr) {
+  private void addColumn(EsqlConnection econ,
+                         UUID tableId,
+                         Column column,
+                         Insert insertCol,
+                         Insert insertColAttr) {
     String columnName = column.name();
     if (columnName.indexOf('/') == -1) {
       /*
@@ -1390,7 +921,6 @@ public abstract class AbstractDatabase implements Database {
                            column.defaultExpression() != null ? column.defaultExpression().translate(ESQL) : null));
       addColumnMetadata(econ, column, insertColAttr);
     }
-    return column;
   }
 
   private void addColumnMetadata(EsqlConnection econ,
@@ -1410,59 +940,50 @@ public abstract class AbstractDatabase implements Database {
 
   @Override
   public void columnName(EsqlConnection con, UUID columnId, String name) {
-    if (hasCoreTables(con.connection())) {
-//      EsqlConnection econ = esql(con);
-      Parser p = new Parser(structure());
-      con.exec(p.parse("update col from col:_core.columns set name='" + name + "' where _id='" + columnId + "'"));
-    }
+    createCoreColumns(con);
+    con.exec("update col"
+           + "  from col:_core.columns"
+           + "   set name='" + name + "'"
+           + " where _id='" + columnId + "'");
   }
 
   @Override
   public void columnType(EsqlConnection con, UUID columnId, String type) {
-    if (hasCoreTables(con.connection())) {
-//      EsqlConnection econ = esql(con);
-      Parser p = new Parser(structure());
-      con.exec(p.parse("update col from col:_core.columns set type='" + type + "' where _id='" + columnId + "'"));
-    }
+    createCoreColumns(con);
+    con.exec("update col"
+           + "  from col:_core.columns"
+           + "   set type='" + type + "'"
+           + " where _id='" + columnId + "'");
   }
 
   @Override
   public void defaultValue(EsqlConnection con, UUID columnId, String defaultValue) {
-    if (hasCoreTables(con.connection())) {
-//      EsqlConnection econ = esql(con);
-      Parser p = new Parser(structure());
-      con.exec(p.parse(
-        "update col " +
-            "  from col:_core.columns " +
-            "   set expression=" + (defaultValue == null ? "null"
-                                                           : "'" + StringLiteral.escapeEsqlString(defaultValue) + "'") +
-            " where _id=u'" + columnId + "'"));
-    }
+    createCoreColumns(con);
+    con.exec("update col "
+           + "  from col:_core.columns "
+           + "   set expression=" + (defaultValue == null
+                                   ? "null"
+                                   : "'" + escapeEsqlString(defaultValue) + "'")
+           + " where _id=u'" + columnId + "'");
   }
 
   @Override
   public void notNull(EsqlConnection con, UUID columnId, String notNull) {
-    if (hasCoreTables(con.connection())) {
-//      EsqlConnection econ = esql(con);
-      Parser p = new Parser(structure());
-      con.exec(p.parse(
-            "update col" +
-                "  from col:_core.columns " +
-                "   set not_null=" + notNull +
-                " where _id=u'" + columnId + "'"));
-    }
+    createCoreColumns(con);
+    con.exec("update col"
+           + "  from col:_core.columns"
+           + "   set not_null=" + notNull
+           + " where _id=u'" + columnId + "'");
   }
 
   @Override
   public void columnMetadata(EsqlConnection con,
                              UUID columnId,
                              Metadata metadata) {
-    if (hasCoreTables(con.connection())) {
-//      EsqlConnection econ = esql(con);
-      Parser p = new Parser(structure());
-      Insert insertColAttr = p.parse(INSERT_COLUMN_ATTRIBUTE, "insert");
-      columnMetadata(con, p, columnId, metadata, insertColAttr);
-    }
+    createCoreColumnAttributes(con);
+    Parser p = new Parser(structure());
+    Insert insertColAttr = p.parse(INSERT_COLUMN_ATTRIBUTE, "insert");
+    columnMetadata(con, p, columnId, metadata, insertColAttr);
   }
 
   private void columnMetadata(EsqlConnection econ,
@@ -1484,22 +1005,18 @@ public abstract class AbstractDatabase implements Database {
 
   @Override
   public void dropColumn(EsqlConnection con, UUID columnId) {
-    if (hasCoreTables(con.connection())) {
-//      EsqlConnection econ = esql(con);
-      Parser p = new Parser(structure());
-      con.exec(p.parse("delete col from col:_core.columns where _id='" + columnId + "'"));
-    }
+    createCoreColumns(con);
+    con.exec("delete col from col:_core.columns where _id='" + columnId + "'");
   }
 
   @Override
   public void constraint(EsqlConnection con,
                          UUID tableId,
                          ConstraintDefinition constraint) {
-    if (hasCoreTables(con.connection())) {
-      Parser p = new Parser(structure());
-      Insert insertConstraint = p.parse(INSERT_CONSTRAINT, "insert");
-      addConstraint(con, tableId, constraint, insertConstraint);
-    }
+    createCoreConstraints(con);
+    Parser p = new Parser(structure());
+    Insert insertConstraint = p.parse(INSERT_CONSTRAINT, "insert");
+    addConstraint(con, tableId, constraint, insertConstraint);
   }
 
   private void addConstraint(EsqlConnection econ,
@@ -1578,71 +1095,64 @@ public abstract class AbstractDatabase implements Database {
   public void dropConstraint(EsqlConnection con,
                              UUID tableId,
                              String constraintName) {
-    if (hasCoreTables(con.connection())) {
-//      EsqlConnection econ = esql(con);
-      Parser p = new Parser(structure());
-      con.exec(p.parse(
-          "delete con " +
-              "  from con:_core.constraints " +
-              " where relation_id='" + tableId + "' " +
-              "   and name='" + constraintName + "'"));
-    }
+    createCoreConstraints(con);
+    con.exec("delete con "
+          + "  from con:_core.constraints "
+          + " where relation_id='" + tableId + "' "
+          + "   and name='" + constraintName + "'");
   }
 
   @Override
   public void clearTableMetadata(EsqlConnection con, UUID tableId) {
-    if (hasCoreTables(con.connection())) {
-//      EsqlConnection econ = esql(con);
-      Parser p = new Parser(structure());
-      con.exec(p.parse("delete att " +
-                            "  from att:_core.relation_attributes " +
-                            " where relation_id='" + tableId + '\''));
-    }
+    createCoreRelationAttributes(con);
+    con.exec("delete att"
+           + "  from att:_core.relation_attributes"
+           + " where relation_id='" + tableId + "'");
   }
 
   @Override
   public void tableMetadata(EsqlConnection con, UUID tableId, Metadata metadata) {
-    if (hasCoreTables(con.connection())) {
-//      EsqlConnection econ = esql(con);
-      if (metadata != null && metadata.attributes() != null) {
-        Parser p = new Parser(structure());
-        Insert insert = p.parse("insert into _core.relation_attributes" +
-                                    "(_id, relation_id, attribute, value) values" +
-                                    "(newid(), @relation, @name, @value)", "insert");
-        for (Attribute attr: metadata.attributes().values()) {
-          Expression<?, ?> value = attr.attributeValue();
-          con.exec(insert,
-                   new QueryParams()
-                      .add("relation", tableId)
-                      .add("name", attr.name())
-                      .add("value", value.translate(ESQL)));
-        }
+    if (metadata != null && metadata.attributes() != null) {
+      createCoreRelations(con);
+      createCoreRelationAttributes(con);
 
-        /*
-         * Update table display name and description if specified.
-         */
-        String tableDisplayName = metadata.evaluateAttribute(NAME);
-        String tableDescription = metadata.evaluateAttribute(DESCRIPTION);
-        if (tableDisplayName != null && tableDescription != null) {
-          con.exec(p.parse(
-              "update rel " +
-              "  from rel:_core.relations " +
-              "   set display_name='" + escapeSqlString(tableDisplayName) + "', " +
-              "       description='" + escapeSqlString(tableDescription) + "'" +
-              " where _id='" + tableId + "'"));
-        } else if (tableDisplayName != null) {
-          con.exec(p.parse(
-              "update rel " +
-                  "  from rel:_core.relations " +
-                  "   set display_name='" + escapeSqlString(tableDisplayName) + "'" +
-                  " where _id='" + tableId + "'"));
-        } else if (tableDescription != null) {
-          con.exec(p.parse(
-              "update rel " +
-                  "  from reL:_core.relations " +
-                  "   set description='" + escapeSqlString(tableDescription) + "'" +
-                  " where _id='" + tableId + "'"));
-        }
+      Parser p = new Parser(structure());
+      Insert insert = p.parse("insert into _core.relation_attributes"
+                            + "      (_id, relation_id, attribute, value)"
+                            + "values(newid(), @relation, @name, @value)", "insert");
+      for (Attribute attr: metadata.attributes().values()) {
+        Expression<?, ?> value = attr.attributeValue();
+        con.exec(insert,
+                 new QueryParams()
+                    .add("relation", tableId)
+                    .add("name", attr.name())
+                    .add("value", value.translate(ESQL)));
+      }
+
+      /*
+       * Update table display name and description if specified.
+       */
+      String tableDisplayName = metadata.evaluateAttribute(NAME);
+      String tableDescription = metadata.evaluateAttribute(DESCRIPTION);
+      if (tableDisplayName != null && tableDescription != null) {
+        con.exec(p.parse(
+            "update rel"
+          + "  from rel:_core.relations"
+          + "   set display_name='" + escapeSqlString(tableDisplayName) + "', "
+          + "       description='" + escapeSqlString(tableDescription) + "'"
+          + " where _id='" + tableId + "'"));
+      } else if (tableDisplayName != null) {
+        con.exec(p.parse(
+            "update rel "
+          + "  from rel:_core.relations "
+          + "   set display_name='" + escapeSqlString(tableDisplayName) + "'"
+          + " where _id='" + tableId + "'"));
+      } else if (tableDescription != null) {
+        con.exec(p.parse(
+            "update rel "
+          + "  from reL:_core.relations "
+          + "   set description='" + escapeSqlString(tableDescription) + "'"
+          + " where _id='" + tableId + "'"));
       }
     }
   }
@@ -1651,12 +1161,59 @@ public abstract class AbstractDatabase implements Database {
     return value == null ? null : value.toString();
   }
 
+  /**
+   * Hack to ensure that native database expressions are mapped to ESQL form (A
+   * better solution to this would require a parser for each target database as
+   * the default expressions read from the information schemas are expressed in
+   * those):
+   * 1. that all boolean value capitalisations are mapped to the lowercase esql
+   *    form.
+   * 2. String prefixes such as N'' and E'' are removed (this is done using a
+   *    regex which caters for most cases but will not catch all of them; for that
+   *    a parser is required).
+   * 3. Remove square brackets surrounding variables which are used in SQL Server.
+   */
+  private static Expression<?, String> dbExpressionToEsql(String expr, Parser parser) {
+    if (expr == null) {
+      return null;
+    } else {
+      expr = expr.trim();
+      if (expr.equalsIgnoreCase("true")) {
+        expr = "true";
+      } else if (expr.equalsIgnoreCase("false")) {
+        expr = "false";
+      }
+      if (expr.equalsIgnoreCase("null")) {
+        expr = "null";
+      }
+      expr = STRING_PREFIX.matcher(expr).replaceAll("$1");
+      expr = SQL_SERVER_SURROUNDED_VAR.matcher(expr).replaceAll("$1");
+      expr = SQL_SERVER_LEN.matcher(expr).replaceAll("length($1)");
+      expr = SQL_KEYWORDS.matcher(expr).replaceAll(m -> m.group().toLowerCase());
+      return parser.parseExpression(expr);
+    }
+  }
+
+  /**
+   * The cached database structure is loaded on initialisation and kept up-to-date
+   * on every change to the database through object creation, deletion and alteration
+   * statements.
+   */
   protected Structure structure;
 
-  private Boolean hasCoreTables = null;
-
+  /**
+   * List of registered ESQL transformers which can change an ESQL program before
+   * it is executed.
+   */
   private final List<EsqlTransformer> transformers = new ArrayList<>();
 
+  /**
+   * The executors chain which executes the ESQL program. New executors are added
+   * at the front of the queue and the first one is invoked with the ESQL to execute.
+   * The executor can complete the execution or perform some action before
+   * delegating to the next one in the chain. At the bottom of the chain is the
+   * {@link DefaultExecutor} which is the base executor for ESQL programs.
+   */
   private final Deque<Executor> executors = new ArrayDeque<>(singleton(new DefaultExecutor()));
 
   /**
@@ -1673,39 +1230,35 @@ public abstract class AbstractDatabase implements Database {
    * Simple transaction boundary management using a thread local to hold the
    * current active connection (and transaction).
    */
-  private final ThreadLocal<Stack<EsqlConnectionImpl>> current = new ThreadLocal<>() {
-    @Override
-    protected Stack<EsqlConnectionImpl> initialValue() {
-      return new Stack<>();
-    }
-  };
+  private final ThreadLocal<Stack<EsqlConnectionImpl>> current = ThreadLocal.withInitial(Stack::new);
 
-  private static final String INSERT_COLUMN =
-      "insert into _core.columns("
-          + "  _id, _can_delete, relation_id, name, "
-          + "  derived_column, type, not_null, expression, seq) "
-          + "values(@id, @canDelete, @relation, @name, "
-          + "       @derivedColumn, @type, @nonNull, @expression, "
-          + "       coalesce(from _core.columns select max(seq) where relation_id=@relation, 0) + 1)";
+  /**
+   * Subscriptions to table events.
+   */
+  private final Map<String, List<Subscription>> subscriptions = new ConcurrentHashMap<>();
 
-  private static final String INSERT_COLUMN_ATTRIBUTE =
-      "insert into _core.column_attributes("
-          + "  _id, column_id, attribute, value) "
-          + "values(newid(), @columnId, @name, @value)";
+  private static final String INSERT_COLUMN = """
+    insert into _core.columns(_id, _can_delete, relation_id, name, derived_column,
+                              type, not_null, expression, seq)
+    values(@id, @canDelete, @relation, @name,
+           @derivedColumn, @type, @nonNull, @expression,
+           coalesce(from _core.columns select max(seq) where relation_id=@relation, 0) + 1)""";
 
-  private static final String INSERT_TABLE_ATTRIBUTE =
-      "insert into _core.relation_attributes"
-          + "(_id, relation_id, attribute, value) "
-          + "values(newid(), @tableId, @name, @value)";
+  private static final String INSERT_COLUMN_ATTRIBUTE = """
+    insert into _core.column_attributes(_id, column_id, attribute, value)
+                                 values(newid(), @columnId, @name, @value)""";
 
-  private static final String INSERT_CONSTRAINT =
-      "insert into _core.constraints"
-          + "(_id, name, relation_id, type, check_expr, source_columns, "
-          + "target_relation_id, target_columns, forward_cost, reverse_cost, "
-          + "on_update, on_delete) values"
-          + "(newid(), @name, @relation, @type, @checkExpr, @sourceColumns, "
-          + " @targetRelation, @targetColumns, @forwardCost, @reverseCost, "
-          + " @onUpdate, @onDelete)";
+  private static final String INSERT_TABLE_ATTRIBUTE = """
+    insert into _core.relation_attributes(_id, relation_id, attribute, value)
+                                   values(newid(), @tableId, @name, @value)""";
+
+  private static final String INSERT_CONSTRAINT = """
+    insert into _core.constraints(_id, name, relation_id, type, check_expr, source_columns,
+                                  target_relation_id, target_columns, forward_cost, reverse_cost,
+                                  on_update, on_delete)
+    values(newid(), @name, @relation, @type, @checkExpr, @sourceColumns,
+           @targetRelation, @targetColumns, @forwardCost, @reverseCost,
+           @onUpdate, @onDelete)""";
 
   private static final System.Logger log = System.getLogger(AbstractDatabase.class.getName());
 
@@ -1721,7 +1274,7 @@ public abstract class AbstractDatabase implements Database {
 
   /**
    * Regex to identify special variables that SQL Server surround with square
-   * brackets. To parse as ESQL the ssquare brackets must be removed.
+   * brackets. To parse as ESQL the square brackets must be removed.
    */
   private static final Pattern SQL_SERVER_SURROUNDED_VAR = Pattern.compile("\\[([a-zA-Z_][a-zA-Z_0-9]*)\\]");
 
@@ -1731,7 +1284,7 @@ public abstract class AbstractDatabase implements Database {
   private static final Pattern SQL_SERVER_LEN = Pattern.compile("len\\s*\\((.+)\\)");
 
   /**
-   * Keywords to change to lowercase
+   * Keywords to change to lowercase.
    */
   private static final Pattern SQL_KEYWORDS = Pattern.compile(
     "and|or|not|left|right|trim|len|length|null|in|all|any|true|false",

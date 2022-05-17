@@ -25,10 +25,7 @@ import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestFactory;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Stream;
 
 import static java.util.Collections.singletonList;
@@ -306,7 +303,7 @@ public class SelectTest extends DataTest {
                      assertTrue(validateUnique.similar(rs.resultAttributes().get("validate_unique")));
                      assertTrue(dependents.similar(rs.resultAttributes().get("dependents")));
                      assertTrue(new JSONArray(singletonList("_id")).similar(rs.resultAttributes().get(PRIMARY_KEY)));
-                     assertTrue(new JSONArray(
+                     assertEquals(new HashSet<>(new JSONArray(
                        Arrays.asList(
                          new JSONObject(Map.of(
                            "from_table", "a.b.T",
@@ -322,9 +319,12 @@ public class SelectTest extends DataTest {
                            "from_table", "b.Y",
                            "from_columns", new JSONArray(singletonList("s_id")),
                            "to_columns", new JSONArray(singletonList("_id"))
-                         ))
+                         )
                        )
-                     ).similar(rs.resultAttributes().get(REFERRED_BY)));
+                     )).toList()),
+                     new HashSet<>(
+                       ((JSONArray)rs.resultAttributes().get(REFERRED_BY)).toList()
+                     ));
 
                      rs.next(); assertInstanceOf(UUID.class, rs.value("_id"));
                                 assertEquals(6,  (Integer)rs.value("a"));

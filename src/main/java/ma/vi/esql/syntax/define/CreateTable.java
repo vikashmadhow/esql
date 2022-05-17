@@ -6,6 +6,7 @@ package ma.vi.esql.syntax.define;
 
 import ma.vi.base.collections.Sets;
 import ma.vi.base.tuple.T2;
+import ma.vi.esql.builder.CreateTableBuilder;
 import ma.vi.esql.database.Database;
 import ma.vi.esql.database.EsqlConnection;
 import ma.vi.esql.exec.Result;
@@ -30,14 +31,14 @@ import org.pcollections.PMap;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.*;
 import java.util.function.Function;
 
 import static java.lang.System.Logger.Level.ERROR;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.*;
-import static ma.vi.esql.builder.Attributes.DESCRIPTION;
-import static ma.vi.esql.builder.Attributes.NAME;
+import static ma.vi.esql.builder.Attributes.*;
 import static ma.vi.esql.semantic.type.Type.dbTableName;
 import static ma.vi.esql.translation.Translatable.Target.*;
 
@@ -309,9 +310,32 @@ public class CreateTable extends Define {
          * Does not exist and valid: create
          */
         con.createStatement().executeUpdate(modified.translate(db.target(), esqlCon, path.add(modified), env));
+        if (!tableName.startsWith("_core.")
+         && !tableName.endsWith(".History")) {
+          addCoarseEventCaptureTriggers(target, con, tableName);
+        }
         db.structure().relation(table);
 //        table.expandColumns();
         db.structure().database.addTable(esqlCon, table);
+
+        /*
+         * Create history table if history attribute set to true.
+         */
+        Boolean history = metadata().evaluateAttribute(HISTORY);
+        if (history != null && history) {
+          CreateTableBuilder builder = new CreateTableBuilder(context);
+          builder.name(tableName + ".History");
+          builder.metadata(NAME, "History of " + (tableDisplayName == null ? Type.unqualifiedName(tableName) : tableDisplayName));
+          builder.column("_hist_trans_id", "long", true);
+          builder.column("_hist_event", "char");
+          builder.column("_hist_time", "datetime");
+          builder.column("_hist_user", "string");
+          for (ColumnDefinition col: columns()) {
+            builder.column(col.name(), col.type().name(), col.notNull());
+          }
+          CreateTable create = builder.build();
+          create.exec(target, esqlCon, path.add(create), parameters, env);
+        }
       } else {
         /*
          * already exists: alter
@@ -486,6 +510,99 @@ public class CreateTable extends Define {
       log.log(ERROR, "Original query: " + this);
       throw new RuntimeException(e);
     }
+  }
+
+  /**
+   * Add coarse event-capture triggers which inserts a row into _core.history
+   * if any changes is detected on the table, without capturing any of the changed
+   * column values. These triggers are added to all tables except the ones in the
+   * _core schema and History tables.
+   *
+   * @param target The target database on which the table is being created. This
+   *               is used to create the triggers in the correct SQL dialect.
+   * @param con Connection to the database.
+   * @param table The table for which the triggers are being created.
+   * @throws SQLException On any error when creating the triggers.
+   */
+  private void addCoarseEventCaptureTriggers(Target target, Connection con, String table) throws SQLException {
+    T2<String, String> split = Type.splitName(table);
+    String schema = split.a;
+    String tableName = split.b;
+    String dbTableName = Type.dbTableName(table, target);
+
+    if (target == SQLSERVER) {
+      String insertTrigger = Type.dbTableName((schema == null ? "" : schema + '.') + "capture_insert_event_on_" + tableName, target);
+      String deleteTrigger = Type.dbTableName((schema == null ? "" : schema + '.') + "capture_delete_event_on_" + tableName, target);
+      String updateTrigger = Type.dbTableName((schema == null ? "" : schema + '.') + "capture_update_event_on_" + tableName, target);
+      try(Statement stmt = con.createStatement()) {
+        stmt.executeUpdate(
+          """
+          create or alter trigger %1$s on %2$s after insert as
+          begin
+            if (rowcount_big() = 0) return;
+            insert into _core._temp_history(trans_id, table_name, event, at_time)
+                               values(cast(current_transaction_id() as varchar),
+                                      '%3$s', 'I', getdate());
+          end""".formatted(insertTrigger, dbTableName, table));
+
+        stmt.executeUpdate(
+          """
+          create or alter trigger %1$s on %2$s after delete as
+          begin
+            if (rowcount_big() = 0) return;
+            insert into _core._temp_history(trans_id, table_name, event, at_time)
+                               values(cast(current_transaction_id() as varchar),
+                                      '%3$s', 'D', getdate());
+          end""".formatted(deleteTrigger, dbTableName, table));
+
+        stmt.executeUpdate(
+          """
+          create or alter trigger %1$s on %2$s after update as
+          begin
+            if (rowcount_big() = 0) return;
+            insert into _core._temp_history(trans_id, table_name, event, at_time)
+                               values(cast(current_transaction_id() as varchar),
+                                      '%3$s', 'U', getdate());
+          end""".formatted(updateTrigger, dbTableName, table));
+      }
+    } else if (target == POSTGRESQL) {
+      String insertTrigger = "capture_insert_event_on_" + tableName;
+      String deleteTrigger = "capture_delete_event_on_" + tableName;
+      String updateTrigger = "capture_update_event_on_" + tableName;
+      try(Statement stmt = con.createStatement()) {
+        stmt.executeUpdate(
+          """
+          create or replace trigger %1$s
+          after       insert on %2$s
+          referencing new table as inserted
+          for each    statement
+          execute     function _core.capture_insert_event()
+          """.formatted(insertTrigger, dbTableName));
+
+        stmt.executeUpdate(
+          """
+          create or replace trigger %1$s
+          after       delete on %2$s
+          referencing old table as deleted
+          for each    statement
+          execute     function _core.capture_delete_event()
+          """.formatted(deleteTrigger, dbTableName));
+
+        stmt.executeUpdate(
+          """
+          create or replace trigger %1$s
+          after       update on %2$s
+          referencing new table as inserted
+          for each    statement
+          execute     function _core.capture_update_event()
+          """.formatted(updateTrigger, dbTableName));
+      }
+    } else {
+      throw new IllegalArgumentException(target + " is not supported yet.");
+    }
+  }
+
+  private void addFineEventCaptureTrigger(Connection con, String table) {
   }
 
   public String name() {

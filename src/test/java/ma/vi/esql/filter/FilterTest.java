@@ -629,7 +629,7 @@ public class FilterTest extends DataTest {
     }
   }
 
-  private static void setupTables(EsqlConnection con) {
+  public static void setupTables(EsqlConnection con) {
     con.exec("drop table test.pX");
     con.exec("drop table test.pA");
     con.exec("drop table test.pB");

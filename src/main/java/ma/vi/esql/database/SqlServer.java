@@ -4,6 +4,7 @@
 
 package ma.vi.esql.database;
 
+import com.microsoft.sqlserver.jdbc.SQLServerConnection;
 import com.microsoft.sqlserver.jdbc.SQLServerConnectionPoolDataSource;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
@@ -40,7 +41,7 @@ public class SqlServer extends AbstractDatabase {
     dataSource = new HikariDataSource(new HikariConfig(props));
 
     init(config);
-    postInit(pooledConnection(), structure());
+    // postInit(pooledConnection(), structure());
   }
 
   @Override
@@ -49,15 +50,15 @@ public class SqlServer extends AbstractDatabase {
   }
 
   @Override
-  public void postInit(Connection con, Structure structure) {
-    super.postInit(con, structure);
-    try (Connection c = pooledConnection(true, -1)) {
+  public void init(Configuration config) {
+    super.init(config);
+    try (Connection c = pooledConnection(-1)) {
 
       // MS Sql-server specific initialization
 
       // Allow snapshot isolation
-      c.createStatement().executeUpdate(
-          "alter database " + valueOf(config().get(CONFIG_DB_NAME)) + " set allow_snapshot_isolation on");
+      // c.createStatement().executeUpdate(
+      //     "alter database " + valueOf(config().get(CONFIG_DB_NAME)) + " set allow_snapshot_isolation on");
 
       // function to add intervals to dates
       c.createStatement().executeUpdate(
@@ -352,14 +353,14 @@ public class SqlServer extends AbstractDatabase {
                 return @obfuscated;
               end;"""
       );
+      c.commit();
     } catch (SQLException e) {
       throw unchecked(e);
     }
   }
 
   @Override
-  public Connection rawConnection(boolean autoCommit,
-                                  int isolationLevel,
+  public Connection rawConnection(int isolationLevel,
                                   String username,
                                   String password) {
     try {
@@ -373,15 +374,13 @@ public class SqlServer extends AbstractDatabase {
               + ";sendStringParametersAsUnicode=true",
           username,
           password);
-      con.setAutoCommit(autoCommit);
-//      if (isolationLevel == -1) {
-//        con.setTransactionIsolation(SQLServerConnection.TRANSACTION_SNAPSHOT);
-//      } else {
-//        con.setTransactionIsolation(isolationLevel);
-//      }
-      if (isolationLevel != -1) {
+      if (isolationLevel == SNAPSHOT_ISOLATION) {
+        con.setTransactionIsolation(SQLServerConnection.TRANSACTION_SNAPSHOT);
+      } else if (isolationLevel != -1) {
         con.setTransactionIsolation(isolationLevel);
       }
+      con.setAutoCommit(false);
+      con.createStatement().executeUpdate("begin transaction");
       return con;
     } catch (Exception e) {
       throw unchecked(e);
@@ -389,23 +388,30 @@ public class SqlServer extends AbstractDatabase {
   }
 
   @Override
-  public Connection pooledConnection(boolean autoCommit,
-                                     int isolationLevel) {
+  public Connection pooledConnection(int isolationLevel) {
     try {
-//      Connection con = dataSource.getConnection(username, password);
       Connection con = dataSource.getConnection();
-      con.setAutoCommit(autoCommit);
-//      if (isolationLevel == -1) {
-//        con.setTransactionIsolation(SQLServerConnection.TRANSACTION_SNAPSHOT);
-//      } else {
-//        con.setTransactionIsolation(isolationLevel);
-//      }
-      if (isolationLevel != -1) {
+      if (isolationLevel == SNAPSHOT_ISOLATION) {
+        con.setTransactionIsolation(SQLServerConnection.TRANSACTION_SNAPSHOT);
+      } else if (isolationLevel != -1) {
         con.setTransactionIsolation(isolationLevel);
       }
+      con.setAutoCommit(false);
+      con.createStatement().executeUpdate("begin transaction");
       return con;
     } catch (Exception e) {
       throw unchecked(e);
+    }
+  }
+
+  @Override
+  public String transactionId(Connection con) {
+    try (ResultSet rs = con.createStatement().executeQuery(
+      "select cast(current_transaction_id() as varchar)")) {
+      rs.next();
+      return rs.getString(1);
+    } catch(SQLException sqle) {
+      throw new RuntimeException(sqle);
     }
   }
 
@@ -417,8 +423,8 @@ public class SqlServer extends AbstractDatabase {
   }
 
   protected static void _setArray(PreparedStatement ps,
-                                 int paramIndex,
-                                 Object array) throws SQLException {
+                                  int paramIndex,
+                                  Object array) throws SQLException {
     StringBuilder st = new StringBuilder();
     int length = Array.getLength(array);
     boolean first = true;
@@ -476,9 +482,9 @@ public class SqlServer extends AbstractDatabase {
         }
       }
       String[] split = remapped.split(",");
-      T[] list = (T[]) Array.newInstance(componentType, split.length);
+      T[] list = (T[])Array.newInstance(componentType, split.length);
       for (int i = 0; i < split.length; i++) {
-        list[i] = (T) Convert.convert(ARRAY_ESCAPE.demap(split[i]), componentType);
+        list[i] = (T)Convert.convert(ARRAY_ESCAPE.demap(split[i]), componentType);
       }
       return list;
     }

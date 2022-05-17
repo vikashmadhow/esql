@@ -6,9 +6,11 @@ package ma.vi.esql.database;
 
 import ma.vi.base.config.Configuration;
 import ma.vi.base.lang.NotFoundException;
+import ma.vi.base.tuple.T2;
 import ma.vi.esql.exec.Executor;
 import ma.vi.esql.semantic.type.BaseRelation;
 import ma.vi.esql.semantic.type.Column;
+import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.syntax.EsqlTransformer;
 import ma.vi.esql.syntax.define.ConstraintDefinition;
 import ma.vi.esql.syntax.define.Metadata;
@@ -18,10 +20,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
+import java.util.concurrent.BlockingQueue;
 
 /**
  * Represents a database containing tables and other persistent objects
@@ -72,11 +72,11 @@ public interface Database {
    */
   String CONFIG_DB_PASSWORD = "database.user.password";
 
-  /**
-   * Configuration parameter for whether or not to create the core tables if
-   * missing; default is true.
-   */
-  String CONFIG_DB_CREATE_CORE_TABLES = "database.createCoreTables";
+//  /**
+//   * Configuration parameter for whether to create the core tables if
+//   * missing; default is true.
+//   */
+//  String CONFIG_DB_CREATE_CORE_TABLES = "database.createCoreTables";
 
   /**
    * Configuration parameter for extensions. The value of this parameter must be
@@ -99,12 +99,13 @@ public interface Database {
    *   <li><b>database.name:</b> name of the database.</li>
    *   <li><b>database.user.name:</b> default username for connecting to the database.</li>
    *   <li><b>database.user.password:</b> default password for connecting to the database.</li>
-   *   <li><b>database.createCoreTables:</b> whether or not to create the core tables if missing; default is true.</li>
-   *   <li><b>database.extensions:</b> A set of classes implementing the Extension interface
-   *                                   which are initialised when the database starts.</li>
+   *   <li><b>database.extensions:</b> A set of classes implementing the {@link Extension}
+   *                                   interface which are initialised when the database
+   *                                   starts.</li>
    * </ul>
    *
-   * This method must be called when the database object is created.
+   * This method must be called when the database object is created. It is usually
+   * automatically called from the constructor of the specific database object.
    *
    * @param config Contains the configuration keys for connecting to the database.
    */
@@ -116,27 +117,28 @@ public interface Database {
   Configuration config();
 
   /**
-   * Returns the structure of the objects (relations) in the database, loading it when first called.
-   * This method will be called by {@link #init(Configuration)}.
+   * Returns the structure of the objects (relations) in the database, which is
+   * usually populated when the database is initialised in {@link #init(Configuration)}.
    */
   Structure structure();
 
-  /**
-   * Whether or not to create the core tables (in which are stored metadata info
-   * on all tables and columns, among others), if they are not present. This
-   * method returns the value of the configuration parameter
-   * `database.createCoreTables` if it is present, or true otherwise.
-   */
-  default boolean createCoreTables() {
-    return config().get(CONFIG_DB_CREATE_CORE_TABLES, Boolean.TRUE);
-  }
+//  /**
+//   * Whether to create the core tables (in which are stored metadata info
+//   * on all tables and columns, among others), if they are not present. This
+//   * method returns the value of the configuration parameter
+//   * `database.createCoreTables` if it is present, or true otherwise.
+//   */
+//  default boolean createCoreTables() {
+//    return config().get(CONFIG_DB_CREATE_CORE_TABLES, Boolean.TRUE);
+//  }
 
-  /**
-   * Performs post initialisation of the database where special objects, such as tables
-   * to hold metadata on other tables, can be created in the database. This is called after
-   * the {@link #structure()} method which allows the use of ESQL to create the objects.
-   */
-  void postInit(Connection con, Structure structure);
+//  /**
+//   * Performs post initialisation of the database where special objects, such as
+//   * tables to hold metadata on other tables, can be created in the database. This
+//   * is called after the {@link #structure()} method which allows the use of ESQL
+//   * to create the objects.
+//   */
+//  void postInit(Connection con, Structure structure);
 
   /**
    * Returns the translation target for this database.
@@ -168,20 +170,66 @@ public interface Database {
    */
   <E extends Extension> E extension(Class<? extends Extension> e) throws NotFoundException;
 
+  /**
+   * @return An iterator over the executor chain positioned at its front.
+   */
   Iterator<Executor> executors();
 
+  /**
+   * Adds an executor at the front of the executor chain. The executor chain is
+   * responsible for executing ESQL programs with the one in the front of the chain
+   * invoked by the connection for execution, and provided with an iterator over
+   * the chain positioned at the next executor on it. The current executor can
+   * complete the execution and return the result or delegate to the next executor
+   * in the chain (after, optionally, making any necessary changes to the execution
+   * context).
+   *
+   * @param executor The executor to add to the front of the executor chain.
+   */
   void addExecutor(Executor executor);
+
+  /**
+   * A subscription to change events on a table.
+   *
+   * @param table The table to observe.
+   * @param includeHistory Whether to observe the full history of changes (i.e.
+   *                       inserts, updates and deletes). Without full history,
+   *                       only a change event without the detailed change data
+   *                       will be generated and sent to the subscriber.
+   * @param events The queue forming the subscription channel through the database
+   *               will send change events to the subscriber.
+   */
+  record Subscription(String table,
+                      boolean includeHistory,
+                      BlockingQueue<ChangeEvent> events) {}
+
+  record ChangeEvent(String table,
+                     String user,
+                     Date   at,
+                     List<Map<String, Object>> inserted,
+                     List<Map<String, Object>> deleted,
+                     List<Map<String, Object>> updatedFrom,
+                     List<Map<String, Object>> updatedTo) {}
+
+  Subscription subscribe(String table, boolean includeHistory);
+
+  default Subscription subscribe(String table) {
+    return subscribe(table, false);
+  }
+
+  List<Subscription> subscriptions(String table);
+
+  void unsubscribe(Subscription subscription);
 
   // Connections
   //////////////////////////////////////////////////////
   /**
    * Returns a connection from the pool to the underlying database.
    */
-  Connection pooledConnection(boolean autoCommit,
-                              int isolationLevel);
+  Connection pooledConnection(int isolationLevel);
 
   default Connection pooledConnection() {
-    return pooledConnection(false, -1);
+    return pooledConnection(-1);
   }
 
   /**
@@ -189,25 +237,28 @@ public interface Database {
    * Raw connections provide access to database-specific functionalities
    * such as bulk copying through the CopyManager in Postgresql.
    */
-  Connection rawConnection(boolean autoCommit,
-                           int isolationLevel,
+  Connection rawConnection(int isolationLevel,
                            String username,
                            String password);
 
-  default Connection rawConnection(boolean autoCommit, int isolationLevel) {
-    return rawConnection(autoCommit,
-                         isolationLevel,
+  default Connection rawConnection(int isolationLevel) {
+    return rawConnection(isolationLevel,
                          config().get("database.user.name"),
                          config().get("database.user.password"));
   }
 
   default Connection rawConnection() {
-    return rawConnection(false, -1);
+    return rawConnection(-1);
   }
 
   default Connection rawConnection(String username, String password) {
-    return rawConnection(false, -1, username, password);
+    return rawConnection(-1, username, password);
   }
+
+  /**
+   * @return A unique identifier of the single active transaction of this connection.
+   */
+  String transactionId(Connection con);
 
   /**
    * Returns a connection through which Esql commands can be executed. If the
@@ -221,11 +272,6 @@ public interface Database {
   default EsqlConnection esql() {
     return esql(null);
   }
-
-  /**
-   * The schema for the core information tables.
-   */
-  String CORE_SCHEMA = "_core";
 
   // array support
   ////////////////////////////////
@@ -259,7 +305,178 @@ public interface Database {
    */
   void setArray(PreparedStatement ps, int paramIndex, Object array) throws SQLException;
 
-  // Update information tables
+  // Load and check database information
+  /////////////////////////////////////////
+
+  default boolean tableExists(EsqlConnection con, String table) {
+    T2<String, String> name = Type.splitName(table);
+    try(ResultSet rs = con.connection().createStatement().executeQuery(
+      "select table_name "
+        + "  from information_schema.tables"
+        + " where table_schema='" + name.a + "'"
+        + "   and table_name='" + name.b + "'")) {
+      return rs.next();
+    } catch (SQLException sqle) {
+      throw new RuntimeException(sqle);
+    }
+  }
+
+  /**
+   * Creates the _core.relations table if it does not exist already.
+   * @param con The connection to use to create the table.
+   */
+  default void createCoreRelations(EsqlConnection con) {
+    if (!tableExists(con, "_core.relations")) {
+      con.exec("""
+               create table _core.relations drop undefined({
+                 name: 'Relations',
+                 description: 'All relations in the database'
+               },
+               
+               _id             uuid    not null,
+               _can_delete     bool,
+               _can_edit       bool,
+               name            string  not null,
+               display_name    string,
+               description     string,
+               type            char    not null,
+               view_definition text,
+                                      
+               constraint _core_relations_pk       primary key (_id),
+               constraint _core_relations_unq_name unique(name))""");
+    }
+  }
+
+  default void createCoreRelationAttributes(EsqlConnection con) {
+    if (!tableExists(con, "_core.relation_attributes")) {
+      /*
+       * create table for holding additional type information on tables.
+       */
+      con.exec("""
+               create table _core.relation_attributes drop undefined({
+                 name: 'Relation attributes',
+                 description: 'Attributes (metadata) of relations'
+               },
+               
+               _id         uuid    not null,
+               relation_id uuid    not null,
+               attribute   string  not null,
+               value       text,
+               
+               constraint _core_rel_attr_pk           primary key(_id),
+               constraint _core_rel_attr_rel_fk       foreign key(relation_id) references _core.relations(_id) on delete cascade on update cascade,
+               constraint _core_rel_attr_unq_rel_attr unique(relation_id, attribute))""");
+    }
+  }
+
+  default void createCoreColumns(EsqlConnection con) {
+    if (!tableExists(con, "_core.columns")) {
+      con.exec("""
+               create table _core.columns drop undefined({
+                 name: 'Relation columns',
+                 description: 'Information on columns of relations'
+               },
+               
+               _id             uuid   not null,
+               _can_delete     bool,
+               _can_edit       bool,
+               relation_id     uuid   not null,
+               name            string not null,
+               derived_column  bool,
+               type            string not null,
+               not_null        bool,
+               expression      text,
+               seq             int    not null,
+               
+               constraint _core_columns_pk                primary key(_id),
+               constraint _core_columns_relation_id_fk    foreign key(relation_id) references _core.relations(_id) on delete cascade on update cascade,
+               constraint _core_columns_unq_relation_name unique(relation_id, name),
+               constraint _core_columns_unq_relation_seq  unique(relation_id, seq))""");
+    }
+  }
+
+  default void createCoreColumnAttributes(EsqlConnection con) {
+    if (!tableExists(con, "_core.column_attributes")) {
+      con.exec("""
+               create table _core.column_attributes drop undefined({
+                 name: 'Column attributes',
+                 description: 'Attributes (metadata) of relation columns'
+               },
+               
+               _id       uuid    not null,
+               column_id uuid    not null,
+               attribute string  not null,
+               value     text,
+               
+               constraint _core_column_attr_pk              primary key(_id),
+               constraint _core_column_attr_column_fk       foreign key(column_id) references _core.columns(_id) on delete cascade on update cascade,
+               constraint _core_column_attr_unq_column_attr unique(column_id, attribute))""");
+    }
+  }
+
+  default void createCoreConstraints(EsqlConnection con) {
+    if (!tableExists(con, "_core.constraints")) {
+      con.exec("""
+               create table _core.constraints drop undefined({
+                 name: 'Relation constraints',
+                 description: 'Integrity constraints on relations'
+               },
+               
+               _id                 uuid    not null,
+               name                string  not null,
+               relation_id         uuid    not null,
+               type                char    not null,
+               check_expr          text,
+               source_columns      []string,
+               target_relation_id  uuid,
+               target_columns      []string,
+               forward_cost        int     not null default 1,
+               reverse_cost        int     not null default 2,
+               on_update           char,
+               on_delete           char,
+               
+               constraint _core_constraints_pk        primary key(_id),
+               constraint _core_constraints_rel_id_fk foreign key(relation_id) references _core.relations(_id) on delete cascade on update cascade)""");
+    }
+  }
+
+  default void createCoreHistory(EsqlConnection con) {
+    if (!tableExists(con, "_core.history")) {
+      /*
+       * Coarse-grain history tracking.
+       */
+      con.exec("""
+               create table _core.history drop undefined(
+               trans_id   string   not null,
+               table_name string   not null,
+               event      char     not null,
+               at_time    datetime not null,
+               user_id    string)""");
+
+      con.exec("create index history_trans_id on _core.history(trans_id)");
+
+      /*
+       * Temp history saved in this table for performance, before being moved
+       * asynchronously to _core.history.
+       */
+      con.exec("""
+               create table _core._temp_history drop undefined(
+               trans_id   string   not null,
+               table_name string   not null,
+               event      char     not null,
+               at_time    datetime not null)""");
+    }
+  }
+
+//  List<BaseRelation> loadTables();
+//
+//  /**
+//   * @param table The table to load indices for.
+//   * @return The indices on the table.
+//   */
+//  List<Index> loadIndices(String table);
+
+  // Update database information
   ///////////////////////////////////////////////////
 
   /**
@@ -308,6 +525,8 @@ public interface Database {
 
   void dropConstraint(EsqlConnection con, UUID tableId, String constraintName);
 
+  int SNAPSHOT_ISOLATION = 0x1000;
+
   Database NULL_DB = new Database() {
     @Override
     public void init(Configuration config) {}
@@ -321,9 +540,6 @@ public interface Database {
     public Structure structure() {
       return new Structure(this);
     }
-
-    @Override
-    public void postInit(Connection con, Structure structure) {}
 
     @Override
     public Translatable.Target target() {
@@ -348,29 +564,39 @@ public interface Database {
       return Collections.emptyList();
     }
 
-    /**
-     * @return An iterator over the chain of executors to use to execute an ESQL
-     *         program.
-     */
     @Override
     public Iterator<Executor> executors() {
       return Collections.emptyIterator();
     }
 
-    /**
-     * Add an executor to the chain of executors to use to execute ESQL programs.
-     * @param executor The executor to add.
-     */
     @Override
     public void addExecutor(Executor executor) {}
 
     @Override
-    public Connection pooledConnection(boolean autoCommit, int isolationLevel) {
+    public Subscription subscribe(String table, boolean includeHistory) {
       return null;
     }
 
     @Override
-    public Connection rawConnection(boolean autoCommit, int isolationLevel, String username, String password) {
+    public List<Subscription> subscriptions(String table) {
+      return null;
+    }
+
+    @Override
+    public void unsubscribe(Subscription subscription) {}
+
+    @Override
+    public Connection pooledConnection(int isolationLevel) {
+      return null;
+    }
+
+    @Override
+    public Connection rawConnection(int isolationLevel, String username, String password) {
+      return null;
+    }
+
+    @Override
+    public String transactionId(Connection con) {
       return null;
     }
 

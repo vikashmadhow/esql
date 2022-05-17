@@ -147,6 +147,13 @@ public class Attributes {
   public static final String DESCRIPTION = "description";
 
   /**
+   * Set on a table that is opting into the history tracking system. When this
+   * is set to true, a history table to capture change events for the table is
+   * created and a trigger is set on the table to capture change events.
+   */
+  public static final String HISTORY = "history";
+
+  /**
    * An expression to compute a string form for a table record. This
    * form is used in place of the full record in places where the latter
    * would not fit, such as inside a drop-drown menu. When not specified

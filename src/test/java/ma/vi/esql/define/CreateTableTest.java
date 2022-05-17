@@ -15,7 +15,7 @@ import static org.junit.jupiter.api.DynamicTest.dynamicTest;
 /**
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public class CreateTest extends DataTest {
+public class CreateTableTest extends DataTest {
   @TestFactory
   Stream<DynamicTest> create() {
     return Stream.of(databases)

@@ -1620,6 +1620,16 @@ public interface EsqlListener extends ParseTreeListener {
 	 */
 	void exitBaseLiteralList(EsqlParser.BaseLiteralListContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link EsqlParser#integerConstant}.
+	 * @param ctx the parse tree
+	 */
+	void enterIntegerConstant(EsqlParser.IntegerConstantContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link EsqlParser#integerConstant}.
+	 * @param ctx the parse tree
+	 */
+	void exitIntegerConstant(EsqlParser.IntegerConstantContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link EsqlParser#define}.
 	 * @param ctx the parse tree
 	 */
@@ -1909,6 +1919,56 @@ public interface EsqlListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitDropTable(EsqlParser.DropTableContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link EsqlParser#createIndex}.
+	 * @param ctx the parse tree
+	 */
+	void enterCreateIndex(EsqlParser.CreateIndexContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link EsqlParser#createIndex}.
+	 * @param ctx the parse tree
+	 */
+	void exitCreateIndex(EsqlParser.CreateIndexContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link EsqlParser#dropIndex}.
+	 * @param ctx the parse tree
+	 */
+	void enterDropIndex(EsqlParser.DropIndexContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link EsqlParser#dropIndex}.
+	 * @param ctx the parse tree
+	 */
+	void exitDropIndex(EsqlParser.DropIndexContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link EsqlParser#createSequence}.
+	 * @param ctx the parse tree
+	 */
+	void enterCreateSequence(EsqlParser.CreateSequenceContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link EsqlParser#createSequence}.
+	 * @param ctx the parse tree
+	 */
+	void exitCreateSequence(EsqlParser.CreateSequenceContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link EsqlParser#dropSequence}.
+	 * @param ctx the parse tree
+	 */
+	void enterDropSequence(EsqlParser.DropSequenceContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link EsqlParser#dropSequence}.
+	 * @param ctx the parse tree
+	 */
+	void exitDropSequence(EsqlParser.DropSequenceContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link EsqlParser#alterSequence}.
+	 * @param ctx the parse tree
+	 */
+	void enterAlterSequence(EsqlParser.AlterSequenceContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link EsqlParser#alterSequence}.
+	 * @param ctx the parse tree
+	 */
+	void exitAlterSequence(EsqlParser.AlterSequenceContext ctx);
 	/**
 	 * Enter a parse tree produced by the {@code Base}
 	 * labeled alternative in {@link EsqlParser#type}.

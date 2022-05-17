@@ -674,11 +674,6 @@ expr
     | 'default'                                                 #DefaultValue
 
       /*
-       * Any literal (such as a number or string) is a valid expression.
-       */
-    | literal                                                   #LiteralExpr
-
-      /*
        * A function call consists of the function name (which can be qualified)
        * followed by an optional comma-separated list of zero or more
        * expressions as arguments to the function (or a single select to cover
@@ -738,6 +733,11 @@ expr
     | '@' Identifier                                            #NamedParameter
 
     | '@(' expr ')'                                             #Evaluate
+
+      /*
+       * Any literal (such as a number or string) is a valid expression.
+       */
+    | literal                                                   #LiteralExpr
 
       /*
        * A single-column, single-row only select used as an expression.
@@ -1103,13 +1103,26 @@ literalList
 baseLiteralList
     : baseLiteral (',' baseLiteral)*
     ;
+
 /**
- * Integer literals in ESQL consist of a sequence of digits preceded optionally
- * by a minus sign (-) for negative values.
+ * Positive Integer literals consist of a sequence of digits. A negative integer
+ * is formed by negative a positive integer.
+ *
+ * Negative numbers are now parsed as the negation operation on a number (or
+ * expression) instead of being parsed as token in the lexer. If the negative sign
+ * is part of the pattern of a number `n-1` would be parsed by the lexer as two
+ * tokens: `n` and `-1` which is wrong. Now only the pattern for positive integers
+ * is defined as a lexical rule with negative numbers treated as the negation
+ * operator applied on a positive number.
  */
 IntegerLiteral
     : Digits
     ;
+
+integerConstant
+  : IntegerLiteral
+  | '-' IntegerLiteral
+  ;
 
 /*
  * Floating-Point literals in ESQL consist of a mantissa and an exponent part.
@@ -1268,16 +1281,16 @@ define
     | alterTable
     | dropTable
 
-//    | createSequence
-//    | alterSequence
-//    | dropSequence
+    | createIndex
+    | dropIndex
+
+    | createSequence
+    | alterSequence
+    | dropSequence
 
 //    | createView
 //    | alterView
 //    | dropView
-
-//    | createIndex
-//    | dropIndex
 
 //    | createFunction
 //    | createTrigger
@@ -1394,7 +1407,7 @@ constraintDefinition
     | constraintName? 'foreign' 'key'
       from=names 'references' qualifiedName to=names
 
-      ('cost' '(' forwardcost=IntegerLiteral (',' reversecost=IntegerLiteral)? ')')?
+      ('cost' '(' forwardcost=integerConstant (',' reversecost=integerConstant)? ')')?
 
       /*
        * The constraint can have an 'on update' action, an 'on delete' action,
@@ -1531,6 +1544,41 @@ alterDefault
  */
 dropTable
     : 'drop' 'table' qualifiedName
+    ;
+
+
+createIndex
+    : 'create' unique='unique'?
+      'index'  Identifier
+      'on'     qualifiedName '(' expressionList ')'
+    ;
+
+dropIndex
+    : 'drop' 'index' Identifier 'on' qualifiedName
+    ;
+
+createSequence
+    : 'create' 'sequence' qualifiedName
+      ('start'      start=integerConstant)?
+      ('increment'    inc=integerConstant)?
+      ('minvalue'     min=integerConstant)?
+      ('maxvalue'     max=integerConstant)?
+      cycle='cycle'?
+      ('cache'      cache=IntegerLiteral)?
+    ;
+
+dropSequence
+    : 'drop' 'sequence' qualifiedName
+    ;
+
+alterSequence
+    : 'alter' 'sequence' qualifiedName
+      ('restart'   restart=integerConstant?)?
+      ('increment'     inc=integerConstant)?
+      ('minvalue'      min=integerConstant)?
+      ('maxvalue'      max=integerConstant)?
+      cycle='cycle'?
+      ('cache'       cache=IntegerLiteral)?
     ;
 
 /**

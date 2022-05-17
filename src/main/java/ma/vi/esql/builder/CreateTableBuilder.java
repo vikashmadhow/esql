@@ -52,7 +52,11 @@ public class CreateTableBuilder implements Builder<CreateTable> {
   }
 
   public CreateTableBuilder column(String name, String type, Attr... metadata) {
-    return column(name, type, false, null, metadata);
+    return column(name, type, false, metadata);
+  }
+
+  public CreateTableBuilder column(String name, String type, boolean notNull, Attr... metadata) {
+    return column(name, type, notNull, null, metadata);
   }
 
   public CreateTableBuilder column(String name, String type, boolean notNull,

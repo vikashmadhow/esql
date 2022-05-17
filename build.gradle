@@ -59,7 +59,7 @@ java {
   withSourcesJar()
 }
 
-version = "0.9.5"
+version = "0.9.6"
 group = 'ma.vi'
 sourceCompatibility = JavaVersion.VERSION_17
 
@@ -115,7 +115,7 @@ projectFilestatistics {
 }
 
 dependencies {
-  antlr("org.antlr:antlr4:latest.release")
+  antlr("org.antlr:antlr4:4.10.1")
 
   api('org.pcollections:pcollections:3.1.4')
   api("ma.vi:base:latest.release")
@@ -130,7 +130,6 @@ dependencies {
   implementation("mysql:mysql-connector-java:8.0.25")
   implementation('org.hsqldb:hsqldb:2.6.1')
   implementation("com.zaxxer:HikariCP:5.0.1")
-//  implementation("cubrid:cubrid-jdbc:10.2.2.8874")
 
   // Use JUnit test framework
   testImplementation(platform('org.junit:junit-bom:5.8.2'))

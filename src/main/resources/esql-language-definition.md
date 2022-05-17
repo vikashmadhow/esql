@@ -4,30 +4,32 @@
 
 ESQL aims to be a database query language similar in syntax to SQL but with
 extensions to include metadata into the query language and the ability to be
-transparently translated to different implementations of the SQL language 
-supported by the main relational databases in use. PostgreSQL, Microsoft SQL Server
-and HyperSQL are the currently supported databases with more planned in the near future.
+transparently translated to different implementations of the SQL language supported 
+by the main relational databases in use. PostgreSQL, Microsoft SQL Server are the
+currently supported databases with more planned in the near future.
 
-I built a first version of ESQL in 2018 to use for my own projects and have used it 
-successfully in several projects in Mauritius, Eswatini and Ethiopia. ESQL greatly 
-reduced the effort required to deliver projects through 1) its metadata which can be 
-used to automatically generate rich user interfaces, reports, user filters, data imports, 
-etc. and 2) its translation to various databases allows for a single language to be used
-even if the different projects use different databases.
+I built a first version of ESQL in 2018 to use for my own projects and have used 
+it successfully in several projects in Mauritius, Eswatini and Ethiopia. ESQL 
+greatly reduced the effort required to deliver projects through 1) its metadata 
+which can be used to automatically generate rich user interfaces, reports, user 
+filters, data imports, etc. and 2) its translation to various databases allows 
+for a single language to be used even if the different projects use different 
+databases.
 
 Experience over the last 2 years has also revealed some flaws in the initial
-design of the language, including the lack of a full specification, missing rules on how 
-to combine metadata in complex queries and missing rules on how to compute metadata 
-in different type of queries such as in the presence of aggregate functions and when
-using sub-queries. This is a revised design addressing those issues, enhancing the 
-language and building a more robust implementation.
+design of the language, including the lack of a full specification, missing rules
+on how to combine metadata in complex queries and missing rules on how to compute
+metadata in different type of queries such as in the presence of aggregate functions 
+and when using sub-queries. This is a revised design addressing those issues, 
+enhancing the language and building a more robust implementation.
 
 ### <a name='overview'>Overview</a>
-The core feature of ESQL is that it all metadata to be embedded in table definitions
-and queries. Metadata in ESQL is a comma-separated list of attributes surrounded by 
-curly braces ({}) with each attribute consisting of a name-expression pair. Metadata 
-can be attached to a table and to its columns. For instance this is a `create table`
-statement which defines metadata attributes on both the table and its columns:
+The core feature of ESQL is that it allows metadata to be embedded in table 
+definitions and queries. Metadata in ESQL is a comma-separated list of attributes 
+surrounded by curly braces ({}) with each attribute consisting of a name-expression 
+pair. Metadata can be attached to a table and to its columns. For instance this 
+is a `create table` statement which defines metadata attributes on both the table 
+and its columns:
 
 ```esql
 create table com.example.S(
@@ -111,18 +113,23 @@ Unlike SQL, ESQL is case-sensitive and the keywords are in lowercase.
 
 ### <a name='overview'>What ESQL is not</a>
 
-ESQL is not a full database virtualization layer and does not aim to completely hide the complexity of the
-underlying database; it can simplify the development of software that can work transparently different databases
-in most cases; however the features of the underlying database still need to be kept in mind when using ESQL.
+ESQL is not a full database virtualization layer and does not aim to completely 
+hide the complexity of the underlying database; it can simplify the development 
+of software that can work transparently over different databases in most cases; 
+however the features of the underlying database still need to be kept in mind 
+when using ESQL.
 
-For instance, modification queries (insert, delete, update) producing a resultset is not supported in all
-databases. When it does ESQL will translate to the correct SQL and function as expected. If this is not
-supported, the query will fail. Thus, using ESQL only does not guarantee that software can be migrated to
-any database; ESQL remains limited by the underlying features of the database.
+For instance, modification queries (insert, delete, update) producing a resultset 
+is not supported in all databases. When it does, ESQL will translate to the correct 
+SQL and function as expected. If this is not supported, the query will fail. Thus, 
+using ESQL only does not guarantee that software can be migrated to any database; 
+ESQL remains limited by the underlying features of the database.
 
-However, where possible, ESQL emulates some features which are not present in the underlying database (such 
-as the boolean datatype on SQL Server) and, together with some care in which feature to use and which to avoid,
-allows for the development of software that works on several different databases with minimal development effort. 
+However, where possible, ESQL emulates some features which are not present in the
+underlying database (such as the boolean datatype on SQL Server) and, together 
+with some care, over which feature to use and which to avoid, allows for the 
+development of software that works on several different databases with minimal 
+development effort. 
 
 ## <a name=''>Language specification</a>
 The grammar of the language is defined as a set of production rules in ANTLR which is repeated here with comments:

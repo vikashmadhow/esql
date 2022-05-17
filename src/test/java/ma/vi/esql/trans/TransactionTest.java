@@ -45,21 +45,21 @@ public class TransactionTest extends DataTest {
 
   @TestFactory
   Stream<DynamicTest> separateSubTransactions() {
-    return Stream.of(new Database[] {Databases.Postgresql()})
+    return Stream.of(databases)
                  .map(db -> dynamicTest(db.target().toString(), () -> {
                    System.out.println(db.target());
-                   try (EsqlConnection con = db.esql()) {
+                   try (EsqlConnection con = db.esql(db.pooledConnection(Database.SNAPSHOT_ISOLATION))) {
                      assertEquals(1, ((EsqlConnectionImpl)con).openCount());
                      con.exec("delete t from t:a.b.T");
                      con.exec("delete s from s:S");
                    }
-                   try (EsqlConnection con1 = db.esql()) {
+                   try (EsqlConnection con1 = db.esql(db.pooledConnection(Database.SNAPSHOT_ISOLATION))) {
                      assertEquals(1, ((EsqlConnectionImpl)con1).openCount());
                      con1.exec("insert into S(_id, a, b, e, h, j) values "
                                   + "(newid(), 1, 2, true, ['Four', 'Quatre']text, [1, 2, 3]int),"
                                   + "(newid(), 6, 7, false, ['Nine', 'Neuf', 'X']text, [5, 6, 7, 8]int)");
 
-                     try (EsqlConnection con2 = db.esql(db.pooledConnection())) {
+                     try (EsqlConnection con2 = db.esql(db.pooledConnection(Database.SNAPSHOT_ISOLATION))) {
                        assertNotSame(con2.connection(), con1.connection());
                        assertEquals(1, ((EsqlConnectionImpl)con1).openCount());
                        assertEquals(1, ((EsqlConnectionImpl)con2).openCount());

@@ -20,9 +20,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Support for creating and using views (including materialised views).
 - Complete documentation of ESQL grammar.
 - Fully document purpose and usage.
-- Support for Firebird, Oracle database.
+- Support Oracle and Firebird.
 - Make into Java 9 module.
-- Support for 'within group' for ordering in string and array aggregate functions.
+- Support for `within group` for ordering in string and array aggregate functions.
 - Support for bulk copy manager in postgresql.
 - Support for merge queries.
 - Implement state-based model where an ESQL program is specified as a target state 
@@ -42,6 +42,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   behaves like a normal table but does not need to exist in the database or may
   correspond to multiple tables. Queries and updates to virtual tables are rewritten
   as other queries/updates or whole programs.
+- `drop index` support in ESQL.
+- `create sequence` support in ESQL.
+- `alter sequence` support in ESQL.
+- `drop sequence` support in ESQL.
+- Change notification and subscription.
+- Fine-grain history
+- Snapshots
+- Undo and redo maintaining coherent table state.
 
 ### To optimise
 - When filtering a `With`, do not apply filter on a CTE if that CTE inner joins 
@@ -65,6 +73,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the overridden metadata are not being considered). (create tests for metadata 
   overriding)
 - Modify queries return values don't seem to be supported correctly for SQL Server.
+
+## [0.9.6]
+### Added
+- History tracking
+  - auto-commit support disabled as this prevents the tracking of all changes made
+    in a transaction.
+  - Coarse-grain history (only detect that a change has occurred in a table without
+    any other details:
+    - `_core.history` for coarse-grain history tracking.
+    - Creation of history table for tables opting into the history tracking system.
+    - Creation of trigger to capture changes on table and send to `_core.history`
+      and corresponding history table.
+  - See history-tables.md for more info on this feature.
+- Optimisation of coarse-grain history tables (create indices).
+- `count` aggregate function is translated to `count_big` on SQL server which
+  returns a `bigint` instead of an `int`.
+- `create index` now supported in ESQL.
+- Creation of core tables are now self-describing, i.e., they automatically capture
+  and save metadata on themselves. This considerably reduces the amount of code
+  required to create them.
+
+### Removed
+- The option of using only the information schemas has been removed as it is too
+  limited and increases the complexity of initialisation and queries. The core 
+  tables are now always created.
 
 ## [0.9.5] - 2022-05-11
 ### Added
@@ -639,7 +672,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.5.1] - 2021-04-25
 ### Deprecated
-- Close interface no longer implemented as not required. Will be removed in a 
+- `Close` interface no longer implemented as not required. Will be removed in a 
   future release.
 
 ## [0.5.0] - 2021-04-22

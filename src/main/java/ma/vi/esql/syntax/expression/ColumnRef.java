@@ -158,7 +158,14 @@ public class ColumnRef extends    Expression<String, String>
         }
       }
       if (computedType == null) {
-        throw new TranslationException(this, "Could not determine the type of " + qualifiedName());
+        /*
+         * For definitions, assume unknown when type could not be computed.
+         */
+        if (path.hasAncestor(Define.class)) {
+          return UnknownType;
+        } else {
+          throw new TranslationException(this, "Could not determine the type of " + qualifiedName());
+        }
       }
       if (path.hasAncestor(OngoingMacroExpansion.class)) {
         return computedType;
