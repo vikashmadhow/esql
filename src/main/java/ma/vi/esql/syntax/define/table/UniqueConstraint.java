@@ -2,7 +2,7 @@
  * Copyright (c) 2020 Vikash Madhow
  */
 
-package ma.vi.esql.syntax.define;
+package ma.vi.esql.syntax.define.table;
 
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.database.EsqlConnection;

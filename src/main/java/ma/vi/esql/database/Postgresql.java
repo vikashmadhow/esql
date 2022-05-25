@@ -13,8 +13,10 @@ import ma.vi.esql.translation.Translatable;
 import org.postgresql.ds.PGSimpleDataSource;
 
 import java.sql.*;
+import java.util.HashSet;
 import java.util.Properties;
 
+import static java.util.Collections.emptyMap;
 import static ma.vi.base.lang.Errors.unchecked;
 import static ma.vi.esql.translation.Translatable.Target.POSTGRESQL;
 
@@ -35,7 +37,11 @@ public class Postgresql extends AbstractDatabase {
     dataSource = new HikariDataSource(new HikariConfig(props));
 
     init(config);
-    // postInit(pooledConnection(), structure());
+
+    /*
+     * Load extensions.
+     */
+    loadExtensions(config.get(CONFIG_DB_EXTENSIONS, emptyMap()), new HashSet<>(), 0);
   }
 
   @Override

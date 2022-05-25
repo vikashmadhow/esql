@@ -19,7 +19,14 @@ import ma.vi.esql.grammar.EsqlBaseListener;
 import ma.vi.esql.semantic.type.Column;
 import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.semantic.type.Types;
-import ma.vi.esql.syntax.define.*;
+import ma.vi.esql.syntax.define.Attribute;
+import ma.vi.esql.syntax.define.Metadata;
+import ma.vi.esql.syntax.define.NameWithMetadata;
+import ma.vi.esql.syntax.define.index.CreateIndex;
+import ma.vi.esql.syntax.define.struct.AlterStruct;
+import ma.vi.esql.syntax.define.struct.CreateStruct;
+import ma.vi.esql.syntax.define.struct.DropStruct;
+import ma.vi.esql.syntax.define.table.*;
 import ma.vi.esql.syntax.expression.*;
 import ma.vi.esql.syntax.expression.arithmetic.*;
 import ma.vi.esql.syntax.expression.comparison.*;
@@ -45,7 +52,6 @@ import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.RuleContext;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ErrorNode;
-import org.antlr.v4.runtime.tree.TerminalNode;
 
 import java.util.*;
 
@@ -56,8 +62,8 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static ma.vi.esql.grammar.EsqlParser.*;
-import static ma.vi.esql.syntax.define.ConstraintDefinition.ForeignKeyChangeAction;
-import static ma.vi.esql.syntax.define.ConstraintDefinition.ForeignKeyChangeAction.*;
+import static ma.vi.esql.syntax.define.table.ConstraintDefinition.ForeignKeyChangeAction;
+import static ma.vi.esql.syntax.define.table.ConstraintDefinition.ForeignKeyChangeAction.*;
 import static ma.vi.esql.syntax.query.GroupBy.Type.*;
 
 /**
@@ -227,7 +233,7 @@ public class SyntaxAnalyser extends EsqlBaseListener {
   @Override
   public void exitParameter(ParameterContext ctx) {
     put(ctx, new FunctionParameter(context,
-                                   ctx.Identifier().getText(),
+                                   value(ctx.identifier()),
                                    value(ctx.type()),
                                    ctx.expr() == null ? null : get(ctx.expr())));
   }
@@ -235,7 +241,7 @@ public class SyntaxAnalyser extends EsqlBaseListener {
   @Override
   public void exitVarDecl(VarDeclContext ctx) {
     put(ctx, new VariableDecl(context,
-                              ctx.Identifier().getText(),
+                              value(ctx.identifier()),
                               ctx.type() == null
                             ? Types.UnknownType
                             : value(ctx.type()),
@@ -245,7 +251,7 @@ public class SyntaxAnalyser extends EsqlBaseListener {
   @Override
   public void exitAssignment(AssignmentContext ctx) {
     put(ctx, new Assignment(context,
-                            ctx.Identifier().getText(),
+                            value(ctx.identifier()),
                             get(ctx.expr())));
   }
 
@@ -369,7 +375,7 @@ public class SyntaxAnalyser extends EsqlBaseListener {
   @Override
   public void exitNameWithMetadata(NameWithMetadataContext ctx) {
     put(ctx, new NameWithMetadata(context,
-                                  ctx.Identifier().getText(),
+                                  value(ctx.identifier()),
                                   get(ctx.metadata())));
   }
 
@@ -458,7 +464,7 @@ public class SyntaxAnalyser extends EsqlBaseListener {
 
   @Override
   public void exitCte(CteContext ctx) {
-    put(ctx, new Cte(context, ctx.Identifier().getText(),
+    put(ctx, new Cte(context, value(ctx.identifier()),
                      ctx.names() == null ? null : value(ctx.names()),
                      get(ctx.queryUpdate())));
   }
@@ -673,7 +679,7 @@ public class SyntaxAnalyser extends EsqlBaseListener {
   public void exitBaseArrayLiteral(BaseArrayLiteralContext ctx) {
     List<BaseLiteral<?>> items = value(ctx.baseLiteralList());
     String componentType = null;
-    if (ctx.Identifier() == null && items != null && !items.isEmpty()) {
+    if (value(ctx.identifier()) == null && items != null && !items.isEmpty()) {
       /*
        * Determine type of base array.
        */
@@ -696,7 +702,7 @@ public class SyntaxAnalyser extends EsqlBaseListener {
         }
       }
     } else {
-      componentType = ctx.Identifier().getText();
+      componentType = value(ctx.identifier());
     }
     if (componentType == null) {
       throw new SyntaxException("The element type of the array " + ctx.getText()
@@ -1104,75 +1110,121 @@ public class SyntaxAnalyser extends EsqlBaseListener {
   // create table
   /////////////////////////////////////////////////////////
 
+//  @Override
+//  public void exitCreateTable(CreateTableContext ctx) {
+//    List<TableDefinition> tableDefinitions = value(ctx.tableDefinitions());
+//    List<ColumnDefinition> columns =
+//        tableDefinitions.stream()
+//                        .filter(t -> t instanceof ColumnDefinition)
+//                        .map(t -> (ColumnDefinition)t)
+//                        .collect(toList());
+//
+//    List<ConstraintDefinition> constraints =
+//        tableDefinitions.stream()
+//                        .filter(t -> t instanceof ConstraintDefinition)
+//                        .map(t -> (ConstraintDefinition)t).toList();
+//
+//    String tableName = value(ctx.qualifiedName());
+//    List<ConstraintDefinition> withAddedTable = new ArrayList<>();
+//    for (ConstraintDefinition c: constraints) {
+//      withAddedTable.add(c.table(tableName));
+//    }
+//
+//    List<Metadata> metadata =
+//        tableDefinitions.stream()
+//                        .filter(t -> t instanceof Metadata)
+//                        .map(t -> (Metadata)t).toList();
+//
+//    List<Attribute> attributes = new ArrayList<>();
+//    for (Metadata m: metadata) {
+//      attributes.addAll(m.attributes().values());
+//    }
+//    put(ctx.parent, new CreateTable(context,
+//                                    tableName,
+//                                    ctx.dropUndefined() != null,
+//                                    columns,
+//                                    withAddedTable,
+//                                    new Metadata(context, attributes)));
+//  }
+
   @Override
   public void exitCreateTable(CreateTableContext ctx) {
-    List<TableDefinition> tableDefinitions = value(ctx.tableDefinitions());
-    List<ColumnDefinition> columns =
-        tableDefinitions.stream()
-                        .filter(t -> t instanceof ColumnDefinition)
-                        .map(t -> (ColumnDefinition)t)
-                        .collect(toList());
-
-    List<ConstraintDefinition> constraints =
-        tableDefinitions.stream()
-                        .filter(t -> t instanceof ConstraintDefinition)
-                        .map(t -> (ConstraintDefinition)t).toList();
-
     String tableName = value(ctx.qualifiedName());
+    Metadata metadata = get(ctx.literalMetadata());
+
+    List<ColumnDefinition> columns = value(ctx.columnAndDerivedColumnDefinitions());
+
+    List<ConstraintDefinition> constraints = value(ctx.constraintDefinitions());
     List<ConstraintDefinition> withAddedTable = new ArrayList<>();
-    for (ConstraintDefinition c: constraints) {
-      withAddedTable.add(c.table(tableName));
-    }
+    if (constraints != null)
+      for (ConstraintDefinition c: constraints)
+        withAddedTable.add(c.table(tableName));
 
-    List<Metadata> metadata =
-        tableDefinitions.stream()
-                        .filter(t -> t instanceof Metadata)
-                        .map(t -> (Metadata)t).toList();
-
-    List<Attribute> attributes = new ArrayList<>();
-    for (Metadata m: metadata) {
-      attributes.addAll(m.attributes().values());
-    }
     put(ctx.parent, new CreateTable(context,
                                     tableName,
                                     ctx.dropUndefined() != null,
                                     columns,
                                     withAddedTable,
-                                    new Metadata(context, attributes)));
+                                    metadata == null ? new Metadata(context, emptyList()) : metadata));
   }
 
   @Override
-  public void exitTableDefinitions(TableDefinitionsContext ctx) {
-    put(ctx, new Esql<>(context, ctx.tableDefinition().stream()
-                                    .map(t -> (TableDefinition)get(
-                                                t.columnDefinition()        != null ? t.columnDefinition() :
-                                                t.derivedColumnDefinition() != null ? t.derivedColumnDefinition() :
-                                                t.constraintDefinition()    != null ? t.constraintDefinition()
-                                                                                    : t.literalMetadata()))
+  public void exitCreateStruct(CreateStructContext ctx) {
+    String structName = value(ctx.qualifiedName());
+    Metadata metadata = get(ctx.literalMetadata());
+    List<ColumnDefinition> columns = value(ctx.columnAndDerivedColumnDefinitions());
+    put(ctx.parent, new CreateStruct(context,
+                                     structName,
+                                     columns,
+                                     metadata == null ? new Metadata(context, emptyList()) : metadata));
+  }
+
+//  @Override
+//  public void exitTableDefinitions(TableDefinitionsContext ctx) {
+//    put(ctx, new Esql<>(context, ctx.tableDefinition().stream()
+//                                    .map(t -> (TableDefinition)get(
+//                                                t.columnDefinition()        != null ? t.columnDefinition() :
+//                                                t.derivedColumnDefinition() != null ? t.derivedColumnDefinition() :
+//                                                t.constraintDefinition()    != null ? t.constraintDefinition()
+//                                                                                    : t.literalMetadata()))
+//                                    .toList()));
+//  }
+
+  @Override
+  public void exitColumnAndDerivedColumnDefinitions(ColumnAndDerivedColumnDefinitionsContext ctx) {
+    put(ctx, new Esql<>(context, ctx.columnAndDerivedColumnDefinition().stream()
+                                    .map(t -> (ColumnDefinition)get(t.columnDefinition() != null
+                                                                  ? t.columnDefinition()
+                                                                  : t.derivedColumnDefinition()))
+                                    .toList()));
+  }
+
+  @Override
+  public void exitConstraintDefinitions(ConstraintDefinitionsContext ctx) {
+    put(ctx, new Esql<>(context, ctx.constraintDefinition().stream()
+                                    .map(t -> (ConstraintDefinition)get(t))
                                     .toList()));
   }
 
   @Override
   public void exitColumnDefinition(ColumnDefinitionContext ctx) {
-    put(ctx, new ColumnDefinition(
-        context,
-        ctx.Identifier().getText(),
-        value(ctx.type()),
-        ctx.Not() != null,
-        get(ctx.expr()),
-        get(ctx.metadata())));
+    put(ctx, new ColumnDefinition(context,
+                                  value(ctx.identifier()),
+                                  value(ctx.type()),
+                                  ctx.Not() != null,
+                                  get(ctx.expr()),
+                                  get(ctx.metadata())));
   }
 
   @Override
   public void exitDerivedColumnDefinition(DerivedColumnDefinitionContext ctx) {
-    put(ctx, new DerivedColumnDefinition(
-        context,
-        ctx.Identifier().getText(),
-        get(ctx.expr()),
-        get(ctx.metadata())));
+    put(ctx, new DerivedColumnDefinition(context,
+                                         value(ctx.identifier()),
+                                         get(ctx.expr()),
+                                         get(ctx.metadata())));
   }
 
-  // drop table
+  // drop table and struct
   //////////////////////////////////////////////////
 
   @Override
@@ -1180,7 +1232,12 @@ public class SyntaxAnalyser extends EsqlBaseListener {
     put(ctx.parent, new DropTable(context, value(ctx.qualifiedName())));
   }
 
-  // alter table
+  @Override
+  public void exitDropStruct(DropStructContext ctx) {
+    put(ctx.parent, new DropStruct(context, value(ctx.qualifiedName())));
+  }
+
+  // alter table and struct
   ///////////////////////////////////////////////////////////////
 
   @Override
@@ -1201,6 +1258,20 @@ public class SyntaxAnalyser extends EsqlBaseListener {
   }
 
   @Override
+  public void exitAlterStruct(AlterStructContext ctx) {
+    String structName = value(ctx.qualifiedName());
+    List<Alteration> alterations = value(ctx.alterations());
+    for (Alteration alteration: alterations) {
+      if (alteration instanceof AddTableDefinition def
+       && def.definition() instanceof ConstraintDefinition) {
+        throw new SyntaxException("Constraints are not supported on structs");
+      }
+    }
+    put(ctx.alterations(), new Esql<>(context, alterations));
+    put(ctx.parent, new AlterStruct(context, structName, alterations));
+  }
+
+  @Override
   public void exitAlterations(AlterationsContext ctx) {
     put(ctx, new Esql<>(context, ctx.alteration().stream()
                                     .map(a -> (Alteration)get(a))
@@ -1209,7 +1280,7 @@ public class SyntaxAnalyser extends EsqlBaseListener {
 
   @Override
   public void exitRenameTable(RenameTableContext ctx) {
-    put(ctx, new RenameTable(context, ctx.Identifier().getText()));
+    put(ctx, new RenameTable(context, value(ctx.identifier())));
   }
 
   @Override
@@ -1237,7 +1308,7 @@ public class SyntaxAnalyser extends EsqlBaseListener {
   public void exitAlterColumnDefinition(AlterColumnDefinitionContext ctx) {
     put(ctx, new AlterColumnDefinition(
                    context,
-                   ctx.Identifier() == null ? null : ctx.Identifier().getText(),
+                   value(ctx.identifier()),
                    ctx.type() == null ? null : value(ctx.type()),
                    ctx.alterNull() != null && ctx.alterNull().getText().contains("not"),
                    ctx.alterNull() != null && !ctx.alterNull().getText().contains("not"),
@@ -1249,12 +1320,12 @@ public class SyntaxAnalyser extends EsqlBaseListener {
 
   @Override
   public void exitDropColumn(DropColumnContext ctx) {
-    put(ctx, new DropColumn(context, ctx.Identifier().getText()));
+    put(ctx, new DropColumn(context, value(ctx.identifier())));
   }
 
   @Override
   public void exitDropConstraint(DropConstraintContext ctx) {
-    put(ctx, new DropConstraint(context, ctx.Identifier().getText()));
+    put(ctx, new DropConstraint(context, value(ctx.identifier())));
   }
 
   @Override
@@ -1266,7 +1337,7 @@ public class SyntaxAnalyser extends EsqlBaseListener {
   public void exitCreateIndex(CreateIndexContext  ctx) {
     put(ctx.parent, new CreateIndex(context,
                                     ctx.unique != null,
-                                    ctx.Identifier().getText(),
+                                    value(ctx.identifier()),
                                     value(ctx.qualifiedName()),
                                     value(ctx.expressionList())));
   }
@@ -1276,7 +1347,7 @@ public class SyntaxAnalyser extends EsqlBaseListener {
 
   @Override
   public void exitBase(BaseContext ctx) {
-    String baseType = ctx.Identifier().getText();
+    String baseType = value(ctx.identifier());
     Type type = Types.findTypeOf(baseType);
     if (type == null) {
       error(ctx, "Unknown base type " + baseType);
@@ -1368,7 +1439,7 @@ public class SyntaxAnalyser extends EsqlBaseListener {
 
   @Override
   public void exitConstraintName(ConstraintNameContext ctx) {
-    put(ctx, new Esql<>(context, ctx.Identifier().getText()));
+    put(ctx, get(ctx.identifier()));
   }
 
 
@@ -1410,8 +1481,8 @@ public class SyntaxAnalyser extends EsqlBaseListener {
     /*
      * map list of names (identifiers) to a list of string
      */
-    put(ctx, new Esql<>(context, ctx.Identifier().stream()
-                                    .map(TerminalNode::getText)
+    put(ctx, new Esql<>(context, ctx.identifier().stream()
+                                    .map(this::<String>value)
                                     .toList()));
   }
 
@@ -1427,7 +1498,7 @@ public class SyntaxAnalyser extends EsqlBaseListener {
 
   @Override
   public void exitNamedArgument(NamedArgumentContext ctx) {
-    put(ctx, new NamedArgument(context, ctx.Identifier().getText(), get(ctx.positionalArgument())));
+    put(ctx, new NamedArgument(context, value(ctx.identifier()), get(ctx.positionalArgument())));
   }
 
   @Override

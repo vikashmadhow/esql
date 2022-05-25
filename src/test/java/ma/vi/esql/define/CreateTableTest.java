@@ -29,7 +29,7 @@ public class CreateTableTest extends DataTest {
                                      {
                                        name: 'A',
                                        description: 'A test table'
-                                     },
+                                     }
                                      _id uuid not null,
                                      a int {
                                        m1: b > 5,

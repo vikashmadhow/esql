@@ -11,6 +11,7 @@ import ma.vi.esql.exec.DefaultExecutor;
 import ma.vi.esql.exec.Executor;
 import ma.vi.esql.exec.QueryParams;
 import ma.vi.esql.exec.Result;
+import ma.vi.esql.semantic.type.Struct;
 import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.semantic.type.*;
 import ma.vi.esql.syntax.Context;
@@ -18,6 +19,7 @@ import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.EsqlTransformer;
 import ma.vi.esql.syntax.Parser;
 import ma.vi.esql.syntax.define.*;
+import ma.vi.esql.syntax.define.table.*;
 import ma.vi.esql.syntax.expression.ColumnRef;
 import ma.vi.esql.syntax.expression.Expression;
 import ma.vi.esql.syntax.expression.literal.BooleanLiteral;
@@ -41,8 +43,10 @@ import static java.util.Collections.*;
 import static java.util.stream.Collectors.joining;
 import static ma.vi.base.string.Escape.escapeSqlString;
 import static ma.vi.esql.builder.Attributes.*;
-import static ma.vi.esql.syntax.define.ConstraintDefinition.ForeignKeyChangeAction.fromInformationSchema;
-import static ma.vi.esql.syntax.define.ConstraintDefinition.Type.fromMarker;
+import static ma.vi.esql.semantic.type.Relation.RelationType.STRUCT;
+import static ma.vi.esql.semantic.type.Relation.RelationType.TABLE;
+import static ma.vi.esql.syntax.define.table.ConstraintDefinition.ForeignKeyChangeAction.fromInformationSchema;
+import static ma.vi.esql.syntax.define.table.ConstraintDefinition.Type.fromMarker;
 import static ma.vi.esql.syntax.expression.literal.StringLiteral.escapeEsqlString;
 import static ma.vi.esql.translation.Translatable.Target.*;
 import static org.apache.commons.lang3.StringUtils.repeat;
@@ -82,24 +86,14 @@ public abstract class AbstractDatabase implements Database {
     }
 
     /*
-     * Load database structure from information schemas.
+     * Load database structure from information schemas, update core tables with
+     * information from information schemas and then load database structure from
+     * core tables, which will include information not present in the information
+     * schemas, such as relation and column attributes.
      */
     loadInformationSchemas();
-
-    /*
-     * Update core tables from information schemas.
-     */
     updateCoreTables();
-
-    /*
-     * Load database structure from core tables.
-     */
     loadCoreTables();
-
-    /*
-     * Load extensions.
-     */
-    loadExtensions(config.get(CONFIG_DB_EXTENSIONS, emptyMap()), new HashSet<>(), 0);
   }
 
   /**
@@ -475,13 +469,15 @@ public abstract class AbstractDatabase implements Database {
        * their columns, constraints, indices, and so on are loaded as they can
        * then refer freely to other relations.
        */
-      try (ResultSet rs = stmt.executeQuery("select \"_id\", \"name\", \"display_name\", \"description\", " +
-                                              "       \"type\", \"view_definition\" " +
-                                              "  from \"_core\".\"relations\"");
-           PreparedStatement attrStmt = econ.connection().prepareStatement(
-             "select \"attribute\", \"value\" " +
-               "  from \"_core\".\"relation_attributes\" " +
-               " where \"relation_id\"=?")) {
+      try (ResultSet rs = stmt.executeQuery("""
+                            select "_id", "name", "display_name", "description",
+                                   "type", "view_definition"
+                              from "_core"."relations"
+                             where "type"='""" + TABLE.marker + "'");
+           PreparedStatement attrStmt = econ.connection().prepareStatement("""
+                            select "attribute", "value"
+                              from "_core"."relation_attributes"
+                             where "relation_id"=?""")) {
         while (rs.next()) {
           loadRelation(econ.connection(), context, structure, p, attrStmt, rs);
         }
@@ -491,11 +487,11 @@ public abstract class AbstractDatabase implements Database {
        * load constraints after all tables are loaded so that foreign key
        * constraints can be properly linked to their target tables.
        */
-      try (Result rs = econ.exec(p.parse(
-        "select _id, name, relation_id, type, check_expr, " +
-          "        source_columns, target_relation_id, target_columns, " +
-          "        forward_cost, reverse_cost, on_update, on_delete " +
-          "   from _core.constraints"))) {
+      try (Result rs = econ.exec(p.parse("""
+        select _id, name, relation_id, "type", check_expr,
+               source_columns, target_relation_id, target_columns,
+               forward_cost, reverse_cost, on_update, on_delete
+          from _core.constraints"""))) {
         while (rs.toNext()) {
           loadConstraints(context, structure, p, rs);
         }
@@ -517,9 +513,24 @@ public abstract class AbstractDatabase implements Database {
     }
   }
 
-  private void loadExtensions(Map<Class<? extends Extension>, Configuration> toLoad,
-                              Set<Class<? extends Extension>> loaded,
-                              int level) {
+  /**
+   * Load extensions. Should be called from subclasses after full initialisation
+   * as some extensions depend on database-specific functions and structures. E.g.
+   * function to work with intervals and capture of change events.
+   *
+   * @param toLoad Extension classes mapped to the configuration to load. This is
+   *               usually supplied in a configuration parameter (see {@link Database#CONFIG_DB_EXTENSIONS}).
+   * @param loaded This is the set of extensions that have already been loaded and
+   *               is used to prevent circular dependencies to cause infinite loops;
+   *               initially this should be empty.
+   * @param level The extension loading depths: when an extension depends on another
+   *              extension, the latter has a level that is one higher that the
+   *              one depending on it. This is used for printing informational
+   *              messages during loading.
+   */
+  protected void loadExtensions(Map<Class<? extends Extension>, Configuration> toLoad,
+                                Set<Class<? extends Extension>> loaded,
+                                int level) {
     try {
       for (Class<? extends Extension> extension: toLoad.keySet()) {
         if (!loaded.contains(extension)) {
@@ -563,24 +574,37 @@ public abstract class AbstractDatabase implements Database {
     }
   }
 
-  protected void loadRelation(Connection con,
-                              Context context,
-                              Structure structure,
-                              Parser parser,
+  protected void loadRelation(Connection        con,
+                              Context           context,
+                              Structure         structure,
+                              Parser            parser,
                               PreparedStatement attrStmt,
-                              ResultSet rs) throws SQLException {
+                              ResultSet         rs) throws SQLException {
     UUID relationId = UUID.fromString(rs.getString("_id"));
     String name = rs.getString("name");
-    BaseRelation relation = new BaseRelation(context,
-                                             relationId,
-                                             name,
-                                             rs.getString("display_name"),
-                                             rs.getString("description"),
-                                             loadRelationAttributes(context, parser, attrStmt, relationId),
-                                             loadColumns(con, context, parser, relationId),
-                                             new ArrayList<>());
-    structure.relation(relation);
-    Types.customType(name, relation);
+    String type = rs.getString("type");
+    if (type.charAt(0) == TABLE.marker) {
+      BaseRelation relation = new BaseRelation(context,
+                                               relationId,
+                                               name,
+                                               rs.getString("display_name"),
+                                               rs.getString("description"),
+                                               loadRelationAttributes(context, parser, attrStmt, relationId),
+                                               loadColumns(con, context, parser, relationId),
+                                               new ArrayList<>());
+      structure.relation(relation);
+      Types.customType(name, relation);
+    } else if (type.charAt(0) == STRUCT.marker) {
+      Struct struct = new Struct(context,
+                                 relationId,
+                                 name,
+                                 rs.getString("display_name"),
+                                 rs.getString("description"),
+                                 loadRelationAttributes(context, parser, attrStmt, relationId),
+                                 loadColumns(con, context, parser, relationId));
+      structure.struct(struct);
+      Types.customType(name, struct);
+    }
   }
 
   /**
@@ -629,12 +653,13 @@ public abstract class AbstractDatabase implements Database {
         String expression = rs.getString("expression");
         boolean derivedColumn = rs.getBoolean("derived_column");
 
-        // load custom column attributes
+        /*
+         * Load custom column attributes.
+         */
         Map<String, Attribute> attributes = new HashMap<>();
         attributes.put(TYPE, Attribute.from(context, TYPE, columnType));
         attributes.put(ID, Attribute.from(context, ID, columnId));
         attributes.put(REQUIRED, Attribute.from(context, REQUIRED, notNull));
-        // attributes.put(SEQUENCE, Attribute.from(context, SEQUENCE, columnNumber));
 
         attrStmt.setObject(1, columnId);
         try (ResultSet ars = attrStmt.executeQuery()) {
@@ -751,7 +776,7 @@ public abstract class AbstractDatabase implements Database {
   }
 
   @Override
-  public void addTable(EsqlConnection con, BaseRelation table) {
+  public void addTable(EsqlConnection con, Struct table) {
     createCoreRelations(con);
     Parser p = new Parser(structure());
     try (Result rs = con.exec(p.parse("select _id"
@@ -762,12 +787,12 @@ public abstract class AbstractDatabase implements Database {
          * Add table, its columns and constraints
          */
         con.exec(p.parse(
-            "insert into _core.relations(_id, name, display_name, description, type) values(" +
-                "u'" + table.id() + "', " +
-                "'" + table.name() + "', " +
-                (table.displayName == null ? "'" + table.name() + "'" : "'" + escapeSqlString(table.displayName) + "'") + ", " +
-                (table.description == null ? "null" : "'" + escapeSqlString(table.description) + "'") + ", " +
-                "'" + Relation.RelationType.TABLE.marker + "')"));
+            "insert into _core.relations(_id, name, display_name, description, \"type\") values("
+          + "u'" + table.id() + "', "
+          + "'" + table.name() + "', "
+          + (table.displayName == null ? "'" + table.name() + "'" : "'" + escapeSqlString(table.displayName) + "'") + ", "
+          + (table.description == null ? "null" : "'" + escapeSqlString(table.description) + "'") + ", "
+          + "'" + (table instanceof BaseRelation ? TABLE.marker : STRUCT.marker) + "')"));
 
         if (table.attributes() != null) {
           createCoreRelationAttributes(con);
@@ -781,7 +806,9 @@ public abstract class AbstractDatabase implements Database {
           }
         }
 
-        // add columns
+        /*
+         * Add columns.
+         */
         createCoreColumns(con);
         createCoreColumnAttributes(con);
         Insert insertCol = p.parse(INSERT_COLUMN, "insert");
@@ -790,11 +817,15 @@ public abstract class AbstractDatabase implements Database {
           addColumn(con, table.id(), column.b, insertCol, insertColAttr);
         }
 
-        // add constraints
-        createCoreConstraints(con);
-        Insert insertConstraint = p.parse(INSERT_CONSTRAINT, "insert");
-        for (ConstraintDefinition c: table.constraints()) {
-          addConstraint(con, table.id(), c, insertConstraint);
+        if (table instanceof BaseRelation br) {
+          /*
+           * Add constraints.
+           */
+          createCoreConstraints(con);
+          Insert insertConstraint = p.parse(INSERT_CONSTRAINT, "insert");
+          for (ConstraintDefinition c: br.constraints()) {
+            addConstraint(con, table.id(), c, insertConstraint);
+          }
         }
       }
     }
@@ -817,7 +848,7 @@ public abstract class AbstractDatabase implements Database {
             "update r from r:_core.relations "
                 + "set display_name=" + (table.displayName == null ? "'" + table.name() + "'" : "'" + escapeSqlString(table.displayName) + "'") + ", "
                 + "    description=" +(table.description == null ? "null" : "'" + escapeSqlString(table.description) + "'") + ", "
-                + "    type='" + Relation.RelationType.TABLE.marker + "' "
+                + "    type='" + TABLE.marker + "' "
                 + "where _id='" + tableId + "'"));
 
         clearTableMetadata(con, tableId);
@@ -853,11 +884,10 @@ public abstract class AbstractDatabase implements Database {
   @Override
   public void renameTable(EsqlConnection con, UUID tableId, String name) {
     createCoreRelations(con);
-    con.exec(
-        "update rel "
-      + "   from rel:_core.relations "
-      + "    set name='" + name
-      + "' where _id='" + tableId + "'");
+    con.exec("update rel "
+           + "   from rel:_core.relations "
+           + "    set name='" + name
+           + "' where _id='" + tableId + "'");
   }
 
   @Override
@@ -1239,7 +1269,7 @@ public abstract class AbstractDatabase implements Database {
 
   private static final String INSERT_COLUMN = """
     insert into _core.columns(_id, _can_delete, relation_id, name, derived_column,
-                              type, not_null, expression, seq)
+                              "type", not_null, expression, seq)
     values(@id, @canDelete, @relation, @name,
            @derivedColumn, @type, @nonNull, @expression,
            coalesce(from _core.columns select max(seq) where relation_id=@relation, 0) + 1)""";

@@ -98,7 +98,7 @@ select
  *          # table metadata (applied to all queries on this table)
  *          max_a: (max(a) from com.example.S),
  *          a_gt_b: a > b
- *        },
+ *        }
  *        a int {
  *          # column metadata attached to column a
  *          m1: b > 5, m2: 10, m3: a != 0
@@ -376,7 +376,7 @@ dynamicColumns
  * of an identifier and followed optionally by metadata for the column.
  */
 nameWithMetadata
-    : Identifier metadata?
+    : identifier metadata?
     ;
 
 lateral
@@ -482,7 +482,7 @@ cteList
  * the CTE.
  */
 cte
-    : Identifier names? '(' queryUpdate ')'
+    : identifier names? '(' queryUpdate ')'
     ;
 
 /**
@@ -490,7 +490,7 @@ cte
  * parentheses.
  */
 names
-    : '(' Identifier (',' Identifier)* ')'
+    : '(' identifier (',' identifier)* ')'
     ;
 
 /**
@@ -839,16 +839,16 @@ expr
 //    | 'function' '(' parameters ')' '->' expr                   #LambdaSingleExprDecl
 //    | 'function' '(' parameters ')' '->' '(' expressions ')'    #LambdaMultipleExprDecl
 
-    | 'let' Identifier (':' type)? ':=' expr                    #VarDecl
+    | 'let' identifier (':' type)? ':=' expr                    #VarDecl
 
-    | Identifier ':=' expr                                      #Assignment
+    | identifier ':=' expr                                      #Assignment
 
     | 'if' imply
        elseIf*
      ('else'   expressions)?
       'end'                                                     #If
 
-    | 'for' (key=Identifier ',')? value=Identifier 'in' expr 'do'
+    | 'for' (key=identifier ',')? value=identifier 'in' expr 'do'
         expressions?
       'end'                                                     #ForEach
 
@@ -906,7 +906,7 @@ simpleExpr
  * optional default value expression.
  */
 parameter
-  :  Identifier ':' type ('=' expr)?
+  :  identifier ':' type ('=' expr)?
   ;
 
 parameters
@@ -924,13 +924,10 @@ columnReference
 /**
  * A select returning zero or one row with a single column and can thus be used
  * where an expression needs to return a single value such as in metadata
- * attributes. When used as an expression, the select keyword can be dropped but
- * the whole expression must be surrounded by parenthesis ('(' and ')').
+ * attributes. For example:
  *
- * For example:
- *
- *    age_max: (select max(age) from People)
- *    age_min: (min(age) from People)
+ *    age_max: from People select max(age)
+ *    age_min: from People select min(age)
  */
 selectExpression
     : 'from' tableExpr
@@ -1037,7 +1034,7 @@ argument
  * and dropped from the expansion.
  */
 namedArgument
-  : Identifier '=' positionalArgument
+  : identifier '=' positionalArgument
   ;
 
 positionalArgument
@@ -1059,7 +1056,7 @@ literal
     : baseLiteral                               #BasicLiterals
     | NullLiteral                               #Null
     | '[' literalList? ']'                      #JsonArrayLiteral       // valid only in metadata expression
-    | '[' baseLiteralList? ']' (Identifier)?    #BaseArrayLiteral
+    | '[' baseLiteralList? ']' (identifier)?    #BaseArrayLiteral
     | '{' literalAttributeList? '}'             #JsonObjectLiteral      // valid only in metadata expression
     ;
 
@@ -1281,6 +1278,10 @@ define
     | alterTable
     | dropTable
 
+    | createStruct
+    | alterStruct
+    | dropStruct
+
     | createIndex
     | dropIndex
 
@@ -1310,7 +1311,18 @@ define
  * keywords are specified in the command.
  */
 createTable
-    : 'create' 'table' qualifiedName dropUndefined? '(' tableDefinitions ')'
+    : 'create' 'table' qualifiedName dropUndefined? '('
+        literalMetadata?
+        columnAndDerivedColumnDefinitions
+        (',' constraintDefinitions)?
+      ')'
+    ;
+
+createStruct
+    : 'create' 'struct' qualifiedName '('
+        literalMetadata?
+        columnAndDerivedColumnDefinitions
+      ')'
     ;
 
 /**
@@ -1326,10 +1338,27 @@ dropUndefined
  * definitions, including the definition of columns, derived columns, constraints
  * and metadata.
  */
-tableDefinitions
-    : tableDefinition (',' tableDefinition)+
+//tableDefinitions
+//    : tableDefinition (',' tableDefinition)*
+//    ;
+//
+//columnDefinitions
+//    : columnDefinition (',' columnDefinition)*
+//    ;
+
+columnAndDerivedColumnDefinitions
+    : columnAndDerivedColumnDefinition (',' columnAndDerivedColumnDefinition)*
     ;
 
+columnAndDerivedColumnDefinition
+    : columnDefinition
+    | derivedColumnDefinition
+    ;
+
+
+constraintDefinitions
+    : constraintDefinition (',' constraintDefinition)*
+    ;
 /**
  * A table definition in a `create table` statement can be one of these:
  * definition of a column, a derived column, a constraint or metadata.
@@ -1346,7 +1375,7 @@ tableDefinition
  * if nulls are prohibited (`not null`), a default value and metadata.
  */
 columnDefinition
-    : Identifier type (Not NullLiteral)? ('default' expr)? metadata?
+    : identifier type (Not NullLiteral)? ('default' expr)? metadata?
     ;
 
 /**
@@ -1355,7 +1384,7 @@ columnDefinition
  * compute the value of a derived column.
  */
 derivedColumnDefinition
-    : Identifier '=' expr metadata?
+    : identifier '=' expr metadata?
     ;
 
 /**
@@ -1433,7 +1462,7 @@ constraintDefinition
  * columns.
  */
 constraintName
-    : 'constraint' Identifier
+    : 'constraint' identifier
     ;
 
 /**
@@ -1481,6 +1510,10 @@ alterTable
     : 'alter' 'table' qualifiedName alterations
     ;
 
+alterStruct
+    : 'alter' 'struct' qualifiedName alterations
+    ;
+
 /**
  * A list of comma-separated alterations can be specified in an `alter table`
  * statement.
@@ -1496,14 +1529,14 @@ alterations
  * metadata.
  */
 alteration
-    : 'rename' 'to' Identifier                                  #RenameTable
+    : 'rename' 'to' identifier                                  #RenameTable
 
     | 'add' tableDefinition                                     #AddTableDefinition
 
-    | 'alter' 'column' Identifier alterColumnDefinition         #AlterColumn
+    | 'alter' 'column' identifier alterColumnDefinition         #AlterColumn
 
-    | 'drop' 'column' Identifier                                #DropColumn
-    | 'drop' 'constraint' Identifier                            #DropConstraint
+    | 'drop' 'column' identifier                                #DropColumn
+    | 'drop' 'constraint' identifier                            #DropConstraint
     | 'drop' 'metadata'                                         #DropTableMetadata
     ;
 
@@ -1512,7 +1545,7 @@ alteration
  * type, null status, default value and metadata.
  */
 alterColumnDefinition
-    : Identifier?           // new column name
+    : identifier?           // new column name
       type?                 // new column type
       alterNull?            // null state
       alterDefault?         // column default
@@ -1546,15 +1579,19 @@ dropTable
     : 'drop' 'table' qualifiedName
     ;
 
+dropStruct
+    : 'drop' 'struct' qualifiedName
+    ;
+
 
 createIndex
     : 'create' unique='unique'?
-      'index'  Identifier
+      'index'  identifier
       'on'     qualifiedName '(' expressionList ')'
     ;
 
 dropIndex
-    : 'drop' 'index' Identifier 'on' qualifiedName
+    : 'drop' 'index' identifier 'on' qualifiedName
     ;
 
 createSequence
@@ -1613,7 +1650,7 @@ alterSequence
  * create multi-dimensional arrays. E.g. `int[5]`, `string[10][10]`.
  */
 type
-     : Identifier                       #Base       // A base type is simply an identifier
+     : identifier                       #Base       // A base type is simply an identifier
      | '[' IntegerLiteral? ']' type     #Array      // Array of arrays are supported by multiple by following with
      ;                                              // a type with any number of '['']'
 

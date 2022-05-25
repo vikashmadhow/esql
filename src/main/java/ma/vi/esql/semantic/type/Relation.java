@@ -10,7 +10,6 @@ import ma.vi.esql.semantic.scope.Symbol;
 import ma.vi.esql.syntax.expression.ColumnRef;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -23,13 +22,9 @@ public abstract class Relation extends AbstractType implements Symbol {
    * Relation type.
    */
   public enum RelationType {
-    TABLE         ('T'),
-    VIEW          ('V'),
-    INDEX         ('I'),
-    SEQUENCE      ('S'),
-    COMPOSITE_TYPE('C'),
-    PROJECTION    ('P'),
-    JOIN          ('J');
+    TABLE ('T'),
+    VIEW  ('V'),
+    STRUCT('S');
 
     public final char marker;
 
@@ -41,9 +36,7 @@ public abstract class Relation extends AbstractType implements Symbol {
       return switch (marker) {
         case 'T' -> TABLE;
         case 'V' -> VIEW;
-        case 'I' -> INDEX;
-        case 'S' -> SEQUENCE;
-        case 'C' -> COMPOSITE_TYPE;
+        case 'S' -> STRUCT;
         default  -> throw new IllegalArgumentException("Unknown relation type: " + marker);
       };
     }
@@ -133,8 +126,4 @@ public abstract class Relation extends AbstractType implements Symbol {
     st.append('}');
     return st.toString();
   }
-
-  public static final Relation UNKNOWN = new Selection(Collections.emptyList(),
-                                                       Collections.emptyList(),
-                                                       null, "__unknown");
 }

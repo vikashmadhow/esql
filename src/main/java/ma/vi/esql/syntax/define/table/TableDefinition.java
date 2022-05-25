@@ -2,11 +2,12 @@
  * Copyright (c) 2020 Vikash Madhow
  */
 
-package ma.vi.esql.syntax.define;
+package ma.vi.esql.syntax.define.table;
 
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
+import ma.vi.esql.syntax.define.Define;
 
 import java.util.List;
 

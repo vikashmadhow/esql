@@ -2,7 +2,7 @@
  * Copyright (c) 2020 Vikash Madhow
  */
 
-package ma.vi.esql.syntax.define;
+package ma.vi.esql.syntax.define.table;
 
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.database.EsqlConnection;
@@ -11,7 +11,10 @@ import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
+import ma.vi.esql.syntax.define.Attribute;
+import ma.vi.esql.syntax.define.Metadata;
 import ma.vi.esql.syntax.expression.Expression;
+import ma.vi.esql.translation.Translatable;
 import org.pcollections.PMap;
 
 import java.util.ArrayList;
@@ -33,7 +36,7 @@ public class ColumnDefinition extends TableDefinition {
                           Type             type,
                           boolean          notNull,
                           Expression<?, ?> expression,
-                          Metadata         metadata) {
+                          Metadata metadata) {
     super(context, "ColumnDef",
           T2.of("name",       new Esql<>(context, name)),
           T2.of("type",       new Esql<>(context, type)),
@@ -79,7 +82,7 @@ public class ColumnDefinition extends TableDefinition {
   }
 
   @Override
-  protected String trans(Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
+  protected String trans(Translatable.Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
     if (target == ESQL) {
       StringBuilder st = new StringBuilder('"' + name() + "\" "
                                                + type().translate(target, esqlCon, path, parameters, env)
@@ -106,7 +109,7 @@ public class ColumnDefinition extends TableDefinition {
     }
   }
 
-  protected void addMetadata(StringBuilder st, Target target) {
+  protected void addMetadata(StringBuilder st, Translatable.Target target) {
     Metadata metadata = metadata();
     if (metadata != null && !metadata.attributes().isEmpty()) {
       st.append(" {");

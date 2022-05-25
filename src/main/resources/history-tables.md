@@ -15,7 +15,7 @@ the table at creation time. For example, history is enabled for the following ta
       name: 'X', 
       description: 'X table',
       history: true
-    },
+    }
     _id uuid not null,
     name string not null, 
     address string,
@@ -33,7 +33,7 @@ the history record. Following is the history table created for the above table:
 ```
   create table X.History({
       name: 'History of X' 
-    },
+    }
     _id uuid not null,
     name string not null, 
     address string,

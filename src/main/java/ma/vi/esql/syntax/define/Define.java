@@ -19,13 +19,13 @@ import java.util.List;
  */
 public abstract class Define extends Expression<String, String> {
   @SafeVarargs
-  Define(Context context,
+  public Define(Context context,
          String value,
          T2<String, ? extends Esql<?, ?>>... children) {
     super(context, value, children);
   }
 
-  Define(Context context,
+  public Define(Context context,
          String value,
          List<? extends Esql<?, ?>> children) {
     super(context, value, children);

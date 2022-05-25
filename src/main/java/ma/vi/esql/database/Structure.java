@@ -19,10 +19,9 @@ import ma.vi.esql.semantic.scope.Symbol;
 import ma.vi.esql.semantic.scope.SymbolAlreadyDefinedException;
 import ma.vi.esql.semantic.type.BaseRelation;
 import ma.vi.esql.semantic.type.Sequence;
+import ma.vi.esql.semantic.type.Struct;
 import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.syntax.EsqlPath;
-import ma.vi.esql.syntax.define.ConstraintDefinition;
-import ma.vi.esql.syntax.define.ForeignKeyConstraint;
 import ma.vi.esql.translation.Translatable;
 import ma.vi.esql.translation.TranslationException;
 
@@ -507,6 +506,39 @@ public class Structure extends AbstractScope implements Environment {
     return relationsById.remove(relation.id());
   }
 
+  public Map<String, Struct> structs() {
+    return unmodifiableMap(structs);
+  }
+
+  public Set<Struct> structsSet() {
+    return new HashSet<>(structs.values());
+  }
+
+  public synchronized boolean structExists(String name) {
+    return structs.containsKey(name);
+  }
+
+  public synchronized Struct struct(String name) {
+    if (!structs.containsKey(name)) {
+      throw new TranslationException("Unknown struct: " + name);
+    }
+    return structs.get(name);
+  }
+
+  public synchronized Struct struct(UUID id) {
+    return structsById.get(id);
+  }
+
+  public synchronized void struct(Struct struct) {
+    structs.put(struct.name(), struct);
+    structsById.put(struct.id, struct);
+  }
+
+  public synchronized Struct remove(Struct struct) {
+    structs.remove(struct.name());
+    return structsById.remove(struct.id());
+  }
+
   public Map<String, Function> functions() {
     return unmodifiableMap(functions);
   }
@@ -558,6 +590,12 @@ public class Structure extends AbstractScope implements Environment {
    * Set of tables by name.
    */
   private final ConcurrentMap<String, BaseRelation> relations = new ConcurrentHashMap<>();
+
   private final ConcurrentMap<UUID, BaseRelation> relationsById = new ConcurrentHashMap<>();
+
+  private final ConcurrentMap<String, Struct> structs = new ConcurrentHashMap<>();
+
+  private final ConcurrentMap<UUID, Struct> structsById = new ConcurrentHashMap<>();
+
   private final ConcurrentMap<String, Sequence> sequences = new ConcurrentHashMap<>();
 }

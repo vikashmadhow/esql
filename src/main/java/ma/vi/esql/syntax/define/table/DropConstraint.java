@@ -2,7 +2,7 @@
  * Copyright (c) 2020 Vikash Madhow
  */
 
-package ma.vi.esql.syntax.define;
+package ma.vi.esql.syntax.define.table;
 
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.database.EsqlConnection;
@@ -13,27 +13,27 @@ import ma.vi.esql.syntax.EsqlPath;
 import org.pcollections.PMap;
 
 /**
- * Drop table metadata.
+ * Drop a constraint from a table.
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public class DropMetadata extends Alteration {
-  public DropMetadata(Context context) {
-    super(context);
+public class DropConstraint extends Alteration {
+  public DropConstraint(Context context, String constraintName) {
+    super(context, T2.of("constraintName", new Esql<>(context, constraintName)));
   }
 
-  public DropMetadata(DropMetadata other) {
+  public DropConstraint(DropConstraint other) {
     super(other);
   }
 
   @SafeVarargs
-  public DropMetadata(DropMetadata other, String value, T2<String, ? extends Esql<?, ?>>... children) {
+  public DropConstraint(DropConstraint other, String value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }
 
   @Override
-  public DropMetadata copy() {
-    return new DropMetadata(this);
+  public DropConstraint copy() {
+    return new DropConstraint(this);
   }
 
   /**
@@ -42,12 +42,16 @@ public class DropMetadata extends Alteration {
    * of the copy.
    */
   @Override
-  public DropMetadata copy(String value, T2<String, ? extends Esql<?, ?>>... children) {
-    return new DropMetadata(this, value, children);
+  public DropConstraint copy(String value, T2<String, ? extends Esql<?, ?>>... children) {
+    return new DropConstraint(this, value, children);
   }
 
   @Override
   protected String trans(Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
-    return "drop metadata";
+    return "drop constraint " + constraintName();
+  }
+
+  public String constraintName() {
+    return childValue("constraintName");
   }
 }

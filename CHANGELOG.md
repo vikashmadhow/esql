@@ -8,11 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### To add
 - Array, list, map, set operations.
 - Manual transaction control (begin, commit, rollback, set isolation level, 
-  savepoints, locking). Currently, transaction boundary is aligned to connection 
-  or single-statement only.
+  savepoints, locking). Currently, transaction boundary is aligned to connection.
 - Produce formatted multi-line translation to SQL.
 - Assignment to array, list and map subscripts.
 - Operations on JSON objects.
+- Support for merge queries.
 - `Truncate table` statement.
 - Make all expressions and functions (where possible) executable.
 - Support for creating and using sequences.
@@ -24,7 +24,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Make into Java 9 module.
 - Support for `within group` for ordering in string and array aggregate functions.
 - Support for bulk copy manager in postgresql.
-- Support for merge queries.
 - Implement state-based model where an ESQL program is specified as a target state 
   instead of a sequence of imperative statements. For instance, a table definition
   is specified instead of a `create table` and/or a set `alter table` statements.
@@ -74,7 +73,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   overriding)
 - Modify queries return values don't seem to be supported correctly for SQL Server.
 
-## [0.9.6]
+## [0.9.7]
+### Added:
+- Structs: user-defined composite data types:
+  - `create struct` statement to create a user-defined composite datatype which 
+    has a similar syntax to `create table`. This creates a type with a table-like 
+    structure which can have columns and metadata. This structure is stored in
+    the _core tables; the only difference from a normal table is that an actual
+    table is not created in the database.
+  - `drop struct` drops a user-defined composite type.
+  - `alter struct` alters a user-defined composite type.
+- `insert`, `CTE`, `create table` and several other expression can now take an
+  escaped identifier (identifier surrounded by quotes allowing reserved words and
+  special characters) wherever a normal identifier was previously required. This
+  allows reserved words to be as columns names in tables, for example.
+
+### Changed
+- `create table` syntax has been changed to be closer to SQL: 
+  - the sequence of definitions is no longer arbitrary and must be table metadata
+    first, if any, then column definitions and finally constraints.
+  - A comma must no longer appear after the table metadata definition.
+
+### Fixed
+- Extensions are loaded after database-specific initialisations as some extensions
+  depend on structures that have been created during the latter. E.g. functions
+  to work with interval data types and to capture change events.
+- `insert` can now have escaped identifiers in its column list.
+
+## [0.9.6] - 2022-05-17
 ### Added
 - History tracking
   - auto-commit support disabled as this prevents the tracking of all changes made
@@ -89,7 +115,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Optimisation of coarse-grain history tables (create indices).
 - `count` aggregate function is translated to `count_big` on SQL server which
   returns a `bigint` instead of an `int`.
-- `create index` now supported in ESQL.
+- `create index` is recognised in ESQL and translated to target database.
 - Creation of core tables are now self-describing, i.e., they automatically capture
   and save metadata on themselves. This considerably reduces the amount of code
   required to create them.

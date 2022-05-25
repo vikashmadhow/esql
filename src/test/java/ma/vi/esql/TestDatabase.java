@@ -12,12 +12,13 @@ import ma.vi.esql.database.Structure;
 import ma.vi.esql.database.EsqlConnection;
 import ma.vi.esql.exec.Executor;
 import ma.vi.esql.semantic.type.BaseRelation;
+import ma.vi.esql.semantic.type.Struct;
 import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.EsqlTransformer;
 import ma.vi.esql.syntax.Parser;
 import ma.vi.esql.syntax.define.Attribute;
-import ma.vi.esql.syntax.define.ConstraintDefinition;
+import ma.vi.esql.syntax.define.table.ConstraintDefinition;
 import ma.vi.esql.syntax.define.Metadata;
 import ma.vi.esql.semantic.type.Column;
 import ma.vi.esql.translation.*;
@@ -25,7 +26,6 @@ import ma.vi.esql.translation.*;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.*;
 
 import static ma.vi.esql.builder.Attributes.DERIVED;
@@ -338,8 +338,7 @@ public class TestDatabase implements Database {
   }
 
   @Override
-  public void addTable(EsqlConnection con, BaseRelation table) {
-  }
+  public void addTable(EsqlConnection con, Struct table) {}
 
   @Override
   public UUID tableId(EsqlConnection con, String tableName) {

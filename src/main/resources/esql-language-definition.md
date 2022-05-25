@@ -37,7 +37,7 @@ create table com.example.S(
     # table metadata (applied to all queries on this table)
     max_a: (max(a) from com.example.S),
     a_gt_b: a > b
-  },
+  }
   a int {
     # column metadata attached to column a 
     m1: b > 5, m2: 10, m3: a != 0
@@ -226,7 +226,7 @@ select
  *          # table metadata (applied to all queries on this table)
  *          max_a: (max(a) from com.example.S),
  *          a_gt_b: a > b
- *        },
+ *        }
  *        a int {
  *          # column metadata attached to column a
  *          m1: b > 5, m2: 10, m3: a != 0

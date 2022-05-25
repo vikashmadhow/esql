@@ -13,6 +13,8 @@ import ma.vi.esql.syntax.query.TableExpr;
 
 import java.util.*;
 
+import static java.util.Collections.emptyList;
+
 /**
  * A selection of columns from a relation (also known
  * as a projection in SQL and relational calculus).
@@ -95,4 +97,7 @@ public class Selection extends Relation {
   private final TableExpr from;
 
   private final String alias;
+
+  public static final Selection UNKNOWN = new Selection(emptyList(), emptyList(),
+                                                       null, "__unknown");
 }

@@ -20,8 +20,8 @@ public class ErrorDetectionTest {
     assertThrows(SyntaxException.class, () ->
                  parser.parse("""
                                   create table A(
-                                    _id uuid,\s
-                                    name str,\s
+                                    _id uuid,
+                                    name str,
                                     age int
                                   )"""));
   }

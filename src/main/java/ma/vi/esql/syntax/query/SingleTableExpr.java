@@ -6,8 +6,8 @@ package ma.vi.esql.syntax.query;
 
 import ma.vi.base.lang.NotFoundException;
 import ma.vi.base.tuple.T2;
-import ma.vi.esql.database.Structure;
 import ma.vi.esql.database.EsqlConnection;
+import ma.vi.esql.database.Structure;
 import ma.vi.esql.exec.Filter;
 import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.semantic.type.*;
@@ -239,8 +239,7 @@ public class SingleTableExpr extends AbstractAliasTableExpr {
       }
       t = context.type(table);
       if (t == null) {
-//        throw new NotFoundException(table + " is not a known relation in this query");
-        return Relation.UNKNOWN;
+        return Selection.UNKNOWN;
       }
       if (!(t instanceof Relation)) {
         throw new TranslationException(this, table + " is not a Relation. It is a " + t);

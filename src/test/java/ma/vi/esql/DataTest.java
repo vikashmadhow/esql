@@ -90,12 +90,12 @@ public class DataTest {
                                 validate_unique: [['a', 'b', 'e']],
                                 dependents: {
                                   links: {
-                                    type: 'a.b.T',
+                                    "type": 'a.b.T',
                                     referred_by: 's_id',
                                     label: 'S Links'
                                   }
                                 }
-                              },
+                              }
                               _id uuid not null,
                               a int {
                                 m1: b > 5,
@@ -137,7 +137,7 @@ public class DataTest {
                     "  {" +
                     "    name: 'T'," +
                     "    description: 'T test table'" +
-                    "  }, " +
+                    "  } " +
                     "  _id uuid not null," +
                     "  a int {" +
                     "    m1: b > 5," +
@@ -174,7 +174,7 @@ public class DataTest {
                     "  {" +
                     "    name: 'X'," +
                     "    description: 'X test table'" +
-                    "  }, " +
+                    "  } " +
                     "  _id uuid not null," +
                     "  a int {" +
                     "    m1: b > 5," +
@@ -209,7 +209,7 @@ public class DataTest {
                     "  {" +
                     "    name: 'Y'," +
                     "    description: 'Y test table'" +
-                    "  }, " +
+                    "  } " +
                     "  _id uuid not null," +
                     "  a int {" +
                     "    m1: b > 5," +

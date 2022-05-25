@@ -2,7 +2,7 @@
  * Copyright (c) 2020 Vikash Madhow
  */
 
-package ma.vi.esql.syntax.define;
+package ma.vi.esql.syntax.define.table;
 
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.database.EsqlConnection;
@@ -11,7 +11,10 @@ import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
+import ma.vi.esql.syntax.define.Attribute;
+import ma.vi.esql.syntax.define.Metadata;
 import ma.vi.esql.syntax.expression.Expression;
+import ma.vi.esql.translation.Translatable;
 import org.pcollections.PMap;
 
 import java.util.ArrayList;
@@ -29,7 +32,7 @@ public class DerivedColumnDefinition extends ColumnDefinition {
   public DerivedColumnDefinition(Context          context,
                                  String           name,
                                  Expression<?, ?> expression,
-                                 Metadata         metadata) {
+                                 Metadata metadata) {
     this(context, name, null, expression, addDerived(context, metadata));
   }
 
@@ -90,8 +93,8 @@ public class DerivedColumnDefinition extends ColumnDefinition {
   }
 
   @Override
-  protected String trans(Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
-    if (target == Target.ESQL) {
+  protected String trans(Translatable.Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
+    if (target == Translatable.Target.ESQL) {
       StringBuilder st = new StringBuilder("derived \"" + name() + "\" " + expression().translate(target,
                                                                                                   esqlCon,
                                                                                                   path.add(expression()),

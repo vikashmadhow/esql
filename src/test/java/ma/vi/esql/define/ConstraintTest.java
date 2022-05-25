@@ -8,7 +8,7 @@ import ma.vi.esql.semantic.type.BaseRelation;
 import ma.vi.esql.semantic.type.Column;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.Parser;
-import ma.vi.esql.syntax.define.ForeignKeyConstraint;
+import ma.vi.esql.syntax.define.table.ForeignKeyConstraint;
 import ma.vi.esql.translation.Translatable;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -209,11 +209,10 @@ public class ConstraintTest extends DataTest {
                    try (EsqlConnection con = db.esql(db.pooledConnection())) {
                      con.exec("drop table A");
                      con.exec("""
-                              create table A drop undefined(
-                                {
+                              create table A drop undefined({
                                   name: 'A',
                                   description: 'A test table'
-                                },
+                                }
                                 _id uuid not null,
                                 a int {
                                   m1: b > 5,

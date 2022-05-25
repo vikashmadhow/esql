@@ -11,7 +11,9 @@ import ma.vi.esql.syntax.CircularReferenceException;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
-import ma.vi.esql.syntax.define.*;
+import ma.vi.esql.syntax.define.Attribute;
+import ma.vi.esql.syntax.define.Metadata;
+import ma.vi.esql.syntax.define.table.*;
 import ma.vi.esql.syntax.expression.*;
 import ma.vi.esql.syntax.expression.literal.*;
 import ma.vi.esql.syntax.expression.logical.And;
@@ -31,7 +33,7 @@ import static ma.vi.esql.semantic.type.Types.UnknownType;
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public class BaseRelation extends Relation {
+public class BaseRelation extends Struct {
   public BaseRelation(Context                    context,
                       UUID                       id,
                       String                     name,
@@ -40,12 +42,16 @@ public class BaseRelation extends Relation {
                       List<Attribute>            attributes,
                       List<Column>               columns,
                       List<ConstraintDefinition> constraints) {
-    super(name);
-    this.context = context;
-    this.id = id;
-    this.name = name != null ? name : "__temp__.rel_" + random(10);
-    this.displayName = displayName;
-    this.description = description;
+    super(context,
+          id,
+          name != null ? name : "__temp__.rel_" + random(10),
+          displayName,
+          description,
+          attributes,
+          columns);
+
+    this.columns.clear();
+    this.columnsByAlias.clear();
 
     /*
      * Set default names of columns when not specified.
@@ -97,12 +103,6 @@ public class BaseRelation extends Relation {
 
     expandColumns();
 
-    if (attributes != null) {
-      for (Attribute a: attributes) {
-        attribute(a);
-      }
-    }
-
     if (constraints != null) {
       for (ConstraintDefinition c: constraints) {
         constraint(c);
@@ -111,15 +111,7 @@ public class BaseRelation extends Relation {
   }
 
   public BaseRelation(BaseRelation other) {
-    super(other.name);
-    this.context = other.context;
-    this.id = other.id;
-    this.name = other.name;
-    this.displayName = other.displayName;
-    this.description = other.description;
-    for (Column column: other.columns) {
-      this.columns.add(column.copy());
-    }
+    super(other);
     for (ConstraintDefinition c: other.constraints) {
       this.constraints.add(c.copy());
     }
@@ -582,8 +574,8 @@ public class BaseRelation extends Relation {
   }
 
   private static void addAttributesForConstraints(BaseRelation rel, ConstraintDefinition constraint) {
-    if      (constraint instanceof UniqueConstraint     u) addUniqueConstraint (rel, u);
-    else if (constraint instanceof CheckConstraint      c) addCheckConstraint  (rel, c);
+    if      (constraint instanceof UniqueConstraint u) addUniqueConstraint(rel, u);
+    else if (constraint instanceof CheckConstraint c) addCheckConstraint(rel, c);
     else if (constraint instanceof PrimaryKeyConstraint p) addPrimaryConstraint(rel, p);
     else if (constraint instanceof ForeignKeyConstraint f) addForeignConstraint(rel, f);
   }
@@ -1076,24 +1068,6 @@ public class BaseRelation extends Relation {
                             columns,
                             constraints);
   }
-
-  public final Context context;
-
-  /**
-   * Internal unique identifier for table in database system.
-   */
-  public final UUID id;
-
-  public final String displayName;
-
-  public final String description;
-
-  /**
-   * Relation columns.
-   */
-  private final List<Column> columns = new ArrayList<>();
-
-  private final PathTrie<Column> columnsByAlias = new PathTrie<>();
 
   /**
    * Constraints set on the table (including field constraints but excluding non-null field's constraints).

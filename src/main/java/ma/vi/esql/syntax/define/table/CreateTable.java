@@ -2,13 +2,14 @@
  * Copyright (c) 2020 Vikash Madhow
  */
 
-package ma.vi.esql.syntax.define;
+package ma.vi.esql.syntax.define.table;
 
 import ma.vi.base.collections.Sets;
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.builder.CreateTableBuilder;
 import ma.vi.esql.database.Database;
 import ma.vi.esql.database.EsqlConnection;
+import ma.vi.esql.exec.ExecutionException;
 import ma.vi.esql.exec.Result;
 import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.semantic.type.BaseRelation;
@@ -19,6 +20,9 @@ import ma.vi.esql.syntax.CircularReferenceException;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
+import ma.vi.esql.syntax.define.Attribute;
+import ma.vi.esql.syntax.define.Define;
+import ma.vi.esql.syntax.define.Metadata;
 import ma.vi.esql.syntax.expression.ColumnRef;
 import ma.vi.esql.syntax.expression.Expression;
 import ma.vi.esql.syntax.expression.GroupedExpression;
@@ -114,7 +118,7 @@ public class CreateTable extends Define {
                                        LinkedHashMap::new));
   }
 
-  private static List<ColumnDefinition> expand(List<ColumnDefinition> cols) {
+  public static List<ColumnDefinition> expand(List<ColumnDefinition> cols) {
     Map<String, ColumnDefinition> columnsMap = colsByName(cols);
     boolean hasDerived = false;
     List<ColumnDefinition> columns = new ArrayList<>();
@@ -265,13 +269,17 @@ public class CreateTable extends Define {
        * creation and the table did not exist before.
        */
       if (!db.structure().relationExists(tableName)) {
+        if (db.structure().structExists(tableName)) {
+          throw new ExecutionException("A struct named " + tableName + " exists; a "
+                                     + "table with the same name cannot be created");
+        }
         CreateTable modified = this;
         List<ConstraintDefinition> constraints = constraints();
         if (db.target() == MARIADB || db.target() == MYSQL) {
           /*
-           * For some reasons, mariadb and mysql cannot create a foreign key
-           * from a field (relation_id) that is also part of a composite unique
-           * key. As a workaround, we simply drop such unique constraints.
+           * For some reasons, mariadb and mysql cannot create a foreign key from
+           * a column (relation_id) that is also part of a composite unique key.
+           * As a workaround, we simply drop such unique constraints.
            */
           Set<String> columnsInForeignKey =
               constraints.stream()
@@ -315,7 +323,6 @@ public class CreateTable extends Define {
           addCoarseEventCaptureTriggers(target, con, tableName);
         }
         db.structure().relation(table);
-//        table.expandColumns();
         db.structure().database.addTable(esqlCon, table);
 
         /*
@@ -338,7 +345,7 @@ public class CreateTable extends Define {
         }
       } else {
         /*
-         * already exists: alter
+         * Already exists: alter
          */
         BaseRelation table = db.structure().relation(tableName);
         AlterTable alter;
@@ -355,14 +362,16 @@ public class CreateTable extends Define {
           alter.exec(target, esqlCon, path.add(alter), parameters, env);
         }
 
-        // add missing columns and alter existing ones if needed
+        /*
+         * Add missing columns and alter existing ones if needed.
+         */
         Map<String, ColumnDefinition> columns = new HashMap<>();
         for (ColumnDefinition column: columns()) {
           columns.put(column.name(), column);
           T2<Relation, Column> existing = table.findColumn(ColumnRef.of(null, column.name()));
           if (existing == null) {
             /*
-             * No existing field with that name: add
+             * No existing column with that name: add.
              */
             alter = new AlterTable(context,
                                    tableName,
@@ -370,7 +379,7 @@ public class CreateTable extends Define {
             alter.exec(target, esqlCon, path.add(alter), parameters, env);
           } else {
             /*
-             * alter existing field
+             * Alter existing column.
              */
             Column existingColumn = existing.b();
             Type toType = !existingColumn.computeType(path.add(existingColumn)).equals(column.type()) ? column.type() : null;
@@ -417,7 +426,9 @@ public class CreateTable extends Define {
           }
         }
 
-        // add missing constraints and alter existing ones if needed
+        /*
+         * Add missing constraints and alter existing ones if needed.
+         */
         for (ConstraintDefinition constraint: constraints()) {
           ConstraintDefinition tableConstraint = table.sameAs(constraint);
           if (tableConstraint == null) {
@@ -454,7 +465,7 @@ public class CreateTable extends Define {
          */
         if (dropUndefined()) {
           /*
-           * drop excess fields
+           * Drop excess columns.
            */
           for (T2<Relation, Column> column: new ArrayList<>(table.columns())) {
             String columnName = column.b().name();
@@ -462,7 +473,7 @@ public class CreateTable extends Define {
                 && columnName.indexOf('/') == -1
                 && !columns.containsKey(columnName)) {
               /*
-               * Drop existing field not specified in create command
+               * Drop existing column not specified in create command.
                */
               alter = new AlterTable(context, tableName, singletonList(new DropColumn(context, columnName)));
               alter.exec(target, esqlCon, path.add(alter), parameters, env);
@@ -470,7 +481,7 @@ public class CreateTable extends Define {
           }
 
           /*
-           * drop excess constraints
+           * Drop excess constraints.
            */
           List<String> toDrop = new ArrayList<>();
           for (ConstraintDefinition tableConstraint: new ArrayList<>(table.constraints())) {
@@ -483,7 +494,7 @@ public class CreateTable extends Define {
             }
             if (!found) {
               /*
-               * No definition found for this constraint: drop
+               * No definition found for this constraint: drop.
                */
               toDrop.add(tableConstraint.name());
             }
@@ -494,7 +505,7 @@ public class CreateTable extends Define {
           }
 
           /*
-           * Drop table metadata if no metadata specified in create
+           * Drop table metadata if no metadata specified in create.
            */
           if (metadata() == null
            || metadata().attributes() == null

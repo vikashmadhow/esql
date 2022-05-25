@@ -10,9 +10,10 @@ import ma.vi.base.tuple.T2;
 import ma.vi.esql.exec.Executor;
 import ma.vi.esql.semantic.type.BaseRelation;
 import ma.vi.esql.semantic.type.Column;
+import ma.vi.esql.semantic.type.Struct;
 import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.syntax.EsqlTransformer;
-import ma.vi.esql.syntax.define.ConstraintDefinition;
+import ma.vi.esql.syntax.define.table.ConstraintDefinition;
 import ma.vi.esql.syntax.define.Metadata;
 import ma.vi.esql.translation.Translatable;
 
@@ -331,15 +332,13 @@ public interface Database {
                create table _core.relations drop undefined({
                  name: 'Relations',
                  description: 'All relations in the database'
-               },
+               }
                
                _id             uuid    not null,
-               _can_delete     bool,
-               _can_edit       bool,
                name            string  not null,
                display_name    string,
                description     string,
-               type            char    not null,
+               "type"          char    not null,
                view_definition text,
                                       
                constraint _core_relations_pk       primary key (_id),
@@ -356,7 +355,7 @@ public interface Database {
                create table _core.relation_attributes drop undefined({
                  name: 'Relation attributes',
                  description: 'Attributes (metadata) of relations'
-               },
+               }
                
                _id         uuid    not null,
                relation_id uuid    not null,
@@ -375,15 +374,14 @@ public interface Database {
                create table _core.columns drop undefined({
                  name: 'Relation columns',
                  description: 'Information on columns of relations'
-               },
+               }
                
                _id             uuid   not null,
                _can_delete     bool,
-               _can_edit       bool,
                relation_id     uuid   not null,
                name            string not null,
                derived_column  bool,
-               type            string not null,
+               "type"          string not null,
                not_null        bool,
                expression      text,
                seq             int    not null,
@@ -401,7 +399,7 @@ public interface Database {
                create table _core.column_attributes drop undefined({
                  name: 'Column attributes',
                  description: 'Attributes (metadata) of relation columns'
-               },
+               }
                
                _id       uuid    not null,
                column_id uuid    not null,
@@ -420,12 +418,12 @@ public interface Database {
                create table _core.constraints drop undefined({
                  name: 'Relation constraints',
                  description: 'Integrity constraints on relations'
-               },
+               }
                
                _id                 uuid    not null,
                name                string  not null,
                relation_id         uuid    not null,
-               type                char    not null,
+               "type"              char    not null,
                check_expr          text,
                source_columns      []string,
                target_relation_id  uuid,
@@ -482,7 +480,7 @@ public interface Database {
   /**
    * Adds a table to the core information tables if latter are present.
    */
-  void addTable(EsqlConnection con, BaseRelation table);
+  void addTable(EsqlConnection con, Struct table);
 
   /**
    * Returns the table id of the table with the specified name in the core
@@ -619,7 +617,7 @@ public interface Database {
     public void setArray(PreparedStatement ps, int paramIndex, Object array) {}
 
     @Override
-    public void addTable(EsqlConnection con, BaseRelation table) {}
+    public void addTable(EsqlConnection con, Struct table) {}
 
     @Override
     public UUID tableId(EsqlConnection con, String tableName) {

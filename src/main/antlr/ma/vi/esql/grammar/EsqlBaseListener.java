@@ -1782,6 +1782,18 @@ public class EsqlBaseListener implements EsqlListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterCreateStruct(EsqlParser.CreateStructContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitCreateStruct(EsqlParser.CreateStructContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterDropUndefined(EsqlParser.DropUndefinedContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -1794,13 +1806,37 @@ public class EsqlBaseListener implements EsqlListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterTableDefinitions(EsqlParser.TableDefinitionsContext ctx) { }
+	@Override public void enterColumnAndDerivedColumnDefinitions(EsqlParser.ColumnAndDerivedColumnDefinitionsContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitTableDefinitions(EsqlParser.TableDefinitionsContext ctx) { }
+	@Override public void exitColumnAndDerivedColumnDefinitions(EsqlParser.ColumnAndDerivedColumnDefinitionsContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterColumnAndDerivedColumnDefinition(EsqlParser.ColumnAndDerivedColumnDefinitionContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitColumnAndDerivedColumnDefinition(EsqlParser.ColumnAndDerivedColumnDefinitionContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterConstraintDefinitions(EsqlParser.ConstraintDefinitionsContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitConstraintDefinitions(EsqlParser.ConstraintDefinitionsContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -1950,6 +1986,18 @@ public class EsqlBaseListener implements EsqlListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterAlterStruct(EsqlParser.AlterStructContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitAlterStruct(EsqlParser.AlterStructContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterAlterations(EsqlParser.AlterationsContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -2077,6 +2125,18 @@ public class EsqlBaseListener implements EsqlListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitDropTable(EsqlParser.DropTableContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterDropStruct(EsqlParser.DropStructContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitDropStruct(EsqlParser.DropStructContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *

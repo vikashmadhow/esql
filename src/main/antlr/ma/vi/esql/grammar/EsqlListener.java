@@ -1650,6 +1650,16 @@ public interface EsqlListener extends ParseTreeListener {
 	 */
 	void exitCreateTable(EsqlParser.CreateTableContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link EsqlParser#createStruct}.
+	 * @param ctx the parse tree
+	 */
+	void enterCreateStruct(EsqlParser.CreateStructContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link EsqlParser#createStruct}.
+	 * @param ctx the parse tree
+	 */
+	void exitCreateStruct(EsqlParser.CreateStructContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link EsqlParser#dropUndefined}.
 	 * @param ctx the parse tree
 	 */
@@ -1660,15 +1670,35 @@ public interface EsqlListener extends ParseTreeListener {
 	 */
 	void exitDropUndefined(EsqlParser.DropUndefinedContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link EsqlParser#tableDefinitions}.
+	 * Enter a parse tree produced by {@link EsqlParser#columnAndDerivedColumnDefinitions}.
 	 * @param ctx the parse tree
 	 */
-	void enterTableDefinitions(EsqlParser.TableDefinitionsContext ctx);
+	void enterColumnAndDerivedColumnDefinitions(EsqlParser.ColumnAndDerivedColumnDefinitionsContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link EsqlParser#tableDefinitions}.
+	 * Exit a parse tree produced by {@link EsqlParser#columnAndDerivedColumnDefinitions}.
 	 * @param ctx the parse tree
 	 */
-	void exitTableDefinitions(EsqlParser.TableDefinitionsContext ctx);
+	void exitColumnAndDerivedColumnDefinitions(EsqlParser.ColumnAndDerivedColumnDefinitionsContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link EsqlParser#columnAndDerivedColumnDefinition}.
+	 * @param ctx the parse tree
+	 */
+	void enterColumnAndDerivedColumnDefinition(EsqlParser.ColumnAndDerivedColumnDefinitionContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link EsqlParser#columnAndDerivedColumnDefinition}.
+	 * @param ctx the parse tree
+	 */
+	void exitColumnAndDerivedColumnDefinition(EsqlParser.ColumnAndDerivedColumnDefinitionContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link EsqlParser#constraintDefinitions}.
+	 * @param ctx the parse tree
+	 */
+	void enterConstraintDefinitions(EsqlParser.ConstraintDefinitionsContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link EsqlParser#constraintDefinitions}.
+	 * @param ctx the parse tree
+	 */
+	void exitConstraintDefinitions(EsqlParser.ConstraintDefinitionsContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link EsqlParser#tableDefinition}.
 	 * @param ctx the parse tree
@@ -1798,6 +1828,16 @@ public interface EsqlListener extends ParseTreeListener {
 	 */
 	void exitAlterTable(EsqlParser.AlterTableContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link EsqlParser#alterStruct}.
+	 * @param ctx the parse tree
+	 */
+	void enterAlterStruct(EsqlParser.AlterStructContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link EsqlParser#alterStruct}.
+	 * @param ctx the parse tree
+	 */
+	void exitAlterStruct(EsqlParser.AlterStructContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link EsqlParser#alterations}.
 	 * @param ctx the parse tree
 	 */
@@ -1919,6 +1959,16 @@ public interface EsqlListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitDropTable(EsqlParser.DropTableContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link EsqlParser#dropStruct}.
+	 * @param ctx the parse tree
+	 */
+	void enterDropStruct(EsqlParser.DropStructContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link EsqlParser#dropStruct}.
+	 * @param ctx the parse tree
+	 */
+	void exitDropStruct(EsqlParser.DropStructContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link EsqlParser#createIndex}.
 	 * @param ctx the parse tree

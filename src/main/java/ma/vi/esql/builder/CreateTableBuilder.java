@@ -9,6 +9,7 @@ import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Parser;
 import ma.vi.esql.syntax.define.*;
+import ma.vi.esql.syntax.define.table.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -78,7 +79,7 @@ public class CreateTableBuilder implements Builder<CreateTable> {
     Parser parser = new Parser(context.structure);
     this.columns.add(
         new DerivedColumnDefinition(context, name, parser.parseExpression(expression),
-            new Metadata(context,
+                                    new Metadata(context,
                 Stream.of(metadata)
                       .map(a -> new Attribute(context, a.name(), parser.parseExpression(a.expr())))
                       .collect(toList()))));
