@@ -7,6 +7,7 @@ package ma.vi.esql.query;
 import ma.vi.esql.DataTest;
 import ma.vi.esql.builder.InsertBuilder;
 import ma.vi.esql.database.EsqlConnection;
+import ma.vi.esql.exec.QueryParams;
 import ma.vi.esql.exec.Result;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Parser;
@@ -50,6 +51,71 @@ public class InsertTest extends DataTest {
                      Result rs = con.exec("select count(*) from S");
                      rs.toNext();
                      assertEquals(((Number)rs.get(1).value()).intValue(), 20);
+                   }
+                 }));
+  }
+  @TestFactory
+  Stream<DynamicTest> insertSpecialCharacters() {
+    return Stream.of(databases)
+                 .map(db -> dynamicTest(db.target().toString(), () -> {
+                   System.out.println(db.target());
+                   Parser p = new Parser(db.structure());
+                   try (EsqlConnection con = db.esql(db.pooledConnection())) {
+                     con.exec("delete t from t:a.b.T");
+                     con.exec("delete s from s:S");
+
+                     String v1 = """
+                                 This is a test
+                                 string containing
+                                 multiple lines
+                                 separated\tby\tcarriage returns
+                                 and tabs.
+                                 """;
+                     con.exec("insert into S(_id, a, b, e, h, i) values "
+                            + "(newid(), 1, 2, true, ['Four', 'Quatre']text, @v1)",
+                              new QueryParams().add("v1", v1));
+
+                     Result rs = con.exec("select i from S order by a");
+                     rs.toNext();
+                     assertEquals(v1, rs.value(1));
+                   }
+                 }));
+  }
+
+ @TestFactory
+  Stream<DynamicTest> insertionOfArrays() {
+    return Stream.of(databases)
+                 .map(db -> dynamicTest(db.target().toString(), () -> {
+                   System.out.println(db.target());
+                   Parser p = new Parser(db.structure());
+                   try (EsqlConnection con = db.esql(db.pooledConnection())) {
+                     con.exec("delete t from t:a.b.T");
+                     con.exec("delete s from s:S");
+
+                     UUID[] u1 = new UUID[]{ UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID() };
+                     UUID[] u2 = new UUID[]{ UUID.randomUUID() };
+                     UUID[] u3 = new UUID[0];
+                     UUID[] u4 = null;
+
+                     con.exec("insert into S(_id, a, b, e, h, i, m) values "
+                            + "(newid(), 1, 2, true, ['Four', 'Quatre']text, 'Five', @u1),"
+                            + "(newid(), 2, 7, false, ['Nine', 'Neuf']text, 'Ten',   @u2),"
+                            + "(newid(), 3, 2, true, ['Four', 'Quatre']text, 'Five', @u3),"
+                            + "(newid(), 4, 7, false, ['Nine', 'Neuf']text, 'Ten',   @u4)",
+                            new QueryParams().add("u1", u1)
+                                             .add("u2", u2)
+                                             .add("u3", u3)
+                                             .add("u4", u4));
+
+                     Result rs = con.exec("select a, h, m from S order by a");
+                     rs.toNext(); assertArrayEquals(new String[]{"Four", "Quatre"}, rs.value("h"));
+                                  assertArrayEquals(u1, rs.value("m"));
+                     rs.toNext(); assertArrayEquals(new String[]{"Nine", "Neuf"},   rs.value("h"));
+                                  assertArrayEquals(u2, rs.value("m"));
+                     rs.toNext(); assertArrayEquals(new String[]{"Four", "Quatre"}, rs.value("h"));
+                                  assertArrayEquals(u3, rs.value("m"));
+                     rs.toNext(); assertArrayEquals(new String[]{"Nine", "Neuf"},   rs.value("h"));
+                                  assertArrayEquals(u4, rs.value("m"));
                    }
                  }));
   }

@@ -1312,9 +1312,9 @@ define
  */
 createTable
     : 'create' 'table' qualifiedName dropUndefined? '('
-        literalMetadata?
+        (literalMetadata ','?)?
         columnAndDerivedColumnDefinitions
-        (',' constraintDefinitions)?
+        (','? constraintDefinitions)?
       ')'
     ;
 

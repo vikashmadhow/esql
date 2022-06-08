@@ -1,46 +1,21 @@
 /*
- * Copyright (c) 2020 Vikash Madhow
+ * Copyright (c) 2020-2022 Vikash Madhow
  */
 
 package ma.vi.esql.builder;
 
 /**
- * A standard set metadata of attributes which can be attached to tables and
- * fields through their metadata definition.
- * <p>
- * Attributes starting with display_ are interpreted on the client side. They
- * are packaged into a javascript function as follows:
+ * A standard set metadata of attributes which can be attached to tables and fields
+ * through their metadata definition. Attributes are interpreted on both the
+ * database and the client. For interpretation on the client they will be sent as
+ * an uncomputed expression in the form:
  *
- * <pre>
- * function(value, context) {
- *   [return] (attribute value goes here)
- * }
- * </pre>
- * <p>
- * The attribute value becomes the body of the function and has the current
- * value of the object (column or row) and a context object which contains more
- * information related to the object value and the current environment.
- * <p>
- * Through the context argument, the function has access to the row which the
- * object value is part of (if applicable); if this row was part of a row array,
- * the latter is supplied as the rows property of the context. The column index
- * of the value in the row and the row index of the row in the rows array are
- * supplied as the columnIndex and rowIndex properties, respectively.
- * Additionally, the context may contain information on what is being done
- * currently with the object value (e.g., edited, displayed in a data table,
- * etc.)
- * <p>
- * If the attribute value is a single expression without a 'return' statement
- * element, an implicit return will be added. Otherwise, the attribute value is
- * inserted as-is, and the system assumes that the value returns something
- * explicitly. The detection of whether the attribute is a single expression is
- * quite basic: the system checks for the presence of ';' and 'return'. If those
- * two substrings are not found, it is assumed that the attribute value is an
- * expression and an implicit return is added.
- * <p>
- * Attribute values are thus computed at runtime and can dynamically control
- * various aspects of the user-interface, such as when the visibility of
- * certain fields in relation to values of other fields, validation rules, etc.
+ * <pre>${attribute uncomputed expression}</pre>
+ *
+ * To assist with interpretation of the expression on the client, all column
+ * references are prefixed with `row.`. E.g.:
+ *
+ * <code>x + y</code> is sent to the client as <code>${row.x + row.y}</code>
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
@@ -66,17 +41,20 @@ public class Attributes {
    */
   public static final String INITIAL_VALUE = "initial_value";
 
+  /**
+   * Name of the default ID column.
+   */
   public static final String ID = "_id";
 
   /**
-   * Contains the type of attribute.
+   * The data type of the column on which this attribute is set.
    */
   public static final String TYPE = "type";
 
   /**
-   * The expression to compute as the default value for a column when
-   * no value is specified in an insert statement, and the expression
-   * to compute the value for a derived column.
+   * The expression to compute as the default value for a column when no value is
+   * specified in an insert statement, and the expression to compute the value for
+   * a derived column.
    */
   public static final String EXPRESSION = "expression";
 
@@ -95,12 +73,6 @@ public class Attributes {
    * Set to true on derived fields.
    */
   public static final String DERIVED = "derived";
-
-// DEFAULT_VALUE is now used for this purpose
-//  /*
-//   * The expression for derived fields
-//   */
-//  public static final String DERIVED_EXPRESSION = "derived_expression";
 
   /*
    * The expression for computing value of non-derived fields when they are being

@@ -129,6 +129,7 @@ public class DataTest {
                               j []int,
                               k interval,
                               l int,
+                              m []uuid,
                               primary key(_id)
                             )""");
         con.exec(s);

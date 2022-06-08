@@ -63,7 +63,9 @@ public class StringLiteral extends BaseLiteral<String> {
      * non-printable characters.
      */
     return switch (target) {
-      case SQLSERVER  -> 'N' + value;
+      case SQLSERVER  -> parameters.containsKey("inArray")
+                       ? value.substring(1, value.length() - 1)
+                       : 'N' + value;
       case POSTGRESQL -> esqlToPostgresqlString(value);
       case JSON       -> '`' + escapeJsonString(value.substring(1, value.length() - 1)) + '`';
       default         -> value; // Javascript and ESQL
@@ -75,14 +77,13 @@ public class StringLiteral extends BaseLiteral<String> {
     boolean hasFrontSlash = false;
     for (int i = 0; i < value.length(); i++) {
       char c = value.charAt(i);
-      hasFrontSlash |= c == '\\';
       st.append(switch (c) {
-        case '\\' -> "\\\\";
-        case '\b' -> "\\b";
-        case '\f' -> "\\f";
-        case '\n' -> "\\n";
-        case '\r' -> "\\r";
-        case '\t' -> "\\t";
+        case '\\' -> { hasFrontSlash = true; yield "\\\\"; }
+        case '\b' -> { hasFrontSlash = true; yield "\\b";  }
+        case '\f' -> { hasFrontSlash = true; yield "\\f";  }
+        case '\n' -> { hasFrontSlash = true; yield "\\n";  }
+        case '\r' -> { hasFrontSlash = true; yield "\\r";  }
+        case '\t' -> { hasFrontSlash = true; yield "\\t";  }
         default   -> c;
       });
     }

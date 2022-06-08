@@ -59,7 +59,7 @@ java {
   withSourcesJar()
 }
 
-version = "0.9.7"
+version = "0.9.8"
 group = 'ma.vi'
 sourceCompatibility = JavaVersion.VERSION_17
 
@@ -124,8 +124,8 @@ dependencies {
   implementation("org.apache.commons:commons-lang3:latest.release")
   implementation("org.yaml:snakeyaml:latest.release")
 
-  implementation("org.postgresql:postgresql:42.3.2")
-  implementation('com.microsoft.sqlserver:mssql-jdbc:10.2.0.jre17')
+  api("org.postgresql:postgresql:42.3.4")
+  api('com.microsoft.sqlserver:mssql-jdbc:10.2.1.jre17')
   implementation("org.mariadb.jdbc:mariadb-java-client:2.7.3")
   implementation("mysql:mysql-connector-java:8.0.25")
   implementation('org.hsqldb:hsqldb:2.6.1')

@@ -169,7 +169,7 @@ public interface Database {
    * Returns the extension class of type E loaded in the database or throws
    * NotFoundException if no such extension has been loaded.
    */
-  <E extends Extension> E extension(Class<? extends Extension> e) throws NotFoundException;
+  <E extends Extension, R extends E> R extension(Class<E> e) throws NotFoundException;
 
   /**
    * @return An iterator over the executor chain positioned at its front.
@@ -545,7 +545,7 @@ public interface Database {
     }
 
     @Override
-    public <E extends Extension> E extension(Class<? extends Extension> e) throws NotFoundException {
+    public <E extends Extension, R extends E> R extension(Class<E> e) throws NotFoundException {
       throw new NotFoundException("Extension " + e + " not loaded");
     }
 

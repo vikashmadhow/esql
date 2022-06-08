@@ -464,6 +464,10 @@ public class SqlServer extends AbstractDatabase {
                                    Class<T> componentType) {
     if (array == null) {
       return null;
+
+    } else if (array.trim().length() == 0) {
+      return (T[])Array.newInstance(componentType, 0);
+
     } else {
       /*
        * Arrays can be 3 different forms: a,b,c,... or [a,b,c,...] or <type>[a,b,c...].
@@ -487,12 +491,16 @@ public class SqlServer extends AbstractDatabase {
           }
         }
       }
-      String[] split = remapped.split(",");
-      T[] list = (T[])Array.newInstance(componentType, split.length);
-      for (int i = 0; i < split.length; i++) {
-        list[i] = (T)Convert.convert(ARRAY_ESCAPE.demap(split[i]), componentType);
+      if (remapped.trim().length() == 0) {
+        return (T[])Array.newInstance(componentType, 0);
+      } else {
+        String[] split = remapped.split(",");
+        T[] list = (T[])Array.newInstance(componentType, split.length);
+        for (int i = 0; i < split.length; i++) {
+          list[i] = (T)Convert.convert(ARRAY_ESCAPE.demap(split[i]), componentType);
+        }
+        return list;
       }
-      return list;
     }
   }
 

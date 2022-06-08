@@ -262,13 +262,12 @@ public class TestDatabase implements Database {
   }
 
   @Override
-  public <E extends Extension> E extension(Class<? extends Extension> e) throws NotFoundException {
+  public <E extends Extension, R extends E> R extension(Class<E> e) throws NotFoundException {
     throw new NotFoundException("Extension " + e + " not loaded");
   }
 
   @Override
-  public void addEsqlTransformer(EsqlTransformer transformer) {
-  }
+  public void addEsqlTransformer(EsqlTransformer transformer) {}
 
   @Override
   public boolean removeEsqlTransformer(EsqlTransformer transformer) {

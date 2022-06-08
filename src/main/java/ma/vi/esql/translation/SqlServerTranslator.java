@@ -518,17 +518,27 @@ public class SqlServerTranslator extends AbstractTranslator {
   }
 
   /**
-   * A translation parameter set to instruction downstream translation node to
-   * use an IIF for boolean expression (e.g. where a boolean expression appear
-   * in a place where SQL Server does not support boolean expressions such as in
+   * A translation parameter set to instruct downstream translation node that the
+   * value being translated is an element of an array. In SQL Server, which does
+   * not have a native array type, arrays is simulated as strings. As such, the
+   * elements need to be translated as valid substrings; e.g. string elements of
+   * an array are translated without the surrounding single-quotes when they are
+   * elements of arrays.
+   */
+  public static final PMap<String, Object> IN_ARRAY = HashPMap.<String, Object>empty(IntTreePMap.empty()).plus("inArray", true);
+
+  /**
+   * A translation parameter set to instruct downstream translation nodes to use
+   * an IIF for boolean expression (e.g. where a boolean expression appear in a
+   * context where SQL Server does not support boolean expressions such as in
    * a column list).
    */
   public static final PMap<String, Object> ADD_IIF = HashPMap.<String, Object>empty(IntTreePMap.empty()).plus("addIif", true);
 
   /**
-   * A translation parameter set to instruction downstream translation node to
-   * not use an IIF for boolean values (e.g. where a boolean expression appear
-   * in a place where SQL Server supports boolean expressions such as the where
+   * A translation parameter set to instruct downstream translation node to not
+   * use an IIF for boolean values (e.g. where a boolean expression appear in a
+   * context where SQL Server supports boolean expressions such as the where
    * clause).
    */
   public static final PMap<String, Object> DONT_ADD_IIF = HashPMap.<String, Object>empty(IntTreePMap.empty()).plus("addIif", false);

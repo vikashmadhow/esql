@@ -138,9 +138,9 @@ public abstract class AbstractDatabase implements Database {
   }
 
   @Override
-  public <E extends Extension> E extension(Class<? extends Extension> e) throws NotFoundException {
+  public <E extends Extension, R extends E> R extension(Class<E> e) throws NotFoundException {
     if (extensions.containsKey(e)) {
-      return (E)extensions.get(e);
+      return (R)extensions.get(e);
     } else {
       throw new NotFoundException("Extension " + e + " not loaded");
     }

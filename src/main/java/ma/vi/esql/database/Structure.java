@@ -23,7 +23,6 @@ import ma.vi.esql.semantic.type.Struct;
 import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.translation.Translatable;
-import ma.vi.esql.translation.TranslationException;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -475,7 +474,7 @@ public class Structure extends AbstractScope implements Environment {
 
   public synchronized BaseRelation relation(String name) {
     if (!relations.containsKey(name)) {
-      throw new TranslationException("Unknown relation: " + name);
+      throw new NotFoundException("Unknown relation: " + name);
     }
     return relations.get(name);
   }
@@ -520,7 +519,7 @@ public class Structure extends AbstractScope implements Environment {
 
   public synchronized Struct struct(String name) {
     if (!structs.containsKey(name)) {
-      throw new TranslationException("Unknown struct: " + name);
+      throw new NotFoundException("Unknown struct: " + name);
     }
     return structs.get(name);
   }

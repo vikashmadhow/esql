@@ -57,11 +57,18 @@ public class UuidLiteral extends BaseLiteral<UUID> {
   }
 
   @Override
-  protected String trans(Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
+  protected String trans(Target               target,
+                         EsqlConnection       esqlCon,
+                         EsqlPath             path,
+                         PMap<String, Object> parameters,
+                         Environment          env) {
     return switch(target) {
-      case ESQL       -> "u'" + value + "'";
+      case SQLSERVER  -> parameters.containsKey("inArray")
+                       ? value.toString()
+                       : "'" + value + "'";
       case POSTGRESQL -> "'" + value + "'::uuid";
-      default         -> '\'' + value.toString() + '\'';
+      case ESQL       -> "u'" + value + "'";
+      default         -> "'" + value.toString() + "'";
     };
   }
 

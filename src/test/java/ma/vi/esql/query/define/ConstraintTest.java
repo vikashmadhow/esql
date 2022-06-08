@@ -1,4 +1,4 @@
-package ma.vi.esql.define;
+package ma.vi.esql.query.define;
 
 import ma.vi.base.lang.NotFoundException;
 import ma.vi.esql.DataTest;

@@ -12,6 +12,7 @@ import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
+import ma.vi.esql.translation.SqlServerTranslator;
 import org.pcollections.PMap;
 
 import java.lang.reflect.Array;
@@ -76,10 +77,17 @@ public class BaseArrayLiteral extends Literal<Type> {
                                .collect(joining(",")) + "]";
 
       case SQLSERVER, MARIADB, MYSQL
+//          -> items().stream()
+//                    .map(e -> e instanceof StringLiteral
+//                            ? ARRAY_ESCAPE.escape((String)e.exec(target, esqlCon, path, parameters, env))
+//                            : ARRAY_ESCAPE.escape(e.translate(target, esqlCon, path.add(e), parameters, env)))
+//                    .collect(joining(",", (target == SQLSERVER ? "N" : "") + "'[", "]'"));
           -> items().stream()
-                    .map(e -> e instanceof StringLiteral
-                                  ? ARRAY_ESCAPE.escape((String)e.exec(target, esqlCon, path, parameters, env))
-                                  : ARRAY_ESCAPE.escape(e.translate(target, esqlCon, path.add(e), parameters, env)))
+                    .map(e -> ARRAY_ESCAPE.escape(e.translate(target,
+                                                              esqlCon,
+                                                              path.add(e),
+                                                              parameters.plusAll(SqlServerTranslator.IN_ARRAY),
+                                                              env)))
                     .collect(joining(",", (target == SQLSERVER ? "N" : "") + "'[", "]'"));
 
       case JSON, JAVASCRIPT

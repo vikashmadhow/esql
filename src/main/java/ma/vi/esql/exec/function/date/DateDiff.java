@@ -17,9 +17,6 @@ import org.pcollections.PMap;
 import java.util.Arrays;
 import java.util.List;
 
-import static ma.vi.esql.translation.Translatable.Target.POSTGRESQL;
-import static ma.vi.esql.translation.Translatable.Target.SQLSERVER;
-
 /**
  * Function to calculate difference between two dates.
  *
@@ -29,24 +26,29 @@ public class DateDiff extends Function {
   public DateDiff(String name, DatePart.Part part) {
     super(name, Types.IntType,
           Arrays.asList(new FunctionParam("s1", Types.DatetimeType),
-            new FunctionParam("s2", Types.DatetimeType)));
+                        new FunctionParam("s2", Types.DatetimeType)));
     this.part = part;
   }
 
   @Override
-  public String translate(FunctionCall call, Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
+  public String translate(FunctionCall         call,
+                          Target               target,
+                          EsqlConnection       esqlCon,
+                          EsqlPath             path,
+                          PMap<String, Object> parameters,
+                          Environment          env) {
     List<Expression<?, ?>> args = call.arguments();
-    if (target == POSTGRESQL) {
-      return "extract(" + part.postgresqlName + " from age("
+    return switch(target) {
+      case POSTGRESQL -> "extract(" + part.postgresqlName + " from age("
            + args.get(0).translate(target, esqlCon, path.add(args.get(0)), env) + ", "
            + args.get(1).translate(target, esqlCon, path.add(args.get(1)), env) + "))";
-    } else if (target == SQLSERVER) {
-      return "datediff(" + part.mssqlName + ", "
+
+      case SQLSERVER -> "datediff(" + part.mssqlName + ", "
            + args.get(1).translate(target, esqlCon, path.add(args.get(1)), env) + ", "
            + args.get(0).translate(target, esqlCon, path.add(args.get(0)), env) + ")";
-    } else {
-      return name + '(' + args.get(0).translate(target, esqlCon, path.add(args.get(0)), env) + ')';
-    }
+
+      default -> name + '(' + args.get(0).translate(target, esqlCon, path.add(args.get(0)), env) + ')';
+    };
   }
 
   public final DatePart.Part part;

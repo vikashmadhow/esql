@@ -73,7 +73,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   overriding)
 - Modify queries return values don't seem to be supported correctly for SQL Server.
 
-## [0.9.7]
+## [0.9.8] - 2022-06-08
+### Changed:
+- `extension` method in `Database` now returns the correct type of `Extension` 
+  class as passed to the method (instead of any arbitrary subclass of `Extension`).
+- PostgreSQL and Sql Server JDBC driver made into an API dependency so that they
+  are available to applications depending on ESQL. This will allow dependent 
+  applications to use non-standard apis in those JDBC drivers; for instance, the
+  bulk copy manager in PostgreSQL. 
+
+### Fixed:
+- Arrays containing strings and UUIDs are now correctly translated to a string
+  which is the format used to simulate arrays on SQL Server (and other databases)
+  which do not natively support array types. A translation parameter (`inArray`)
+  is set during array translation so that downstream translators can produce the 
+  correct translation in that context.
+- Fixed conversion of empty arrays of UUIDs in SQL Server (was producing an error
+  when trying to convert an empty string to a UUID).
+- Fixed support for C-style escaping of special characters in PostgreSQL strings.
+
+## [0.9.7] - 2022-05-25
 ### Added:
 - Structs: user-defined composite data types:
   - `create struct` statement to create a user-defined composite datatype which 
