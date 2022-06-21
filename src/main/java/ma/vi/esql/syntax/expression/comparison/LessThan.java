@@ -15,6 +15,9 @@ import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.expression.Expression;
 import org.pcollections.PMap;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.Date;
 
 /**
@@ -57,27 +60,37 @@ public class LessThan extends ComparisonOperator {
   public Object postTransformExec(Target target, EsqlConnection esqlCon,
                                   EsqlPath path,
                                   PMap<String, Object> parameters, Environment env) {
-    Object left = expr1().exec(target, esqlCon, path.add(expr1()), parameters, env);
+    Object left  = expr1().exec(target, esqlCon, path.add(expr1()), parameters, env);
     Object right = expr2().exec(target, esqlCon, path.add(expr2()), parameters, env);
 
-    if (left instanceof Number ln
-        && right instanceof Number rn) {
-      if (Numbers.isReal(ln) || Numbers.isReal(rn)) {
-        return ln.doubleValue() < rn.doubleValue();
-      } else {
-        return ln.longValue() < rn.longValue();
-      }
-    } else if (left instanceof String
+    if (left  instanceof Number ln
+     && right instanceof Number rn) {
+      return Numbers.isReal(ln) || Numbers.isReal(rn)
+           ? ln.doubleValue() < rn.doubleValue()
+           :   ln.longValue() < rn.longValue();
+
+    } else if (left  instanceof String
             || right instanceof String) {
       return String.valueOf(left).compareTo(String.valueOf(right)) < 0;
 
-    } else if (left instanceof Date d1
+    } else if (left  instanceof Date d1
             && right instanceof Date d2) {
       return d1.before(d2);
 
-    } else if (left instanceof Boolean b1
-            && right instanceof Boolean b2) {
+    } else if (left  instanceof LocalDate d1
+            && right instanceof LocalDate d2) {
+      return d1.isBefore(d2);
 
+    } else if (left  instanceof LocalTime t1
+            && right instanceof LocalTime t2) {
+      return t1.isBefore(t2);
+
+    } else if (left  instanceof LocalDateTime d1
+            && right instanceof LocalDateTime d2) {
+      return d1.isBefore(d2);
+
+    } else if (left  instanceof Boolean b1
+            && right instanceof Boolean b2) {
       return !b1 && b2;
 
     } else {

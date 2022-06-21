@@ -20,6 +20,9 @@ import org.postgresql.util.PGInterval;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.*;
 
 import static java.util.Collections.*;
@@ -155,12 +158,18 @@ public class Result implements Iterator<Result.Row>,
       if (mapping == null) {
         throw new NotFoundException("Invalid column index: " + column);
       }
-      T value = convert(rs.getObject(mapping.valueIndex()), mapping.valueIndex(), mapping.valueType());
+      T value = convert(mapping.valueType() == Types.TimeType
+                          ? rs.getTimestamp(mapping.valueIndex())
+                          : rs.getObject(mapping.valueIndex()),
+                        mapping.valueIndex(), mapping.valueType());
 
       Map<String, Object> metadata = new HashMap<>(mapping.attributes());
       for (int i = 0; i < mapping.attributeIndices().size(); i++) {
         AttributeIndex attr = mapping.attributeIndices().get(i);
-        metadata.put(attr.name(), convert(rs.getObject(attr.index()), attr.index(), attr.type()));
+        metadata.put(attr.name(), convert(attr.type() == Types.TimeType
+                                            ? rs.getTimestamp(attr.index())
+                                            : rs.getObject(attr.index()),
+                                          attr.index(), attr.type()));
       }
       return new ResultColumn<>(value, mapping.column(), metadata);
 
@@ -300,6 +309,48 @@ public class Result implements Iterator<Result.Row>,
          * SQL server returns only a string.
          */
         value = UUID.fromString((String)value);
+
+      } else if (type == Types.DateType && value instanceof java.sql.Date d) {
+        /*
+         * Date normalisation.
+         */
+        value = d.toLocalDate();
+
+      } else if (type == Types.DateType && value instanceof Date d) {
+        /*
+         * Date normalisation.
+         */
+        value = d.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+
+      } else if (type == Types.TimeType && value instanceof java.sql.Time d) {
+        /*
+         * Time normalisation.
+         */
+        value = d.toLocalTime();
+
+      } else if (type == Types.TimeType && value instanceof java.sql.Timestamp d) {
+        /*
+         * Time normalisation.
+         */
+        value = d.toLocalDateTime().toLocalTime();
+
+      } else if (type == Types.TimeType && value instanceof Date d) {
+        /*
+         * Time normalisation.
+         */
+        value = d.toInstant().atZone(ZoneId.systemDefault()).toLocalTime();
+
+      } else if (type == Types.DatetimeType && value instanceof Timestamp d) {
+        /*
+         * Datetime normalisation.
+         */
+        value = d.toLocalDateTime();
+
+      } else if (type == Types.DatetimeType && value instanceof Date d) {
+        /*
+         * Datetime normalisation.
+         */
+        value = d.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
 
       } else if (type instanceof ArrayType arrayType) {
         /*

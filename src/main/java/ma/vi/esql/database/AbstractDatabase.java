@@ -18,7 +18,8 @@ import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.EsqlTransformer;
 import ma.vi.esql.syntax.Parser;
-import ma.vi.esql.syntax.define.*;
+import ma.vi.esql.syntax.define.Attribute;
+import ma.vi.esql.syntax.define.Metadata;
 import ma.vi.esql.syntax.define.table.*;
 import ma.vi.esql.syntax.expression.ColumnRef;
 import ma.vi.esql.syntax.expression.Expression;
@@ -473,7 +474,7 @@ public abstract class AbstractDatabase implements Database {
                             select "_id", "name", "display_name", "description",
                                    "type", "view_definition"
                               from "_core"."relations"
-                             where "type"='""" + TABLE.marker + "'");
+                            """);
            PreparedStatement attrStmt = econ.connection().prepareStatement("""
                             select "attribute", "value"
                               from "_core"."relation_attributes"
@@ -644,35 +645,36 @@ public abstract class AbstractDatabase implements Database {
                  " where \"column_id\"=?")) {
 
       while (rs.next()) {
-        UUID columnId = UUID.fromString(rs.getString("_id"));
-        String columnName = rs.getString("name");
-        int columnNumber = rs.getInt("seq");
-        String columnType = rs.getString("type");
-        Type type = Types.typeOf(columnType);
-        boolean notNull = rs.getBoolean("not_null");
-        String expression = rs.getString("expression");
-        boolean derivedColumn = rs.getBoolean("derived_column");
+        UUID    columnId      = UUID.fromString(rs.getString("_id"));
+        String  columnName    = rs.getString   ("name");
+        int     columnNumber  = rs.getInt      ("seq");
+        String  columnType    = rs.getString   ("type");
+        Type    type          = Types.typeOf   (columnType);
+        boolean notNull       = rs.getBoolean  ("not_null");
+        String  expression    = rs.getString   ("expression");
+        boolean derivedColumn = rs.getBoolean  ("derived_column");
 
         /*
          * Load custom column attributes.
          */
         Map<String, Attribute> attributes = new HashMap<>();
-        attributes.put(TYPE, Attribute.from(context, TYPE, columnType));
-        attributes.put(ID, Attribute.from(context, ID, columnId));
+        attributes.put(TYPE,     Attribute.from(context, TYPE,     columnType));
+        attributes.put(ID,       Attribute.from(context, ID,       columnId));
         attributes.put(REQUIRED, Attribute.from(context, REQUIRED, notNull));
 
         attrStmt.setObject(1, columnId);
         try (ResultSet ars = attrStmt.executeQuery()) {
           while (ars.next()) {
             String name = ars.getString("attribute");
-            attributes.put(name,
-                           new Attribute(context, name,
-                                         parser.parseExpression(ars.getString("value"))));
+            attributes.put(name, new Attribute(context, name,
+                                               parser.parseExpression(ars.getString("value"))));
           }
         }
 
         Column col;
-        Expression<?, String> expr = expression != null ? parser.parseExpression(expression) : null;
+        Expression<?, String> expr = expression != null
+                                   ? parser.parseExpression(expression)
+                                   : null;
         if (derivedColumn) {
           attributes.put(DERIVED, Attribute.from(context, DERIVED, true));
           col = new Column(context,
@@ -701,10 +703,10 @@ public abstract class AbstractDatabase implements Database {
   /**
    * Load constraints.
    */
-  protected void loadConstraints(Context context,
+  protected void loadConstraints(Context   context,
                                  Structure structure,
-                                 Parser parser,
-                                 Result rs) {
+                                 Parser    parser,
+                                 Result    rs) {
     String name = rs.value("name");
     BaseRelation relation = structure.relation((UUID)rs.value("relation_id"));
     ConstraintDefinition.Type type = fromMarker(((String)rs.value("type")).charAt(0));
@@ -908,10 +910,10 @@ public abstract class AbstractDatabase implements Database {
   }
 
   private void addColumn(EsqlConnection econ,
-                         UUID tableId,
-                         Column column,
-                         Insert insertCol,
-                         Insert insertColAttr) {
+                         UUID           tableId,
+                         Column         column,
+                         Insert         insertCol,
+                         Insert         insertColAttr) {
     String columnName = column.name();
     if (columnName.indexOf('/') == -1) {
       /*
@@ -930,7 +932,8 @@ public abstract class AbstractDatabase implements Database {
           attributes.putAll(column.metadata().attributes());
         }
         columnId = UUID.randomUUID();
-        attributes.put(ID, Attribute.from(column.context, ID, columnId));
+        // attributes.put(ID, Attribute.from(column.context, ID, columnId));
+        // attributes.remove(ID);
         column = new Column(column.context,
                             column.name(),
                             column.expression(),
@@ -958,12 +961,14 @@ public abstract class AbstractDatabase implements Database {
                                  Insert insertColAttr) {
     if (column.metadata() != null && column.metadata().attributes() != null) {
       for (Attribute attr: column.metadata().attributes().values()) {
-        Expression<?, ?> value = attr.attributeValue();
-        econ.exec(insertColAttr,
-                  new QueryParams()
-                    .add("columnId", column.id())
-                    .add("name", attr.name())
-                    .add("value", value == null ? null : value.translate(ESQL)));
+        if (!attr.name().equals(ID)) {
+          Expression<?, ?> value = attr.attributeValue();
+          econ.exec(insertColAttr,
+                    new QueryParams()
+                      .add("columnId", column.id())
+                      .add("name", attr.name())
+                      .add("value", value == null ? null : value.translate(ESQL)));
+        }
       }
     }
   }

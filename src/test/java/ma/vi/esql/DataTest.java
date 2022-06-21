@@ -5,8 +5,8 @@
 package ma.vi.esql;
 
 import ma.vi.esql.database.Database;
-import ma.vi.esql.exec.ColumnMapping;
 import ma.vi.esql.database.EsqlConnection;
+import ma.vi.esql.exec.ColumnMapping;
 import ma.vi.esql.exec.Result;
 import ma.vi.esql.exec.ResultColumn;
 import ma.vi.esql.syntax.Parser;
@@ -130,6 +130,9 @@ public class DataTest {
                               k interval,
                               l int,
                               m []uuid,
+                              n date,
+                              o time,
+                              p datetime,
                               primary key(_id)
                             )""");
         con.exec(s);

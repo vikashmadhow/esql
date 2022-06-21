@@ -73,6 +73,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   overriding)
 - Modify queries return values don't seem to be supported correctly for SQL Server.
 
+## [0.9.9]
+### Added:
+- Simple `Initializer` interface to standardise initializing the database.  
+- The default OVERWRITE key to `Initializer`, which is a common key used to set
+  the system in `overwrite` mode where system data can be overwritten during the
+  configuration phase of application launch.
+- `expandname` function to expand a column name, such as `first_name` to a more 
+  readable name (e.g. `First name`).
+- Dates moved to Java 8 time (`LocalDate`, `LocalTime` and `LocalDateTime`).
+- `DateLiteral` now returns a `LocalDate`, `LocalTime` or `LocalDateTime` if it 
+  has a date component only, a time component only or both components, respectively.
+- ESQL date-time literal can now have 'T' character as a separator between the 
+  date and time components to conform with ISO date time format (in addition to
+  simply using a single space character as the separator).
+- Date, time and date-time normalised to `LocalDate`, `LocalTime` and `LocalDateTime`, 
+  respectively, when read from database.
+- Times read from database as Timestamp to conserve millisecond values before 
+  being converted to `LocalTime`.
+- `Literal.makeLiteral` can now make a string literal for a character instead of
+  throwing an exception.
+- `Column.setMetadata` now removes the supplied attribute if its provided value
+  is to be null.
+- Column metadata attribute `_id` containing the UUID value for the column in the
+  `_core.columns` table is no longer saved to the `_core.column_attributes` table
+  as it may replace the column id with an incorrect value in case the id was 
+  changed through some table `alter` operation.
+
+### Fixed:
+- Raw Postgresql JDBC connection strings are now built correctly for cases where 
+  the host and/or port are not provided.
+- Raw SQL JDBC connection strings are now built correctly for cases where the host 
+  and/or port are not provided.
+- Structs were not being loaded from _core.relations table on init.
+
 ## [0.9.8] - 2022-06-08
 ### Changed:
 - `extension` method in `Database` now returns the correct type of `Extension` 

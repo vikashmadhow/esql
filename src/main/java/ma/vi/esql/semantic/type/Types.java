@@ -8,8 +8,9 @@ import ma.vi.base.lang.NotFoundException;
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.translation.Translatable;
 
-import java.sql.Date;
-import java.sql.Time;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -87,9 +88,9 @@ public class Types {
         || (type == MoneyType         && value instanceof Number)
         || (type == UuidType          && value instanceof UUID)
         || (type == BoolType          && value instanceof Boolean)
-        || (type == DateType          && value instanceof Date)
-        || (type == TimeType          && value instanceof Date)
-        || (type == DatetimeType      && value instanceof Date)
+        || (type == DateType          && (value instanceof Date || value instanceof LocalDate))
+        || (type == TimeType          && (value instanceof Date || value instanceof LocalTime))
+        || (type == DatetimeType      && (value instanceof Date || value instanceof LocalDateTime))
         || (type == CharType          && value instanceof Character)
         || (type == JsonType          && value instanceof CharSequence)
         || (type == BytesType         && value.getClass().isArray())
@@ -509,9 +510,9 @@ public class Types {
     baseTypeMapping.put("char",     Character.class);
     baseTypeMapping.put("text",     String.class);
     baseTypeMapping.put("string",   String.class);
-    baseTypeMapping.put("date",     Date.class);
-    baseTypeMapping.put("time",     Time.class);
-    baseTypeMapping.put("datetime", java.util.Date.class);
+    baseTypeMapping.put("date",     LocalDate.class);
+    baseTypeMapping.put("time",     LocalTime.class);
+    baseTypeMapping.put("datetime", LocalDateTime.class);
     baseTypeMapping.put("interval", Interval.class);
     baseTypeMapping.put("uuid",     UUID.class);
     baseTypeMapping.put("void",     Void.class);
@@ -533,9 +534,9 @@ public class Types {
     javaTypeMapping.put(char.class,           "char");
     javaTypeMapping.put(Character.class,      "char");
     javaTypeMapping.put(String.class,         "text");
-    javaTypeMapping.put(Date.class,           "date");
-    javaTypeMapping.put(Time.class,           "time");
-    javaTypeMapping.put(java.util.Date.class, "datetime");
+    javaTypeMapping.put(LocalDate.class,      "date");
+    javaTypeMapping.put(LocalTime.class,      "time");
+    javaTypeMapping.put(LocalDateTime.class,  "datetime");
     javaTypeMapping.put(Interval.class,       "interval");
     javaTypeMapping.put(UUID.class,           "uuid");
     javaTypeMapping.put(Void.class,           "void");

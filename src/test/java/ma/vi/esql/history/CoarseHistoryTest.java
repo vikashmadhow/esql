@@ -10,7 +10,7 @@ import ma.vi.esql.exec.Result;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -29,7 +29,7 @@ public class CoarseHistoryTest extends DataTest {
                    }
                    try (EsqlConnection con = db.esql(db.pooledConnection())) {
                      String transId = con.transactionId();
-                     Date now = new Date();
+                     LocalDateTime now = LocalDateTime.now();
                      con.exec("insert into S(_id, a, b, e, h, j) values "
                                   + "(newid(), 1, 2, true, ['Four', 'Quatre']text, [1, 2, 3]int),"
                                   + "(newid(), 6, 7, false, ['Nine', 'Neuf', 'X']text, [5, 6, 7, 8]int)");

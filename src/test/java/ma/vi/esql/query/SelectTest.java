@@ -10,6 +10,7 @@ import ma.vi.esql.TestDatabase;
 import ma.vi.esql.builder.Attr;
 import ma.vi.esql.builder.SelectBuilder;
 import ma.vi.esql.database.EsqlConnection;
+import ma.vi.esql.exec.QueryParams;
 import ma.vi.esql.exec.Result;
 import ma.vi.esql.exec.ResultColumn;
 import ma.vi.esql.semantic.type.AmbiguousColumnException;
@@ -25,6 +26,9 @@ import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestFactory;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Stream;
 
@@ -80,6 +84,74 @@ public class SelectTest extends DataTest {
 
                      assertEquals(7,     c2.value());
                      assertEquals(false, c2.metadata().get("m1"));
+                   }
+                 }));
+  }
+
+  @TestFactory
+  Stream<DynamicTest> simpleSelectWithParametersAndEval() {
+    return Stream.of(databases)
+                 .map(db -> dynamicTest(db.target().toString(), () -> {
+                   System.out.println(db.target());
+                   Parser p = new Parser(db.structure());
+                   try (EsqlConnection con = db.esql(db.pooledConnection())) {
+                     con.exec("delete t from t:a.b.T");
+                     con.exec("delete s from s:S");
+                     con.exec("insert into S(_id, a, b, e, h, j) values "
+                                  + "(newid(), 1, 6, true,  ['Four', 'Quatre']text,    [1, 2, 3]int),"
+                                  + "(newid(), 2, 5, false, ['Four', 'Quatre']text,    [5, 6, 7]int),"
+                                  + "(newid(), 3, 4, true,  ['Four', 'Quatre']text,    [8, 9, 0]int),"
+                                  + "(newid(), 4, 3, false, ['Four', 'Quatre']text,    [1, 2, 3]int),"
+                                  + "(newid(), 5, 2, true,  ['Four', 'Quatre']text,    [4, 5, 6]int),"
+                                  + "(newid(), 6, 1, false, ['Nine', 'Neuf', 'X']text, [5, 6, 7, 8]int)");
+
+
+                     Result rs = con.exec("""
+                                          select a, b, e, h, j
+                                            from S
+                                           where @x <= a <= @(@x + 1)
+                                           order by a
+                                          """,
+                                          new QueryParams().add("x", 3));
+//                     printResult(rs, 20, true);
+                     rs.toNext(); assertEquals(3, (int)rs.value("a"));
+                                  assertEquals(4, (int)rs.value("b"));
+                     rs.toNext(); assertEquals(4, (int)rs.value("a"));
+                                  assertEquals(3, (int)rs.value("b"));
+                     assertFalse(rs.toNext());
+                   }
+                 }));
+  }
+
+  @TestFactory
+  Stream<DynamicTest> dateAndTimeSelect() {
+    return Stream.of(databases)
+                 .map(db -> dynamicTest(db.target().toString(), () -> {
+                   System.out.println(db.target());
+                   Parser p = new Parser(db.structure());
+                   try (EsqlConnection con = db.esql(db.pooledConnection())) {
+                     con.exec("delete t from t:a.b.T");
+                     con.exec("delete s from s:S");
+                     con.exec("insert into S(_id, a, b, n, o, p) values "
+                                  + "(newid(), 1, 3, d'2012-12-12', d'11:45',        d'2012-12-12 11:45'),"
+                                  + "(newid(), 2, 2, d'1972-11-1',  d'23:01:55',     d'1972-11-1 23:01:55'),"
+                                  + "(newid(), 3, 1, d'1845-3-21',  d'19:00:12.345', d'1845-3-21 19:00:12.345')");
+
+                     Result rs = con.exec("select n, o, p from S order by a");
+                     rs.toNext();
+                     assertEquals(LocalDate.of(2012, 12, 12), rs.value("n"));
+                     assertEquals(LocalTime.of(11, 45, 0, 0), rs.value("o"));
+                     assertEquals(LocalDateTime.of(2012, 12, 12, 11, 45, 0, 0), rs.value("p"));
+
+                     rs.toNext();
+                     assertEquals(LocalDate.of(1972, 11, 1), rs.value("n"));
+                     assertEquals(LocalTime.of(23, 1, 55, 0), rs.value("o"));
+                     assertEquals(LocalDateTime.of(1972, 11, 1, 23, 1, 55, 0), rs.value("p"));
+
+                     rs.toNext();
+                     assertEquals(LocalDate.of(1845, 3, 21), rs.value("n"));
+                     assertEquals(LocalTime.of(19, 0, 12, 345_000_000), rs.value("o"));
+                     assertEquals(LocalDateTime.of(1845, 3, 21, 19, 0, 12, 345_000_000), rs.value("p"));
                    }
                  }));
   }
@@ -150,9 +222,9 @@ public class SelectTest extends DataTest {
                                        + "from s:S order by s.a asc) order by x.a asc)", SELECT);
                      Result rs = con.exec(select);
                      rs.toNext(); assertEquals(1, (Integer)rs.value(1));
-                                assertEquals(2, (Integer)rs.value(2));
+                                  assertEquals(2, (Integer)rs.value(2));
                      rs.toNext(); assertEquals(6, (Integer)rs.value(1));
-                                assertEquals(7, (Integer)rs.value(2));
+                                  assertEquals(7, (Integer)rs.value(2));
                    }
                  }));
   }
@@ -178,9 +250,9 @@ public class SelectTest extends DataTest {
                              "where exists(select * from S)", SELECT);
                      Result rs = con.exec(select);
                      rs.toNext(); assertEquals(1, (Integer)rs.value(1));
-                                assertEquals(2, (Integer)rs.value(2));
+                                  assertEquals(2, (Integer)rs.value(2));
                      rs.toNext(); assertEquals(6, (Integer)rs.value(1));
-                                assertEquals(7, (Integer)rs.value(2));
+                                  assertEquals(7, (Integer)rs.value(2));
                    }
                  }));
   }
@@ -205,9 +277,9 @@ public class SelectTest extends DataTest {
                                        + "from s:S order by s.a asc) order by x.a asc)", SELECT);
                      Result rs = con.exec(select);
                      rs.toNext(); assertEquals(1, (Integer)rs.value(1));
-                                assertEquals(3,  (Integer)rs.value(2));
+                                  assertEquals(3,  (Integer)rs.value(2));
                      rs.toNext(); assertEquals(6, (Integer)rs.value(1));
-                                assertEquals(13, (Integer)rs.value(2));
+                                  assertEquals(13, (Integer)rs.value(2));
                    }
                  }));
   }
@@ -261,8 +333,8 @@ public class SelectTest extends DataTest {
                      int i = 0;
                      for (Result.Row r: (Result)con.exec(select)) {
                        if (i == 0) {
-                         assertEquals(1, (Integer)r.value(1));
-                         assertEquals(3, (Integer)r.value(2));
+                         assertEquals(1,  (Integer)r.value(1));
+                         assertEquals(3,  (Integer)r.value(2));
                        } else {
                          assertEquals(6,  (Integer)r.value(1));
                          assertEquals(13, (Integer)r.value(2));

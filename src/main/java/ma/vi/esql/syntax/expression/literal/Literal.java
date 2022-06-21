@@ -18,6 +18,10 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.Time;
 import java.sql.Timestamp;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -73,7 +77,7 @@ public abstract class Literal<V> extends Expression<V, String> {
       return new NullLiteral(context);
 
     } else if (type == Types.StringType
-        || type == Types.TextType) {
+           || type == Types.TextType) {
       return new StringLiteral(context, '\'' + escapeEsqlString(value) + '\'');
 
     } else if (type == Types.UuidType) {
@@ -122,33 +126,51 @@ public abstract class Literal<V> extends Expression<V, String> {
     } else if (value == JSONObject.NULL) {
       return new NullLiteral(context);
 
-    } else if (value instanceof String) {
-      return new StringLiteral(context, '\'' + escapeEsqlString(value.toString()) + '\'');
+    } else if (value instanceof String s) {
+      return new StringLiteral(context, '\'' + escapeEsqlString(s) + '\'');
 
-    } else if (value instanceof UUID) {
-      return new UuidLiteral(context, (UUID)value);
+    } else if (value instanceof UUID u) {
+      return new UuidLiteral(context, u);
+
+    } else if (value instanceof Character c) {
+      return new StringLiteral(context, "'" + (c == '\'' ? "''" : c)  + '\'');
 
     } else if (value instanceof Boolean) {
       return new BooleanLiteral(context, (Boolean)value);
 
-    } else if (value instanceof Float || value instanceof Double || value instanceof BigDecimal) {
+    } else if (value instanceof Float
+            || value instanceof Double
+            || value instanceof BigDecimal) {
       return new FloatingPointLiteral(context, String.valueOf(value));
 
-    } else if (value instanceof Byte || value instanceof Short || value instanceof Integer ||
-        value instanceof Long || value instanceof BigInteger) {
+    } else if (value instanceof Byte
+            || value instanceof Short
+            || value instanceof Integer
+            || value instanceof Long
+            || value instanceof BigInteger) {
       return new IntegerLiteral(context, ((Number)value).longValue());
 
-    } else if (value instanceof Time) {
-      return new DateLiteral(context, DateLiteral.TimeFormat.format((Time)value));
+    } else if (value instanceof Time t) {
+      return new DateLiteral(context, DateLiteral.TimeFormat.format(t));
 
-    } else if (value instanceof Timestamp) {
-      return new DateLiteral(context, DateLiteral.DateTimeFormat.format((Timestamp)value));
+    } else if (value instanceof Timestamp t) {
+      return new DateLiteral(context, DateLiteral.DateTimeFormat.format(t));
 
-    } else if (value instanceof java.sql.Date) {
-      return new DateLiteral(context, DateLiteral.DateFormat.format((java.sql.Date)value));
+    } else if (value instanceof java.sql.Date d) {
+      return new DateLiteral(context, DateLiteral.DateFormat.format(d));
 
-    } else if (value instanceof Date) {
-      return new DateLiteral(context, DateLiteral.DateTimeFormat.format((Date)value));
+    } else if (value instanceof Date d) {
+      return new DateLiteral(context, DateLiteral.DateTimeFormat.format(d));
+
+    } else if (value instanceof LocalTime t) {
+      return new DateLiteral(context, DateTimeFormatter.ISO_LOCAL_TIME.format(t));
+
+    } else if (value instanceof LocalDate d) {
+      return new DateLiteral(context, DateTimeFormatter.ISO_LOCAL_DATE.format(d));
+
+    } else if (value instanceof LocalDateTime t) {
+      return new DateLiteral(context, DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(t)
+                                                       .replace('T', ' '));
 
     } else if (value instanceof Interval) {
       return new IntervalLiteral(context, value.toString());

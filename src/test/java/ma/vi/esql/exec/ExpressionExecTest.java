@@ -7,6 +7,7 @@ package ma.vi.esql.exec;
 import ma.vi.esql.DataTest;
 import ma.vi.esql.database.EsqlConnection;
 import ma.vi.esql.syntax.Parser;
+import ma.vi.esql.syntax.expression.literal.DateLiteral;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
 
@@ -64,11 +65,23 @@ public class ExpressionExecTest extends DataTest {
                      assertEquals(date(2022, 1, 1),
                                   con.exec(p.parse("d'2022-01-01'")));
 
-                     assertEquals(date(2022, 1, 1, 9, 31, 2, 0),
+                     assertEquals(DateLiteral.dateTime(2022, 1, 1, 9, 31, 2, 0),
                                   con.exec(p.parse("d'2022-01-01 09:31:02'")));
 
-                     assertEquals(date(2022, 1, 1, 9, 31, 2, 5),
+                     assertEquals(DateLiteral.dateTime(2022, 1, 1, 9, 31, 2, 5),
                                   con.exec(p.parse("d'2022-01-01 9:31:2.5'")));
+
+                     assertEquals(DateLiteral.dateTime(2022, 1, 1, 9, 31, 2, 0),
+                                  con.exec(p.parse("d'2022-01-01T09:31:02'")));
+
+                     assertEquals(DateLiteral.dateTime(2022, 1, 1, 9, 31, 2, 5),
+                                  con.exec(p.parse("d'2022-01-01T9:31:2.5'")));
+
+                     assertEquals(DateLiteral.time(9, 31, 2, 0),
+                                  con.exec(p.parse("d'09:31:02'")));
+
+                     assertEquals(DateLiteral.time( 9, 31, 2, 5),
+                                  con.exec(p.parse("d'9:31:2.5'")));
 
                      assertNull(con.exec(p.parse("null")));
 

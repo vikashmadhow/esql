@@ -59,7 +59,7 @@ java {
   withSourcesJar()
 }
 
-version = "0.9.8"
+version = "0.9.9"
 group = 'ma.vi'
 sourceCompatibility = JavaVersion.VERSION_17
 
@@ -117,24 +117,25 @@ projectFilestatistics {
 dependencies {
   antlr("org.antlr:antlr4:4.10.1")
 
-  api('org.pcollections:pcollections:3.1.4')
+  api("org.pcollections:pcollections:3.1.4")
   api("ma.vi:base:latest.release")
   api("org.json:json:latest.release")
+
+  api("org.postgresql:postgresql:42.3.6")
+  api("com.microsoft.sqlserver:mssql-jdbc:10.2.1.jre17")
+
+  implementation("org.mariadb.jdbc:mariadb-java-client:2.7.3")
+  implementation("mysql:mysql-connector-java:8.0.25")
+  implementation("org.hsqldb:hsqldb:2.6.1")
+  implementation("com.zaxxer:HikariCP:5.0.1")
 
   implementation("org.apache.commons:commons-lang3:latest.release")
   implementation("org.yaml:snakeyaml:latest.release")
 
-  api("org.postgresql:postgresql:42.3.4")
-  api('com.microsoft.sqlserver:mssql-jdbc:10.2.1.jre17')
-  implementation("org.mariadb.jdbc:mariadb-java-client:2.7.3")
-  implementation("mysql:mysql-connector-java:8.0.25")
-  implementation('org.hsqldb:hsqldb:2.6.1')
-  implementation("com.zaxxer:HikariCP:5.0.1")
-
   // Use JUnit test framework
-  testImplementation(platform('org.junit:junit-bom:5.8.2'))
-  testImplementation('org.junit.jupiter:junit-jupiter:5.8.2')
-  testImplementation('org.hamcrest:hamcrest:2.2')
+  testImplementation(platform("org.junit:junit-bom:5.8.2"))
+  testImplementation("org.junit.jupiter:junit-jupiter:5.8.2")
+  testImplementation("org.hamcrest:hamcrest:2.2")
 }
 
 test {

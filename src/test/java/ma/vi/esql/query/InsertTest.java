@@ -15,6 +15,9 @@ import ma.vi.esql.syntax.modify.Insert;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Stream;
 
@@ -54,6 +57,55 @@ public class InsertTest extends DataTest {
                    }
                  }));
   }
+
+  @TestFactory
+  Stream<DynamicTest> simpleInsertDateAndTime() {
+    return Stream.of(databases)
+                 .map(db -> dynamicTest(db.target().toString(), () -> {
+                   System.out.println(db.target());
+                   Parser p = new Parser(db.structure());
+                   try (EsqlConnection con = db.esql(db.pooledConnection())) {
+                     con.exec("delete t from t:a.b.T");
+                     con.exec("delete s from s:S");
+
+                     con.exec("insert into S(_id, a, n, o, p) values "
+                                + "(newid(), 1, @d1, @t1, @dt1),"
+                                + "(newid(), 2, @d2, @t2, @dt2),"
+                                + "(newid(), 3, @d3, @t3, @dt3)",
+                              new QueryParams()
+                                .add("d1",  LocalDate.of(2012, 12, 12))
+                                .add("t1",  LocalTime.of(11, 45, 0, 0))
+                                .add("dt1", LocalDateTime.of(2012, 12, 12, 11, 45, 0, 0))
+
+                                .add("d2",  LocalDate.of(1972, 11, 1))
+                                .add("t2",  LocalTime.of(23, 1, 55, 0))
+                                .add("dt2", LocalDateTime.of(1972, 11, 1, 23, 1, 55, 0))
+
+                                .add("d3",  LocalDate.of(1845, 3, 21))
+                                .add("t3",  LocalTime.of(19, 0, 12, 345_000_000))
+                                .add("dt3", LocalDateTime.of(1845, 3, 21, 19, 0, 12, 345_000_000))
+
+                     );
+
+                     Result rs = con.exec("select n, o, p from S order by a");
+                     rs.toNext();
+                     assertEquals(LocalDate.of(2012, 12, 12), rs.value("n"));
+                     assertEquals(LocalTime.of(11, 45, 0, 0), rs.value("o"));
+                     assertEquals(LocalDateTime.of(2012, 12, 12, 11, 45, 0, 0), rs.value("p"));
+
+                     rs.toNext();
+                     assertEquals(LocalDate.of(1972, 11, 1), rs.value("n"));
+                     assertEquals(LocalTime.of(23, 1, 55, 0), rs.value("o"));
+                     assertEquals(LocalDateTime.of(1972, 11, 1, 23, 1, 55, 0), rs.value("p"));
+
+                     rs.toNext();
+                     assertEquals(LocalDate.of(1845, 3, 21), rs.value("n"));
+                     assertEquals(LocalTime.of(19, 0, 12, 345_000_000), rs.value("o"));
+                     assertEquals(LocalDateTime.of(1845, 3, 21, 19, 0, 12, 345_000_000), rs.value("p"));
+                   }
+                 }));
+  }
+
   @TestFactory
   Stream<DynamicTest> insertSpecialCharacters() {
     return Stream.of(databases)

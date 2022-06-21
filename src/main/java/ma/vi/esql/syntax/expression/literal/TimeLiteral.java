@@ -18,7 +18,6 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.time.temporal.Temporal;
 
 import static java.lang.Integer.parseInt;
 import static ma.vi.base.string.Escape.escapeJsonString;
@@ -28,23 +27,23 @@ import static ma.vi.base.string.Escape.escapeJsonString;
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public class DateLiteral extends BaseLiteral<String> {
-  public DateLiteral(Context context, String value) {
-    super(context, value.replace('T', ' '));
+public class TimeLiteral extends BaseLiteral<String> {
+  public TimeLiteral(Context context, String value) {
+    super(context, value);
   }
 
-  public DateLiteral(DateLiteral other) {
+  public TimeLiteral(TimeLiteral other) {
     super(other);
   }
 
   @SafeVarargs
-  public DateLiteral(DateLiteral other, String value, T2<String, ? extends Esql<?, ?>>... children) {
+  public TimeLiteral(TimeLiteral other, String value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }
 
   @Override
-  public DateLiteral copy() {
-    return new DateLiteral(this);
+  public TimeLiteral copy() {
+    return new TimeLiteral(this);
   }
 
   /**
@@ -53,8 +52,8 @@ public class DateLiteral extends BaseLiteral<String> {
    * of the copy.
    */
   @Override
-  public DateLiteral copy(String value, T2<String, ? extends Esql<?, ?>>... children) {
-    return new DateLiteral(this, value, children);
+  public TimeLiteral copy(String value, T2<String, ? extends Esql<?, ?>>... children) {
+    return new TimeLiteral(this, value, children);
   }
 
   @Override
@@ -100,18 +99,17 @@ public class DateLiteral extends BaseLiteral<String> {
   }
 
   @Override
-  public Temporal exec(Target               target,
-                       EsqlConnection       esqlCon,
-                       EsqlPath             path,
-                       PMap<String, Object> parameters,
-                       Environment          env) {
+  public LocalDateTime exec(Target               target,
+                            EsqlConnection       esqlCon,
+                            EsqlPath             path,
+                            PMap<String, Object> parameters,
+                            Environment          env) {
     int year = 0, month  = 0, day    = 0,
         hour = 0, minute = 0, second = 0, milli = 0;
 
     int from = 0;
     int to   = value.indexOf('-');
-    boolean hasDate = to != -1;
-    if (hasDate) {
+    if (to != -1) {
       year  = parseInt(value.substring(from, to));
 
       from  = to + 1;
@@ -127,8 +125,7 @@ public class DateLiteral extends BaseLiteral<String> {
     }
 
     to = value.indexOf(':', from);
-    boolean hasTime = to != -1;
-    if (hasTime) {
+    if (to != -1) {
       hour = parseInt(value.substring(from, to));
 
       from = to + 1;
@@ -148,10 +145,7 @@ public class DateLiteral extends BaseLiteral<String> {
         }
       }
     }
-
-    return hasDate && hasTime ? dateTime(year, month, day, hour, minute, second, milli)
-         : hasDate            ? date    (year, month, day)
-         :                      time    (hour, minute, second, milli);
+    return date(year, month, day, hour, minute, second, milli);
   }
 
   public static LocalDate date(int year, int month, int day) {
@@ -162,9 +156,9 @@ public class DateLiteral extends BaseLiteral<String> {
     return LocalTime.of(hour, minute, second, millisecond * 1_000_000);
   }
 
-  public static LocalDateTime dateTime(int year, int month, int day,
-                                       int hour, int minute, int second,
-                                       int millisecond) {
+  public static LocalDateTime date(int year, int month, int day,
+                                   int hour, int minute, int second,
+                                   int millisecond) {
     return LocalDateTime.of(year, month, day,
                             hour, minute, second,
                             millisecond * 1_000_000);

@@ -370,16 +370,18 @@ public class SqlServer extends AbstractDatabase {
                                   String username,
                                   String password) {
     try {
-      Connection con = DriverManager.getConnection(
-          "jdbc:sqlserver://"
-              + valueOf(config().get(CONFIG_DB_HOST))
-              + (config().has(CONFIG_DB_PORT)
-                    ? ':' + valueOf(config().get(CONFIG_DB_PORT))
-                    : "")
-              + ";database=" + valueOf(config().get(CONFIG_DB_NAME))
-              + ";sendStringParametersAsUnicode=true",
-          username,
-          password);
+      StringBuilder url = new StringBuilder("jdbc:sqlserver://");
+      if (config().has(CONFIG_DB_HOST)) {
+        url.append(valueOf(config().get(CONFIG_DB_HOST)));
+        if (config().has(CONFIG_DB_PORT)) {
+          url.append(":").append(valueOf(config().get(CONFIG_DB_PORT)));
+        }
+      }
+      url.append(";database=").append(valueOf(config().get(CONFIG_DB_NAME)));
+      url.append(";sendStringParametersAsUnicode=true");
+      Connection con = DriverManager.getConnection(url.toString(),
+                                                   username,
+                                                   password);
       if (isolationLevel == SNAPSHOT_ISOLATION) {
         con.setTransactionIsolation(SQLServerConnection.TRANSACTION_SNAPSHOT);
       } else if (isolationLevel != -1) {

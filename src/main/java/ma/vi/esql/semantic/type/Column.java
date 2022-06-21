@@ -247,9 +247,13 @@ public class Column extends MetadataContainer<String> {
   private Column setMetadata(String name, Expression<?, ?> expr) {
     List<Attribute> attributes = new ArrayList<>();
     if (metadata() != null && metadata().attributes() != null) {
-      attributes.addAll(metadata().attributes().values().stream().filter(a -> !a.name().equals(name)).toList());
+      attributes.addAll(metadata().attributes().values().stream()
+                                  .filter(a -> !a.name().equals(name))
+                                  .toList());
     }
-    attributes.add(new Attribute(context, name, expr));
+    if (expr != null) {
+      attributes.add(new Attribute(context, name, expr));
+    }
     return set("metadata", new Metadata(context, attributes));
   }
 

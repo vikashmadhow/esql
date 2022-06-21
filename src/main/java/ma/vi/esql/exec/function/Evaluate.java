@@ -61,10 +61,11 @@ public class Evaluate extends Expression<String, String> {
   }
 
   @Override
-  protected Object postTransformExec(Target target,
-                                     EsqlConnection esqlCon,
-                                     EsqlPath path,
-                                     PMap<String, Object> parameters, Environment env) {
+  protected Object postTransformExec(Target               target,
+                                     EsqlConnection       esqlCon,
+                                     EsqlPath             path,
+                                     PMap<String, Object> parameters,
+                                     Environment          env) {
     return expr().exec(target, esqlCon, path, parameters, env);
   }
 

@@ -183,15 +183,18 @@ public class Postgresql extends AbstractDatabase {
                                   String username,
                                   String password) {
     try {
-      Connection con = DriverManager.getConnection(
-          "jdbc:postgresql://"
-              + valueOf(config().get(CONFIG_DB_HOST)) + ':'
-              + (config().has(CONFIG_DB_PORT)
-                    ? ':' + valueOf(config().get(CONFIG_DB_PORT))
-                    : "")
-              + '/' + valueOf(config().get(CONFIG_DB_NAME)),
-          username,
-          password);
+      StringBuilder url = new StringBuilder("jdbc:postgresql:");
+      if (config().has(CONFIG_DB_HOST)) {
+        url.append("//").append(valueOf(config().get(CONFIG_DB_HOST)));
+        if (config().has(CONFIG_DB_PORT)) {
+          url.append(":").append(valueOf(config().get(CONFIG_DB_PORT)));
+        }
+        url.append('/');
+      }
+      url.append(valueOf(config().get(CONFIG_DB_NAME)));
+      Connection con = DriverManager.getConnection(url.toString(),
+                                                   username,
+                                                   password);
       con.setAutoCommit(false);
       if (isolationLevel != -1 && isolationLevel != SNAPSHOT_ISOLATION) {
         con.setTransactionIsolation(isolationLevel);

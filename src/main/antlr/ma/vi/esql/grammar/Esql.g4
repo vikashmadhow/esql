@@ -27,10 +27,10 @@ expressions
     ;
 
 /**
- * A semi-colon can also be interpreted as a silent no-operation (noop)
- * statement. Noops can be used to disable certain part of a program dynamically
- * (by replacing the statement with a noop) without having to remove the
- * statement which can be harder in some cases.
+ * A semi-colon can also be interpreted as a silent no-operation (noop) statement.
+ * Noops can be used to disable certain part of a program dynamically (by replacing
+ * the statement with a noop) without having to remove the statement which can be
+ * harder in some cases.
  */
 noop
     : ';'
@@ -38,11 +38,11 @@ noop
 
 //////////////////////////////////////////////////////////////////////////////////
 // ESQL statements can be divided into two groups: statements for defining and
-// altering database structures (such as tables and columns) and those for
-// querying and manipulating the data in those structures (select, insert, etc.).
-// `select` is the only statement for querying data while there are 3 different
-// statements for modifying data (insert, update and delete) which are grouped
-// into modify statements.
+// altering database structures (such as tables and columns) and those for querying
+// and manipulating the data in those structures (select, insert, etc.). `select`
+// is the only statement for querying data while there are 3 different statements
+// for modifying data (insert, update and delete) which are grouped into modify
+// statements.
 //////////////////////////////////////////////////////////////////////////////////
 
 /**
@@ -64,12 +64,12 @@ queryUpdate
 
 /**
  * A `select` statement extracts rows with a set columns (and metadata) from a
- * one or more joined tables and optionally subject to filters, groupings,
- * limits and orderings.
+ * one or more joined tables and optionally subject to filters, groupings, limits
+ * and orderings.
  *
- * Selects can also be combined with set operators (union, intersection, etc.)
- * or through `with` statements which creates temporary selects that can be used
- * to compose more complex `selects` in the same statement.
+ * Selects can also be combined with set operators (union, intersection, etc.) or
+ * through `with` statements which creates temporary selects that can be used to
+ * compose more complex `selects` in the same statement.
  */
 select
     :  'select' (literalMetadata ','?)? distinct? explicit? columns
@@ -105,10 +105,10 @@ select
  *        },
  *        b int { m1: b < 0 },
  *
- *        # derived columns (whose value are computed instead of stored) are
- *        # also supported in ESQL and is defined with a `=` between the name
- *        # of the column and the expression to compute its value. Metadata can
- *        # also be attached to derived columns
+ *        # derived columns (whose value are computed instead of stored) are also
+ *        # supported in ESQL and is defined with a `=` between the name of the
+ *        # column and the expression to compute its value. Metadata can also be
+ *        # attached to derived columns.
  *        ########
  *        c=a + b { label: 'Sum of a and b', m1: a > 5, m2: a + b, m3: b > 5 },
  *        d=b + c { m1: 10 },
@@ -181,9 +181,8 @@ literalAttribute
 /**
  * The optional distinct clause in `select` can be `all` which is the default
  * where all matching records are returned or `distinct` which means that only
- * unique records are returned with duplicates eliminated. `distinct` can
- * optionally be followed by an expression list which is used to identify
- * duplicates.
+ * unique records are returned with duplicates eliminated. `distinct` can optionally
+ * be followed by an expression list which is used to identify duplicates.
  */
 distinct
     : 'all'
@@ -191,35 +190,35 @@ distinct
     ;
 
 /**
- * The optional `explicit` keyword, when specified, disable the automatic
- * addition and expansion of metadata in a query and returns a resultset
- * consisting only of the explicitly specified columns.
+ * The optional `explicit` keyword, when specified, disable the automatic addition
+ * and expansion of metadata in a query and returns a resultset consisting only
+ * of the explicitly specified columns.
  */
 explicit
     : 'explicit'
     ;
 
 /**
- * The `select` keyword is followed by the `columns` clause which is a
- * comma-separated sequence of columns to select into the result, with each
- * column being an expression which can refer to columns in the tables specified
- * in the `from` clause of the select query.
+ * The `select` keyword is followed by the `columns` clause which is a comma-separated
+ * sequence of columns to select into the result, with each column being an expression
+ * which can refer to columns in the tables specified in the `from` clause of the
+ * select query.
  */
 columns
     : column (',' column)*
     ;
 
 /**
- * A column in a select statement consists of a expression which will be
- * executed in the context of the tables in the `from` clause of the select. The
- * column can be given an alias which will be the name of that column in the
- * result of the query. Metadata can also be associated to the column and will
- * override any metadata defined for that column in the table (this only applies
- * when the columns refers exactly to a column in a table).
+ * A column in a select statement consists of a expression which will be executed
+ * in the context of the tables in the `from` clause of the select. The column
+ * can be given an alias which will be the name of that column in the result of
+ * the query. Metadata can also be associated to the column and will override any
+ * metadata defined for that column in the table (this only applies when the
+ * columns refers exactly to a column in a table).
  *
  * A column can also be the asterisk (*) character, optionally qualified, and is
- * expanded to all the columns in the tables joined for the query, or, if
- * qualified, all the columns in table referred to by the qualifier.
+ * expanded to all the columns in the tables joined for the query, or, if qualified,
+ * all the columns in table referred to by the qualifier.
  */
 column
     : (alias ':')? expr metadata?       #SingleColumn
@@ -1205,7 +1204,7 @@ UuidLiteral
 DateLiteral
     : 'd\'' Date '\''
     | 'd\'' Time '\''
-    | 'd\'' Date ' ' Time '\''
+    | 'd\'' Date (' '|'T') Time '\''
     ;
 
 /**
