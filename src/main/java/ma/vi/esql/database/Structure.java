@@ -121,10 +121,11 @@ public class Structure extends AbstractScope implements Environment {
 
     // conditional
     //////////////////////
-    functions.put("coalesce",
-                  new Function("coalesce",
-                               AsParameterType,
-                               singletonList(new FunctionParam("values", TopType))));
+//    functions.put("coalesce",
+//                  new Function("coalesce",
+//                               AsParameterType,
+//                               singletonList(new FunctionParam("values", TopType))));
+    functions.put("coalesce", new Coalesce());
 
     // mathematical
     //////////////////////

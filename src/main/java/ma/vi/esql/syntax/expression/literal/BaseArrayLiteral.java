@@ -64,7 +64,11 @@ public class BaseArrayLiteral extends Literal<Type> {
   }
 
   @Override
-  protected String trans(Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
+  protected String trans(Target               target,
+                         EsqlConnection       esqlCon,
+                         EsqlPath             path,
+                         PMap<String, Object> parameters,
+                         Environment          env) {
     return switch (target) {
       case POSTGRESQL
           -> "array[" + items().stream()
@@ -116,10 +120,11 @@ public class BaseArrayLiteral extends Literal<Type> {
   }
 
   @Override
-  public Object exec(Target target,
-                     EsqlConnection esqlCon,
-                     EsqlPath path,
-                     PMap<String, Object> parameters, Environment env) {
+  public Object exec(Target               target,
+                     EsqlConnection       esqlCon,
+                     EsqlPath             path,
+                     PMap<String, Object> parameters,
+                     Environment          env) {
     Class<?> componentType = Types.classOf(componentType().name());
     List<BaseLiteral<?>> items = items();
     Object array = Array.newInstance(componentType, items.size());

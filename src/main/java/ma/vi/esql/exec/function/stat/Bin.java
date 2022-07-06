@@ -27,6 +27,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import static java.lang.String.valueOf;
+import static ma.vi.esql.semantic.type.Types.TextType;
 import static org.apache.commons.lang3.StringUtils.leftPad;
 
 /**
@@ -53,10 +54,10 @@ import static org.apache.commons.lang3.StringUtils.leftPad;
  */
 public class Bin extends Function implements TypedMacro {
   public Bin() {
-    super("bin", Types.TextType,
-          Arrays.asList(new FunctionParam("val", Types.TextType),
-                        new FunctionParam("name", Types.TextType),
-                        new FunctionParam("intervals", Types.TextType)));
+    super("bin", TextType,
+          Arrays.asList(new FunctionParam("val",       TextType),
+                        new FunctionParam("name",      TextType),
+                        new FunctionParam("intervals", TextType)));
   }
 
   @Override
@@ -66,9 +67,9 @@ public class Bin extends Function implements TypedMacro {
     List<Expression<?, ?>> args = call.arguments();
     if (args.size() < 3) {
       throw new TranslationException(esql, "bin requires at least 3 arguments: the value to bin, a human-readable "
-                                   + "name of the value to bin, and at least 1 value defining the intervals of "
-                                   + "the bin range. E.g: bin(x, 'age', 1, 5, 10) will produce bins: "
-                                   + "age < 1, 1 <= age < 5, 5 <= age < 10 and age >= 10" );
+                                         + "name of the value to bin, and at least 1 value defining the intervals "
+                                         + "of the bin range. E.g: bin(x, 'age', 1, 5, 10) will produce bins: "
+                                         + "age < 1, 1 <= age < 5, 5 <= age < 10 and age >= 10" );
     }
 
     int order = 2;
@@ -86,7 +87,7 @@ public class Bin extends Function implements TypedMacro {
                                         varName,
                                         new StringLiteral(ctx, " < "),
                                         new Cast(ctx, upper, Types.StringType))));
-        cases.add(new LessThan(ctx, (Expression<?, String>)binVar, (Expression<?, String>)upper));
+        cases.add(new LessThan(ctx, binVar, upper));
       }
       lower = upper;
       upper = i.hasNext() ? i.next() : null;

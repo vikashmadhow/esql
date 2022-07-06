@@ -24,6 +24,7 @@ import org.pcollections.PMap;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.joining;
 import static ma.vi.base.tuple.T2.of;
@@ -119,43 +120,92 @@ public class FunctionCall extends Expression<String, String> implements TypedMac
                          PMap<String, Object> parameters,
                          Environment          env) {
     String functionName = functionName();
-    Structure s = context.structure;
-    Function function = s.function(functionName);
-    if (function == null) {
-      function = Structure.UnknownFunction;
-    }
-    StringBuilder translation = new StringBuilder(function.translate(this, target, esqlCon, path, parameters, env));
+    if (target == Target.JAVASCRIPT) {
+      if (functionName.startsWith("$")
+       && arguments() != null
+       && arguments().size() == 1) {
+        /*
+         * Special treatment for expressions of the form $x('y') being translated
+         * to Javascript: this expression form is used to target the metadata attribute
+         * value of a column. E.g., $a('m1') refers to the value of the metadata
+         * attribute `m1` of the column `a`. This is translated to Javascript as
+         * `row.a.$m.m1`.
+         */
+        return "row."
+             + functionName.substring(1)
+             + ".$m."
+             + arguments().get(0).exec(target, esqlCon, path, parameters, env);
+      } else {
+        /*
+         * When targeting Javascript, function calls are translated to a form that
+         * can be executed on the client-side provided there is an executor object
+         * present (assumed to be named `$exec`) available in the execution context
+         * and containing the functions invoked as its members.
+         *
+         * Named arguments, if present, are packaged into an object and provided
+         * as the first argument to the javascript function.
+         */
+        StringBuilder namedArgs = new StringBuilder();
+        for (Expression<?, ?> arg: arguments()) {
+          if (arg instanceof NamedArgument na) {
+            if (namedArgs.isEmpty()) namedArgs.append('{');
+            else                     namedArgs.append(", ");
+            namedArgs.append(na.name()).append(':');
+            namedArgs.append(na.arg().translate(target, esqlCon, path.add(na), parameters, env));
+          }
+        }
+        return "(await $exec." + functionName + "({"
+              + arguments().stream  ()
+                           .filter  (a -> a instanceof NamedArgument)
+                           .map     (a -> a.translate(target, esqlCon, path.add(a), parameters, env).toString())
+                           .collect (joining(", ")) + "}"
+              +(arguments().stream  ()
+                           .anyMatch(a -> !(a instanceof NamedArgument)) ? ", " : "")
+              + arguments().stream  ()
+                           .filter  (a -> !(a instanceof NamedArgument))
+                           .map     (a -> a.translate(target, esqlCon, path.add(a), parameters, env).toString())
+                           .collect (joining(", "))
+              + "))";
+      }
+    } else {
+      Structure s = context.structure;
+      Function function = s.function(functionName);
+      if (function == null) {
+        function = Structure.UnknownFunction;
+      }
+      StringBuilder translation = new StringBuilder(function.translate(this, target, esqlCon, path, parameters, env));
 
-    /*
-     * add window suffix
-     */
-    List<Expression<?, String>> partitions = partitions();
-    List<Order> orderBy = orderBy();
-    if ((partitions != null && !partitions.isEmpty())
-     || (orderBy != null && !orderBy.isEmpty())) {
-      boolean overAdded = false;
-      if (partitions != null && !partitions.isEmpty()) {
-        translation.append(" over (partition by ")
-                   .append(partitions.stream()
-                                     .map(p -> p.translate(target, esqlCon, path.add(p), parameters, env))
-                                     .collect(joining(", ")));
-        overAdded = true;
+      /*
+       * add window suffix
+       */
+      List<Expression<?, String>> partitions = partitions();
+      List<Order> orderBy = orderBy();
+      if ((partitions != null && !partitions.isEmpty())
+       || (orderBy != null && !orderBy.isEmpty())) {
+        boolean overAdded = false;
+        if (partitions != null && !partitions.isEmpty()) {
+          translation.append(" over (partition by ")
+                     .append(partitions.stream()
+                                       .map(p -> p.translate(target, esqlCon, path.add(p), parameters, env))
+                                       .collect(joining(", ")));
+          overAdded = true;
+        }
+        if (orderBy != null && !orderBy.isEmpty()) {
+          translation.append(overAdded ? " " : " over (")
+                     .append("order by ")
+                     .append(orderBy.stream()
+                                    .map(o -> o.translate(target, esqlCon, path.add(o), parameters, env))
+                                    .collect(joining(", ")));
+        }
+        WindowFrame frame = frame();
+        if (frame != null) {
+          translation.append(' ');
+          translation.append(frame.translate(target, esqlCon, path.add(frame), parameters, env));
+        }
+        translation.append(')');
       }
-      if (orderBy != null && !orderBy.isEmpty()) {
-        translation.append(overAdded ? " " : " over (")
-                   .append("order by ")
-                   .append(orderBy.stream()
-                                  .map(o -> o.translate(target, esqlCon, path.add(o), parameters, env))
-                                  .collect(joining(", ")));
-      }
-      WindowFrame frame = frame();
-      if (frame != null) {
-        translation.append(' ');
-        translation.append(frame.translate(target, esqlCon, path.add(frame), parameters, env));
-      }
-      translation.append(')');
+      return translation.toString();
     }
-    return translation.toString();
   }
 
   @Override

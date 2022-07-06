@@ -59,7 +59,7 @@ java {
   withSourcesJar()
 }
 
-version = "0.9.9"
+version = "1.0.0"
 group = 'ma.vi'
 sourceCompatibility = JavaVersion.VERSION_17
 

@@ -53,19 +53,15 @@ public class NamedArgument extends Expression<String, String> {
 
   @Override
   protected String trans(Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
-    switch (target) {
-      case ESQL:
-        return name() + ":=" + arg().translate(target, esqlCon, path.add(arg()), parameters, env);
-      case JSON:
-      case JAVASCRIPT:
-        String translation = name() + '=' + arg().translate(target, esqlCon, path.add(arg()), parameters, env);
-        return target == JSON ? '"' + translation + '"' : translation;
-      default:
+    return switch (target) {
+      case ESQL       -> name() + ":=" + arg().translate(target, esqlCon, path.add(arg()), parameters, env);
+      case JAVASCRIPT -> name() + ':'  + arg().translate(target, esqlCon, path.add(arg()), parameters, env);
+      default ->
         /*
          * for databases drop name as it is not supported in most cases
          */
-        return arg().translate(target, esqlCon, path.add(arg()), parameters, env);
-    }
+        arg().translate(target, esqlCon, path.add(arg()), parameters, env);
+    };
   }
 
   @Override

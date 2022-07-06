@@ -82,10 +82,6 @@ public class Attribute extends Esql<String, String> {
                          EsqlPath             path,
                          PMap<String, Object> parameters,
                          Environment          env) {
-//    String name = name();
-//    if (!IDENTIFIER.matcher(name).matches()) {
-//      name = '"' + name + '"';
-//    }
     return '"' + name() + "\": " + (attributeValue() == null
                                  ? "null"
                                  :  attributeValue().translate(target, esqlCon, path.add(attributeValue()), parameters, env));

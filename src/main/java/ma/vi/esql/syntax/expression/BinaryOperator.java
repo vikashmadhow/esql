@@ -22,8 +22,8 @@ import static ma.vi.esql.translation.Translatable.Target.JSON;
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 public abstract class BinaryOperator extends Expression<String, String>  {
-  public BinaryOperator(Context context,
-                        String op,
+  public BinaryOperator(Context          context,
+                        String           op,
                         Expression<?, ?> expr1,
                         Expression<?, ?> expr2) {
     super(context, "BinaryOp",

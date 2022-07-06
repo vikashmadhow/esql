@@ -41,7 +41,18 @@ public interface Translatable<T> {
 
     JAVA,
     JAVASCRIPT,
-    JSON
+
+    /**
+     * @deprecated The JSON target is essentially the JAVASCRIPT translation
+     *             wrapped in a double-quoted string. This is however problematic
+     *             as only the whole translated expression should be wrapped as
+     *             such, and not the internal sub-expressions. It's thus better
+     *             to translate to Javascript and then delegate to the caller to
+     *             add the wrapping.
+     */
+    @Deprecated(since="1.0.0", forRemoval=true) JSON,
+
+    PERCEPT
   }
 
   /**

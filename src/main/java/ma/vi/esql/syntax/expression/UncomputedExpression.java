@@ -62,8 +62,8 @@ public class UncomputedExpression extends BaseLiteral<String> {
   @Override
   protected String trans(Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
     return switch (target) {
-      case JAVASCRIPT -> "`$(" + expr().translate(target, esqlCon, path.add(expr()), parameters, env) + ")`";
-      case ESQL       ->  "$(" + expr().translate(target, esqlCon, path.add(expr()), parameters, env) + ')';
+      case JAVASCRIPT,
+           ESQL       -> "$(" + expr().translate(target, esqlCon, path.add(expr()), parameters, env) + ')';
       default         -> "'$(" + expr().translate(Target.ESQL, esqlCon, path.add(expr()), parameters, env)
                                        .toString().replace("'", "''") + ")'";
     };
@@ -71,9 +71,6 @@ public class UncomputedExpression extends BaseLiteral<String> {
 
   @Override
   public String exec(Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
-    /*
-     * returns the string unescaped and without surrounding quotes
-     */
     return trans(Target.ESQL, esqlCon, path, null, env);
   }
 

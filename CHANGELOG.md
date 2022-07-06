@@ -49,7 +49,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fine-grain history
 - Snapshots
 - Undo and redo maintaining coherent table state.
-
+- A special keyword (`this`?) to reference the table being implicitly queried. 
+  This is useful in expressions defined in attributes which will be executed against
+  the containing table.
+- Every expression should return a `Result` to normalise the execution of any 
+  ESQL expression (need to find way that this does not affect performance unduly).
+ 
 ### To optimise
 - When filtering a `With`, do not apply filter on a CTE if that CTE inner joins 
   with another CTE, directly or transitively, which has already been filtered.
@@ -73,7 +78,57 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   overriding)
 - Modify queries return values don't seem to be supported correctly for SQL Server.
 
-## [0.9.9]
+## [1.0.0] - 2022-07-06
+### Added:
+- `ColumnRef` translation to Javascript adds a special prefix and suffix to help 
+  with execution on the client-side. A column `a` for instance will be translated
+  to `row.a.$v` as `a` becomes a member of an object (named `row` conventionally)
+  on the client-side and it is itself an object with a member named `$v` containing
+  its value and another member named `$m` containing its metadata. Support for 
+  referencing metadata on the client-side reinterprets the qualified column-name 
+  `a.b` as accessing the value of metadata attribute `b` of `a`. `a.b` is thus 
+  translated as `row.a.$m.b`.
+- Function calls of the form `$x('y')` are treated specially when being translated 
+  to Javascript: this form is used to target the metadata attribute value of a 
+  column. E.g., `$a('m1')` refers to the value of the metadata attribute `m1` of 
+  the column `a`. This is translated to Javascript as `row.a.$m.m1`.
+- `coalesce` function translation to Javascript using `||` (or) operator.
+- When targeting Javascript, function calls are translated to a form that can be
+  executed on the client-side provided there is an executor object present (assumed 
+  to be named `$exec`) available in the execution context and containing the 
+  functions invoked as its members.
+- When translating function calls to Javascript, named arguments are packaged into
+  an object and provided as the first argument to the Javascript function. The 
+  javascript function must have its first parameter as an objct that will contain
+  the list of named arguments.
+- `UncomputedExpression` in attributes are not translated in query result so that
+  they can be correctly translated during result encoding based on where the result
+  is being sent to.
+- `UncomputedExpression` are not automatically aliased as they will be executed 
+  in a context where the alias might no longer be valid.
+- Allow invalid column references in uncomputed expressions as they may refer to
+  variables that will be valid on the client side.
+- Concatenation (||) is translated to `$exec.concat` function for Javascript target,
+  which has the same null behaviour as SQL concatenation, i.e., any null values
+  concatenated to a non-null value result in null. In other words, nulls infect
+  the whole concatenation.
+
+### Fixed:
+- The logic for determining if a QueryUpdate statement produces a result (thus 
+  requiring the use of JDBC `executeQuery` instead of `executeUpdate`) was based 
+  on whether the type of the statement was a `Selection`. This was excluding 
+  `SelectExpression` which returns the type of its single column result. This has
+  been changed to allow a `SelectExpression` to be executed as a normal `Select`
+  and produce a resultset.
+  
+### Deprecated:
+- The JSON target is deprecated. This target is essentially the Javascript 
+  translation wrapped in a double-quoted string. This is however problematic as 
+  only the whole translated expression should be wrapped as such, and not the 
+  internal sub-expressions. It's thus better to translate to Javascript and then 
+  delegate to the caller to add the wrapping.
+
+## [0.9.9] - 2022-06-22
 ### Added:
 - Simple `Initializer` interface to standardise initializing the database.  
 - The default OVERWRITE key to `Initializer`, which is a common key used to set

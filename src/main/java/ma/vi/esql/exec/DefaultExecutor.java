@@ -7,6 +7,7 @@ import ma.vi.esql.exec.function.NamedParameter;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.EsqlTransformer;
+import ma.vi.esql.syntax.define.Define;
 import ma.vi.esql.syntax.expression.literal.NullLiteral;
 import ma.vi.esql.syntax.macro.Macro;
 import ma.vi.esql.syntax.macro.TypedMacro;
@@ -126,10 +127,10 @@ public class DefaultExecutor implements Executor {
   }
 
   private static <T extends Esql<?, ?>,
-    M extends Macro> T expand(T esql, Class<M> macroType) {
+                  M extends Macro    > T expand(T esql, Class<M> macroType) {
     T expanded;
     int iteration = 0;
-    while ((expanded = (T)esql.map((e, p) -> macroType.isAssignableFrom(e.getClass())
+    while ((expanded = (T)esql.map((e, p) ->  macroType.isAssignableFrom(e.getClass())
                                            ? ((Macro)e).expand(e, p.add(ONGOING_MACRO_EXPANSION))
                                            : e)) != esql) {
       esql = expanded;

@@ -27,6 +27,7 @@ import static java.util.stream.Collectors.toSet;
 import static ma.vi.base.string.Strings.random;
 import static ma.vi.esql.builder.Attributes.*;
 import static ma.vi.esql.semantic.type.Types.UnknownType;
+import static ma.vi.esql.syntax.expression.ColumnRef.unqualify;
 
 /**
  * A relation is a composite type with a qualified name (i.e. with a schema name included).
@@ -200,7 +201,8 @@ public class BaseRelation extends Struct {
     try {
       seen.add(columnName);
       return (Expression<?, String>)derivedExpression.map((e, path) -> {
-        if (e instanceof ColumnRef ref) {
+        if (e instanceof ColumnRef ref
+         && !path.hasAncestor(UncomputedExpression.class)) {
           String colName = ref.columnName();
           Column column = columns.get(colName);
           if (column == null) {
@@ -259,7 +261,7 @@ public class BaseRelation extends Struct {
          */
         cols.add(new Column(attr.context,
                             attrPrefix + "/$e",
-                            new UncomputedExpression(attr.context, rename(expr, aliased)),
+                            new UncomputedExpression(attr.context, unqualify(expr)),
                             Types.TextType,
                             null));
       }
@@ -392,7 +394,7 @@ public class BaseRelation extends Struct {
           newCols.add(new Column(column.context,
                                  colAlias + "/$e",
                                  new UncomputedExpression(column.context,
-                                                          rename(column.expression(), aliased)),
+                                                          unqualify(column.expression())),
                                  Types.TextType,
                                  null));
         }
@@ -417,23 +419,6 @@ public class BaseRelation extends Struct {
       }
     }
     return newCols;
-  }
-
-  /**
-   * Change the name of all column references in the expression using the supplied
-   * name mapping. I.e., if 'a' is mapped to 'b' in mapping, all column references
-   * to 'a' in expression are changed to b.
-   *
-   * @param expr The expression containing the column references to rename.
-   * @param mapping The name mappings.
-   * @return The expression with the renamed column references.
-   */
-  public static Expression<?, ?> rename(Expression<?, ?>    expr,
-                                        Map<String, String> mapping) {
-    return (Expression<?, ?>)expr.map(
-              (e, p) -> e instanceof ColumnRef r && mapping.containsKey(r.columnName())
-                      ? r.columnName(mapping.get(r.columnName()))
-                      : e);
   }
 
   /**
@@ -753,7 +738,10 @@ public class BaseRelation extends Struct {
                       new GroupedExpression(chk.context, chk.expr()));
 
       rel.addColumnsForAttribute(existingCol._attribute(CHECK, check), colName);
-      rel.addColumnsForAttribute(existingCol._attribute(CHECK + "/$e", new UncomputedExpression(chk.context, check)), colName);
+      rel.addColumnsForAttribute(existingCol._attribute(CHECK + "/$e",
+                                                        new UncomputedExpression(chk.context,
+                                                                                 unqualify(check))),
+                                                        colName);
     }
 
     /*

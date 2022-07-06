@@ -14,14 +14,12 @@ import ma.vi.esql.database.Database;
 import ma.vi.esql.semantic.type.*;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.query.AttributeIndex;
-import ma.vi.esql.semantic.type.Column;
 import ma.vi.esql.syntax.query.QueryTranslation;
 import org.postgresql.util.PGInterval;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.*;
 

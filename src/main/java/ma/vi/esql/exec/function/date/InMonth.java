@@ -50,7 +50,7 @@ public class InMonth extends Function implements TypedMacro {
 
     if (arguments.isEmpty()) {
       throw new TranslationException(esql, "inmonth function needs at 3 arguments (the date to check "
-                                   + "and the month and year that the date must fall in)");
+                                         + "and the month and year that the date must fall in)");
     }
 
     /*

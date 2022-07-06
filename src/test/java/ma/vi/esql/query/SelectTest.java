@@ -18,6 +18,7 @@ import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Parser;
 import ma.vi.esql.syntax.Program;
 import ma.vi.esql.syntax.expression.Expression;
+import ma.vi.esql.syntax.expression.UncomputedExpression;
 import ma.vi.esql.syntax.expression.literal.UuidLiteral;
 import ma.vi.esql.syntax.query.Select;
 import org.json.JSONArray;
@@ -107,7 +108,7 @@ public class SelectTest extends DataTest {
 
 
                      Result rs = con.exec("""
-                                          select a, b, e, h, j
+                                          select a, b, c, d, e, h, j
                                             from S
                                            where @x <= a <= @(@x + 1)
                                            order by a
@@ -480,7 +481,8 @@ public class SelectTest extends DataTest {
                      rs.next(); assertInstanceOf(UUID.class, rs.value("_id"));
                                 assertEquals(1, (Long)rs.value("a"));
                                 assertEquals(3, (Long)rs.get("a").metadata().get("m1"));
-                                assertEquals("$(t.b + 1)", rs.get("a").metadata().get("m1/$e"));
+                                assertEquals(new UncomputedExpression(null, p.parseExpression("b + 1")),
+                                             rs.get("a").metadata().get("m1/$e"));
                                 assertEquals(2, (Long)rs.value("b"));
                                 assertEquals(true, rs.value("e"));
                                 assertArrayEquals(new String[]{"Four", "Quatre"}, rs.value("h"));
@@ -525,7 +527,7 @@ public class SelectTest extends DataTest {
                      rs.next(); assertInstanceOf(UUID.class, rs.value("_id"));
                                 assertEquals(1, (Long)rs.value("a"));
                                 assertEquals(3, (Long)rs.get("a").metadata().get("m1"));
-                                assertEquals("$(t.b + 1)", rs.get("a").metadata().get("m1/$e"));
+                                assertEquals("$(b + 1)", rs.get("a").metadata().get("m1/$e"));
                                 assertEquals(2, (Long)rs.value("b"));
                                 assertEquals(true, rs.value("e"));
                                 assertArrayEquals(new String[]{"Four", "Quatre"}, rs.value("h"));

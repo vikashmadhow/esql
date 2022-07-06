@@ -6,17 +6,14 @@ package ma.vi.esql.syntax.query;
 
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.database.Database;
-import ma.vi.esql.exec.ColumnMapping;
 import ma.vi.esql.database.EsqlConnection;
+import ma.vi.esql.exec.ColumnMapping;
 import ma.vi.esql.exec.Result;
 import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.semantic.type.*;
 import ma.vi.esql.syntax.*;
 import ma.vi.esql.syntax.define.Metadata;
-import ma.vi.esql.syntax.expression.ColumnRef;
-import ma.vi.esql.syntax.expression.Expression;
-import ma.vi.esql.syntax.expression.GroupedExpression;
-import ma.vi.esql.syntax.expression.SelectExpression;
+import ma.vi.esql.syntax.expression.*;
 import ma.vi.esql.syntax.expression.literal.Literal;
 import ma.vi.esql.syntax.expression.logical.And;
 import ma.vi.esql.syntax.macro.Macro;
@@ -278,8 +275,18 @@ public abstract class QueryUpdate extends MetadataContainer<QueryTranslation> {
 
           String attrName = alias.substring(pos + 1);
           Expression<?, ?> attributeValue = col.b.expression();
-          if (optimiseAttributesLoading && attributeValue instanceof Literal) {
-            mapping.attributes().put(attrName, attributeValue.exec(target, NULL_CONNECTION, path, parameters, NULL_DB.structure()));
+          if (optimiseAttributesLoading
+           && attributeValue instanceof Literal) {
+           if (attributeValue instanceof UncomputedExpression) {
+             mapping.attributes().put(attrName, attributeValue);
+           } else {
+             mapping.attributes().put(attrName,
+                                      attributeValue.exec(target,
+                                                          NULL_CONNECTION,
+                                                          path,
+                                                          parameters,
+                                                          NULL_DB.structure()));
+           }
           } else if (addAttributes) {
             itemIndex += 1;
             query.append(", ");
@@ -371,8 +378,13 @@ public abstract class QueryUpdate extends MetadataContainer<QueryTranslation> {
     Connection con = esqlCon.connection();
     QueryTranslation q = translate(db.target(), esqlCon, path, env);
     try {
-      Type type = computeType(path.add(this));
-      if (type instanceof Selection selection && !selection.columns().isEmpty()) {
+      boolean producesResult = this instanceof Select;
+      if (!producesResult) {
+        Type type = computeType(path.add(this));
+        producesResult = type instanceof Selection selection
+                      && !selection.columns().isEmpty();
+      }
+      if (producesResult) {
         ResultSet rs = con.createStatement(TYPE_SCROLL_INSENSITIVE, CONCUR_READ_ONLY)
                           .executeQuery(q.translation());
         return new Result(db, rs, q);

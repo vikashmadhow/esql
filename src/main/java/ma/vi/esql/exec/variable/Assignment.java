@@ -53,14 +53,20 @@ public class Assignment extends Expression<String, Assignment> {
   }
 
   @Override
-  public Assignment trans(Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
+  public Assignment trans(Target               target,
+                          EsqlConnection       esqlCon,
+                          EsqlPath             path,
+                          PMap<String, Object> parameters,
+                          Environment          env) {
     return this;
   }
 
   @Override
-  protected Object postTransformExec(Target target, EsqlConnection esqlCon,
-                                     EsqlPath path,
-                                     PMap<String, Object> parameters, Environment env) {
+  protected Object postTransformExec(Target               target,
+                                     EsqlConnection       esqlCon,
+                                     EsqlPath             path,
+                                     PMap<String, Object> parameters,
+                                     Environment          env) {
     if (!env.knows(name())) {
       throw new ExecutionException(this, "Unknown variable " + name() + " in " + env);
     }

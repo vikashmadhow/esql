@@ -23,10 +23,7 @@ import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.define.Attribute;
 import ma.vi.esql.syntax.define.Define;
 import ma.vi.esql.syntax.define.Metadata;
-import ma.vi.esql.syntax.expression.ColumnRef;
-import ma.vi.esql.syntax.expression.Expression;
-import ma.vi.esql.syntax.expression.GroupedExpression;
-import ma.vi.esql.syntax.expression.SelectExpression;
+import ma.vi.esql.syntax.expression.*;
 import ma.vi.esql.syntax.expression.literal.Literal;
 import ma.vi.esql.syntax.query.Select;
 import ma.vi.esql.translation.TranslationException;
@@ -179,7 +176,8 @@ public class CreateTable extends Define {
     try {
       seen.add(columnName);
       return (Expression<?, String>)derivedExpression.map((e, path) -> {
-        if (e instanceof ColumnRef ref) {
+        if (e instanceof ColumnRef ref
+         && !path.hasAncestor(UncomputedExpression.class)) {
           String colName = ref.columnName();
           ColumnDefinition column = columns.get(colName);
           if (column == null) {

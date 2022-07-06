@@ -31,9 +31,11 @@ public class PostgresqlTranslator extends AbstractTranslator {
   }
 
   @Override
-  protected QueryTranslation translate(Select select,
-                                       EsqlConnection esqlCon, EsqlPath path,
-                                       PMap<String, Object> parameters, Environment env) {
+  protected QueryTranslation translate(Select               select,
+                                       EsqlConnection       esqlCon,
+                                       EsqlPath             path,
+                                       PMap<String, Object> parameters,
+                                       Environment          env) {
     StringBuilder st = new StringBuilder("select ");
     if (select.distinct()) {
       st.append("distinct ");

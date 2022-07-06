@@ -29,6 +29,7 @@ import java.util.Set;
 
 import static ma.vi.base.string.Strings.makeUniqueSeq;
 import static ma.vi.esql.semantic.type.Type.unqualifiedName;
+import static ma.vi.esql.syntax.expression.ColumnRef.qualify;
 
 /**
  * Represents a single table in the from clause; a single table can either refer
@@ -194,9 +195,9 @@ public class SingleTableExpr extends AbstractAliasTableExpr {
                       .columns().stream()
                       .map(c -> new Column(c.b.context,
                                            c.b.name(),
-                                           ColumnRef.qualify(c.b.expression(), alias()),
+                                           qualify(c.b.expression(), alias()),
                                            c.b.type(),
-                                           ColumnRef.qualify(c.b.metadata(), alias())))
+                                           qualify(c.b.metadata(), alias())))
                       .toList();
     } else {
       /*

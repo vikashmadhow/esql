@@ -49,23 +49,19 @@ abstract class ArithmeticOperator extends BinaryOperator {
 
   @Override
   public Type computeType(EsqlPath path) {
-    Type leftType = expr1().computeType(path.add(expr1()));
+    Type leftType  = expr1().computeType(path.add(expr1()));
     Type rightType = expr2().computeType(path.add(expr2()));
 
-    if (leftType instanceof BaseType left
+    if (leftType  instanceof BaseType left
      && rightType instanceof BaseType right) {
 
-      // Non-integral trumps integral
-      if (left.integral && !right.integral) {
-        return right;
-
-      } else if (!left.integral && right.integral) {
-        return left;
-
-      } else {
-        // return larger-sized type
-        return left.size > right.size ? left : right;
-      }
+      /*
+       * Non-integral trumps integral
+       */
+      return   left.integral && !right.integral ? right
+            : !left.integral &&  right.integral ? left
+            : left.size > right.size            ? left
+                                                : right;
     } else if (leftType instanceof BaseType) {
       return leftType;
 

@@ -14,9 +14,6 @@ import org.pcollections.PMap;
 
 import java.util.List;
 
-import static ma.vi.base.string.Escape.escapeJsonString;
-import static ma.vi.esql.translation.Translatable.Target.JSON;
-
 /**
  * Concatenation operation in ESQL (||).
  *
@@ -52,21 +49,19 @@ public class Concatenation extends MultipleSubExpressions {
   }
 
   @Override
-  protected String trans(Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
+  protected String trans(Target               target,
+                         EsqlConnection       esqlCon,
+                         EsqlPath             path,
+                         PMap<String, Object> parameters,
+                         Environment          env) {
     switch (target) {
-      case JSON, JAVASCRIPT -> {
+      case JAVASCRIPT -> {
         StringBuilder st = new StringBuilder();
         for (Expression<?, ?> e: expressions()) {
-          st.append(st.length() == 0 ? "" : " + ")
-            .append('(')
-            .append(e.translate(target, esqlCon, path.add(e), parameters, env))
-            .append(" || '')");
+          st.append(st.length() == 0 ? "$exec.concat(" : ", ")
+            .append(e.translate(target, esqlCon, path.add(e), parameters, env));
         }
-        String translation = "(" + st + ")";
-        if (target == JSON) {
-          translation = '"' + escapeJsonString(translation) + '"';
-        }
-        return translation;
+        return st.append(')').toString();
       }
       case SQLSERVER -> {
         StringBuilder st = new StringBuilder();

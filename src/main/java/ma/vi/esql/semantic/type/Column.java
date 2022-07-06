@@ -12,9 +12,9 @@ import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.MetadataContainer;
 import ma.vi.esql.syntax.define.Attribute;
+import ma.vi.esql.syntax.define.Metadata;
 import ma.vi.esql.syntax.define.table.ColumnDefinition;
 import ma.vi.esql.syntax.define.table.DerivedColumnDefinition;
-import ma.vi.esql.syntax.define.Metadata;
 import ma.vi.esql.syntax.expression.ColumnRef;
 import ma.vi.esql.syntax.expression.Expression;
 import ma.vi.esql.syntax.expression.literal.BooleanLiteral;
@@ -123,17 +123,6 @@ public class Column extends MetadataContainer<String> {
                       columnType,
                       new Metadata(def.context, new ArrayList<>(attributes.values())));
   }
-
-//  @Override
-//  public Esql<?, ?> expand(Esql<?, ?> esql, EsqlPath path) {
-//    if (type == UnknownType) {
-//      Type t = expression().computeType(path.add(expression()));
-//      if (t != UnknownType) {
-//        return type(type);
-//      }
-//    }
-//    return esql;
-//  }
 
   @Override
   protected String trans(Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {

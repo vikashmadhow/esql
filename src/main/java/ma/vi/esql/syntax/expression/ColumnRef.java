@@ -12,18 +12,20 @@ import ma.vi.esql.exec.function.FunctionCall;
 import ma.vi.esql.semantic.scope.Scope;
 import ma.vi.esql.semantic.scope.Symbol;
 import ma.vi.esql.semantic.type.BaseRelation;
+import ma.vi.esql.semantic.type.Column;
 import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
-import ma.vi.esql.syntax.define.*;
+import ma.vi.esql.syntax.define.Attribute;
+import ma.vi.esql.syntax.define.Define;
+import ma.vi.esql.syntax.define.Metadata;
 import ma.vi.esql.syntax.define.table.AlterTable;
 import ma.vi.esql.syntax.define.table.ColumnDefinition;
 import ma.vi.esql.syntax.define.table.CreateTable;
 import ma.vi.esql.syntax.define.table.DerivedColumnDefinition;
 import ma.vi.esql.syntax.macro.TypedMacro;
-import ma.vi.esql.semantic.type.Column;
 import ma.vi.esql.syntax.query.QueryUpdate;
 import ma.vi.esql.syntax.query.TableExpr;
 import ma.vi.esql.translation.TranslationException;
@@ -163,9 +165,10 @@ public class ColumnRef extends    Expression<String, String>
       }
       if (computedType == null) {
         /*
-         * For definitions, assume unknown when type could not be computed.
+         * For definitions and uncomputed expressions, assume unknown when type
+         * could not be computed.
          */
-        if (path.hasAncestor(Define.class)) {
+        if (path.hasAncestor(Define.class, UncomputedExpression.class)) {
           return UnknownType;
         } else {
           throw new TranslationException(this, "Could not determine the type of " + qualifiedName());
@@ -181,8 +184,8 @@ public class ColumnRef extends    Expression<String, String>
   }
 
   /**
-   * Expand derived columns to their base expressions and find the qualifier
-   * for unqualified columns.
+   * Expand derived columns to their base expressions and find the qualifier for
+   * unqualified columns.
    */
   @Override
   public Esql<?, ?> expand(Esql<?, ?> e, EsqlPath path)  {
@@ -192,7 +195,8 @@ public class ColumnRef extends    Expression<String, String>
       if (col.derived()) {
         return new GroupedExpression(context, col.expression());
       }
-      if (col.expression() instanceof ColumnRef ref) {
+      if (col.expression() instanceof ColumnRef ref
+       && !path.hasAncestor(UncomputedExpression.class)) {
         String alias = ref.qualifier();
         return alias == null || alias.equals(qualifier()) ? e : qualify(e, alias);
       }
@@ -254,34 +258,6 @@ public class ColumnRef extends    Expression<String, String>
     return column;
   }
 
-//  /**
-//   * Find the column referred to by this column reference. Since selects may be nested,
-//   * this method will move outside of the current select to find surrounding ones if the
-//   * column cannot be successfully matched in the current selection context.
-//   */
-//  public static T2<Relation, Column> column(QueryUpdate qu,
-//                                            ColumnRef ref,
-//                                            EsqlPath path) {
-//    T2<Relation, Column> column = null;
-//    while (column == null && qu != null && qu.tables().exists(path)) {
-//      column = qu.tables()
-//                 .computeType(path.add(qu.tables()))
-//                 .findColumn(ref);
-//      if (column == null) {
-//        T2<QueryUpdate, EsqlPath> ancestor = path.tail() == null
-//                                           ? null
-//                                           : QueryUpdate.ancestorAndPath(path.tail());
-//        if (ancestor == null) {
-//          qu = null;
-//        } else {
-//          qu = ancestor.a;
-//          path = ancestor.b;
-//        }
-//      }
-//    }
-//    return column;
-//  }
-
   public static ColumnRef from(Expression<?, String> expr) {
     return expr instanceof ColumnRef r ? r
          : expr instanceof ExpandedDerivedColumnRef r ? ColumnRef.of(r.qualifier(), r.name())
@@ -289,17 +265,23 @@ public class ColumnRef extends    Expression<String, String>
   }
 
   @Override
-  protected String trans(Target target,
-                         EsqlConnection esqlCon, EsqlPath path,
-                         PMap<String, Object> parameters, Environment env) {
+  protected String trans(Target               target,
+                         EsqlConnection       esqlCon,
+                         EsqlPath             path,
+                         PMap<String, Object> parameters,
+                         Environment          env) {
     boolean sqlServerBool = target == Target.SQLSERVER
                          && computeType(path.add(this)) == Types.BoolType
                          && !requireIif(path, parameters)
                          && (path.ancestor(FunctionCall.class) == null);
     return switch (target) {
-      case ESQL, JAVASCRIPT -> qualifiedName();
-      case JSON             -> '"' + qualifiedName() + '"';
-      default               ->
+      case ESQL        -> qualifiedName();
+      case JAVASCRIPT,
+           JSON        -> qualifier() == null
+                        ? "row." + columnName() + ".$v"
+                        : "row." + qualifier()  + ".$m." + columnName();
+
+      default          ->
           (sqlServerBool ? "(" : "")
         + (qualifier() != null ? '"' + qualifier() + "\"." : "") + '"' + columnName() + "\""
         + (sqlServerBool ? "=1)" : "");
@@ -358,9 +340,11 @@ public class ColumnRef extends    Expression<String, String>
   }
 
   @Override
-  public Object exec(Target target, EsqlConnection esqlCon,
-                     EsqlPath path,
-                     PMap<String, Object> parameters, Environment env) {
+  public Object exec(Target               target,
+                     EsqlConnection       esqlCon,
+                     EsqlPath             path,
+                     PMap<String, Object> parameters,
+                     Environment          env) {
     if (!env.knows(name())) {
       throw new ExecutionException(this, "Unknown variable " + name() + " in " + env);
     }
@@ -377,7 +361,8 @@ public class ColumnRef extends    Expression<String, String>
    */
   public static <T extends Esql<?, ?>> T qualify(T esql, String qualifier) {
     return (T)esql.map((e, path) -> {
-      if (e instanceof ColumnRef ref) {
+      if (e instanceof ColumnRef ref
+       && !path.hasAncestor(UncomputedExpression.class)) {
         SelectExpression selExpr = path.ancestor(SelectExpression.class);
         if (selExpr == null) {
           return ref.qualifier(qualifier);
@@ -398,5 +383,34 @@ public class ColumnRef extends    Expression<String, String>
       return new Metadata(metadata.context, atts);
     }
     return metadata;
+  }
+
+  /**
+   * Change the name of all column references in the expression using the supplied
+   * name mapping. I.e., if 'a' is mapped to 'b' in mapping, all column references
+   * to 'a' in expression are changed to b.
+   *
+   * @param expr The expression containing the column references to rename.
+   * @param mapping The name mappings.
+   * @return The expression with the renamed column references.
+   */
+  public static Expression<?, ?> rename(Expression<?, ?>    expr,
+                                        Map<String, String> mapping) {
+    return (Expression<?, ?>)expr.map(
+              (e, p) -> e instanceof ColumnRef r && mapping.containsKey(r.columnName())
+                      ? r.columnName(mapping.get(r.columnName()))
+                      : e);
+  }
+
+  /**
+   * Removes qualifiers from the column ref in the expression.
+   * @param expr The expression containing column refs to unqualify.
+   * @return The unqualified expression.
+   */
+  public static Expression<?, ?> unqualify(Expression<?, ?> expr) {
+    return (Expression<?, ?>)expr.map(
+              (e, p) -> e instanceof ColumnRef r && r.qualifier() != null
+                      ? r.qualifier(null)
+                      : e);
   }
 }
