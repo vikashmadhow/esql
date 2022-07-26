@@ -78,6 +78,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   overriding)
 - Modify queries return values don't seem to be supported correctly for SQL Server.
 
+## [1.0.1] - 2022-07-26
+### Fixed:
+- Fixed error in translation of `NamedArgument` to ESQL which was still using the
+  previous syntax (`:=` instead of the new `=`).
+
 ## [1.0.0] - 2022-07-06
 ### Added:
 - `ColumnRef` translation to Javascript adds a special prefix and suffix to help 

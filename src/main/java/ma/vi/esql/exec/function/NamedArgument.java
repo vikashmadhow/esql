@@ -13,8 +13,6 @@ import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.expression.Expression;
 import org.pcollections.PMap;
 
-import static ma.vi.esql.translation.Translatable.Target.JSON;
-
 /**
  * A named argument to a function. The name is dropped when this is translated
  * to SQL as most databases do not support named arguments yet. This is
@@ -54,7 +52,7 @@ public class NamedArgument extends Expression<String, String> {
   @Override
   protected String trans(Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
     return switch (target) {
-      case ESQL       -> name() + ":=" + arg().translate(target, esqlCon, path.add(arg()), parameters, env);
+      case ESQL       -> name() + "="  + arg().translate(target, esqlCon, path.add(arg()), parameters, env);
       case JAVASCRIPT -> name() + ':'  + arg().translate(target, esqlCon, path.add(arg()), parameters, env);
       default ->
         /*
