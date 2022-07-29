@@ -78,6 +78,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   overriding)
 - Modify queries return values don't seem to be supported correctly for SQL Server.
 
+## [1.0.2] - 2022-07-29
+### Added:
+- `create struct` builder.
+- A new `Initializer` model for creating arbitrary database structures from a
+  hierarchical representation.
+- `StructInitializer` for creating `struct` defined in a YAML file or from other
+  hierarchical formats.
+
 ## [1.0.1] - 2022-07-26
 ### Fixed:
 - Fixed error in translation of `NamedArgument` to ESQL which was still using the

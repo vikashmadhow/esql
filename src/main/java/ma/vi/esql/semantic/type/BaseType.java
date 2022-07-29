@@ -43,8 +43,8 @@ public class BaseType extends AbstractType {
 
   @Override
   public String translate(Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
-    return target == Target.ESQL             ? name() :
-            translations.containsKey(target) ? translations.get(target) : translations.get(Target.ALL);
+    return target == Target.ESQL            ? name() :
+           translations.containsKey(target) ? translations.get(target) : translations.get(Target.ALL);
   }
 
   @Override

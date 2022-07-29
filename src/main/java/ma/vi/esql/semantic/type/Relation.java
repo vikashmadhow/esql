@@ -7,10 +7,12 @@ package ma.vi.esql.semantic.type;
 import ma.vi.base.lang.NotFoundException;
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.semantic.scope.Symbol;
+import ma.vi.esql.syntax.define.Attribute;
 import ma.vi.esql.syntax.expression.ColumnRef;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -119,6 +121,16 @@ public abstract class Relation extends AbstractType implements Symbol {
   @Override
   public String toString() {
     StringBuilder st = new StringBuilder(name()).append(" {\n");
+    Map<String, Attribute> attrs = attributes();
+    if (attrs != null && !attrs.isEmpty()) {
+      st.append("{\n");
+      for (var a: attrs.values()) {
+        st.append("  ");
+        a._toString(st, 3, 2);
+        st.append('\n');
+      }
+      st.append("}\n");
+    }
     for (T2<Relation, Column> c: columns()) {
       c.b()._toString(st, 2, 2);
       st.append('\n');

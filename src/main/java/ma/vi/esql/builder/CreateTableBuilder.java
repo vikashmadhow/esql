@@ -20,9 +20,9 @@ import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 
 /**
- * A builder for directly constructing create tables ESQL statement.
- * This builder provides a fluent API and is easier to read when
- * defining new statements in Java code.
+ * A builder for directly constructing `create table` ESQL statements. This
+ * builder provides a fluent API and is easier to read when defining new
+ * statements in Java code.
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
@@ -181,9 +181,14 @@ public class CreateTableBuilder implements Builder<CreateTable> {
   }
 
   private String name;
+
   private boolean dropUndefined = false;
+
   private final List<ColumnDefinition> columns = new ArrayList<>();
+
   private final List<ConstraintDefinition> constraints = new ArrayList<>();
+
   private final List<Attribute> metadata = new ArrayList<>();
+
   private final Context context;
 }

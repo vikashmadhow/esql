@@ -1,0 +1,57 @@
+$overwrite$: true
+
+TestImport:
+  $metadata:
+    name: "'Test import'"
+    description: "'This is a test import'"
+  id:
+    type: int
+    required: true
+    unique: true
+  first_name:
+    type: string
+    required: true
+  last_name:
+    type: string
+    required: true
+  name: "first_name || ' ' || last_name"
+  a:
+    type: int
+    expression: 1
+    m1: 2 * id
+  b:
+    expression: a * 3
+    m1: 3 * id
+  phone:
+    type: string
+  address:
+    type: text
+  date_of_birth:
+    type: date
+
+
+a.b.TestImport2:
+  id:
+    type: int
+    required: true
+    unique: true
+  first_name:
+    type: string
+    required: true
+  last_name:
+    type: string
+    required: true
+  name: "first_name || ' ' || last_name"
+  a:
+    type: int
+    expression: 1
+    m1: 2 * id
+  b:
+    expression: a * 3
+    m1: 3 * id
+  phone:
+    type: string
+  address:
+    type: text
+  date_of_birth:
+    type: date
