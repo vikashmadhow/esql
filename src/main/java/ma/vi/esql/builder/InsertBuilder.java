@@ -129,6 +129,6 @@ public class InsertBuilder implements Builder<Insert> {
   private final List<Attribute> returnMetadata = new ArrayList<>();
   private final List<Column> returnColumns = new ArrayList<>();
 
-  private final Context context;
-  private final Parser parser;
+  public final Context context;
+  public final Parser parser;
 }

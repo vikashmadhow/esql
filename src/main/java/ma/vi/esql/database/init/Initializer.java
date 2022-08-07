@@ -4,10 +4,9 @@ import ma.vi.esql.database.Database;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
  * Initializers creates database structures from a hierarchical representation
@@ -29,11 +28,27 @@ public interface Initializer<T> {
    * @param definition Contents of the structure.
    * @return The created structure.
    */
-  T add(Database db,
-        boolean  overwrite,
-        String   name,
-        T        existing,
-        Map<String, Object> definition);
+  default T add(Database db,
+                boolean  overwrite,
+                String   name,
+                T        existing,
+                Map<String, Object> definition) {
+    return null;
+  }
+
+  default T add(Database db,
+                boolean  overwrite,
+                String   name,
+                T        existing,
+                List<Object> definition) {
+    Map<String, Object> def = IntStream.range(0, definition.size())
+                                       .boxed()
+                                       .collect(Collectors.toMap(String::valueOf,
+                                                                 definition::get,
+                                                                 (d1, d2) -> d1,
+                                                                 LinkedHashMap::new));
+    return add(db, overwrite, name, existing, def);
+  }
 
   /**
    * Create or update the structure with the specified name and contents in the
@@ -60,6 +75,17 @@ public interface Initializer<T> {
     return existing;
   }
 
+  default T add(Database db,
+                boolean  overwrite,
+                String   name,
+                List<Object> definition) {
+    T existing = get(db, name);
+    if (overwrite || existing == null) {
+      return add(db, overwrite, name, existing, definition);
+    }
+    return existing;
+  }
+
   /**
    * Returns the structure with the specified name from the database or null if
    * it does not exist.
@@ -68,7 +94,9 @@ public interface Initializer<T> {
    * @param name The name of the structure to get.
    * @return The structure by the name or null if no such structure exists.
    */
-  T get(Database db, String name);
+  default T get(Database db, String name) {
+    return null;
+  }
 
   /**
    * If the definition parameter is of type string, loads the structure from the
@@ -89,6 +117,7 @@ public interface Initializer<T> {
                      String   defaultName) {
     return definition instanceof String defName ? get(db, defName)
          : definition instanceof Map    map     ? add(db, overwrite, defaultName, (Map<String, Object>)map)
+         : definition instanceof List   list    ? add(db, overwrite, defaultName, (List<Object>)list)
          : null;
   }
 
@@ -105,7 +134,7 @@ public interface Initializer<T> {
                       Map<String, Object> definitions) {
     return definitions.entrySet().stream()
                       .map(e -> add(db, overwrite, e.getKey(),
-                                    new HashMap<>((Map<String, Object>)e.getValue())))
+                                    new LinkedHashMap<>((Map<String, Object>)e.getValue())))
                       .toList();
   }
 
@@ -119,28 +148,47 @@ public interface Initializer<T> {
    */
   default List<T> add(Database    db,
                       InputStream in) {
-    Yaml yaml = new Yaml();
-    Iterable<Object> contents = yaml.loadAll(in);
-    List<T> created = new ArrayList<>();
-    for (Object content: contents) {
-      Map<String, Object> entries = new HashMap<>((Map<String, Object>)content);
-      boolean overwrite = entries.containsKey(OVERWRITE)
-                       && (Boolean)entries.get(OVERWRITE);
-      entries.remove(OVERWRITE);
-      created.addAll(add(db, overwrite, entries));
+    if (in == null) {
+      /*
+       * No input initialization: all initialization input is already contained
+       * in the method. E.g., creation of base tables.
+       */
+      init(db);
+      return Collections.emptyList();
+    } else {
+      /*
+       * Initialize database from YAML input.
+       */
+      Yaml yaml = new Yaml();
+      Iterable<Object> contents = yaml.loadAll(in);
+      List<T> created = new ArrayList<>();
+      for (Object content : contents) {
+        Map<String, Object> entries = new LinkedHashMap<>((Map<String, Object>)content);
+        boolean overwrite = entries.containsKey(OVERWRITE)
+                         && (Boolean)entries.get(OVERWRITE);
+        entries.remove(OVERWRITE);
+        created.addAll(add(db, overwrite, entries));
+      }
+      return created;
     }
-    return created;
   }
 
+  /**
+   * No input initialization: all initialization input is already contained
+   * in the method. E.g., creation of base tables.
+   * @param db Database to initialise.
+   */
+  default void init(Database db) {}
+
   static String param(Map<String, Object> definition,
-                              String name, String defaultValue) {
+                      String name, String defaultValue) {
     return definition.containsKey(name)
-           ? definition.get(name).toString()
-           : defaultValue;
+         ? definition.get(name).toString()
+         : defaultValue;
   }
 
   static int intParam(Map<String, Object> definition,
-                              String name, int defaultValue) {
+                      String name, int defaultValue) {
     if (definition.containsKey(name)) {
       Object v = definition.get(name);
       try                { return Integer.parseInt(v.toString()); }
@@ -150,7 +198,7 @@ public interface Initializer<T> {
   }
 
   static boolean boolParam(Map<String, Object> definition,
-                                   String name, boolean defaultValue) {
+                           String name, boolean defaultValue) {
     if (definition.containsKey(name)) {
       Object v = definition.get(name);
       try                { return Boolean.parseBoolean(v.toString()); }

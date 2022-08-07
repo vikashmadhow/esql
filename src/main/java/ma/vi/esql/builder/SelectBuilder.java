@@ -217,6 +217,6 @@ public class SelectBuilder implements Builder<Select> {
   private Expression<?, String> offset;
   private Expression<?, String> limit;
 
-  private final Context context;
-  private final Parser parser;
+  public final Context context;
+  public final Parser parser;
 }

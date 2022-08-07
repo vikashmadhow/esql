@@ -10,10 +10,8 @@ import ma.vi.esql.semantic.scope.Symbol;
 import ma.vi.esql.syntax.define.Attribute;
 import ma.vi.esql.syntax.expression.ColumnRef;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  *
@@ -70,6 +68,24 @@ public abstract class Relation extends AbstractType implements Symbol {
   public abstract Set<String> aliases();
 
   public abstract List<T2<Relation, Column>> columns();
+
+  /**
+   * Utility function returning the list of columns in this relation mapped to
+   * their name. When there is a more than one column with the same name in the
+   * relation (such as in a join), only one of the column will be added,
+   * non-deterministically, to the map.
+   *
+   * @return Map of column names to columns.
+   */
+  public Map<String, Column> columnMap() {
+    return columns().stream()
+                    .collect(Collectors.toMap(
+                      c -> c.b().name(),
+                      T2::b,
+                      (c1, c2) -> c1,
+                      LinkedHashMap::new
+                    ));
+  }
 
   public List<T2<Relation, Column>> columns(String prefix) {
     List<T2<Relation, Column>> cols = new ArrayList<>();

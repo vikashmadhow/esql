@@ -190,5 +190,5 @@ public class CreateTableBuilder implements Builder<CreateTable> {
 
   private final List<Attribute> metadata = new ArrayList<>();
 
-  private final Context context;
+  public final Context context;
 }

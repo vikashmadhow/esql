@@ -78,6 +78,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   overriding)
 - Modify queries return values don't seem to be supported correctly for SQL Server.
 
+## [1.0.3]
+### Added:
+- Utility `columnMap` method added to `Relation` to return a map of column names
+  to columns. This is useful for direct access of columns by name but will miss
+  columns with the same names (this can happen for joins, e.g.). When there are
+  more than one column with the same name, only one, selected arbitrarily, will 
+  be in the map.
+- New `add` method in `Initializer` taking a list as the definition of an object
+  (instead of a map). This is useful for creating objects which are defined as
+  a sequence of items. E.g., a program consisting of a sequence of function calls.
+- Added `init` method in `Initializer` for no-input initialization.
+- The `context` and `parser` final fields in builders are now public 
+  and thus can be used during creation of ESQL statements.
+
 ## [1.0.2] - 2022-07-29
 ### Added:
 - `create struct` builder.
