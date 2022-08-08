@@ -78,7 +78,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   overriding)
 - Modify queries return values don't seem to be supported correctly for SQL Server.
 
-## [1.0.3]
+## [1.0.4]
+### Changed:
+- `StringLiteral` no longer includes the surrounding single-quotes in its internal
+  value. This makes it simpler to work with the single-quotes inside strings which
+  need to be escaped.
+
+## [1.0.3] - 2022-08-07
 ### Added:
 - Utility `columnMap` method added to `Relation` to return a map of column names
   to columns. This is useful for direct access of columns by name but will miss

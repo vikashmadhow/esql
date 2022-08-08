@@ -312,7 +312,6 @@ public class BaseRelation extends Struct {
   public static List<Column> expandColumns(List<Attribute>            attributes,
                                            List<Column>               columns,
                                            List<ConstraintDefinition> constraints) {
-
     Context context = !attributes .isEmpty() ? attributes .get(0).context
                     : !columns    .isEmpty() ? columns    .get(0).context
                     : !constraints.isEmpty() ? constraints.get(0).context

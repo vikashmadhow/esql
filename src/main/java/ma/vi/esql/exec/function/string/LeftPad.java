@@ -32,11 +32,16 @@ public class LeftPad extends Function {
           Arrays.asList(new FunctionParam("text",   Types.StringType),
                         new FunctionParam("length", Types.IntType),
                         new FunctionParam("pad",    Types.StringType, false,
-                                          new StringLiteral(null, "' '"))));
+                                          new StringLiteral(null, " "))));
   }
 
   @Override
-  public String translate(FunctionCall call, Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
+  public String translate(FunctionCall         call,
+                          Target               target,
+                          EsqlConnection       esqlCon,
+                          EsqlPath             path,
+                          PMap<String, Object> parameters,
+                          Environment          env) {
     List<Expression<?, ?>> args = call.arguments();
     String str = args.get(0).translate(target, esqlCon, path.add(args.get(0)), env).toString();
     String length = args.get(1).translate(target, esqlCon, path.add(args.get(1)), env).toString();
@@ -58,12 +63,14 @@ public class LeftPad extends Function {
   }
 
   @Override
-  public Object exec(Target target, EsqlConnection esqlCon,
-                     EsqlPath path,
-                     PMap<String, Object> parameters, Environment env) {
-    String  text   = env.get("text");
-    Long    length = env.get("length");
-    String  pad    = env.get("pad");
+  public Object exec(Target               target,
+                     EsqlConnection       esqlCon,
+                     EsqlPath             path,
+                     PMap<String, Object> parameters,
+                     Environment          env) {
+    String text   = env.get("text");
+    Long   length = env.get("length");
+    String pad    = env.get("pad");
 
     return text == null ? null
          : length <= 0  ? text

@@ -27,8 +27,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
-import static ma.vi.esql.syntax.expression.literal.StringLiteral.escapeEsqlString;
-
 /**
  * Parent of literals in ESQL.
  *
@@ -77,8 +75,8 @@ public abstract class Literal<V> extends Expression<V, String> {
       return new NullLiteral(context);
 
     } else if (type == Types.StringType
-           || type == Types.TextType) {
-      return new StringLiteral(context, '\'' + escapeEsqlString(value) + '\'');
+            || type == Types.TextType) {
+      return new StringLiteral(context, value);
 
     } else if (type == Types.UuidType) {
       return new UuidLiteral(context, UUID.fromString(value));
@@ -127,13 +125,13 @@ public abstract class Literal<V> extends Expression<V, String> {
       return new NullLiteral(context);
 
     } else if (value instanceof String s) {
-      return new StringLiteral(context, '\'' + escapeEsqlString(s) + '\'');
+      return new StringLiteral(context, s);
 
     } else if (value instanceof UUID u) {
       return new UuidLiteral(context, u);
 
     } else if (value instanceof Character c) {
-      return new StringLiteral(context, "'" + (c == '\'' ? "''" : c)  + '\'');
+      return new StringLiteral(context, String.valueOf(c));
 
     } else if (value instanceof Boolean) {
       return new BooleanLiteral(context, (Boolean)value);

@@ -14,8 +14,6 @@ import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
 import org.pcollections.PMap;
 
-import static ma.vi.base.string.Escape.escapeJsonString;
-
 /**
  * A string literal in ESQL.
  *
@@ -23,7 +21,7 @@ import static ma.vi.base.string.Escape.escapeJsonString;
  */
 public class StringLiteral extends BaseLiteral<String> {
   public StringLiteral(Context context, String value) {
-    super(context, value.startsWith("'") ? value : "'" + value + "'");
+    super(context, value);
   }
 
   public StringLiteral(StringLiteral other) {
@@ -56,7 +54,11 @@ public class StringLiteral extends BaseLiteral<String> {
   }
 
   @Override
-  protected String trans(Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
+  protected String trans(Target               target,
+                         EsqlConnection       esqlCon,
+                         EsqlPath             path,
+                         PMap<String, Object> parameters,
+                         Environment          env) {
     /*
      * In sql server special characters can be sent as-is
      * to the database. Sql server has no support for escape
@@ -64,20 +66,21 @@ public class StringLiteral extends BaseLiteral<String> {
      */
     return switch (target) {
       case SQLSERVER  -> parameters.containsKey("inArray")
-                       ? value.substring(1, value.length() - 1)
-                       : 'N' + value;
+                       ? value
+                       : "N'" + value.replaceAll("'", "''") + '\'';
       case POSTGRESQL -> esqlToPostgresqlString(value);
-      case JSON       -> '`' + escapeJsonString(value.substring(1, value.length() - 1)) + '`';
-      default         -> value; // Javascript and ESQL
+      case JAVASCRIPT -> '`' + value.replaceAll("`", "\\`") + '`';
+      default         -> "'" + value + "'"; // ESQL
     };
   }
 
   public static String esqlToPostgresqlString(String value) {
-    StringBuilder st = new StringBuilder();
+    StringBuilder st = new StringBuilder("'");
     boolean hasFrontSlash = false;
     for (int i = 0; i < value.length(); i++) {
       char c = value.charAt(i);
       st.append(switch (c) {
+        case '\'' ->                               "''";
         case '\\' -> { hasFrontSlash = true; yield "\\\\"; }
         case '\b' -> { hasFrontSlash = true; yield "\\b";  }
         case '\f' -> { hasFrontSlash = true; yield "\\f";  }
@@ -90,7 +93,7 @@ public class StringLiteral extends BaseLiteral<String> {
     if (hasFrontSlash) {
       st.insert(0, 'E');
     }
-    return st.toString();
+    return st.append('\'').toString();
   }
 
   /**
@@ -101,10 +104,11 @@ public class StringLiteral extends BaseLiteral<String> {
   }
 
   @Override
-  public String exec(Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
-    /*
-     * returns the string unescaped and without surrounding quotes
-     */
-    return value.substring(1, value.length() - 1);
+  public String exec(Target               target,
+                     EsqlConnection       esqlCon,
+                     EsqlPath             path,
+                     PMap<String, Object> parameters,
+                     Environment          env) {
+    return value;
   }
 }

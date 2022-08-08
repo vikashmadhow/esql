@@ -596,7 +596,8 @@ public class SyntaxAnalyser extends EsqlBaseListener {
 
   @Override
   public void exitString(StringContext ctx) {
-    put(ctx, new StringLiteral(context, ctx.getText()));
+    String text = ctx.getText();
+    put(ctx, new StringLiteral(context, text.substring(1, text.length() - 1)));
   }
 
   @Override
@@ -627,7 +628,7 @@ public class SyntaxAnalyser extends EsqlBaseListener {
      */
     String text = ctx.getText();
     int margin = ctx.getStart().getCharPositionInLine() + 1;
-    StringBuilder stripped = new StringBuilder("'");
+    StringBuilder stripped = new StringBuilder();
     boolean first = true;
     String[] lines = text.substring(1, text.length() - 1).split("\n");
     if (lines.length > 0) {
@@ -649,7 +650,6 @@ public class SyntaxAnalyser extends EsqlBaseListener {
         }
       }
     }
-    stripped.append('\'');
     put(ctx, new StringLiteral(context, stripped.toString()));
   }
 

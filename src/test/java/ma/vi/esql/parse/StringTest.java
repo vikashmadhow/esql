@@ -20,7 +20,7 @@ public class StringTest {
   void stringWithControlCharacters() {
     Parser parser = new Parser(Databases.Postgresql().structure());
     StringLiteral expr = (StringLiteral)parser.parseExpression("'this is a \n\ttest\n...\tMX3\f\\c'");
-    assertEquals("'this is a \n\ttest\n...\tMX3\f\\c'", expr.value);
+    assertEquals("this is a \n\ttest\n...\tMX3\f\\c", expr.value);
     assertEquals("N'this is a \n\ttest\n...\tMX3\f\\c'", expr.translate(SQLSERVER));
     assertEquals("'this is a \n\ttest\n...\tMX3\f\\c'", expr.translate(HSQLDB));
     assertEquals("E'this is a \\n\\ttest\\n...\\tMX3\\f\\\\c'", expr.translate(POSTGRESQL));
