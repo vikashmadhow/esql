@@ -5,8 +5,8 @@
 package ma.vi.esql.exec.function;
 
 import ma.vi.base.tuple.T2;
-import ma.vi.esql.database.Structure;
 import ma.vi.esql.database.EsqlConnection;
+import ma.vi.esql.database.Structure;
 import ma.vi.esql.exec.ExecutionException;
 import ma.vi.esql.exec.Result;
 import ma.vi.esql.exec.env.Environment;
@@ -24,7 +24,6 @@ import org.pcollections.PMap;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.joining;
 import static ma.vi.base.tuple.T2.of;
@@ -145,26 +144,17 @@ public class FunctionCall extends Expression<String, String> implements TypedMac
          * Named arguments, if present, are packaged into an object and provided
          * as the first argument to the javascript function.
          */
-        StringBuilder namedArgs = new StringBuilder();
-        for (Expression<?, ?> arg: arguments()) {
-          if (arg instanceof NamedArgument na) {
-            if (namedArgs.isEmpty()) namedArgs.append('{');
-            else                     namedArgs.append(", ");
-            namedArgs.append(na.name()).append(':');
-            namedArgs.append(na.arg().translate(target, esqlCon, path.add(na), parameters, env));
-          }
-        }
         return "(await $exec." + functionName + "({"
-              + arguments().stream  ()
-                           .filter  (a -> a instanceof NamedArgument)
-                           .map     (a -> a.translate(target, esqlCon, path.add(a), parameters, env).toString())
-                           .collect (joining(", ")) + "}"
-              +(arguments().stream  ()
-                           .anyMatch(a -> !(a instanceof NamedArgument)) ? ", " : "")
-              + arguments().stream  ()
-                           .filter  (a -> !(a instanceof NamedArgument))
-                           .map     (a -> a.translate(target, esqlCon, path.add(a), parameters, env).toString())
-                           .collect (joining(", "))
+              +  arguments().stream  ()
+                            .filter  (a -> a instanceof NamedArgument)
+                            .map     (a -> a.translate(target, esqlCon, path.add(a), parameters, env).toString())
+                            .collect (joining(", ")) + "}"
+              + (arguments().stream  ()
+                            .anyMatch(a -> !(a instanceof NamedArgument)) ? ", " : "")
+              +  arguments().stream  ()
+                            .filter  (a -> !(a instanceof NamedArgument))
+                            .map     (a -> a.translate(target, esqlCon, path.add(a), parameters, env).toString())
+                            .collect (joining(", "))
               + "))";
       }
     } else {

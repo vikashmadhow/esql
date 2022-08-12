@@ -78,7 +78,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   overriding)
 - Modify queries return values don't seem to be supported correctly for SQL Server.
 
-## [1.0.4]
+## [1.0.5] - 2022-08-08
+### Added:
+- Backquote can be added to multi-line strings by escaping them (\`).
+- Single-quotes are not escaped automatically in multi-line strings as this is
+  not necessary and probably unexpected behaviour in such strings which should
+  generally allow as much raw input as possible.
+- Special key names for object's `display_name`, `description` and `metadata` 
+  added to `Initializer`.
+
+### Fixed:
+- A double single-quote ('') in a string literal is now properly parsed as the
+  escaped form of a single-quote.
+- Change `_toString` of `NamedArgument` to display its new correct syntax (using
+  `=` instead of `:=`).
+- `add` method in `Initializer` now checks type of definitions (list or map) and
+  correctly route call to the appropriate method. 
+
+## [1.0.4] - 2022-08-08
 ### Changed:
 - `StringLiteral` no longer includes the surrounding single-quotes in its internal
   value. This makes it simpler to work with the single-quotes inside strings which

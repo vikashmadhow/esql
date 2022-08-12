@@ -68,7 +68,7 @@ public class StringTest {
     assertEquals(
         """
             function sum(x, y) {
-              x *= x''s;
+              x *= x's;
               y += x;
               if (x > y) {
                 return y;
@@ -81,7 +81,7 @@ public class StringTest {
     assertEquals(
         """
             function sum(x, y) {
-              x *= x''''s;
+              x *= x''s;
             y += x;
              if (x > y) {
                 return y;
@@ -94,7 +94,7 @@ public class StringTest {
     assertEquals(
         """
             function sum(x, y) {
-              x *= x''''s;
+              x *= x''s;
               y += x;
               if (x > y) {
                 return y;
@@ -102,5 +102,60 @@ public class StringTest {
                 return x - y;
               }
             }""", value);
+  }
+
+  @Test
+  void multiLineStringsWithEscapedBackquote() {
+    String input =
+        """
+            {
+            a: `function sum(x, y) {
+                  x *= x\\`s;
+                  y += x;
+                  if (x > y) {
+                    return y;
+                  } else {
+                    return x - y;
+                  }
+                }`,
+            b: `function sum(x, y) {
+                  x *= x\\`\\`s;
+              y += x;
+                 if (x > y) {
+                    return y;
+                  } else {
+                    return x - y;
+                  }
+                }`
+            }""";
+    EsqlParser p = Parser.parser(input);
+    Structure structure = Databases.Postgresql().structure();
+    Metadata metadata = (Metadata)Parser.parse(structure, p.metadata());
+    String value = metadata.evaluateAttribute("a");
+    assertEquals(
+        """
+            function sum(x, y) {
+              x *= x`s;
+              y += x;
+              if (x > y) {
+                return y;
+              } else {
+                return x - y;
+              }
+            }""", value);
+
+    value = metadata.evaluateAttribute("b");
+    assertEquals(
+        """
+            function sum(x, y) {
+              x *= x``s;
+            y += x;
+             if (x > y) {
+                return y;
+              } else {
+                return x - y;
+              }
+            }""", value);
+
   }
 }

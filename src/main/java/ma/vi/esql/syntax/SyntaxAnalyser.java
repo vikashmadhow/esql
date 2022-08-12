@@ -597,7 +597,8 @@ public class SyntaxAnalyser extends EsqlBaseListener {
   @Override
   public void exitString(StringContext ctx) {
     String text = ctx.getText();
-    put(ctx, new StringLiteral(context, text.substring(1, text.length() - 1)));
+    put(ctx, new StringLiteral(context, text.substring(1, text.length() - 1)
+                                            .replace("''", "'")));
   }
 
   @Override
@@ -635,7 +636,7 @@ public class SyntaxAnalyser extends EsqlBaseListener {
       if (lines[0].trim().length() == 0) {
         margin -= 1;
       } else {
-        stripped.append(lines[0].replace("'", "''"));
+        stripped.append(lines[0].replace("\\`", "`"));
         first = false;
       }
       for (int i = 1; i < lines.length; i++) {
@@ -645,7 +646,7 @@ public class SyntaxAnalyser extends EsqlBaseListener {
         if (i < lines.length - 1
          || lines[i].trim().length() > 0) {
           stripped.append(first ? "" : "\n")
-                  .append(lines[i].substring(j).replace("'", "''"));
+                  .append(lines[i].substring(j).replace("\\`", "`"));
           first = false;
         }
       }

@@ -40,7 +40,7 @@ public class ExpressionExecTest extends DataTest {
                      assertEquals("abc", con.exec(p.parse("'abc'")));
                      assertEquals("""
                                   function sum(x, y) {
-                                    x *= x''s;
+                                    x *= x's;
                                     y += x;
                                     if (x > y) {
                                       return y;

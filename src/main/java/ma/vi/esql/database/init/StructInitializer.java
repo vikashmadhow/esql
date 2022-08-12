@@ -52,7 +52,7 @@ public class StructInitializer implements Initializer<Struct> {
     builder.name(name);
     for (var e: definition.entrySet()) {
       String columnName = e.getKey();
-      if (columnName.equals("$metadata")) {
+      if (columnName.equals(METADATA)) {
         /*
          * Struct-level metadata.
          */

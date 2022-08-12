@@ -133,8 +133,12 @@ public interface Initializer<T> {
                       boolean  overwrite,
                       Map<String, Object> definitions) {
     return definitions.entrySet().stream()
-                      .map(e -> add(db, overwrite, e.getKey(),
-                                    new LinkedHashMap<>((Map<String, Object>)e.getValue())))
+                      .map(e -> {
+                        if (e.getValue() instanceof Map)
+                          return add(db, overwrite, e.getKey(), new LinkedHashMap<>((Map<String, Object>)e.getValue()));
+                        else
+                          return add(db, overwrite, e.getKey(), new ArrayList<>((List<Object>)e.getValue()));
+                      })
                       .toList();
   }
 
@@ -222,6 +226,24 @@ public interface Initializer<T> {
    * created or updated.
    */
   String NAME = "$name";
+
+  /**
+   * A special configuration key specifying a display name for the current object
+   * being created or updated.
+   */
+  String DISPLAY_NAME = "$displayName";
+
+  /**
+   * A special configuration key specifying a description for the current object
+   * being created or updated.
+   */
+  String DESCRIPTION = "$description";
+
+  /**
+   * A special configuration key specifying a set of name-value pairs as metadata
+   * for the current object being created or updated.
+   */
+  String METADATA = "$metadata";
 
   /**
    * Configuration key to provide a source file to the initializer.

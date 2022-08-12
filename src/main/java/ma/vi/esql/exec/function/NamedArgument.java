@@ -64,7 +64,7 @@ public class NamedArgument extends Expression<String, String> {
 
   @Override
   public void _toString(StringBuilder st, int level, int indent) {
-    st.append(name()).append(":=");
+    st.append(name()).append("=");
     arg()._toString(st, level, indent);
   }
 

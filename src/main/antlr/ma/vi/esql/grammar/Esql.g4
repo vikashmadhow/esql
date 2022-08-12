@@ -1180,7 +1180,15 @@ StringLiteral
  * }
  */
 MultiLineStringLiteral
-    : '`' .*? '`'
+    : '`' (MultiLineStringCharacter | EscapedBackQuote)* '`'
+    ;
+
+fragment MultiLineStringCharacter
+    : ~[`]
+    ;
+
+fragment EscapedBackQuote
+    : '\\`'
     ;
 
 /**
