@@ -49,7 +49,7 @@ public class Attributes {
   /**
    * The data type of the column on which this attribute is set.
    */
-  public static final String TYPE = "type";
+  public static final String TYPE = "_type";
 
   /**
    * The expression to compute as the default value for a column when no value is
@@ -69,12 +69,12 @@ public class Attributes {
    */
   public static final String PARENT_LINK_COLUMN = "link_column";
 
-  /*
+  /**
    * Set to true on derived fields.
    */
   public static final String DERIVED = "derived";
 
-  /*
+  /**
    * The expression for computing value of non-derived fields when they are being
    * edited. This expression should use conditionals to not overwrite manual changes
    * made by the user to the field.
@@ -137,25 +137,14 @@ public class Attributes {
   public static final String STRING_FORM = "string_form";
 
   /**
-   * If computes to true, the field cannot be changed. Default is false.
-   */
-  public static final String READ_ONLY = "read_only";
-
-  /**
    * If computes to false, field is not shown. Default is true.
    */
-  public static final String SHOW = "show";
-
-  /**
-   * If computes to false, field is not shown when editing. Default is true.
-   */
-  public static final String EDIT = "edit";
+  public static final String HIDE = "hide";
 
   /**
    * If computes to false, field is not shown when browsing. Default is true.
    */
-  public static final String BROWSE = "browse";
-
+  public static final String BROWSE_HIDE = "browse_hide";
 
   // File upload and download
   ///////////////////////////////////////////////////////
@@ -360,7 +349,6 @@ public class Attributes {
    */
   public static final String MARKDOWN = "markdown";
 
-
 // Excel report formatting
 ////////////////////////////////////////////////////////
 
@@ -396,45 +384,40 @@ public class Attributes {
   ///////////////////////////////////////////
 
   /**
-   * Can a new item be inserted in the collection? default = false
+   * Prevent new items from being inserted in the current or linked table.
+   * Default is false.
    */
-  public static final String CAN_INSERT = "can_insert";
+  public static final String NO_INSERT = "no_insert";
 
   /**
-   * Can item values in the list be edited? default = false
+   * Prevent record from being modified. Default is false.
    */
-  public static final String CAN_EDIT = "can_edit";
+  public static final String NO_MODIFY = "no_modify";
 
   /**
-   * Can items be deleted from the list? default = false
+   * Prevent record from being deleted. Default is false.
    */
-  public static final String CAN_REMOVE = "can_remove";
-
-  /*
-   * Can records be deleted.
-   */
-  public static final String CAN_DELETE = "can_delete";
+  public static final String NO_DELETE = "no_delete";
 
   /**
-   * Can items in the list be copied? default = false. When set to false, this also prevents
-   * a deep copy of object to be made.
+   * Prevent records from being copied. Default is false.
    */
-  public static final String CAN_COPY = "can_copy";
+  public static final String NO_COPY = "no_copy";
 
   /**
-   * Should the list provide filtering controls.
+   * Prevent the column from being filtered. Default is false.
    */
-  public static final String CAN_FILTER = "can_filter";
+  public static final String NO_FILTER = "no_filter";
 
   /**
-   * Should the collection provide export controls.
+   * Prevent the column or records of a table from being filtered. Default is false.
    */
-  public static final String CAN_EXPORT = "can_export";
+  public static final String NO_EXPORT = "no_export";
 
   /**
-   * Can item values in the list be updated? default = false
+   * Prevent the column from being sorted. Default is false.
    */
-  public static final String CAN_UPDATE = "can_update";
+  public static final String NO_SORT = "no_sort";
 
   /**
    * For columns referring to a table this contains a subset of the columns
@@ -465,55 +448,57 @@ public class Attributes {
   /**
    * A symbol for the field in the link table to use as the code.
    */
-  public static final String LINK_TABLE_CODE_VALUE = "link_table_code_value";
+  public static final String LINK_CODE = "link_code";
 
   /**
    * A query expression executed against the link table to obtain the code label.
    */
-  public static final String LINK_TABLE_CODE_LABEL = "link_table_code_label";
+  public static final String LINK_LABEL = "link_label";
+
+//  /**
+//   * A query expression executed against the link table to obtain the code name.
+//   * This can also be the name of a column in the link table to use as the code name.
+//   */
+//  public static final String LINK_CODE_NAME = "link_code_name";
 
   /**
-   * A query expression executed against the link table to obtain the code name.
-   * This can also be the name of a column in the link table to use as the code name.
-   */
-  public static final String LINK_TABLE_CODE_NAME = "link_table_code_name";
-
-  /**
-   * Link table options as a json array of objects with two properties, value and label.
+   * A json array of objects with two mandatory properties, code and label, and
+   * an optional 'group' property.
    * For instance,
    * [
-   * {value: 1, label: 'Option 1'},
-   * {value: 2, label: 'Option 2'},
-   * {value: 3, label: 'Option 3'}
+   * {code: 1, label: 'Option 1', group: 'A'},
+   * {code: 2, label: 'Option 2', group: 'A'},
+   * {code: 3, label: 'Option 3', group: 'B'}
    * ]
    */
-  public static final String LINK_TABLE_OPTIONS = "link_table_options";
+  public static final String VALUES = "values";
 
   /**
-   * The link table options as map from the values to their labels.
-   * This is used to display the label and set the VALUE_LABEL when
-   * the selection is changed.
+   * Whether to show the code values for choices (not just the label).
+   * Default is true for lookups and false for link tables.
    */
-  public static final String LINK_TABLE_OPTIONS_MAP = "link_table_options_map";
-
+  public static final String LINK_SHOW_CODE = "link_show_code";
 
   /**
-   * Whether or not to show the code values for choices (not just the label).
-   * Default is true.
+   * A filter condition limiting the choices of the selector for this member.
    */
-  public static final String LINK_TABLE_SHOW_CODE = "link_table_show_code";
+  public static final String LINK_WHERE = "LINK_WHERE";
 
   /**
-   * If this is set, a drop-down list with all distinct values in the
-   * database (subject to condition() for this member is
-   * displayed for selection.
+   * An ordering for the items of a selector.
+   */
+  public static final String LINK_ORDER = "LINK_ORDER";
+
+  /**
+   * If this is set, a drop-down list with all distinct values for the column in
+   * the table, subject to any filter_by conditions set on the column (if any).
    */
   public static final String SHOW_ALL_DISTINCT_VALUES = "show_all_distinct_values";
 
   /**
    * The label to show for a value. This is used when the value is
    * a code (or id) which requires replacement or embellishment for
-   * display (e.g. 123 -&gt; 'Test server 1', 'MUS' -&gt; 'MUS - Mauritius'
+   * display (e.g. 123 -&gt; 'Test server 1', 'MUS' -&gt; 'MUS - Mauritius')
    */
   public static final String VALUE_LABEL = "value_label";
 
@@ -531,47 +516,21 @@ public class Attributes {
    */
   public static final String ADAPTIVE = "adaptive";
 
-  // Event script
-  /////////////////////////////
-  /*  Can be used to associate client-side script (such as javascript)
-   *  with an html event (such as onClick) for a member. */
+  /**
+   * Primary key info.
+   */
+  public static final String PRIMARY_KEY = "_primary_key";
 
   /**
-   * The event to associate client-side code to.
+   * Table and columns pointed by foreign keys on this table.
    */
-  public static final String CLIENT_SIDE_EVENT = "client_side_event";
+  public static final String REFERENCES = "_references";
 
   /**
-   * Associate client-side code. The code can contain the {@code ${<member_path>}}string
-   * which will be replaced by the actual string value of the member path.
+   * Array of tables and columns having foreign keys pointing to a column or
+   * multiple columns in this table.
    */
-  public static final String CLIENT_SIDE_SCRIPT = "client_side_script";
-
-  /**
-   * The candidate class over which to perform any query. It is almost
-   * never required to explicitly provide a value for this member since
-   * this is taken to be the class of the member to which this @Display
-   * annotation is attached; however, in certain cases such as when the
-   * class is dynamically generated, this must be specified so that
-   * queries will not break.
-   * <p>
-   * This is also required for multiple entity selection. Multiple entity
-   * selection is stored as a comma-separated list in a string, therefore
-   * the type of the member cannot be used to determine the domain object
-   * class to search. Therefore, the latter must be explicitly specified
-   * in this member of the @Display annotation set on the member.
-   */
-  public static final String CANDIDATE_TABLE = "candidate_table";
-
-  /**
-   * A filter condition limiting the choices of the selector for this member.
-   */
-  public static final String FILTER_BY = "filter_by";
-
-  /**
-   * A ordering for the items of a selector.
-   */
-  public static final String ORDER_BY = "order_by";
+  public static final String REFERRED_BY = "_referred_by";
 
   // Validation
   //////////////////////////
@@ -605,22 +564,6 @@ public class Attributes {
   public static final String CHECK = "check";
 
   /**
-   * Primary key info
-   */
-  public static final String PRIMARY_KEY = "primary_key";
-
-  /**
-   * Table and columns pointed by foreign keys on this table.
-   */
-  public static final String REFERENCES = "references";
-
-  /**
-   * Array of tables and columns having foreign keys pointing to a column or
-   * multiple columns in this table.
-   */
-  public static final String REFERRED_BY = "referred_by";
-
-  /**
    * Minimum length of the string representation of the value.
    */
   public static final String MIN_LENGTH = "min_length";
@@ -633,34 +576,12 @@ public class Attributes {
   /**
    * Minimum value for the value of a member of numeric type.
    */
-  public static final String MINIMUM = "minimum";
+  public static final String MINIMUM = "min";
 
   /**
    * Maximum value for the value of a member of numeric type.
    */
-  public static final String MAXIMUM = "maximum";
-
-  // temporally deprecated: minimum and maximum used for before and after
-  // Could be re-enabled if a genuine use case is found
-//    /**
-//     * date value < now.
-//     */
-//    public static final String PAST = "past";
-//
-//    /**
-//     * date value <= now.
-//     */
-//    public static final String PAST_OR_NOW = "past_or_now";
-//
-//    /**
-//     * Checks if the date value of the member is before the specified date.
-//     */
-//    public static final String BEFORE = "before";
-//
-//    /**
-//     * Checks if the date value of the member is after the specified date.
-//     */
-//    public static final String AFTER = "after";
+  public static final String MAXIMUM = "max";
 
   /**
    * Check if string value of the member matches an email pattern.

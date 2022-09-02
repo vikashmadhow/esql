@@ -152,7 +152,7 @@ public class CreateStruct extends Define {
                                  structDescription,
                                  new ArrayList<>(metadata().attributes().values()),
                                  columns().stream()
-                                          .map(c -> Column.fromDefinition(c, path))
+                                          .map(Column::fromDefinition)
                                           .collect(toList()));
       db.structure().struct(struct);
       db.structure().database.addTable(esqlCon, struct);

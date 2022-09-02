@@ -73,12 +73,47 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Test performance.
 
 ### To fix
-- Apply result and column metadata overloading in column list expansion (currently,
-  the overridden metadata are not being considered). (create tests for metadata 
-  overriding)
-- Modify queries return values don't seem to be supported correctly for SQL Server.
+- Apply result and column metadata overloading in column list expansion 
+  (currently, the overridden metadata are not being considered). (create tests 
+  for metadata overriding)
+- Modify queries return values don't seem to be supported correctly for SQL 
+  Server.
 
-## [1.0.5] - 2022-08-08
+## [1.0.6] - 2022-09-02
+### Added:
+- Add `using` clause to `alter type` statement in Postgresql to support additional
+  column type conversions (e.g. string to array of strings). Not all type conversions
+  are supported and some will result in an error.
+- Automatically added attributes to metadata (`type`, `references`, `referred_by`
+  and `primary_key`) are not prefixed with an underscore (`_`) to signify that
+  they are for system use and should be hidden from the user during normal 
+  operations.
+
+### Changed:
+- `Required` attribute is now added only when the column is non-null; it was being
+  added in all cases previously.
+- Attributes and columns whose values are by default true must be explicitly
+  provided only to set them to false. This can be counter-intuitive as the 
+  presence of something is required to disable it. An example of this is the 
+  `show` attribute. By default, this is `true`, meaning that the column is shown 
+  in all context (viewing, editing, etc.). To hide the column, the attribute 
+  `show` has to be specified and set to `false`. All such variables and column 
+  names have been deprecated and replaced with their opposites (`show -> hide`, 
+  `browse -> browse_hide`, `can_delete -> no_delete`, etc.).
+- The spurious default implementations of the `add` and `get` methods (returning 
+  null) of the `Initializer` interface has been removed to force subclasses to 
+  provide a working concrete implementation.
+ 
+### Removed:
+- `init(Database db)` method removed from `Initializer` interface as it is no
+  longer used. This is a remnant of the previous simpler initializer model where
+  this was the only method containing all the logic of the initializer was implemented.
+
+### Fixed:
+- Added named-arguments block to translation of the concatenation operation to 
+  Javascript as expected by the client-side executor (the `$exec` object).
+
+## [1.0.5] - 2022-08-12
 ### Added:
 - Backquote can be added to multi-line strings by escaping them (\`).
 - Single-quotes are not escaped automatically in multi-line strings as this is

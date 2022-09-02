@@ -6,8 +6,8 @@ package ma.vi.esql.syntax.define.table;
 
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.database.Database;
-import ma.vi.esql.database.Structure;
 import ma.vi.esql.database.EsqlConnection;
+import ma.vi.esql.database.Structure;
 import ma.vi.esql.exec.Result;
 import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.semantic.type.BaseRelation;
@@ -148,7 +148,7 @@ public class AlterTable extends Define {
                                                         " ADD COLUMN " + column.translate(db.target(), esqlCon, path.add(column), env));
               }
             }
-            Column col = Column.fromDefinition(column, path);
+            Column col = Column.fromDefinition(column);
 //            if (parent instanceof CreateTable) {
 //              col.parent = parent;
 //            } else {
@@ -222,10 +222,12 @@ public class AlterTable extends Define {
              */
             if (!column.derived()) {
               if (db.target() == POSTGRESQL) {
+                String type = def.toType().translate(db.target(), esqlCon, path.add(def), env);
                 con.createStatement().executeUpdate(
-                    "ALTER TABLE " + dbName +
-                        " ALTER COLUMN \"" + column.name() +
-                        "\" TYPE " + def.toType().translate(db.target(), esqlCon, path.add(def), env));
+                  "ALTER TABLE " + dbName
+                + " ALTER COLUMN \"" + column.name() + '"'
+                + " TYPE " + type
+                + " USING \"" + column.name() + "\"::" + type);
               } else {
                 con.createStatement().executeUpdate(
                     "ALTER TABLE " + dbName +

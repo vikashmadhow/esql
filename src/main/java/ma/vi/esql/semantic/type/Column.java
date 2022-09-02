@@ -90,7 +90,7 @@ public class Column extends MetadataContainer<String> {
     return metadata;
   }
 
-  public static Column fromDefinition(ColumnDefinition def, EsqlPath path) {
+  public static Column fromDefinition(ColumnDefinition def) {
     boolean derived = def instanceof DerivedColumnDefinition;
     DerivedColumnDefinition derivedDef = derived ? (DerivedColumnDefinition)def : null;
 
@@ -122,6 +122,22 @@ public class Column extends MetadataContainer<String> {
                       derived ? derivedDef.expression() : new ColumnRef(def.context, null, def.name(), columnType),
                       columnType,
                       new Metadata(def.context, new ArrayList<>(attributes.values())));
+  }
+
+  public static ColumnDefinition toDefinition(Column col) {
+    if (col.derived()) {
+      return new DerivedColumnDefinition(col.context,
+                                         col.name(),
+                                         col.expression(),
+                                         col.metadata());
+    } else {
+      return new ColumnDefinition(col.context,
+                                  col.name(),
+                                  col.type(),
+                                  col.notNull(),
+                                  col.expression(),
+                                  col.metadata());
+    }
   }
 
   @Override

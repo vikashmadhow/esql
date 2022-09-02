@@ -56,10 +56,13 @@ public class Concatenation extends MultipleSubExpressions {
                          Environment          env) {
     switch (target) {
       case JAVASCRIPT -> {
-        StringBuilder st = new StringBuilder();
+        StringBuilder st = new StringBuilder("$exec.concat({}");
         for (Expression<?, ?> e: expressions()) {
-          st.append(st.length() == 0 ? "$exec.concat(" : ", ")
-            .append(e.translate(target, esqlCon, path.add(e), parameters, env));
+          st.append(", ").append(e.translate(target,
+                                             esqlCon,
+                                             path.add(e),
+                                             parameters,
+                                             env));
         }
         return st.append(')').toString();
       }

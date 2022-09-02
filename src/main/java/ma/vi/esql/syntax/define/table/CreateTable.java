@@ -309,7 +309,7 @@ public class CreateTable extends Define {
                                               tableDescription,
                                               new ArrayList<>(metadata().attributes().values()),
                                               columns().stream()
-                                                       .map(c -> Column.fromDefinition(c, path))
+                                                       .map(Column::fromDefinition)
                                                        .collect(toList()),
                                               constraints);
         /*

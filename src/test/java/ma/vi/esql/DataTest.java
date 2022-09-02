@@ -91,7 +91,7 @@ public class DataTest {
                                 dependents: {
                                   links: {
                                     "type": 'a.b.T',
-                                    referred_by: 's_id',
+                                    _referred_by: 's_id',
                                     label: 'S Links'
                                   }
                                 }

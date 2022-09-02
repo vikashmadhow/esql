@@ -13,8 +13,8 @@ import ma.vi.esql.semantic.type.Column;
 import ma.vi.esql.semantic.type.Struct;
 import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.syntax.EsqlTransformer;
-import ma.vi.esql.syntax.define.table.ConstraintDefinition;
 import ma.vi.esql.syntax.define.Metadata;
+import ma.vi.esql.syntax.define.table.ConstraintDefinition;
 import ma.vi.esql.translation.Translatable;
 
 import java.sql.Connection;
@@ -377,7 +377,7 @@ public interface Database {
                }
                
                _id             uuid   not null,
-               _can_delete     bool,
+               _no_delete      bool   not null default false,
                relation_id     uuid   not null,
                name            string not null,
                derived_column  bool,

@@ -81,7 +81,7 @@ from (select "S"."_id"                                                          
              ("S"."a" > "S"."b")                                                                           "/tm2",
              '(S.a > S.b)'                                                                                 "/tm2/e",
              '[array[''a'',''b'',''e'']::text[]]'                                                          "/validate_unique",
-             '{links: {type: ''a.b.T'',referred_by: ''s_id'',label: ''S Links''}}'                         "/dependents",
+             '{links: {type: ''a.b.T'',_referred_by: ''s_id'',label: ''S Links''}}'                         "/dependents",
              'uuid'                                                                                        "_id/type",
              true                                                                                          "_id/required",
              ("S"."b" > 5)                                                                                 "a/m1",
@@ -181,7 +181,7 @@ from "test"."pZ" "z"
        full join "test"."pC" "c" on "z"."a" = "c"."a"
        join "test"."pX" "x" on "c"."x_id" = "x"."_id"
 where "z"."a" < 2
-  and exists(select "pC"."_id" "_id", 'uuid' "_id/type", true "_id/required", true "_id/primary_key"
+  and exists(select "pC"."_id" "_id", 'uuid' "_id/type", true "_id/required", true "_id/_primary_key"
              from "test"."pC" "pC"
                     join "test"."pX" "x" on "pC"."x_id" = "x"."_id"
                     join "test"."pY" "pY" on "pC"."a" = "pY"."a"

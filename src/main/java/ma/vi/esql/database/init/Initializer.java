@@ -28,18 +28,16 @@ public interface Initializer<T> {
    * @param definition Contents of the structure.
    * @return The created structure.
    */
-  default T add(Database db,
-                boolean  overwrite,
-                String   name,
-                T        existing,
-                Map<String, Object> definition) {
-    return null;
-  }
+  T add(Database db,
+        boolean  overwrite,
+        String   name,
+        T        existing,
+        Map<String, Object> definition);
 
-  default T add(Database db,
-                boolean  overwrite,
-                String   name,
-                T        existing,
+  default T add(Database     db,
+                boolean      overwrite,
+                String       name,
+                T            existing,
                 List<Object> definition) {
     Map<String, Object> def = IntStream.range(0, definition.size())
                                        .boxed()
@@ -75,9 +73,9 @@ public interface Initializer<T> {
     return existing;
   }
 
-  default T add(Database db,
-                boolean  overwrite,
-                String   name,
+  default T add(Database     db,
+                boolean      overwrite,
+                String       name,
                 List<Object> definition) {
     T existing = get(db, name);
     if (overwrite || existing == null) {
@@ -94,9 +92,7 @@ public interface Initializer<T> {
    * @param name The name of the structure to get.
    * @return The structure by the name or null if no such structure exists.
    */
-  default T get(Database db, String name) {
-    return null;
-  }
+  T get(Database db, String name);
 
   /**
    * If the definition parameter is of type string, loads the structure from the
@@ -115,9 +111,9 @@ public interface Initializer<T> {
                      boolean  overwrite,
                      Object   definition,
                      String   defaultName) {
-    return definition instanceof String defName ? get(db, defName)
-         : definition instanceof Map    map     ? add(db, overwrite, defaultName, (Map<String, Object>)map)
-         : definition instanceof List   list    ? add(db, overwrite, defaultName, (List<Object>)list)
+    return definition instanceof String name ? get(db, name)
+         : definition instanceof Map    map  ? add(db, overwrite, defaultName, (Map<String, Object>)map)
+         : definition instanceof List   list ? add(db, overwrite, defaultName, (List<Object>)list)
          : null;
   }
 
@@ -150,14 +146,12 @@ public interface Initializer<T> {
    * @param in Input stream of the YAML data defining the structures to create.
    * @return The list of structures created.
    */
-  default List<T> add(Database    db,
-                      InputStream in) {
+  default List<T> add(Database db, InputStream in) {
     if (in == null) {
       /*
        * No input initialization: all initialization input is already contained
        * in the method. E.g., creation of base tables.
        */
-      init(db);
       return Collections.emptyList();
     } else {
       /*
@@ -177,22 +171,17 @@ public interface Initializer<T> {
     }
   }
 
-  /**
-   * No input initialization: all initialization input is already contained
-   * in the method. E.g., creation of base tables.
-   * @param db Database to initialise.
-   */
-  default void init(Database db) {}
-
   static String param(Map<String, Object> definition,
-                      String name, String defaultValue) {
+                      String              name,
+                      String              defaultValue) {
     return definition.containsKey(name)
          ? definition.get(name).toString()
          : defaultValue;
   }
 
   static int intParam(Map<String, Object> definition,
-                      String name, int defaultValue) {
+                      String              name,
+                      int                 defaultValue) {
     if (definition.containsKey(name)) {
       Object v = definition.get(name);
       try                { return Integer.parseInt(v.toString()); }
@@ -202,7 +191,8 @@ public interface Initializer<T> {
   }
 
   static boolean boolParam(Map<String, Object> definition,
-                           String name, boolean defaultValue) {
+                           String              name,
+                           boolean             defaultValue) {
     if (definition.containsKey(name)) {
       Object v = definition.get(name);
       try                { return Boolean.parseBoolean(v.toString()); }

@@ -263,7 +263,9 @@ public abstract class AbstractDatabase implements Database {
                 attributes.add(new Attribute(context, EXPRESSION, dbExpressionToEsql(defaultValue, parser)));
               }
               attributes.add(new Attribute(context, ID, new UuidLiteral(context, columnId)));
-              attributes.add(new Attribute(context, REQUIRED, new BooleanLiteral(context, notNull)));
+              if (notNull) {
+                attributes.add(new Attribute(context, REQUIRED, new BooleanLiteral(context, notNull)));
+              }
               Metadata metadata = new Metadata(context, attributes);
               Type type = Types.typeOf(columnType);
               columns.add(new Column(context,
@@ -658,9 +660,11 @@ public abstract class AbstractDatabase implements Database {
          * Load custom column attributes.
          */
         Map<String, Attribute> attributes = new HashMap<>();
-        attributes.put(TYPE,     Attribute.from(context, TYPE,     columnType));
-        attributes.put(ID,       Attribute.from(context, ID,       columnId));
-        attributes.put(REQUIRED, Attribute.from(context, REQUIRED, notNull));
+        attributes.put(TYPE, Attribute.from(context, TYPE, columnType));
+        attributes.put(ID,   Attribute.from(context, ID,   columnId));
+        if (notNull) {
+          attributes.put(REQUIRED, Attribute.from(context, REQUIRED, notNull));
+        }
 
         attrStmt.setObject(1, columnId);
         try (ResultSet ars = attrStmt.executeQuery()) {
@@ -920,11 +924,14 @@ public abstract class AbstractDatabase implements Database {
        * Check if the CAN_DELETE attribute is set on this field and save
        * its value, which controls whether this field can later be dropped.
        */
-      Boolean canDelete = column.metadata() == null ? null : column.metadata().evaluateAttribute(CAN_DELETE,
-                                                                                                 econ,
-                                                                                                 new EsqlPath(column.metadata()),
-                                                                                                 HashPMap.empty(IntTreePMap.empty()),
-                                                                                                 econ.database().structure());
+      Boolean noDelete = column.metadata() == null
+                       ? false
+                       : column.metadata().evaluateAttribute(NO_DELETE,
+                                                             econ,
+                                                             new EsqlPath(column.metadata()),
+                                                             HashPMap.empty(IntTreePMap.empty()),
+                                                             econ.database().structure());
+      if (noDelete == null) noDelete = false;
       UUID columnId = column.id();
       if (columnId == null) {
         Map<String, Attribute> attributes = new LinkedHashMap<>();
@@ -943,7 +950,7 @@ public abstract class AbstractDatabase implements Database {
       econ.exec(insertCol,
                 new QueryParams()
                   .add("id",            columnId)
-                  .add("canDelete",     canDelete)
+                  .add("noDelete",      noDelete)
                   .add("relation",      tableId)
                   .add("name",          column.name())
                   .add("derivedColumn", column.derived())
@@ -1273,9 +1280,9 @@ public abstract class AbstractDatabase implements Database {
   private final Map<String, List<Subscription>> subscriptions = new ConcurrentHashMap<>();
 
   private static final String INSERT_COLUMN = """
-    insert into _core.columns(_id, _can_delete, relation_id, name, derived_column,
+    insert into _core.columns(_id, _no_delete, relation_id, name, derived_column,
                               "type", not_null, expression, seq)
-    values(@id, @canDelete, @relation, @name,
+    values(@id, @noDelete, @relation, @name,
            @derivedColumn, @type, @nonNull, @expression,
            coalesce(from _core.columns select max(seq) where relation_id=@relation, 0) + 1)""";
 

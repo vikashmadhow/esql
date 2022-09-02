@@ -35,7 +35,8 @@ import java.util.stream.Stream;
 
 import static java.util.Collections.singletonList;
 import static java.util.UUID.randomUUID;
-import static ma.vi.esql.builder.Attributes.*;
+import static ma.vi.esql.builder.Attributes.PRIMARY_KEY;
+import static ma.vi.esql.builder.Attributes.REFERRED_BY;
 import static ma.vi.esql.syntax.Parser.Rules.SELECT;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.DynamicTest.dynamicTest;
@@ -367,7 +368,7 @@ public class SelectTest extends DataTest {
                      JSONObject dependents = new JSONObject(
                              Map.of("links", new JSONObject(
                                  Map.of("type", "a.b.T",
-                                        "referred_by", "s_id",
+                                        "_referred_by", "s_id",
                                         "label", "S Links"))));
 
                      assertEquals(rs.resultAttributes().size(), 6);

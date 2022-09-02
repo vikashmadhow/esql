@@ -245,7 +245,7 @@ public class BaseRelation extends Struct {
                                                  String              prefix,
                                                  Map<String, String> aliased) {
     List<Column> cols = new ArrayList<>();
-    if (!attr.name().startsWith("_")) {
+    if (!attr.name().equals("_id")) {
       String attrPrefix = prefix + attr.name();
       Expression<?, ?> expr = attr.attributeValue().copy();
       ColumnRef ref = expr.find(ColumnRef.class);

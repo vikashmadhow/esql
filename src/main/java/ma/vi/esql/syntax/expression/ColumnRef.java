@@ -245,7 +245,7 @@ public class ColumnRef extends    Expression<String, String>
             Map<String, ColumnDefinition> cols = create.columnsByName();
             if (cols.containsKey(ref.columnName())) {
               ColumnDefinition def = cols.get(ref.columnName());
-              column = Column.fromDefinition(def, path);
+              column = Column.fromDefinition(def);
             }
           }
           qu = null;
