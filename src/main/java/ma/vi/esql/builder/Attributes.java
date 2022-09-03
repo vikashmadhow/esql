@@ -56,7 +56,7 @@ public class Attributes {
    * specified in an insert statement, and the expression to compute the value for
    * a derived column.
    */
-  public static final String EXPRESSION = "expression";
+  public static final String EXPRESSION = "_expression";
 
   /**
    * The name of a column containing a sequence number to order a set
@@ -373,11 +373,11 @@ public class Attributes {
 // export const BORDER_TOP      = "border_top";
 // export const BORDER_BOTTOM   = "border_bottom";
 // export const BORDER_DIAGONAL = "border_diagonal";
-
-  public static final String EXCEL_FONT = "excel_font";
-  public static final String EXCEL_ALIGNMENT = "excel_alignment";
-  public static final String EXCEL_BORDER = "excel_border";
-  public static final String EXCEL_FILL = "excel_fill";
+//
+//  public static final String EXCEL_FONT = "excel_font";
+//  public static final String EXCEL_ALIGNMENT = "excel_alignment";
+//  public static final String EXCEL_BORDER = "excel_border";
+//  public static final String EXCEL_FILL = "excel_fill";
 
 
   // Collection display properties
@@ -561,7 +561,7 @@ public class Attributes {
   /**
    * Validation check, as specified in check constraints.
    */
-  public static final String CHECK = "check";
+  public static final String CHECK = "_check";
 
   /**
    * Minimum length of the string representation of the value.

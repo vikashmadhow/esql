@@ -79,6 +79,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Modify queries return values don't seem to be supported correctly for SQL 
   Server.
 
+## [1.0.7] - 2022-09-03
+### Added:
+- Automatically added attributes `check` and `expression` have been renamed to 
+  `_check` and `_expression`, respectively, to be consistent with other automatically 
+  added attributes.
+
 ## [1.0.6] - 2022-09-02
 ### Added:
 - Add `using` clause to `alter type` statement in Postgresql to support additional
@@ -105,9 +111,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   provide a working concrete implementation.
  
 ### Removed:
-- `init(Database db)` method removed from `Initializer` interface as it is no
-  longer used. This is a remnant of the previous simpler initializer model where
-  this was the only method containing all the logic of the initializer was implemented.
+- `init(Database)` method removed from `Initializer` interface as it is no longer
+  used. This is a remnant of the previous simpler initializer model where this 
+  was the only method containing all the logic of the initializer.
 
 ### Fixed:
 - Added named-arguments block to translation of the concatenation operation to 
