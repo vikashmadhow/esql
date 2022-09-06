@@ -274,6 +274,16 @@ public interface EsqlListener extends ParseTreeListener {
 	 */
 	void exitQualifiedName(EsqlParser.QualifiedNameContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link EsqlParser#setName}.
+	 * @param ctx the parse tree
+	 */
+	void enterSetName(EsqlParser.SetNameContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link EsqlParser#setName}.
+	 * @param ctx the parse tree
+	 */
+	void exitSetName(EsqlParser.SetNameContext ctx);
+	/**
 	 * Enter a parse tree produced by the {@code SingleTableExpr}
 	 * labeled alternative in {@link EsqlParser#tableExpr}.
 	 * @param ctx the parse tree

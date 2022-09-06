@@ -79,6 +79,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Modify queries return values don't seem to be supported correctly for SQL 
   Server.
 
+## [1.0.8] - 2022-09-06
+### Added:
+- Column names in the `set` clause of an `update` statement can now be escaped to
+  refer to columns whose names are reserved words (or using special characters).
+
 ## [1.0.7] - 2022-09-03
 ### Added:
 - Automatically added attributes `check` and `expression` have been renamed to 

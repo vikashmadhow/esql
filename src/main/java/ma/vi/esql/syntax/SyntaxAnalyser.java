@@ -558,7 +558,8 @@ public class SyntaxAnalyser extends EsqlBaseListener {
 
   @Override
   public void exitSet(SetContext ctx) {
-    put(ctx, new Attribute(context, ctx.qualifiedName().getText(), get(ctx.expr())));
+    String setName = ctx.setName().getText().replace("\"", "");
+    put(ctx, new Attribute(context, setName, get(ctx.expr())));
   }
 
   // literals

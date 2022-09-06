@@ -322,6 +322,10 @@ qualifiedName
     : Identifier ('.' Identifier)*
     ;
 
+setName
+    : identifier ('.' identifier)?
+    ;
+
 /**
  * The `from` clause of a `select`, `update` and `delete` contains a table
  * expression which can be one of these:
@@ -608,7 +612,7 @@ setList
  * if provided.
  */
 set
-    : qualifiedName '=' expr
+    : setName '=' expr
     ;
 
 /**
