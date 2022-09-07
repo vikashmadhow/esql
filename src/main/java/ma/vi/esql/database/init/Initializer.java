@@ -152,6 +152,7 @@ public interface Initializer<T> {
        * No input initialization: all initialization input is already contained
        * in the method. E.g., creation of base tables.
        */
+      init(db);
       return Collections.emptyList();
     } else {
       /*
@@ -170,6 +171,13 @@ public interface Initializer<T> {
       return created;
     }
   }
+
+  /**
+   * No input initialization: all initialization input is already contained
+   * in the method. E.g., creation of base tables.
+   * @param db Database to initialise.
+   */
+  default void init(Database db) {}
 
   static String param(Map<String, Object> definition,
                       String              name,
