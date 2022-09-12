@@ -79,6 +79,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Modify queries return values don't seem to be supported correctly for SQL 
   Server.
 
+## [1.0.10] - 2022-09-12
+### Changed:
+- Some attributes which take a default value of false have been renamed accordingly.
+
 ## [1.0.9] - 2022-09-07
 ### Added:
 - `init(Database)` method restored in `Initializer` interface as it allows for

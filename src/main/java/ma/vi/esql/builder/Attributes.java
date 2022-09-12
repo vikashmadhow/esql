@@ -137,12 +137,17 @@ public class Attributes {
   public static final String STRING_FORM = "string_form";
 
   /**
-   * If computes to false, field is not shown. Default is true.
+   * If true, column is not shown. Default is false.
    */
   public static final String HIDE = "hide";
 
   /**
-   * If computes to false, field is not shown when browsing. Default is true.
+   * If true, column is not shown when editing. Default is false.
+   */
+  public static final String EDIT_HIDE = "edit_hide";
+
+  /**
+   * If true, column is not shown when browsing. Default is false.
    */
   public static final String BROWSE_HIDE = "browse_hide";
 
@@ -177,7 +182,6 @@ public class Attributes {
    * The column in which to store the file name.
    */
   public static final String FILE_NAME_COLUMN = "file_name_column";
-
 
   /**
    * The order in which this member should appear when the object is being
@@ -440,8 +444,12 @@ public class Attributes {
   //////////////////////////////
 
   /**
-   * The name of the lookup (which must not contain any periods) or a foreign
-   * table which is used to obtain the display value for this field.
+   * The lookup containing the values that this column in restricted to.
+   */
+  public static final String LOOKUP = "lookup";
+
+  /**
+   * The table that this column is restricted to.
    */
   public static final String LINK_TABLE = "link_table";
 
