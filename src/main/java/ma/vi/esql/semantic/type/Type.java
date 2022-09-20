@@ -14,10 +14,7 @@ import ma.vi.esql.syntax.define.Attribute;
 import ma.vi.esql.translation.Translatable;
 import org.pcollections.PMap;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static ma.vi.esql.translation.Translatable.Target.*;
 
@@ -36,6 +33,16 @@ public interface Type extends Symbol, Copy<Type>, Translatable<String> {
   @Override
   default Type type() {
     return this;
+  }
+
+  /**
+   * Returns a list of types which are compatible with this type. Operations
+   * on compatible types does not require an explicit cast.
+   * @return List of compatible types. Default implementation returns a list
+   *         with this type as the only compatible type to itself.
+   */
+  default Set<Type> compatibleTypes() {
+    return Collections.singleton(this);
   }
 
   /**

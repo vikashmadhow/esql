@@ -54,6 +54,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the containing table.
 - Every expression should return a `Result` to normalise the execution of any 
   ESQL expression (need to find way that this does not affect performance unduly).
+- Keep sequence of column as in `create table` in `_core.columns` and order by
+  it when loading columns. This will make for a more predictable behaviour when
+  changing the structure of tables.
+- DDL notifications (notifications on creation, deletion and modification of tables).
  
 ### To optimise
 - When filtering a `With`, do not apply filter on a CTE if that CTE inner joins 
@@ -78,6 +82,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   for metadata overriding)
 - Modify queries return values don't seem to be supported correctly for SQL 
   Server.
+
+## [1.0.11] - 2022-09-20
+### Changed:
+- New method `compatibleType` on interface `Type` returning a set of types 
+  compatible with the current type. Compatible types allow operations between
+  them without any explicit casting. By default, the set of compatible types for
+  type is a singleton set containing the type itself.
 
 ## [1.0.10] - 2022-09-12
 ### Changed:

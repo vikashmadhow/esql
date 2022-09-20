@@ -220,6 +220,11 @@ public class Types {
     }
 
     @Override
+    public Set<Type> compatibleTypes() {
+      return Set.of(ByteType, ShortType, IntType, LongType);
+    }
+
+    @Override
     public Type promote() {
       return LongType;
     }
@@ -234,8 +239,35 @@ public class Types {
     }
 
     @Override
+    public Set<Type> compatibleTypes() {
+      return Set.of(FloatType, DoubleType, MoneyType);
+    }
+
+    @Override
     public Type promote() {
       return DoubleType;
+    }
+  }
+
+  private static final class CharSequenceType extends BaseType {
+    public CharSequenceType(String name, int size, boolean integral, Map<Target, String> translations) {
+      super(name, size, integral, translations);
+    }
+
+    @Override
+    public Set<Type> compatibleTypes() {
+      return Set.of(CharType, StringType, TextType);
+    }
+  }
+
+  private static final class TemporalType extends BaseType {
+    public TemporalType(String name, int size, boolean integral, Map<Target, String> translations) {
+      super(name, size, integral, translations);
+    }
+
+    @Override
+    public Set<Type> compatibleTypes() {
+      return Set.of(DateType, TimeType, DatetimeType);
     }
   }
 
@@ -250,10 +282,10 @@ public class Types {
   public static final Type IntType =
       new IntegralType("int", 4, true,
                        Map.of(POSTGRESQL, "integer",
-                              HSQLDB, "integer",
-                              MARIADB, "int",
-                              MYSQL, "int",
-                              SQLSERVER, "int "));
+                              HSQLDB,     "integer",
+                              MARIADB,    "int",
+                              MYSQL,      "int",
+                              SQLSERVER,  "int "));
 
   public static final Type LongType =
       new IntegralType("long", 8, true,
@@ -266,98 +298,96 @@ public class Types {
   public static final Type DoubleType =
       new FractionalType("double", 8, false,
                          Map.of(POSTGRESQL, "double precision",
-                                HSQLDB, "double",
-                                MARIADB, "double",
-                                MYSQL, "double",
-                                SQLSERVER, "float"));
+                                HSQLDB,     "double",
+                                MARIADB,    "double",
+                                MYSQL,      "double",
+                                SQLSERVER,  "float"));
 
   public static final Type MoneyType =
       new FractionalType("money", 8, false,
                          Map.of(POSTGRESQL, "money",
-                                HSQLDB, "double",
-                                MARIADB, "double",
-                                MYSQL, "double",
-                                SQLSERVER, "money"));
+                                HSQLDB,     "double",
+                                MARIADB,    "double",
+                                MYSQL,      "double",
+                                SQLSERVER,  "money"));
 
   public static final Type BoolType =
       new BaseType("bool", 1, false,
                    Map.of(POSTGRESQL, "boolean",
-                          HSQLDB, "boolean",
-                          MARIADB, "boolean",
-                          MYSQL, "boolean",
-                          SQLSERVER, "bit"));
+                          HSQLDB,     "boolean",
+                          MARIADB,    "boolean",
+                          MYSQL,      "boolean",
+                          SQLSERVER,  "bit"));
 
   public static final Type CharType =
-      new BaseType("char", 1, false,
+      new CharSequenceType("char", 1, false,
                    Map.of(POSTGRESQL, "char(1)",
-                          HSQLDB, "char(1)",
-                          MARIADB, "char(1)",
-                          MYSQL, "char(1)",
-                          SQLSERVER, "nchar(1)"));
+                          HSQLDB,     "char(1)",
+                          MARIADB,    "char(1)",
+                          MYSQL,      "char(1)",
+                          SQLSERVER,  "nchar(1)"));
 
   public static final Type StringType =
-      new BaseType("string", 8000, false,
+      new CharSequenceType("string", 8000, false,
                    Map.of(POSTGRESQL, "text",
-                          HSQLDB, "varchar(4000)",
-                          MARIADB, "text",
-                          MYSQL, "text",
-                          SQLSERVER, "nvarchar(4000)"));
+                          HSQLDB,     "varchar(4000)",
+                          MARIADB,    "text",
+                          MYSQL, "    text",
+                          SQLSERVER,  "nvarchar(4000)"));
 
   public static final Type TextType =
-      new BaseType("text", MAX_VALUE, false,
+      new CharSequenceType("text", MAX_VALUE, false,
                    Map.of(POSTGRESQL, "text",
-                          HSQLDB, "longvarchar",
-                          MARIADB, "text",
-                          MYSQL, "text",
-                          SQLSERVER, "nvarchar(max)"));
+                          HSQLDB,     "longvarchar",
+                          MARIADB,    "text",
+                          MYSQL,      "text",
+                          SQLSERVER,  "nvarchar(max)"));
 
   public static final Type BytesType =
       new BaseType("bytes", MAX_VALUE, false,
         Map.of(POSTGRESQL, "bytea",
-               HSQLDB, "longvarbinary",
-               MARIADB, "longblob",
-               MYSQL, "longblob",
-               SQLSERVER, "varbinary(max)"));
+               HSQLDB,     "longvarbinary",
+               MARIADB,    "longblob",
+               MYSQL,      "longblob",
+               SQLSERVER,  "varbinary(max)"));
 
   public static final Type DateType =
-      new BaseType("date", 4, false,
-                   Map.of(ALL, "date"));
+      new TemporalType("date", 4, false, Map.of(ALL, "date"));
 
-  public static final Type IntervalType =
-      new BaseType("interval", 32, false,
-                   Map.of(POSTGRESQL, "interval",
-                          HSQLDB, "varchar(200)",
-                          MARIADB, "varchar(200)",
-                          MYSQL, "varchar(200)",
-                          SQLSERVER, "nvarchar(200)"));
-
-  public static final Type TimeType = 
-      new BaseType("time", 4, false,
-                   Map.of(ALL, "time"));
+  public static final Type TimeType =
+      new TemporalType("time", 4, false, Map.of(ALL, "time"));
 
   public static final Type DatetimeType =
-      new BaseType("datetime", 8, false,
-                   Map.of(POSTGRESQL, "timestamp",
-                          HSQLDB, "timestamp",
-                          MARIADB, "datetime",
-                          MYSQL, "datetime",
-                          SQLSERVER, "datetime2"));
+      new TemporalType("datetime", 8, false,
+                       Map.of(POSTGRESQL, "timestamp",
+                              HSQLDB,     "timestamp",
+                              MARIADB,    "datetime",
+                              MYSQL,      "datetime",
+                              SQLSERVER,  "datetime2"));
+
+  public static final Type IntervalType =
+    new BaseType("interval", 32, false,
+                 Map.of(POSTGRESQL, "interval",
+                        HSQLDB,     "varchar(200)",
+                        MARIADB,    "varchar(200)",
+                        MYSQL,      "varchar(200)",
+                        SQLSERVER,  "nvarchar(200)"));
 
   public static final Type UuidType =
       new BaseType("uuid", 12, false,
                    Map.of(POSTGRESQL, "uuid",
-                          HSQLDB, "uuid",
-                          MARIADB, "varchar(36)",
-                          MYSQL, "varchar(36)",
-                          SQLSERVER, "uniqueidentifier"));
+                          HSQLDB,     "uuid",
+                          MARIADB,    "varchar(36)",
+                          MYSQL,      "varchar(36)",
+                          SQLSERVER,  "uniqueidentifier"));
 
   public static final Type JsonType =
       new BaseType("json", MAX_VALUE, false,
                    Map.of(POSTGRESQL, "jsonb",
-                          HSQLDB, "longvarchar",
-                          MARIADB, "json",
-                          MYSQL, "json",
-                          SQLSERVER, "varchar(max)"));
+                          HSQLDB,     "longvarchar",
+                          MARIADB,    "json",
+                          MYSQL,      "json",
+                          SQLSERVER,  "varchar(max)"));
 
   public static final Type UnknownType =
       new SpecialBaseType(UNKNOWN_TYPE, MAX_VALUE, false,
@@ -372,10 +402,10 @@ public class Types {
   public static final Type NumberType =
       new BaseType("number", 1, false,
                    Map.of(POSTGRESQL, "double precision",
-                          HSQLDB, "double",
-                          MARIADB, "double",
-                          MYSQL, "double",
-                          SQLSERVER, "float"));
+                          HSQLDB,     "double",
+                          MARIADB,    "double",
+                          MYSQL,      "double",
+                          SQLSERVER,  "float"));
 
   /**
    * Super type of integral number types (byte, short, int and long)
@@ -390,10 +420,10 @@ public class Types {
   public static final Type FractionalType =
       new FractionalType("fractional", 1, false,
                          Map.of(POSTGRESQL, "double precision",
-                                HSQLDB, "double",
-                                MARIADB, "double",
-                                MYSQL, "double",
-                                SQLSERVER, "float"));
+                                HSQLDB,     "double",
+                                MARIADB,    "double",
+                                MYSQL,      "double",
+                                SQLSERVER,  "float"));
 
   // Generic and special types
   ///////////////////////////////////
