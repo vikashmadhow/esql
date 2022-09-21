@@ -1232,6 +1232,7 @@ public abstract class AbstractDatabase implements Database {
       expr = SQL_SERVER_SURROUNDED_VAR.matcher(expr).replaceAll("$1");
       expr = SQL_SERVER_LEN.matcher(expr).replaceAll("length($1)");
       expr = SQL_KEYWORDS.matcher(expr).replaceAll(m -> m.group().toLowerCase());
+      expr = expr.replace("::bpchar", "::char");
       return parser.parseExpression(expr);
     }
   }

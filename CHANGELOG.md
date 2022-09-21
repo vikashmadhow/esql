@@ -83,8 +83,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Modify queries return values don't seem to be supported correctly for SQL 
   Server.
 
-## [1.0.11] - 2022-09-20
+## [1.0.12] - 2022-09-20
 ### Changed:
+- Casting syntax changed from `type`<`expr`> to `expr`::`type` as the former 
+  can be misinterpreted as relational operation (because of the `<` and `>`). 
+
+### Fixed:
+- `bpchar` type in PostgreSQL mapped to `char` type to fix errors in default 
+  expressions read from the information_schema of that database. 
+
+## [1.0.11] - 2022-09-19
+### Added:
 - New method `compatibleType` on interface `Type` returning a set of types 
   compatible with the current type. Compatible types allow operations between
   them without any explicit casting. By default, the set of compatible types for

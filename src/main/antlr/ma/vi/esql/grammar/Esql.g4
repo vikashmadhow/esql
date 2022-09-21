@@ -668,7 +668,7 @@ expr
         when
        * inserting values and updating columns (to their defaults)
        */
-    | type '<' expr '>'                                         #CastExpr
+    | expr '::' type                                            #CastExpr
 
       /*
        * The default value applicable in certain context such as when inserting
