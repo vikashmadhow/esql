@@ -32,9 +32,6 @@ plugins {
 repositories {
   mavenLocal()
   mavenCentral()
-//  maven {
-//    url = uri("http://maven.cubrid.org/")
-//  }
 }
 
 generateGrammarSource {

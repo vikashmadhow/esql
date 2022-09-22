@@ -217,7 +217,7 @@ public interface Initializer<T> {
    * overwrite of existing data should be prohibited to prevent accidental or
    * malicious changes to system data.
    */
-  String OVERWRITE = "$overwrite$";
+  String OVERWRITE = "$overwrite";
 
   /**
    * A special configuration key specifying a name for the current object being
@@ -242,9 +242,4 @@ public interface Initializer<T> {
    * for the current object being created or updated.
    */
   String METADATA = "$metadata";
-
-  /**
-   * Configuration key to provide a source file to the initializer.
-   */
-  String SOURCE_FILE = "SOURCE_FILE";
 }

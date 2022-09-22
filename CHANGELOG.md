@@ -83,6 +83,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Modify queries return values don't seem to be supported correctly for SQL 
   Server.
 
+## [1.0.13] - 2022-09-22
+### Changed:
+- Overwrite key name changed from `$overwrite$` to `$overwrite` to align with the
+  naming convention of the other initializer keys.
+
+### Removed:
+- Removed initializer key SOURCE_FILE as this is no longer used.
+
 ## [1.0.12] - 2022-09-20
 ### Changed:
 - Casting syntax changed from `type`<`expr`> to `expr`::`type` as the former 

@@ -1,4 +1,4 @@
-$overwrite$: true
+$overwrite: true
 
 TestImport:
   $metadata:
