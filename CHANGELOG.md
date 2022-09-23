@@ -83,6 +83,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Modify queries return values don't seem to be supported correctly for SQL 
   Server.
 
+## [1.0.15] - 2022-09-23
+### Changed:
+- Filters are applied  prior to typed macro expansion in the execution pipeline
+  allowing filters to contain typed macros. The previous pipeline assumed that
+  filters do not contain any typed macros.
+
+### Fixed:
+- Translation of select expression in binary operators was failing because of 
+  casting issue: select expressions are translated to a `QueryTranslation` while
+  the translation of a binary operator is a string. The select expression is now
+  cast to a string in the translation method of `BinaryOperator`. 
+
 ## [1.0.13] - 2022-09-22
 ### Changed:
 - Overwrite key name changed from `$overwrite$` to `$overwrite` to align with the

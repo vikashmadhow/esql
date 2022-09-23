@@ -13,9 +13,6 @@ import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
 import org.pcollections.PMap;
 
-import static ma.vi.base.string.Escape.escapeJsonString;
-import static ma.vi.esql.translation.Translatable.Target.JSON;
-
 /**
  * Parent of binary operators in ESQL.
  *
@@ -58,10 +55,9 @@ public abstract class BinaryOperator extends Expression<String, String>  {
                          EsqlPath             path,
                          PMap<String, Object> parameters,
                          Environment          env) {
-    String e = expr1().translate(target, esqlCon, path.add(expr1()), parameters, env)
-             + ' ' + op() + ' '
-             + expr2().translate(target, esqlCon, path.add(expr2()), parameters, env);
-    return target == JSON ? '"' + escapeJsonString(e) + '"' : e;
+    return String.valueOf(expr1().translate(target, esqlCon, path.add(expr1()), parameters, env))
+         + ' ' + op() + ' '
+         + String.valueOf(expr2().translate(target, esqlCon, path.add(expr2()), parameters, env));
   }
 
   @Override

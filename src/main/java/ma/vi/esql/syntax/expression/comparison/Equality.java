@@ -74,9 +74,9 @@ public class Equality extends ComparisonOperator {
                       || expr2().type() == Types.TextType;
         boolean iif = requireIif(path, parameters);
         return (iif ? "iif(" : "")
-             + expr1().translate(target, esqlCon, path.add(expr1()), parameters, env)
+             + String.valueOf(expr1().translate(target, esqlCon, path.add(expr1()), parameters, env))
              + (string ? " collate Latin1_General_CS_AS = " : " = ")
-             + expr2().translate(target, esqlCon, path.add(expr2()), parameters, env)
+             + String.valueOf(expr2().translate(target, esqlCon, path.add(expr2()), parameters, env))
              + (string ? " collate Latin1_General_CS_AS" : "")
              + (iif ? ", 1, 0)" : "");
 

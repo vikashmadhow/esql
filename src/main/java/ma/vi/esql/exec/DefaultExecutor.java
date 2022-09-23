@@ -73,6 +73,17 @@ public class DefaultExecutor implements Executor {
     st = expand(st, UntypedMacro.class);
 
     /*
+     * Apply filters, if any.
+     */
+    if (qp != null && !qp.filters.isEmpty()) {
+      AtomicBoolean first = new AtomicBoolean(true);
+      for (Filter filter: qp.filters) {
+        st = st.map((e, p) -> e.filter(filter, first.get(), p));
+        first.set(false);
+      }
+    }
+
+    /*
      * Expand typed macros in statement (macros requiring type information to be
      * present when expanding).
      */
@@ -97,17 +108,6 @@ public class DefaultExecutor implements Executor {
      */
     for (EsqlTransformer t: db.esqlTransformers()) {
       st = t.transform(db, st);
-    }
-
-    /*
-     * Apply filters, if any.
-     */
-    if (qp != null && !qp.filters.isEmpty()) {
-      AtomicBoolean first = new AtomicBoolean(true);
-      for (Filter filter: qp.filters) {
-        st = st.map((e, p) -> e.filter(filter, first.get(), p));
-        first.set(false);
-      }
     }
     return st;
   }

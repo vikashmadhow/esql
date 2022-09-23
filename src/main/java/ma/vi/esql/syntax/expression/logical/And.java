@@ -57,10 +57,9 @@ public class And extends ComparisonOperator {
   @Override
   protected String trans(Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
     switch (target) {
-      case JSON, JAVASCRIPT -> {
-        String e = expr1().translate(target, null, path.add(expr1()), parameters, null) + " && "
-                 + expr2().translate(target, null, path.add(expr2()), parameters, null);
-        return target == JSON ? '"' + escapeJsonString(e) + '"' : e;
+      case JAVASCRIPT -> {
+        return expr1().translate(target, null, path.add(expr1()), parameters, null) + " && "
+             + expr2().translate(target, null, path.add(expr2()), parameters, null);
       }
       case SQLSERVER -> {
         if (path.ancestor("on") == null
@@ -70,10 +69,9 @@ public class And extends ComparisonOperator {
            * For SQL Server, boolean expressions outside of where and having
            * clauses are not allowed and we simulate it with bitwise operations.
            */
-          return "cast(" + expr1().translate(target, null, path.add(expr1()), parameters, null) + " & " + expr2().translate(target,
-                                                                                                                            null,
-                                                                                                                            path.add(expr2()), parameters,
-                                                                                                                            null) + " as bit)";
+          return "cast(" + String.valueOf(expr1().translate(target, null, path.add(expr1()), parameters, null))
+               + " & "   + String.valueOf(expr2().translate(target, null, path.add(expr2()), parameters, null))
+               + " as bit)";
         } else {
           return super.trans(target, esqlCon, path, parameters, env);
         }
