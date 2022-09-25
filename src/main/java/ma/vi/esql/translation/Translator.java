@@ -6,6 +6,7 @@ import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.define.Attribute;
 import ma.vi.esql.syntax.define.Metadata;
+import ma.vi.esql.syntax.modify.UpdateSet;
 import org.pcollections.PMap;
 
 import static ma.vi.esql.translation.Translatable.Target;
@@ -64,14 +65,14 @@ public interface Translator {
      * is here are it is almost the same for all targets.
      */
     public static void addSet(StringBuilder st,
-                              Metadata      sets,
+                              UpdateSet     updateSet,
                               Target        target,
                               boolean       removeQualifier,
                               EsqlPath      path,
                               Environment   env) {
       boolean first = true;
       st.append(" set ");
-      for (Attribute set: sets.attributes().values()) {
+      for (Attribute set: updateSet.sets().values()) {
         if (first) {
           first = false;
         } else {

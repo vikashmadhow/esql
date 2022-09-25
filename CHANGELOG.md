@@ -83,6 +83,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Modify queries return values don't seem to be supported correctly for SQL 
   Server.
 
+## [1.0.17] - 2022-09-26
+### Changed:
+- The set clause of an `Update` was previously kept in a `Metadata` object as the
+  latter's structure of a map of names to expressions is the same as expected for
+  the set clause. `Metadata` however is a subclass of `Define` which prevents
+  macro expansion in its descendents. This is the correct behaviour for metadata
+  as it allows for metadata attributes to be sent in its unexpanded form to the
+  client where it might be expanded differently than on the server. However, this
+  behaviour is incorrect for the update set clause. As such a new structure called
+  `UpdateSet` has been created for this purpose; it is similar in structure to
+  `Metadata` except that it does not descend from `Define`.
+
 ## [1.0.16] - 2022-09-25
 ### Fixed:
 - Translation of logical operators in SQL server was not taking into account the

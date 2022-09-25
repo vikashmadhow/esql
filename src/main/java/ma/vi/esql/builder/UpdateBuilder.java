@@ -14,6 +14,7 @@ import ma.vi.esql.syntax.define.Metadata;
 import ma.vi.esql.syntax.expression.ColumnRef;
 import ma.vi.esql.syntax.expression.Expression;
 import ma.vi.esql.syntax.modify.Update;
+import ma.vi.esql.syntax.modify.UpdateSet;
 import ma.vi.esql.syntax.query.*;
 
 import java.util.ArrayList;
@@ -39,7 +40,7 @@ public class UpdateBuilder implements Builder<Update> {
     return new Update(context,
                       updateTableAlias,
                       from,
-                      new Metadata(context, set),
+                      new UpdateSet(context, set),
                       where,
                       returnMetadata.isEmpty() ? null : new Metadata(context, returnMetadata),
                       returnColumns.isEmpty() ? null : returnColumns);

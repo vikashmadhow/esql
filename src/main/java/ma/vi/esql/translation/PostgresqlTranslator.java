@@ -148,13 +148,13 @@ public class PostgresqlTranslator extends AbstractTranslator {
       String withAlias = "\"!!\"";
       StringBuilder st =
           new StringBuilder("with " + withAlias + "(id, "
-                                    + IntStream.rangeClosed(1, update.set().attributes().size())
+                                    + IntStream.rangeClosed(1, update.set().sets().size())
                                                .boxed()
                                                .map(i -> "v" + i)
                                                .collect(joining(", "))
                                     + ") as (");
 
-      List<Attribute> set = new ArrayList<>(update.set().attributes().values());
+      List<Attribute> set = new ArrayList<>(update.set().sets().values());
       st.append("select \"").append(update.updateTableAlias()).append("\".ctid, ")
         .append(set.stream()
                    .map(a -> a.attributeValue().translate(target(), esqlCon, path.add(a.attributeValue()), parameters, env).toString())

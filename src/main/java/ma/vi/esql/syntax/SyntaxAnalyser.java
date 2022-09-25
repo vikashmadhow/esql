@@ -42,10 +42,7 @@ import ma.vi.esql.syntax.expression.literal.*;
 import ma.vi.esql.syntax.expression.logical.And;
 import ma.vi.esql.syntax.expression.logical.Not;
 import ma.vi.esql.syntax.expression.logical.Or;
-import ma.vi.esql.syntax.modify.Delete;
-import ma.vi.esql.syntax.modify.Insert;
-import ma.vi.esql.syntax.modify.InsertRow;
-import ma.vi.esql.syntax.modify.Update;
+import ma.vi.esql.syntax.modify.*;
 import ma.vi.esql.syntax.query.*;
 import ma.vi.esql.translation.TranslationException;
 import org.antlr.v4.runtime.ParserRuleContext;
@@ -551,9 +548,9 @@ public class SyntaxAnalyser extends EsqlBaseListener {
 
   @Override
   public void exitSetList(SetListContext ctx) {
-    put(ctx, new Metadata(context, ctx.set().stream()
-                                      .map(a -> (Attribute)get(a))
-                                      .toList()));
+    put(ctx, new UpdateSet(context, ctx.set().stream()
+                                       .map(a -> (Attribute)get(a))
+                                       .toList()));
   }
 
   @Override

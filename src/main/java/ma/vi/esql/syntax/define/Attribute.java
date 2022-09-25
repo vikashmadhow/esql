@@ -84,7 +84,11 @@ public class Attribute extends Esql<String, String> {
                          Environment          env) {
     return '"' + name() + "\": " + (attributeValue() == null
                                  ? "null"
-                                 :  attributeValue().translate(target, esqlCon, path.add(attributeValue()), parameters, env));
+                                 :  attributeValue().translate(target,
+                                                               esqlCon,
+                                                               path.add(attributeValue()),
+                                                               parameters,
+                                                               env));
   }
 
   @Override

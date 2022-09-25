@@ -30,7 +30,7 @@ public class Update extends QueryUpdate {
   public Update(Context       context,
                 String        updateTableAlias,
                 TableExpr     from,
-                Metadata      set,
+                UpdateSet     set,
                 Expression<?, String> where,
                 Metadata      returnMetadata,
                 List<Column>  returnColumns) {
@@ -88,7 +88,7 @@ public class Update extends QueryUpdate {
     return true;
   }
 
-  public Metadata set() {
+  public UpdateSet set() {
     return child("set");
   }
 

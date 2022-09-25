@@ -23,9 +23,8 @@ import static ma.vi.esql.database.Database.NULL_DB;
 import static ma.vi.esql.database.EsqlConnection.NULL_CONNECTION;
 
 /**
- * A list of attributes (name expression pairs) describing
- * certain parts of queries, tables, etc. This is also used as
- * the update set clause as it has the same structure.
+ * A list of attributes (name expression pairs) describing certain parts of
+ * queries, tables, etc.
  *
  * @author Vikash Madhow (vikash.madhow@gmail.mail)
  */
@@ -59,7 +58,11 @@ public class Metadata extends TableDefinition {
   }
 
   @Override
-  protected String trans(Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
+  protected String trans(Target               target,
+                         EsqlConnection       esqlCon,
+                         EsqlPath             path,
+                         PMap<String, Object> parameters,
+                         Environment          env) {
     return attributes().values()
                        .stream()
                        .map(a -> a.translate(target, esqlCon, path.add(a), parameters, env))

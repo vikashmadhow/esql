@@ -74,6 +74,11 @@ public class StringLiteral extends BaseLiteral<String> {
     };
   }
 
+  @Override
+  public void _toString(StringBuilder st, int level, int indent) {
+    st.append('\'').append(value).append('\'');
+  }
+
   public static String esqlToPostgresqlString(String value) {
     StringBuilder st = new StringBuilder("'");
     boolean hasFrontSlash = false;
