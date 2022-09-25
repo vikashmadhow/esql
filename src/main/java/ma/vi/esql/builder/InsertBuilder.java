@@ -5,6 +5,7 @@
 package ma.vi.esql.builder;
 
 import ma.vi.base.lang.Builder;
+import ma.vi.esql.semantic.type.Column;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.Parser;
@@ -14,7 +15,6 @@ import ma.vi.esql.syntax.expression.ColumnRef;
 import ma.vi.esql.syntax.expression.Expression;
 import ma.vi.esql.syntax.modify.Insert;
 import ma.vi.esql.syntax.modify.InsertRow;
-import ma.vi.esql.semantic.type.Column;
 import ma.vi.esql.syntax.query.Select;
 import ma.vi.esql.syntax.query.SingleTableExpr;
 

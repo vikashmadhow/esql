@@ -56,7 +56,7 @@ java {
   withSourcesJar()
 }
 
-version = "1.0.15"
+version = "1.0.16"
 group = 'ma.vi'
 sourceCompatibility = JavaVersion.VERSION_17
 

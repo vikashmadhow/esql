@@ -17,7 +17,8 @@ import org.pcollections.PMap;
 import java.util.List;
 
 import static java.util.Collections.singletonList;
-import static ma.vi.esql.translation.Translatable.Target.*;
+import static ma.vi.esql.translation.Translatable.Target.JAVASCRIPT;
+import static ma.vi.esql.translation.Translatable.Target.SQLSERVER;
 
 /**
  * `expandname` function to expand a column name, such as `first_name` to a more

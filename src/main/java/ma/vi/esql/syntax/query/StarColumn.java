@@ -13,9 +13,6 @@ import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
 import org.pcollections.PMap;
 
-import static ma.vi.base.string.Escape.escapeJsonString;
-import static ma.vi.esql.translation.Translatable.Target.JSON;
-
 /**
  * The wild-card (*) representing all columns in a query.
  *
@@ -53,16 +50,10 @@ public class StarColumn extends Column {
 
   @Override
   protected String trans(Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
-    switch (target) {
-      case JSON:
-      case JAVASCRIPT:
-      case ESQL:
-        String e = (qualifier() != null ? qualifier() + '.' : "") + "*";
-        return target == JSON ? '"' + escapeJsonString(e) + '"' : e;
-
-      default:
-        return (qualifier() != null ? '"' + qualifier() + "\"." : "") + "*";
-    }
+    return switch (target) {
+      case JAVASCRIPT, ESQL -> (qualifier() != null ? qualifier() + '.' : "") + "*";
+      default               -> (qualifier() != null ? '"' + qualifier() + "\"." : "") + "*";
+    };
   }
 
   @Override

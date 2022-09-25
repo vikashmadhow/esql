@@ -5,7 +5,6 @@
 package ma.vi.esql.trans;
 
 import ma.vi.esql.DataTest;
-import ma.vi.esql.Databases;
 import ma.vi.esql.database.Database;
 import ma.vi.esql.database.EsqlConnection;
 import ma.vi.esql.database.EsqlConnectionImpl;
@@ -14,7 +13,6 @@ import ma.vi.esql.exec.ResultColumn;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
 
-import java.sql.Connection;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;

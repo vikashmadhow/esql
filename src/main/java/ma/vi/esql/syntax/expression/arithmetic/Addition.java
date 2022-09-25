@@ -17,8 +17,6 @@ import org.pcollections.PMap;
 
 import java.util.Arrays;
 
-import static ma.vi.base.util.Numbers.isReal;
-
 /**
  * An addition in ESQL.
  *

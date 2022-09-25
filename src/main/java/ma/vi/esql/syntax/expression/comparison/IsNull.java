@@ -16,9 +16,6 @@ import ma.vi.esql.syntax.expression.Expression;
 import ma.vi.esql.syntax.expression.SingleSubExpression;
 import org.pcollections.PMap;
 
-import static ma.vi.base.string.Escape.escapeJsonString;
-import static ma.vi.esql.translation.Translatable.Target.JSON;
-
 /**
  * The is null operator in ESQL.
  *
@@ -62,14 +59,10 @@ public class IsNull extends SingleSubExpression {
 
   @Override
   protected String trans(Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
-    switch (target) {
-      case JSON:
-      case JAVASCRIPT:
-        String e = expr().translate(target, esqlCon, path.add(expr()), parameters, env) + (not() ? " !== null" : " === null");
-        return target == JSON ? '"' + escapeJsonString(e) + '"' : e;
-      default:
-        return expr().translate(target, esqlCon, path.add(expr()), parameters, env) + " is" + (not() ? " not" : "") + " null";
+    if (target == Target.JAVASCRIPT) {
+      return expr().translate(target, esqlCon, path.add(expr()), parameters, env) + (not() ? " !== null" : " === null");
     }
+    return expr().translate(target, esqlCon, path.add(expr()), parameters, env) + " is" + (not() ? " not" : "") + " null";
   }
 
   @Override

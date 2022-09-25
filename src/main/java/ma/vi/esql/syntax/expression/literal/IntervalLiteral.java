@@ -15,9 +15,6 @@ import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
 import org.pcollections.PMap;
 
-import static ma.vi.base.string.Escape.escapeJsonString;
-import static ma.vi.esql.translation.Translatable.Target.JSON;
-
 /**
  * A interval literal in ESQL.
  *
@@ -59,26 +56,16 @@ public class IntervalLiteral extends BaseLiteral<String> {
 
   @Override
   protected String trans(Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
-    switch (target) {
-      case POSTGRESQL:
-        return '\'' + value + "'::interval";
-
-      case SQLSERVER:
-        return '\'' + value + '\'';
-
-      case JSON:
-      case JAVASCRIPT:
-        String e = "new Interval('" + value + "')";
-        return target == JSON ? '"' + escapeJsonString(e) + '"' : e;
-
-      case ESQL:
-      default:
-        return "i'" + value + "'";
-    }
+    return switch (target) {
+      case POSTGRESQL -> '\'' + value + "'::interval";
+      case SQLSERVER  -> '\'' + value + '\'';
+      case JAVASCRIPT -> "new Interval('" + value + "')";
+      default         -> "i'" + value + "'";
+    };
   }
 
   @Override
   public Object exec(Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
-    return target == JSON ? translate(target, esqlCon, path.add(this), env) : new Interval(value);
+    return new Interval(value);
   }
 }

@@ -55,14 +55,17 @@ public class Cast extends Expression<String, String> {
   }
 
   @Override
-  protected String trans(Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
+  protected String trans(Target               target,
+                         EsqlConnection       esqlCon,
+                         EsqlPath             path,
+                         PMap<String, Object> parameters,
+                         Environment          env) {
     return switch (target) {
-      case ESQL       -> toType().translate(target, esqlCon, path, parameters, env)
-                           + '<' + expr().translate(target, esqlCon, path.add(expr()), parameters, env) + '>';
+      case ESQL       -> expr().translate(target, esqlCon, path.add(expr()), parameters, env)
+                       + "::" + toType().translate(target, esqlCon, path, parameters, env);
       case POSTGRESQL -> '(' + expr().translate(target, esqlCon, path.add(expr()), parameters, env) + ")::"
                              + toType().translate(target, esqlCon, path, parameters, env);
-      case JSON,
-           JAVASCRIPT -> expr().translate(target, esqlCon, path.add(expr()), parameters, env);    // ignore cast for Javascript
+      case JAVASCRIPT -> expr().translate(target, esqlCon, path.add(expr()), parameters, env);    // ignore cast for Javascript
       default         -> "cast(" + expr().translate(target, esqlCon, path.add(expr()), parameters, env)
                        + " as " + toType().translate(target, esqlCon, path, parameters, env) + ')';
     };
@@ -70,9 +73,8 @@ public class Cast extends Expression<String, String> {
 
   @Override
   public void _toString(StringBuilder st, int level, int indent) {
-    st.append(toType().name()).append('<');
     expr()._toString(st, level, indent);
-    st.append('>');
+    st.append("::").append(toType().name());
   }
 
   public Type toType() {

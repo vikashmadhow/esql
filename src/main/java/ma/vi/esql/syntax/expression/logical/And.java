@@ -13,10 +13,8 @@ import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.expression.Expression;
 import ma.vi.esql.syntax.expression.comparison.ComparisonOperator;
+import ma.vi.esql.translation.SqlServerTranslator;
 import org.pcollections.PMap;
-
-import static ma.vi.base.string.Escape.escapeJsonString;
-import static ma.vi.esql.translation.Translatable.Target.JSON;
 
 /**
  * Logical and operator in ESQL.
@@ -55,16 +53,18 @@ public class And extends ComparisonOperator {
   }
 
   @Override
-  protected String trans(Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
+  protected String trans(Target               target,
+                         EsqlConnection       esqlCon,
+                         EsqlPath             path,
+                         PMap<String, Object> parameters,
+                         Environment          env) {
     switch (target) {
       case JAVASCRIPT -> {
         return expr1().translate(target, null, path.add(expr1()), parameters, null) + " && "
              + expr2().translate(target, null, path.add(expr2()), parameters, null);
       }
       case SQLSERVER -> {
-        if (path.ancestor("on") == null
-         && path.ancestor("where") == null
-         && path.ancestor("having") == null) {
+        if (SqlServerTranslator.requireIif(path, parameters)) {
           /*
            * For SQL Server, boolean expressions outside of where and having
            * clauses are not allowed and we simulate it with bitwise operations.
@@ -83,13 +83,15 @@ public class And extends ComparisonOperator {
   }
 
   @Override
-  public Object postTransformExec(Target target, EsqlConnection esqlCon,
-                                  EsqlPath path,
-                                  PMap<String, Object> parameters, Environment env) {
-    Object left = expr1().exec(target, esqlCon, path.add(expr1()), parameters, env);
+  public Object postTransformExec(Target               target,
+                                  EsqlConnection       esqlCon,
+                                  EsqlPath             path,
+                                  PMap<String, Object> parameters,
+                                  Environment          env) {
+    Object left  = expr1().exec(target, esqlCon, path.add(expr1()), parameters, env);
     Object right = expr2().exec(target, esqlCon, path.add(expr2()), parameters, env);
 
-    if (left instanceof Boolean lb
+    if (left  instanceof Boolean lb
      && right instanceof Boolean rb) {
       return lb && rb;
     } else {

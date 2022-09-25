@@ -94,7 +94,7 @@ public class BaseArrayLiteral extends Literal<Type> {
                                                               env)))
                     .collect(joining(",", (target == SQLSERVER ? "N" : "") + "'[", "]'"));
 
-      case JSON, JAVASCRIPT
+      case JAVASCRIPT
           -> items().stream()
                     .map(e -> e.translate(target, esqlCon, path.add(e), parameters, env))
                     .collect(joining(",", "[", "]"));

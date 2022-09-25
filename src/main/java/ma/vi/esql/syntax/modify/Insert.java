@@ -9,7 +9,10 @@ import ma.vi.esql.semantic.type.Column;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.define.Metadata;
-import ma.vi.esql.syntax.query.*;
+import ma.vi.esql.syntax.query.ColumnList;
+import ma.vi.esql.syntax.query.QueryUpdate;
+import ma.vi.esql.syntax.query.Select;
+import ma.vi.esql.syntax.query.SingleTableExpr;
 
 import java.util.List;
 

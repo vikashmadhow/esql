@@ -59,7 +59,7 @@ public class FunctionParameter extends Esql<String, String> implements Symbol {
   protected String trans(Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
     return switch (target) {
       case ESQL -> name() + " : " + type().translate(target, esqlCon, path, parameters, env);
-      case JSON, JAVASCRIPT -> name();
+      case JAVASCRIPT -> name();
       default ->
         /*
          * for databases drop name as it is not supported in most cases

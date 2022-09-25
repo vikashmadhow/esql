@@ -16,9 +16,6 @@ import ma.vi.esql.syntax.expression.Expression;
 import ma.vi.esql.translation.Translatable;
 import org.pcollections.PMap;
 
-import static ma.vi.base.string.Escape.escapeJsonString;
-import static ma.vi.esql.translation.Translatable.Target.JSON;
-
 /**
  * The exponentiation operator (^) in ESQL.
  *
@@ -59,9 +56,8 @@ public class Exponentiation extends ArithmeticOperator {
       return "POWER(" + expr1().translate(target, esqlCon, path.add(expr1()), parameters, env)
            + ", " + expr2().translate(target, esqlCon, path.add(expr2()), parameters, env) + ")";
     } else {
-      String e = expr1().translate(target, esqlCon, path.add(expr1()), parameters, env)
+      return expr1().translate(target, esqlCon, path.add(expr1()), parameters, env)
                + " ^ " + expr2().translate(target, esqlCon, path.add(expr2()), parameters, env);
-      return target == JSON ? '"' + escapeJsonString(e) + '"' : e;
     }
   }
 

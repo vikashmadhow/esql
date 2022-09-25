@@ -15,9 +15,7 @@ import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.expression.Expression;
 import org.pcollections.PMap;
 
-import static ma.vi.base.string.Escape.escapeJsonString;
 import static ma.vi.esql.translation.SqlServerTranslator.requireIif;
-import static ma.vi.esql.translation.Translatable.Target.JSON;
 
 /**
  * A range expression bounds an expression between two expression
@@ -74,12 +72,11 @@ public class Range extends Expression<String, String> {
                          EsqlConnection esqlCon, EsqlPath path,
                          PMap<String, Object> parameters, Environment env) {
     switch (target) {
-      case JSON, JAVASCRIPT -> {
+      case JAVASCRIPT -> {
         String compareEx = compareExpression().translate(target, esqlCon, path.add(compareExpression()), parameters, env);
-        String e = '(' + leftExpression().translate(target, esqlCon, path.add(leftExpression()), parameters, env) + ' '
-                 + leftCompare() + ' ' + compareEx + " && " + compareEx + ' ' + rightCompare() + ' '
-                 + rightExpression().translate(target, esqlCon, path.add(rightExpression()), parameters, env) + ')';
-        return target == JSON ? '"' + escapeJsonString(e) + '"' : e;
+        return '(' + leftExpression().translate(target, esqlCon, path.add(leftExpression()), parameters, env) + ' '
+             + leftCompare() + ' ' + compareEx + " && " + compareEx + ' ' + rightCompare() + ' '
+             + rightExpression().translate(target, esqlCon, path.add(rightExpression()), parameters, env) + ')';
       }
       default -> {
         boolean sqlServerBool = target == Target.SQLSERVER && requireIif(path, parameters);

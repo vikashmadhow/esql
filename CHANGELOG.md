@@ -83,6 +83,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Modify queries return values don't seem to be supported correctly for SQL 
   Server.
 
+## [1.0.16] - 2022-09-25
+### Fixed:
+- Translation of logical operators in SQL server was not taking into account the
+  context in all cases (logical operators can only appear in certain part of SQL
+  Server dialect as the latter does not have a boolean type). This is now fixed
+  with the generated translation changed based on translation parameters set by
+  ancestor nodes in the parsed tree of the statement.
+
+### Removed:
+- Deprecated target JSON has been removed.
+
 ## [1.0.15] - 2022-09-23
 ### Changed:
 - Filters are applied  prior to typed macro expansion in the execution pipeline

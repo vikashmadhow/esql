@@ -17,7 +17,6 @@ import java.util.UUID;
 import java.util.stream.Stream;
 
 import static java.util.UUID.randomUUID;
-import static ma.vi.esql.exec.Param.of;
 import static ma.vi.esql.syntax.Parser.Rules.INSERT;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.DynamicTest.dynamicTest;

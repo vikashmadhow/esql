@@ -13,10 +13,8 @@ import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.expression.Expression;
 import ma.vi.esql.syntax.expression.SingleSubExpression;
+import ma.vi.esql.translation.SqlServerTranslator;
 import org.pcollections.PMap;
-
-import static ma.vi.base.string.Escape.escapeJsonString;
-import static ma.vi.esql.translation.Translatable.Target.JSON;
 
 /**
  * The logical inverse (not) operator in ESQL.
@@ -53,27 +51,28 @@ public class Not extends SingleSubExpression {
   }
 
   @Override
-  protected String trans(Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
+  protected String trans(Target               target,
+                         EsqlConnection       esqlCon,
+                         EsqlPath             path,
+                         PMap<String, Object> parameters,
+                         Environment          env) {
     switch (target) {
-      case JSON, JAVASCRIPT -> {
-        String e = "!" + expr().translate(target, esqlCon, path.add(expr()), parameters, env);
-        return target == JSON ? '"' + escapeJsonString(e) + '"' : e;
+      case JAVASCRIPT -> {
+        return "!" + expr().translate(target, esqlCon, path.add(expr()), parameters, env);
       }
       case SQLSERVER -> {
-        if (path.ancestor("on") == null
-         && path.ancestor("where") == null
-         && path.ancestor("having") == null) {
+        if (SqlServerTranslator.requireIif(path, parameters)) {
           /*
            * For SQL Server, boolean expressions outside of where and having
            * clauses are not allowed and we simulate it with bitwise operations.
            */
-          return "cast(~(" + expr() + ") as bit)";
+          return "cast(~(" + String.valueOf(expr().translate(target, esqlCon, path.add(expr()), parameters, env)) + ") as bit)";
         } else {
-          return "not " + expr().translate(target, esqlCon, path.add(expr()), parameters, env);
+          return "not " + String.valueOf(expr().translate(target, esqlCon, path.add(expr()), parameters, env));
         }
       }
       default -> {
-        return "not " + expr().translate(target, esqlCon, path.add(expr()), parameters, env);
+        return "not " + String.valueOf(expr().translate(target, esqlCon, path.add(expr()), parameters, env));
       }
     }
   }
@@ -85,9 +84,11 @@ public class Not extends SingleSubExpression {
   }
 
   @Override
-  public Object postTransformExec(Target target, EsqlConnection esqlCon,
-                                  EsqlPath path,
-                                  PMap<String, Object> parameters, Environment env) {
+  public Object postTransformExec(Target               target,
+                                  EsqlConnection       esqlCon,
+                                  EsqlPath             path,
+                                  PMap<String, Object> parameters,
+                                  Environment          env) {
     Object expr = expr().exec(target, esqlCon, path.add(expr()), parameters, env);
     if (expr instanceof Boolean bool) {
       return !bool;

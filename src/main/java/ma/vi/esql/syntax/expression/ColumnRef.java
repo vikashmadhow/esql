@@ -276,8 +276,7 @@ public class ColumnRef extends    Expression<String, String>
                          && (path.ancestor(FunctionCall.class) == null);
     return switch (target) {
       case ESQL        -> qualifiedName();
-      case JAVASCRIPT,
-           JSON        -> qualifier() == null
+      case JAVASCRIPT  -> qualifier() == null
                         ? "row." + columnName() + ".$v"
                         : "row." + qualifier()  + ".$m." + columnName();
 

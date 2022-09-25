@@ -4,9 +4,9 @@
 
 package ma.vi.esql.exec;
 
+import ma.vi.esql.semantic.type.Column;
 import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.syntax.query.AttributeIndex;
-import ma.vi.esql.semantic.type.Column;
 
 import java.util.List;
 import java.util.Map;

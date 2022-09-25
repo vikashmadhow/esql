@@ -15,9 +15,6 @@ import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.expression.Expression;
 import org.pcollections.PMap;
 
-import static ma.vi.base.string.Escape.escapeJsonString;
-import static ma.vi.esql.translation.Translatable.Target.JSON;
-
 /**
  * Between range comparison operator in ESQL.
  *
@@ -68,12 +65,11 @@ public class Between extends Expression<String, String> {
   @Override
   protected String trans(Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
     switch (target) {
-      case JSON, JAVASCRIPT:
+      case JAVASCRIPT:
         Object compareEx = compare().translate(target, esqlCon, path.add(compare()), parameters, env);
-        String e = (not() ? "!" : "") + '('
+        return (not() ? "!" : "") + '('
                  + compareEx + " >= " + from().translate(target, esqlCon, path.add(from()), parameters, env) + " && "
                  + compareEx + " <= " + to().translate(target, esqlCon, path.add(to()), parameters, env) + ')';
-        return target == JSON ? '"' + escapeJsonString(e) + '"' : e;
 
       default:
         return compare().translate(target, esqlCon, path.add(compare()), parameters, env)

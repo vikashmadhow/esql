@@ -18,10 +18,8 @@ import org.pcollections.PMap;
 import java.util.Iterator;
 import java.util.List;
 
-import static ma.vi.base.string.Escape.escapeJsonString;
 import static ma.vi.esql.translation.SqlServerTranslator.ADD_IIF;
 import static ma.vi.esql.translation.SqlServerTranslator.DONT_ADD_IIF;
-import static ma.vi.esql.translation.Translatable.Target.JSON;
 
 /**
  * Ternary condition in the form:
@@ -69,7 +67,7 @@ public class Case extends MultipleSubExpressions {
                          PMap<String, Object> parameters,
                          Environment          env) {
     switch (target) {
-      case JSON, JAVASCRIPT -> {
+      case JAVASCRIPT -> {
         StringBuilder est = new StringBuilder();
         for (Iterator<Expression<?, ?>> i = expressions().iterator(); i.hasNext(); ) {
           Expression<?, ?> e = i.next();
@@ -86,9 +84,6 @@ public class Case extends MultipleSubExpressions {
         }
         String ex = est.toString();
         ex = '(' + ex + ')';
-        if (target == JSON) {
-          ex = '"' + escapeJsonString(ex) + '"';
-        }
         return ex;
       }
 

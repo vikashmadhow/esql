@@ -8,7 +8,8 @@ import ma.vi.base.lang.Builder;
 import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Parser;
-import ma.vi.esql.syntax.define.*;
+import ma.vi.esql.syntax.define.Attribute;
+import ma.vi.esql.syntax.define.Metadata;
 import ma.vi.esql.syntax.define.table.*;
 
 import java.util.ArrayList;

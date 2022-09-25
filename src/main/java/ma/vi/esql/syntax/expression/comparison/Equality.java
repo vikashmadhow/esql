@@ -16,9 +16,7 @@ import org.pcollections.PMap;
 
 import java.util.Objects;
 
-import static ma.vi.base.string.Escape.escapeJsonString;
 import static ma.vi.esql.translation.SqlServerTranslator.requireIif;
-import static ma.vi.esql.translation.Translatable.Target.JSON;
 
 /**
  * The equality operator in ESQL.
@@ -61,11 +59,9 @@ public class Equality extends ComparisonOperator {
                          PMap<String, Object> parameters,
                          Environment          env) {
     switch (target) {
-      case JSON:
       case JAVASCRIPT:
-        String e = expr1().translate(target, null, path.add(expr1()), parameters, null) + " === "
-                 + expr2().translate(target, null, path.add(expr2()), parameters, null);
-        return target == JSON ? '"' + escapeJsonString(e) + '"' : e;
+        return expr1().translate(target, null, path.add(expr1()), parameters, null) + " === "
+             + expr2().translate(target, null, path.add(expr2()), parameters, null);
 
       case SQLSERVER:
         boolean string = expr1().type() == Types.StringType

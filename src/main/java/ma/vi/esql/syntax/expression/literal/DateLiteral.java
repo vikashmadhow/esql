@@ -21,7 +21,6 @@ import java.time.LocalTime;
 import java.time.temporal.Temporal;
 
 import static java.lang.Integer.parseInt;
-import static ma.vi.base.string.Escape.escapeJsonString;
 
 /**
  * A date literal in ESQL.
@@ -94,7 +93,6 @@ public class DateLiteral extends BaseLiteral<String> {
                                                                env)
                        + ')';
       case JAVASCRIPT -> "new Date('" + value + "')";
-      case JSON       -> '"' + escapeJsonString("new Date('" + value + "')") + '"';
       default         -> "d'" + value + "'";
     };
   }
