@@ -1058,8 +1058,8 @@ positionalArgument
 literal
     : baseLiteral                               #BasicLiterals
     | NullLiteral                               #Null
+    | '[' baseLiteralList? ']' identifier       #BaseArrayLiteral
     | '[' literalList? ']'                      #JsonArrayLiteral       // valid only in metadata expression
-    | '[' baseLiteralList? ']' (identifier)?    #BaseArrayLiteral
     | '{' literalAttributeList? '}'             #JsonObjectLiteral      // valid only in metadata expression
     ;
 

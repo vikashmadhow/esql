@@ -76,7 +76,7 @@ public class Types {
    */
   public static boolean instanceOf(Object value, Type type) {
     return (value == null)
-        || (type == TopType)
+        || (type == Any)
         || (type == StringType        && value instanceof CharSequence)
         || (type == TextType          && value instanceof CharSequence)
         || (type == ByteType          && value instanceof Number)
@@ -471,9 +471,16 @@ public class Types {
   /**
    * Abstract ancestral type of all types
    */
-  public static final Type TopType =
-      new SpecialBaseType("top", 1, false,
-                          Map.of(ALL, "top"));
+  public static final Type Any =
+      new SpecialBaseType("any", 1, false,
+                          Map.of(ALL, "any"));
+
+  /**
+   * Abstract ancestral type of arrays.
+   */
+  public static final Type AnyArray =
+      new SpecialBaseType("anyarray", 1, false,
+                          Map.of(ALL, "anyarray"));
 
   /**
    * A special type for functions whose return types are the same as their first
@@ -524,7 +531,7 @@ public class Types {
     /*
      * abstract and special types for edge-cases and completing the base type system
      */
-    esqlTypes.put("top",  TopType);
+    esqlTypes.put("top", Any);
     esqlTypes.put("null", NullType);
     esqlTypes.put("void", VoidType);
     esqlTypes.put("___",  AsParameterType);

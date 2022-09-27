@@ -46,8 +46,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `alter sequence` support in ESQL.
 - `drop sequence` support in ESQL.
 - Change notification and subscription.
-- Fine-grain history
-- Snapshots
+- Fine-grain history.
+- Snapshots.
 - Undo and redo maintaining coherent table state.
 - A special keyword (`this`?) to reference the table being implicitly queried. 
   This is useful in expressions defined in attributes which will be executed against
@@ -82,6 +82,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   for metadata overriding)
 - Modify queries return values don't seem to be supported correctly for SQL 
   Server.
+
+## [1.1.0] - 2022-09-27
+### Added:
+- Component type must now be specified in base array literal; without the explicit
+  type, the grammar is ambiguous and the base array literal can be interpreted as
+  a JSON array literal leading to erroneous translation.
+- `$changed` special metadata attribute which is added to records and columns (on
+  the client side) when their values are changed. This is used for tracking
+  elements of records which need to be inserted/updated in the database.
+- `inarray` function returns true if an element is in an array and is translated
+  using array operations on database that has such support or `string_split` on
+  SQL Server. 
+  - To ease support for `string_split` the format for string arrays has changed: 
+    the prefix and suffix (`[]`) has been dropped and the individual values are 
+    no longer quoted if they are strings. The separator has been changed from `,`
+    to `|` which, as a less frequent character in strings, is less likely to 
+    already exist in an element.  
+
+## [1.0.18] - 2022-09-26
+### Added:
+- Translation of select expression to Javascript using the support function
+  `$exec.select`.
 
 ## [1.0.17] - 2022-09-26
 ### Changed:

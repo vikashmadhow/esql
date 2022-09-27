@@ -28,7 +28,7 @@ import static ma.vi.esql.translation.Translatable.Target.*;
 public class Print extends Function {
   public Print() {
     super("print", Types.NullType,
-          singletonList(new FunctionParam("text", Types.TopType)));
+          singletonList(new FunctionParam("text", Types.Any)));
   }
 
   @Override

@@ -91,6 +91,60 @@ public class SelectTest extends DataTest {
   }
 
   @TestFactory
+  Stream<DynamicTest> searchByInArray() {
+    return Stream.of(databases)
+                 .map(db -> dynamicTest(db.target().toString(), () -> {
+                   System.out.println(db.target());
+                   Parser p = new Parser(db.structure());
+                   try (EsqlConnection con = db.esql(db.pooledConnection())) {
+                     con.exec("delete t from t:a.b.T");
+                     con.exec("delete s from s:S");
+                     con.exec("insert into S(_id, a, b, e, h, j) values "
+                                  + "(newid(), 1, 2, true, ['Four', 'Quatre']text, [1, 2, 3]int),"
+                                  + "(newid(), 3, 4, true, ['Quatre', 'Five']text, [3, 4]int),"
+                                  + "(newid(), 9, 7, false, ['Nine', 'Neuf', 'X']text, [5, 6, 7, 8]int)");
+
+                     Result rs = con.exec("select a, b from S where inarray('Quatre', h) order by a");
+                     matchResult(rs, List.of(
+                       Map.of("a", 1, "b", 2),
+                       Map.of("a", 3, "b", 4)
+                     ));
+
+                     rs = con.exec("select a, b from S where inarray('Six', h) order by a");
+                     assertFalse(rs.toNext());
+
+                     rs = con.exec("select a, b from S where inarray('Neuf', h) order by a");
+                     matchResult(rs, List.of(Map.of("a", 9, "b", 7)));
+
+                     rs = con.exec("select a, b from S where inarray(1, j) order by a");
+                     matchResult(rs, List.of(Map.of("a", 1, "b", 2)));
+
+                     rs = con.exec("select a, b from S where inarray(3, j) order by a");
+                     matchResult(rs, List.of(
+                       Map.of("a", 1, "b", 2),
+                       Map.of("a", 3, "b", 4)
+                     ));
+
+                     rs = con.exec("select a, b from S where inarray(-100, j) order by a");
+                     assertFalse(rs.toNext());
+
+                     rs = con.exec("select a, b from S where inarray(a, j) order by a");
+                     matchResult(rs, List.of(
+                       Map.of("a", 1, "b", 2),
+                       Map.of("a", 3, "b", 4)
+                     ));
+
+                     rs = con.exec("select a, b from S where inarray(b, j) order by a");
+                     matchResult(rs, List.of(
+                       Map.of("a", 1, "b", 2),
+                       Map.of("a", 3, "b", 4),
+                       Map.of("a", 9, "b", 7)
+                     ));
+                   }
+                 }));
+  }
+
+  @TestFactory
   Stream<DynamicTest> simpleSelectWithParametersAndEval() {
     return Stream.of(databases)
                  .map(db -> dynamicTest(db.target().toString(), () -> {

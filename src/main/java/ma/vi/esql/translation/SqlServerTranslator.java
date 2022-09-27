@@ -518,9 +518,9 @@ public class SqlServerTranslator extends AbstractTranslator {
   }
 
   /**
-   * A translation parameter set to instruct downstream translation node that the
+   * A translation parameter set to instruct downstream translation nodes that the
    * value being translated is an element of an array. In SQL Server, which does
-   * not have a native array type, arrays is simulated as strings. As such, the
+   * not have a native array type, arrays is emulated using strings. As such, the
    * elements need to be translated as valid substrings; e.g. string elements of
    * an array are translated without the surrounding single-quotes when they are
    * elements of arrays.

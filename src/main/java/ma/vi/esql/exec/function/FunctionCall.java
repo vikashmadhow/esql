@@ -86,7 +86,7 @@ public class FunctionCall extends Expression<String, String> implements TypedMac
 
   @Override
   public Type computeType(EsqlPath path) {
-    Type type = Types.TopType;
+    Type type = Types.Any;
     List<Expression<?, ?>> arguments = arguments();
     Function function = context.structure.function(functionName());
     if (function != null) {

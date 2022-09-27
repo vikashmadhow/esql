@@ -25,8 +25,8 @@ import static ma.vi.esql.translation.Translatable.Target.JAVASCRIPT;
 public class Coalesce extends Function {
   public Coalesce() {
     super("coalesce", Types.AsParameterType,
-          asList(new FunctionParam("a", Types.TopType),
-                 new FunctionParam("b", Types.TopType)));
+          asList(new FunctionParam("a", Types.Any),
+                 new FunctionParam("b", Types.Any)));
   }
 
   @Override

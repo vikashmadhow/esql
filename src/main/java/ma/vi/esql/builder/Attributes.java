@@ -36,6 +36,11 @@ public class Attributes {
    */
   public static final String DELETED_CHILDREN = "deleted_children";
 
+  /**
+   * Added to the metadata of records and columns when modified.
+   */
+  public static final String CHANGED = "$changed";
+
   /*
    * An initial value to set on a field on creation.
    */

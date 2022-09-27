@@ -20,7 +20,7 @@ import java.util.List;
 import static ma.vi.esql.translation.Translatable.Target.*;
 
 /**
- * Function for finding the index of a string in another string
+ * Function for finding the index of a string in another string.
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */

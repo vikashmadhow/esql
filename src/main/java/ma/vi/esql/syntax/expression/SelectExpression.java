@@ -17,11 +17,14 @@ import ma.vi.esql.syntax.query.QueryTranslation;
 import ma.vi.esql.syntax.query.Select;
 import org.pcollections.PMap;
 
-import java.util.Collections;
 import java.util.List;
 
+import static java.util.Collections.emptyList;
+import static java.util.Collections.emptyMap;
 import static java.util.stream.Collectors.joining;
 import static ma.vi.esql.translation.SqlServerTranslator.DONT_ADD_IIF;
+import static ma.vi.esql.translation.Translatable.Target.ESQL;
+import static ma.vi.esql.translation.Translatable.Target.JAVASCRIPT;
 
 /**
  * A single-column, single-row select in a column list.
@@ -87,42 +90,15 @@ public class SelectExpression extends Select {
                                    EsqlPath             path,
                                    PMap<String, Object> parameters,
                                    Environment          env) {
-    if (target == Target.ESQL) {
-      Select sel = select();
-      StringBuilder st = new StringBuilder();
-      st.append("(from ").append(sel.tables().translate(target, esqlCon, path.add(sel.tables()), parameters, env)).append(" select ");
-      if (sel.distinct()) {
-        st.append("distinct ");
-        List<Expression<?, ?>> distinctOn = sel.distinctOn();
-        if (distinctOn != null && !distinctOn.isEmpty()) {
-          st.append("on (")
-            .append(distinctOn.stream()
-                              .map(e -> e.translate(target, esqlCon, path.add(e), parameters, env).toString())
-                              .collect(joining(", ")))
-            .append(") ");
-        }
-      }
+    if (target == ESQL) {
+      String esql = translateToEsql(esqlCon, path, parameters, env);
+      return new QueryTranslation(this, esql, emptyList(), emptyMap());
 
-      Column col = sel.columns().get(0);
-      if (col.name() != null) {
-        st.append(col.name()).append(':');
-      }
-      st.append(col.expression().translate(target, esqlCon, path.add(col.expression()), parameters, env));
-
-      if (sel.where() != null) {
-        st.append(" where ").append(sel.where().translate(target, esqlCon, path.add(sel.where()), parameters, env));
-      }
-      if (sel.orderBy() != null && !sel.orderBy().isEmpty()) {
-        st.append(" order by ")
-          .append(sel.orderBy().stream()
-                     .map(e -> e.translate(target, esqlCon, path.add(e), parameters, env))
-                     .collect(joining(", ")));
-      }
-      if (sel.offset() != null) {
-        st.append(" offset ").append(sel.offset().translate(target, esqlCon, path.add(sel.offset()), parameters, env));
-      }
-      st.append(')');
-      return new QueryTranslation(this, st.toString(), Collections.emptyList(), Collections.emptyMap());
+    } else if (target == JAVASCRIPT) {
+      String esql = "(await $exec.select(`"
+                  + translateToEsql(esqlCon, path, parameters, env)
+                  + "`))";
+      return new QueryTranslation(this, esql, emptyList(), emptyMap());
 
     } else {
       QueryTranslation t = select().translate(target, esqlCon, path.add(select()), parameters.plusAll(DONT_ADD_IIF), env);
@@ -132,6 +108,47 @@ public class SelectExpression extends Select {
         t.columns(),
         t.resultAttributes());
     }
+  }
+
+  private String translateToEsql(EsqlConnection       esqlCon,
+                                 EsqlPath             path,
+                                 PMap<String, Object> parameters,
+                                 Environment          env) {
+    Select sel = select();
+    StringBuilder st = new StringBuilder();
+    st.append("(from ").append(sel.tables().translate(ESQL, esqlCon, path.add(sel.tables()), parameters, env)).append(" select ");
+    if (sel.distinct()) {
+      st.append("distinct ");
+      List<Expression<?, ?>> distinctOn = sel.distinctOn();
+      if (distinctOn != null && !distinctOn.isEmpty()) {
+        st.append("on (")
+          .append(distinctOn.stream()
+                            .map(e -> e.translate(ESQL, esqlCon, path.add(e), parameters, env).toString())
+                            .collect(joining(", ")))
+          .append(") ");
+      }
+    }
+
+    Column col = sel.columns().get(0);
+    if (col.name() != null) {
+      st.append(col.name()).append(':');
+    }
+    st.append(col.expression().translate(ESQL, esqlCon, path.add(col.expression()), parameters, env));
+
+    if (sel.where() != null) {
+      st.append(" where ").append(sel.where().translate(ESQL, esqlCon, path.add(sel.where()), parameters, env));
+    }
+    if (sel.orderBy() != null && !sel.orderBy().isEmpty()) {
+      st.append(" order by ")
+        .append(sel.orderBy().stream()
+                   .map(e -> e.translate(ESQL, esqlCon, path.add(e), parameters, env))
+                   .collect(joining(", ")));
+    }
+    if (sel.offset() != null) {
+      st.append(" offset ").append(sel.offset().translate(ESQL, esqlCon, path.add(sel.offset()), parameters, env));
+    }
+    st.append(')');
+    return st.toString();
   }
 
   @Override

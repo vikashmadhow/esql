@@ -5,7 +5,6 @@ import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.define.Attribute;
-import ma.vi.esql.syntax.define.Metadata;
 import ma.vi.esql.syntax.modify.UpdateSet;
 import org.pcollections.PMap;
 

@@ -9,6 +9,7 @@ import com.microsoft.sqlserver.jdbc.SQLServerConnectionPoolDataSource;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import ma.vi.base.config.Configuration;
+import ma.vi.base.string.Escape;
 import ma.vi.base.util.Convert;
 import ma.vi.esql.translation.Translatable;
 
@@ -472,23 +473,22 @@ public class SqlServer extends AbstractDatabase {
 
     } else {
       /*
-       * Arrays can be 3 different forms: a,b,c,... or [a,b,c,...] or <type>[a,b,c...].
+       * Arrays can be 3 different forms: a|b|c,... or [a|b|c|...] or [a|b|c...]<type>.
        * For the latter two cases, extract the internal array contents before parsing.
        */
       String remapped = ARRAY_ESCAPE.map(array);
-      if (remapped.charAt(array.length() - 1) == ']') {
-        if (remapped.charAt(0) == '[') {
+      if (remapped.charAt(0) == '[') {
+        if (remapped.charAt(array.length() - 1) == ']') {
           remapped = remapped.substring(1, array.length() - 1);
         } else {
-          int pos = remapped.indexOf('[');
+          int pos = remapped.lastIndexOf(']');
           if (pos != -1) {
             /*
-             * check if array start is prefixed with a base type;
-             * remove if so.
+             * check if array end is prefixed with a base type; * remove if so.
              */
-            String prefix = remapped.substring(0, pos);
-            if (BASE_TYPE.matcher(prefix).matches()) {
-              remapped = remapped.substring(pos + 1, remapped.length() - 1);
+            String suffix = remapped.substring(pos + 1);
+            if (BASE_TYPE.matcher(suffix).matches()) {
+              remapped = remapped.substring(0, pos);
             }
           }
         }
@@ -496,7 +496,7 @@ public class SqlServer extends AbstractDatabase {
       if (remapped.trim().length() == 0) {
         return (T[])Array.newInstance(componentType, 0);
       } else {
-        String[] split = remapped.split(",");
+        String[] split = remapped.split("\\|");
         T[] list = (T[])Array.newInstance(componentType, split.length);
         for (int i = 0; i < split.length; i++) {
           list[i] = (T)Convert.convert(ARRAY_ESCAPE.demap(split[i]), componentType);
@@ -505,6 +505,8 @@ public class SqlServer extends AbstractDatabase {
       }
     }
   }
+
+  public static final Escape ARRAY_ESCAPE = new Escape("\\|[]");
 
   /**
    * Datasource for pooled connections.

@@ -26,7 +26,7 @@ import java.util.List;
 import java.util.Map;
 
 import static ma.vi.base.tuple.T2.of;
-import static ma.vi.esql.semantic.type.Types.TopType;
+import static ma.vi.esql.semantic.type.Types.Any;
 
 /**
  * For each loop to iterate over lists, arrays, maps, results and iterables in general.
@@ -75,9 +75,9 @@ public class ForEach extends Expression<String, ForEach> {
     Scope forScope = new BlockScope(scope);
     super.scope(forScope, path);
     if (keyVar() != null) {
-      forScope.addSymbol(Symbol.of(keyVar(), TopType));
+      forScope.addSymbol(Symbol.of(keyVar(), Any));
     }
-    forScope.addSymbol(Symbol.of(valueVar(), TopType));
+    forScope.addSymbol(Symbol.of(valueVar(), Any));
     for (Expression<?, ?> e: body()) {
       e.scope(forScope, path.add(e));
     }

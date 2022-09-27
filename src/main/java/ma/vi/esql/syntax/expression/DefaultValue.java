@@ -55,7 +55,7 @@ public class DefaultValue extends Expression<String, String> {
      * context, which is not necessary for the translation. TopType
      * is a placeholder for any type.
      */
-    return Types.TopType;
+    return Types.Any;
   }
 
   @Override

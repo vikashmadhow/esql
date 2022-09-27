@@ -92,7 +92,7 @@ public class BaseArrayLiteral extends Literal<Type> {
                                                               path.add(e),
                                                               parameters.plusAll(SqlServerTranslator.IN_ARRAY),
                                                               env)))
-                    .collect(joining(",", (target == SQLSERVER ? "N" : "") + "'[", "]'"));
+                    .collect(joining("|", (target == SQLSERVER ? "N" : "") + "'", "'"));
 
       case JAVASCRIPT
           -> items().stream()

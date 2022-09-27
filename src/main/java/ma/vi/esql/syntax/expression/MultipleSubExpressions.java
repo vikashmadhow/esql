@@ -53,7 +53,7 @@ public abstract class MultipleSubExpressions extends Expression<String, String> 
         return type;
       }
     }
-    return Types.TopType;
+    return Types.Any;
   }
 
   @Override

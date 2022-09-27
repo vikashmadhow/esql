@@ -1590,18 +1590,6 @@ public class EsqlBaseListener implements EsqlListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterJsonArrayLiteral(EsqlParser.JsonArrayLiteralContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitJsonArrayLiteral(EsqlParser.JsonArrayLiteralContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
 	@Override public void enterBaseArrayLiteral(EsqlParser.BaseArrayLiteralContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -1609,6 +1597,18 @@ public class EsqlBaseListener implements EsqlListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitBaseArrayLiteral(EsqlParser.BaseArrayLiteralContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterJsonArrayLiteral(EsqlParser.JsonArrayLiteralContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitJsonArrayLiteral(EsqlParser.JsonArrayLiteralContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *

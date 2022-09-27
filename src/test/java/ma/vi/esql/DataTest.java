@@ -11,6 +11,7 @@ import ma.vi.esql.exec.Result;
 import ma.vi.esql.exec.ResultColumn;
 import ma.vi.esql.syntax.Parser;
 import ma.vi.esql.syntax.Program;
+import ma.vi.esql.syntax.expression.literal.DateLiteral;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.json.JSONArray;
@@ -18,10 +19,13 @@ import org.json.JSONObject;
 import org.junit.jupiter.api.BeforeAll;
 
 import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
 import java.util.Map;
 
 import static org.apache.commons.lang3.StringUtils.repeat;
 import static org.apache.commons.lang3.StringUtils.rightPad;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class DataTest {
   public static Database[] databases;
@@ -302,6 +306,27 @@ public class DataTest {
     }
     if (!first) {
       System.out.println('+' + repeat(repeat('-', columnWidth) + '+', rs.columnsCount()));
+    }
+  }
+
+  public static void matchResult(Result rs, List<Map<String, Object>> expected) {
+    int row = 1;
+    for (Map<String, Object> expectedRow: expected) {
+      rs.toNext();
+      for (Map.Entry<String, Object> col: expectedRow.entrySet()) {
+        String c = col.getKey();
+        Object expectedVal = col.getValue();
+        Object actualVal = rs.value(c);
+        if (expectedVal instanceof Date && actualVal instanceof Date) {
+          assertEquals(DateLiteral.DateFormat.format(expectedVal),
+                       DateLiteral.DateFormat.format(actualVal),
+                       "Row " + row + ", column " + c + ", expected " + expectedVal + ", got " + actualVal);
+        } else {
+          assertEquals(expectedVal, actualVal,
+                       "Row " + row + ", column " + c + ", expected " + expectedVal + ", got " + actualVal);
+        }
+      }
+      row++;
     }
   }
 
