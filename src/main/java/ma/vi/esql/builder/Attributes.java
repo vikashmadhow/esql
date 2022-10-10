@@ -142,6 +142,11 @@ public class Attributes {
   public static final String STRING_FORM = "string_form";
 
   /**
+   * If computes to true, the field cannot be changed. Default is false.
+   */
+  public static final String READONLY = "readonly";
+
+  /**
    * If true, column is not shown. Default is false.
    */
   public static final String HIDE = "hide";
@@ -487,10 +492,10 @@ public class Attributes {
   public static final String VALUES = "values";
 
   /**
-   * Whether to show the code values for choices (not just the label).
-   * Default is true for lookups and false for link tables.
+   * Whether to hide the code values for choices (not just the label).
+   * Default is false for lookups and true for link tables.
    */
-  public static final String LINK_SHOW_CODE = "link_show_code";
+  public static final String HIDE_CODE = "hide_code";
 
   /**
    * A filter condition limiting the choices of the selector for this member.

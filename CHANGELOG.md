@@ -83,6 +83,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Modify queries return values don't seem to be supported correctly for SQL 
   Server.
 
+## [1.1.1] - 2022-10-06
+### Added:
+- `READONLY` attribute added to `Attributes` class.
+
 ## [1.1.0] - 2022-09-27
 ### Added:
 - Component type must now be specified in base array literal; without the explicit
