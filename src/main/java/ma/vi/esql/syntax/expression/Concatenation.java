@@ -56,7 +56,7 @@ public class Concatenation extends MultipleSubExpressions {
                          Environment          env) {
     switch (target) {
       case JAVASCRIPT -> {
-        StringBuilder st = new StringBuilder("$exec.concat({}");
+        StringBuilder st = new StringBuilder("await $exec.concat({}");
         for (Expression<?, ?> e: expressions()) {
           st.append(", ").append(e.translate(target,
                                              esqlCon,

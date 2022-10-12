@@ -83,6 +83,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Modify queries return values don't seem to be supported correctly for SQL 
   Server.
 
+## [1.1.2] - 2022-10-12
+### Fixed:
+- `await` added to call to `$exec.concat()` in the Javascript translation of 
+  the concatenation operation.
+
 ## [1.1.1] - 2022-10-06
 ### Added:
 - `READONLY` attribute added to `Attributes` class.
