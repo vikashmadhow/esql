@@ -123,7 +123,7 @@ public class AlterStruct extends Define {
            * Add a column to the struct.
            */
           Column col = Column.fromDefinition(column);
-          s.database.column(esqlCon, struct.id(), col);
+          s.database.column(esqlCon, struct.id(), col, column.seq);
           struct.addColumn(col);
 
         } else if (definition instanceof Metadata metadata) {

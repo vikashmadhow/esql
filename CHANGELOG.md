@@ -14,16 +14,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Operations on JSON objects.
 - Support for merge queries.
 - `Truncate table` statement.
+
 - Make all expressions and functions (where possible) executable.
+- 
 - Support for creating and using sequences.
-- Support for creating indices.
 - Support for creating and using views (including materialised views).
+
 - Complete documentation of ESQL grammar.
 - Fully document purpose and usage.
 - Support Oracle and Firebird.
 - Make into Java 9 module.
 - Support for `within group` for ordering in string and array aggregate functions.
-- Support for bulk copy manager in postgresql.
+
 - Implement state-based model where an ESQL program is specified as a target state 
   instead of a sequence of imperative statements. For instance, a table definition
   is specified instead of a `create table` and/or a set `alter table` statements.
@@ -33,30 +35,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   where this make senses. For example, a set of records is specified as the target
   content of a table which will then be merged with the existing data through a 
   merge statement and/or a set of insert and update statements.
+
 - Replace visual tests (printResult) with assertions, where possible.
+
 - Implement `explicit` in select (no expanded columns when explicit keyword used).
+
 - `pkey` macro expands to the primary key columns of a table.
 - `fkey` macro expands to the columns of a foreign key between two tables.
+
 - Virtual tables implemented as Esql transformers: A virtual table looks and 
   behaves like a normal table but does not need to exist in the database or may
   correspond to multiple tables. Queries and updates to virtual tables are rewritten
   as other queries/updates or whole programs.
+
 - `drop index` support in ESQL.
 - `create sequence` support in ESQL.
 - `alter sequence` support in ESQL.
 - `drop sequence` support in ESQL.
+
 - Change notification and subscription.
 - Fine-grain history.
 - Snapshots.
 - Undo and redo maintaining coherent table state.
+
 - A special keyword (`this`?) to reference the table being implicitly queried. 
   This is useful in expressions defined in attributes which will be executed against
   the containing table.
 - Every expression should return a `Result` to normalise the execution of any 
   ESQL expression (need to find way that this does not affect performance unduly).
-- Keep sequence of column as in `create table` in `_core.columns` and order by
-  it when loading columns. This will make for a more predictable behaviour when
-  changing the structure of tables.
+
 - DDL notifications (notifications on creation, deletion and modification of tables).
  
 ### To optimise
@@ -82,6 +89,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   for metadata overriding)
 - Modify queries return values don't seem to be supported correctly for SQL 
   Server.
+
+## [1.1.3] - 2022-10-13
+### Added:
+- Keep a sequence number in `_core.columns` to represent the order of the column 
+  definition in `create table` or `create struct` and order by it when loading 
+  columns. This makes for a more predictable behaviour when changing the structure 
+  of tables.
+
+### Fixed:
+- Column list of subqueries are no longer expanded where the subquery is part of
+  the `where` clause of the outer query.
 
 ## [1.1.2] - 2022-10-12
 ### Fixed:
@@ -171,7 +189,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New method `compatibleType` on interface `Type` returning a set of types 
   compatible with the current type. Compatible types allow operations between
   them without any explicit casting. By default, the set of compatible types for
-  type is a singleton set containing the type itself.
+  a type is a singleton set containing the type itself.
 
 ## [1.0.10] - 2022-09-12
 ### Changed:

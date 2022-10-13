@@ -138,14 +138,15 @@ public class AlterTable extends Define {
              */
             if (!(column instanceof DerivedColumnDefinition)) {
               /*
-               * Alter table only for non-derived columns. Derived columns
-               * are only inserted in the _core.fields table, below.
+               * Alter table only for non-derived columns. Derived columns are
+               * only inserted in the _core.fields table, below.
                */
               if (db.target() == SQLSERVER) {
-                con.createStatement().executeUpdate("ALTER TABLE " + dbName + " ADD " + column.translate(db.target(), esqlCon, path.add(column), env));
+                con.createStatement().executeUpdate("ALTER TABLE " + dbName
+                                                  + " ADD " + column.translate(db.target(), esqlCon, path.add(column), env));
               } else {
-                con.createStatement().executeUpdate("ALTER TABLE " + dbName +
-                                                        " ADD COLUMN " + column.translate(db.target(), esqlCon, path.add(column), env));
+                con.createStatement().executeUpdate("ALTER TABLE " + dbName
+                                                  + " ADD COLUMN " + column.translate(db.target(), esqlCon, path.add(column), env));
               }
             }
             Column col = Column.fromDefinition(column);
@@ -154,7 +155,7 @@ public class AlterTable extends Define {
 //            } else {
 //              col.parent = new Esql<>(column.context, relation);
 //            }
-            s.database.column(esqlCon, relation.id(), col);
+            s.database.column(esqlCon, relation.id(), col, column.seq);
             relation.addColumn(col);
 
           } else if (definition instanceof ConstraintDefinition constraint) {

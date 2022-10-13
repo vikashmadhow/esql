@@ -364,6 +364,7 @@ public class CreateTable extends Define {
          * Add missing columns and alter existing ones if needed.
          */
         Map<String, ColumnDefinition> columns = new HashMap<>();
+        int seq = 1;
         for (ColumnDefinition column: columns()) {
           columns.put(column.name(), column);
           T2<Relation, Column> existing = table.findColumn(ColumnRef.of(null, column.name()));
@@ -371,6 +372,7 @@ public class CreateTable extends Define {
             /*
              * No existing column with that name: add.
              */
+            column.seq = seq;
             alter = new AlterTable(context,
                                    tableName,
                                    singletonList(new AddTableDefinition(context, column)));
@@ -422,6 +424,7 @@ public class CreateTable extends Define {
               alter.exec(target, esqlCon, path.add(alter), parameters, env);
             }
           }
+          seq++;
         }
 
         /*

@@ -388,8 +388,8 @@ public interface Database {
                
                constraint _core_columns_pk                primary key(_id),
                constraint _core_columns_relation_id_fk    foreign key(relation_id) references _core.relations(_id) on delete cascade on update cascade,
-               constraint _core_columns_unq_relation_name unique(relation_id, name),
-               constraint _core_columns_unq_relation_seq  unique(relation_id, seq))""");
+               constraint _core_columns_unq_relation_name unique(relation_id, name))""");
+//               constraint _core_columns_unq_relation_seq  unique(relation_id, seq))""");
     }
   }
 
@@ -505,7 +505,7 @@ public interface Database {
 
   void dropTable(EsqlConnection con, UUID tableId);
 
-  void column(EsqlConnection con, UUID tableId, Column column);
+  void column(EsqlConnection con, UUID tableId, Column column, int seq);
 
   void columnName(EsqlConnection con, UUID columnId, String name);
 
@@ -642,7 +642,7 @@ public interface Database {
     public void dropTable(EsqlConnection con, UUID tableId) {}
 
     @Override
-    public void column(EsqlConnection con, UUID tableId, Column column) {}
+    public void column(EsqlConnection con, UUID tableId, Column column, int seq) {}
 
     @Override
     public void columnName(EsqlConnection con, UUID columnId, String name) {}

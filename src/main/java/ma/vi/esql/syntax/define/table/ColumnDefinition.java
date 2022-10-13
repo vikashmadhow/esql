@@ -155,4 +155,13 @@ public class ColumnDefinition extends TableDefinition {
   public Metadata metadata() {
     return child("metadata");
   }
+
+  /**
+   * A sequence number for the column which, if set, will be used as its sequence
+   * in the _core.columns table. This is set by CreateTable when adding a new
+   * column to an existing table so that the column does not have the default
+   * sequence (at the end of all previous columns in the table) but instead is
+   * assigned a sequence based on its position in the `create table` statement.
+   */
+  public int seq = -1;
 }

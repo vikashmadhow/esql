@@ -408,43 +408,48 @@ public abstract class AbstractDatabase implements Database {
             addTable(econ, rel);
           } else {
             econ.exec(p.parse(
-              "update r from r:_core.relations "
-                + "   set display_name=" + (rel.displayName == null ? "'" + rel.name() + "'" : "'" + escapeSqlString(rel.displayName) + "'") + ", "
-                + "       description=" + (rel.description == null ? "null" : "'" + escapeSqlString(rel.description) + "'")
-                + " where _id='" + tableId + "'"));
+              "update r "
+            + "  from r:_core.relations "
+            + "   set display_name=" + (rel.displayName == null ? "'" + rel.name() + "'" : "'" + escapeSqlString(rel.displayName) + "'") + ", "
+            + "       description=" + (rel.description == null ? "null" : "'" + escapeSqlString(rel.description) + "'")
+            + " where _id='" + tableId + "'"));
 
             /*
              * Delete non-derived columns which are not in information schema anymore.
              */
             if (rel.columns().isEmpty()) {
-              econ.exec(p.parse("delete c from c:_core.columns "
-                                  + "  where relation_id='" + tableId + "'"
-                                  + "    and coalesce(derived_column, false)=false"));
+              econ.exec(p.parse("delete c"
+                              + "  from c:_core.columns "
+                              + " where relation_id='" + tableId + "'"
+                              + "   and coalesce(derived_column, false)=false"));
             } else {
-              econ.exec(p.parse("delete c from c:_core.columns "
-                                  + "  where relation_id='" + tableId + "'"
-                                  + "    and coalesce(derived_column, false)=false "
-                                  + "    and name not in ("
-                                  + rel.columns().stream()
-                                       .map(c -> "'" + c.b.name() + "'")
-                                       .collect(joining(","))
-                                  + ")"));
+              econ.exec(p.parse("delete c "
+                              + "  from c:_core.columns "
+                              + " where relation_id='" + tableId + "'"
+                              + "   and coalesce(derived_column, false)=false "
+                              + "   and name not in ("
+                              + rel.columns().stream()
+                                   .map(c -> "'" + c.b.name() + "'")
+                                   .collect(joining(","))
+                              + ")"));
             }
 
             /*
              * Delete constraints which are not in information schema anymore.
              */
             if (rel.constraints().isEmpty()) {
-              econ.exec(p.parse("delete c from c:_core.constraints "
-                                  + "  where relation_id='" + tableId + "'"));
+              econ.exec(p.parse("delete c"
+                              + "  from c:_core.constraints "
+                              + " where relation_id='" + tableId + "'"));
             } else {
-              econ.exec(p.parse("delete c from c:_core.constraints "
-                                  + "  where relation_id='" + tableId + "'"
-                                  + "    and name not in ("
-                                  + rel.constraints().stream()
-                                       .map(c -> "'" + c.name() + "'")
-                                       .collect(joining(","))
-                                  + ")"));
+              econ.exec(p.parse("delete c"
+                              + "  from c:_core.constraints "
+                              + " where relation_id='" + tableId + "'"
+                              + "   and name not in ("
+                              + rel.constraints().stream()
+                                   .map(c -> "'" + c.name() + "'")
+                                   .collect(joining(","))
+                              + ")"));
             }
             if (!tableId.equals(rel.id())) {
               updatedTables.add(rel.id(tableId));
@@ -820,7 +825,7 @@ public abstract class AbstractDatabase implements Database {
         Insert insertCol = p.parse(INSERT_COLUMN, "insert");
         Insert insertColAttr = p.parse(INSERT_COLUMN_ATTRIBUTE, "insert");
         for (T2<Relation, Column> column: table.columns()) {
-          addColumn(con, table.id(), column.b, insertCol, insertColAttr);
+          addColumn(con, table.id(), column.b, insertCol, insertColAttr, -1);
         }
 
         if (table instanceof BaseRelation br) {
@@ -851,11 +856,12 @@ public abstract class AbstractDatabase implements Database {
          */
         UUID tableId = rs.value(1);
         con.exec(p.parse(
-            "update r from r:_core.relations "
-                + "set display_name=" + (table.displayName == null ? "'" + table.name() + "'" : "'" + escapeSqlString(table.displayName) + "'") + ", "
-                + "    description=" +(table.description == null ? "null" : "'" + escapeSqlString(table.description) + "'") + ", "
-                + "    type='" + TABLE.marker + "' "
-                + "where _id='" + tableId + "'"));
+            "update r"
+          + "  from r:_core.relations "
+          + "   set display_name=" + (table.displayName == null ? "'" + table.name() + "'" : "'" + escapeSqlString(table.displayName) + "'") + ", "
+          + "       description=" +(table.description == null ? "null" : "'" + escapeSqlString(table.description) + "'") + ", "
+          + "       type='" + TABLE.marker + "' "
+          + " where _id='" + tableId + "'"));
 
         clearTableMetadata(con, tableId);
         if (table.attributes() != null) {
@@ -869,7 +875,7 @@ public abstract class AbstractDatabase implements Database {
         Insert insertCol = p.parse(INSERT_COLUMN, "insert");
         Insert insertColAttr = p.parse(INSERT_COLUMN_ATTRIBUTE, "insert");
         for (T2<Relation, Column> column: table.columns()) {
-          addColumn(con, tableId, column.b, insertCol, insertColAttr);
+          addColumn(con, tableId, column.b, insertCol, insertColAttr, -1);
         }
 
         /*
@@ -891,9 +897,9 @@ public abstract class AbstractDatabase implements Database {
   public void renameTable(EsqlConnection con, UUID tableId, String name) {
     createCoreRelations(con);
     con.exec("update rel "
-           + "   from rel:_core.relations "
-           + "    set name='" + name
-           + "' where _id='" + tableId + "'");
+           + "  from rel:_core.relations "
+           + "   set name='" + name
+           + " where _id='" + tableId + "'");
   }
 
   @Override
@@ -905,24 +911,25 @@ public abstract class AbstractDatabase implements Database {
   }
 
   @Override
-  public void column(EsqlConnection con, UUID tableId, Column column) {
+  public void column(EsqlConnection con, UUID tableId, Column column, int seq) {
     createCoreColumns(con);
     Parser p = new Parser(structure());
     Insert insertCol = p.parse(INSERT_COLUMN, "insert");
     Insert insertColAttr = p.parse(INSERT_COLUMN_ATTRIBUTE, "insert");
-    addColumn(con, tableId, column, insertCol, insertColAttr);
+    addColumn(con, tableId, column, insertCol, insertColAttr, seq);
   }
 
   private void addColumn(EsqlConnection econ,
                          UUID           tableId,
                          Column         column,
                          Insert         insertCol,
-                         Insert         insertColAttr) {
+                         Insert         insertColAttr,
+                         int            seq) {
     String columnName = column.name();
     if (columnName.indexOf('/') == -1) {
       /*
-       * Check if the CAN_DELETE attribute is set on this field and save
-       * its value, which controls whether this field can later be dropped.
+       * Check if the CAN_DELETE attribute is set on this field and save its
+       * value, which controls whether this field can later be dropped.
        */
       Boolean noDelete = column.metadata() == null
                        ? false
@@ -947,18 +954,62 @@ public abstract class AbstractDatabase implements Database {
                             column.type(),
                             new Metadata(column.context, new ArrayList<>(attributes.values())));
       }
-      econ.exec(insertCol,
-                new QueryParams()
-                  .add("id",            columnId)
-                  .add("noDelete",      noDelete)
-                  .add("relation",      tableId)
-                  .add("name",          column.name())
-                  .add("derivedColumn", column.derived())
-                  .add("type",          column.computeType(new EsqlPath(column)).translate(ESQL))
-                  .add("nonNull",       column.notNull())
-                  .add("expression",
-                           column.derived()                   ? column.expression().translate(ESQL) :
-                           column.defaultExpression() != null ? column.defaultExpression().translate(ESQL) : null));
+      if (seq == -1) {
+        econ.exec(insertCol,
+                  new QueryParams()
+                    .add("id",            columnId)
+                    .add("noDelete",      noDelete)
+                    .add("relation",      tableId)
+                    .add("name",          column.name())
+                    .add("derivedColumn", column.derived())
+                    .add("type",          column.computeType(new EsqlPath(column)).translate(ESQL))
+                    .add("nonNull",       column.notNull())
+                    .add("expression",    column.derived()                   ? column.expression()       .translate(ESQL)
+                                        : column.defaultExpression() != null ? column.defaultExpression().translate(ESQL)
+                                        : null));
+      } else {
+        /*
+         * Shift sequences down before adding this one if there is a column at
+         * the same sequence number.
+         */
+        try (Result rs = econ.exec("""
+                                   select _id
+                                     from _core.columns
+                                    where relation_id=@relation
+                                      and seq=@seq""",
+                                  new QueryParams()
+                                        .add("relation", tableId)
+                                        .add("seq",      seq))) {
+          if (rs.toNext()) {
+            econ.exec("""
+                      update c
+                        from c:_core.columns
+                         set seq=seq+1
+                       where relation_id=@relation
+                         and seq >= @seq""",
+                     new QueryParams()
+                           .add("relation", tableId)
+                           .add("seq",      seq));
+          }
+        }
+        econ.exec("""
+                  insert into _core.columns(_id, _no_delete, relation_id, name, derived_column,
+                                            "type", not_null, expression, seq)
+                  values(@id, @noDelete, @relation, @name, @derivedColumn,
+                         @type, @nonNull, @expression, @seq)""",
+                  new QueryParams()
+                        .add("id",            columnId)
+                        .add("noDelete",      noDelete)
+                        .add("relation",      tableId)
+                        .add("name",          column.name())
+                        .add("derivedColumn", column.derived())
+                        .add("type",          column.computeType(new EsqlPath(column)).translate(ESQL))
+                        .add("nonNull",       column.notNull())
+                        .add("expression",    column.derived()                   ? column.expression()       .translate(ESQL)
+                                            : column.defaultExpression() != null ? column.defaultExpression().translate(ESQL)
+                                            : null)
+                        .add("seq",           seq));
+      }
       addColumnMetadata(econ, column, insertColAttr);
     }
   }

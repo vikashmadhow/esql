@@ -179,6 +179,7 @@ public class CreateStruct extends Define {
       /*
        * Add missing columns and alter existing ones if needed.
        */
+      int seq = 1;
       Map<String, ColumnDefinition> columns = new HashMap<>();
       for (ColumnDefinition column: columns()) {
         columns.put(column.name(), column);
@@ -187,6 +188,7 @@ public class CreateStruct extends Define {
           /*
            * No existing column with that name: add
            */
+          column.seq = seq;
           alter = new AlterStruct(context,
                                   structName,
                                   singletonList(new AddTableDefinition(context, column)));
@@ -238,6 +240,7 @@ public class CreateStruct extends Define {
             alter.exec(target, esqlCon, path.add(alter), parameters, env);
           }
         }
+        seq++;
       }
 
       /*

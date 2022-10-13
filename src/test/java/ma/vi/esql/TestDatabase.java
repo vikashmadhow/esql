@@ -333,8 +333,7 @@ public class TestDatabase implements Database {
   }
 
   @Override
-  public void setArray(PreparedStatement ps, int paramIndex, Object array) {
-  }
+  public void setArray(PreparedStatement ps, int paramIndex, Object array) {}
 
   @Override
   public void addTable(EsqlConnection con, Struct table) {}
@@ -350,56 +349,43 @@ public class TestDatabase implements Database {
   }
 
   @Override
-  public void renameTable(EsqlConnection con, UUID tableId, String name) {
-  }
+  public void renameTable(EsqlConnection con, UUID tableId, String name) {}
 
   @Override
-  public void clearTableMetadata(EsqlConnection con, UUID tableId) {
-  }
+  public void clearTableMetadata(EsqlConnection con, UUID tableId) {}
 
   @Override
-  public void tableMetadata(EsqlConnection con, UUID tableId, Metadata metadata) {
-  }
+  public void tableMetadata(EsqlConnection con, UUID tableId, Metadata metadata) {}
 
   @Override
-  public void dropTable(EsqlConnection con, UUID tableId) {
-  }
+  public void dropTable(EsqlConnection con, UUID tableId) {}
 
   @Override
-  public void column(EsqlConnection con, UUID tableId, Column column) {
-  }
+  public void column(EsqlConnection con, UUID tableId, Column column, int seq) {}
 
   @Override
-  public void columnName(EsqlConnection con, UUID columnId, String name) {
-  }
+  public void columnName(EsqlConnection con, UUID columnId, String name) {}
 
   @Override
-  public void columnType(EsqlConnection con, UUID columnId, String type) {
-  }
+  public void columnType(EsqlConnection con, UUID columnId, String type) {}
 
   @Override
-  public void defaultValue(EsqlConnection con, UUID columnId, String defaultValue) {
-  }
+  public void defaultValue(EsqlConnection con, UUID columnId, String defaultValue) {}
 
   @Override
-  public void notNull(EsqlConnection con, UUID columnId, String notNull) {
-  }
+  public void notNull(EsqlConnection con, UUID columnId, String notNull) {}
 
   @Override
-  public void columnMetadata(EsqlConnection con, UUID columnId, Metadata metadata) {
-  }
+  public void columnMetadata(EsqlConnection con, UUID columnId, Metadata metadata) {}
 
   @Override
-  public void dropColumn(EsqlConnection con, UUID columnId) {
-  }
+  public void dropColumn(EsqlConnection con, UUID columnId) {}
 
   @Override
-  public void constraint(EsqlConnection con, UUID tableId, ConstraintDefinition constraint) {
-  }
+  public void constraint(EsqlConnection con, UUID tableId, ConstraintDefinition constraint) {}
 
   @Override
-  public void dropConstraint(EsqlConnection con, UUID tableId, String constraintName) {
-  }
+  public void dropConstraint(EsqlConnection con, UUID tableId, String constraintName) {}
 
   private Structure structure;
 }
