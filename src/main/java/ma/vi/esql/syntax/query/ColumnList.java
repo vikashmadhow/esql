@@ -83,7 +83,10 @@ public class ColumnList extends Esql<String, String> implements UntypedMacro {
         if (p != null
          && p.b.tail() != null
          && (p.b.tail().ancestor("columns") != null
-          || p.b.tail().ancestor("where")   != null)) {
+          || p.b.tail().ancestor("where")   != null
+          || p.b.tail().ancestor("orderBy") != null
+          || p.b.tail().ancestor("groupBy") != null
+          || p.b.tail().ancestor("having")  != null)) {
           expandColumns = false;
         }
       }

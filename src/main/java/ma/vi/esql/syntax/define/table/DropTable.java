@@ -20,6 +20,7 @@ import org.pcollections.PMap;
 import java.sql.Connection;
 import java.sql.SQLException;
 
+import static ma.vi.esql.database.Database.StructureChange.TABLE_DROPPED;
 import static ma.vi.esql.semantic.type.Type.dbTableName;
 import static ma.vi.esql.translation.Translatable.Target.ESQL;
 
@@ -81,6 +82,13 @@ public class DropTable extends Define {
        * Execute drop cascading to dependents and updating internal structures.
        */
       cascadeDrop(this, esqlCon);
+
+      /*
+       * Add structure change event for table drop that will be sent to
+       * registered subscribers.
+       */
+      esqlCon.addStructureChange(new Database.StructureChangeEvent(
+        TABLE_DROPPED, name(), null, null, null));
       return Result.Nothing;
     } catch (SQLException e) {
       throw new RuntimeException(e);

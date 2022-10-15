@@ -301,7 +301,25 @@ public class TestDatabase implements Database {
   public void unsubscribe(Subscription subscription) {}
 
   @Override
+  public StructureSubscription structureSubscribe() {
+    return null;
+  }
+
+  @Override
+  public List<StructureSubscription> structureSubscriptions() {
+    return null;
+  }
+
+  @Override
+  public void structureUnsubscribe(StructureSubscription subscription) {}
+
+  @Override
   public Connection pooledConnection(int isolationLevel) {
+    return null;
+  }
+
+  @Override
+  public Map<String, List<Subscription>> subscriptions() {
     return null;
   }
 

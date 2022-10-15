@@ -1349,14 +1349,6 @@ dropUndefined
  * definitions, including the definition of columns, derived columns, constraints
  * and metadata.
  */
-//tableDefinitions
-//    : tableDefinition (',' tableDefinition)*
-//    ;
-//
-//columnDefinitions
-//    : columnDefinition (',' columnDefinition)*
-//    ;
-
 columnAndDerivedColumnDefinitions
     : columnAndDerivedColumnDefinition (',' columnAndDerivedColumnDefinition)*
     ;
@@ -1375,8 +1367,8 @@ constraintDefinitions
  * definition of a column, a derived column, a constraint or metadata.
  */
 tableDefinition
-    : columnDefinition
-    | derivedColumnDefinition
+    : 'column' columnDefinition
+    | 'column' derivedColumnDefinition
     | constraintDefinition
     | literalMetadata
     ;
@@ -1556,11 +1548,11 @@ alteration
  * type, null status, default value and metadata.
  */
 alterColumnDefinition
-    : identifier?           // new column name
-      type?                 // new column type
-      alterNull?            // null state
-      alterDefault?         // column default
-      metadata?             // column metadata
+    : ('rename' 'to' identifier)?   // new column name
+      ('type' type)?                // new column type
+       alterNull?                   // null state
+       alterDefault?                // column default
+       metadata?                    // column metadata
     ;
 
 /**
@@ -1593,7 +1585,6 @@ dropTable
 dropStruct
     : 'drop' 'struct' qualifiedName
     ;
-
 
 createIndex
     : 'create' unique='unique'?

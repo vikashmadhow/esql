@@ -1304,15 +1304,21 @@ public class SyntaxAnalyser extends EsqlBaseListener {
   }
 
   @Override
+  public void exitAlterColumn(AlterColumnContext ctx) {
+    put(ctx, new AlterColumn(context, value(ctx.identifier()), get(ctx.alterColumnDefinition())));
+  }
+
+  @Override
   public void exitAlterColumnDefinition(AlterColumnDefinitionContext ctx) {
     put(ctx, new AlterColumnDefinition(
                    context,
                    value(ctx.identifier()),
                    ctx.type() == null ? null : value(ctx.type()),
-                   ctx.alterNull() != null && ctx.alterNull().getText().contains("not"),
-                   ctx.alterNull() != null && !ctx.alterNull().getText().contains("not"),
-                   ctx.alterDefault() != null && ctx.alterDefault().expr() != null
-                   ? get(ctx.alterDefault().expr()) : null,
+                   ctx.alterNull() != null    &&  ctx.alterNull().getText().contains("not"),
+                   ctx.alterNull() != null    && !ctx.alterNull().getText().contains("not"),
+                   ctx.alterDefault() != null &&  ctx.alterDefault().expr() != null
+                 ? get(ctx.alterDefault().expr())
+                 : null,
                    ctx.alterDefault() != null && ctx.alterDefault().expr() == null,
                    ctx.metadata() == null ? null : get(ctx.metadata())));
   }

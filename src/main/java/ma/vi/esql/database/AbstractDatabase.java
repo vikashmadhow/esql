@@ -198,8 +198,30 @@ public abstract class AbstractDatabase implements Database {
   }
 
   @Override
+  public Map<String, List<Subscription>> subscriptions() {
+    return new HashMap<>(subscriptions);
+  }
+
+  @Override
   public void unsubscribe(Subscription subscription) {
     subscriptions.get(subscription.table()).remove(subscription);
+  }
+
+  @Override
+  public StructureSubscription structureSubscribe() {
+    StructureSubscription sub = new StructureSubscription(new LinkedBlockingDeque<>());
+    structureSubscriptions.add(sub);
+    return sub;
+  }
+
+  @Override
+  public List<StructureSubscription> structureSubscriptions() {
+    return new ArrayList<>(structureSubscriptions);
+  }
+
+  @Override
+  public void structureUnsubscribe(StructureSubscription subscription) {
+    structureSubscriptions.remove(subscription);
   }
 
   private void loadInformationSchemas() {
@@ -860,7 +882,7 @@ public abstract class AbstractDatabase implements Database {
           + "  from r:_core.relations "
           + "   set display_name=" + (table.displayName == null ? "'" + table.name() + "'" : "'" + escapeSqlString(table.displayName) + "'") + ", "
           + "       description=" +(table.description == null ? "null" : "'" + escapeSqlString(table.description) + "'") + ", "
-          + "       type='" + TABLE.marker + "' "
+          + "       \"type\"='" + TABLE.marker + "' "
           + " where _id='" + tableId + "'"));
 
         clearTableMetadata(con, tableId);
@@ -898,7 +920,7 @@ public abstract class AbstractDatabase implements Database {
     createCoreRelations(con);
     con.exec("update rel "
            + "  from rel:_core.relations "
-           + "   set name='" + name
+           + "   set name='" + name + "'"
            + " where _id='" + tableId + "'");
   }
 
@@ -962,7 +984,7 @@ public abstract class AbstractDatabase implements Database {
                     .add("relation",      tableId)
                     .add("name",          column.name())
                     .add("derivedColumn", column.derived())
-                    .add("type",          column.computeType(new EsqlPath(column)).translate(ESQL))
+                    .add("typ",           column.computeType(new EsqlPath(column)).translate(ESQL))
                     .add("nonNull",       column.notNull())
                     .add("expression",    column.derived()                   ? column.expression()       .translate(ESQL)
                                         : column.defaultExpression() != null ? column.defaultExpression().translate(ESQL)
@@ -996,14 +1018,14 @@ public abstract class AbstractDatabase implements Database {
                   insert into _core.columns(_id, _no_delete, relation_id, name, derived_column,
                                             "type", not_null, expression, seq)
                   values(@id, @noDelete, @relation, @name, @derivedColumn,
-                         @type, @nonNull, @expression, @seq)""",
+                         @typ, @nonNull, @expression, @seq)""",
                   new QueryParams()
                         .add("id",            columnId)
                         .add("noDelete",      noDelete)
                         .add("relation",      tableId)
                         .add("name",          column.name())
                         .add("derivedColumn", column.derived())
-                        .add("type",          column.computeType(new EsqlPath(column)).translate(ESQL))
+                        .add("typ",           column.computeType(new EsqlPath(column)).translate(ESQL))
                         .add("nonNull",       column.notNull())
                         .add("expression",    column.derived()                   ? column.expression()       .translate(ESQL)
                                             : column.defaultExpression() != null ? column.defaultExpression().translate(ESQL)
@@ -1045,7 +1067,7 @@ public abstract class AbstractDatabase implements Database {
     createCoreColumns(con);
     con.exec("update col"
            + "  from col:_core.columns"
-           + "   set type='" + type + "'"
+           + "   set \"type\"='" + type + "'"
            + " where _id='" + columnId + "'");
   }
 
@@ -1119,65 +1141,65 @@ public abstract class AbstractDatabase implements Database {
     if (constraint instanceof UniqueConstraint unique) {
       econ.exec(insertConstraint,
                 new QueryParams()
-                  .add("name", constraint.name())
-                  .add("relation", tableId)
-                  .add("type", String.valueOf(ConstraintDefinition.Type.UNIQUE.marker))
-                  .add("checkExpr", null)
-                  .add("sourceColumns", unique.columns().toArray(new String[0]))
+                  .add("name",           constraint.name())
+                  .add("relation",       tableId)
+                  .add("typ",            String.valueOf(ConstraintDefinition.Type.UNIQUE.marker))
+                  .add("checkExpr",      null)
+                  .add("sourceColumns",  unique.columns().toArray(new String[0]))
                   .add("targetRelation", null)
-                  .add("targetColumns", null)
-                  .add("forwardCost", 1)
-                  .add("reverseCost", 2)
-                  .add("onUpdate", null)
-                  .add("onDelete", null));
+                  .add("targetColumns",  null)
+                  .add("forwardCost",    1)
+                  .add("reverseCost",    2)
+                  .add("onUpdate",       null)
+                  .add("onDelete",       null));
 
     } else if (constraint instanceof PrimaryKeyConstraint primary) {
       econ.exec(insertConstraint,
                 new QueryParams()
-                  .add("name", constraint.name())
-                  .add("relation", tableId)
-                  .add("type", String.valueOf(ConstraintDefinition.Type.PRIMARY_KEY.marker))
-                  .add("checkExpr", null)
-                  .add("sourceColumns", primary.columns().toArray(new String[0]))
-                  .add("targetRelation", null)
-                  .add("targetColumns", null)
-                  .add("forwardCost", 1)
-                  .add("reverseCost", 2)
-                  .add("onUpdate", null)
-                  .add("onDelete", null));
+                  .add("name",            constraint.name())
+                  .add("relation",        tableId)
+                  .add("typ",             String.valueOf(ConstraintDefinition.Type.PRIMARY_KEY.marker))
+                  .add("checkExpr",       null)
+                  .add("sourceColumns",   primary.columns().toArray(new String[0]))
+                  .add("targetRelation",  null)
+                  .add("targetColumns",   null)
+                  .add("forwardCost",     1)
+                  .add("reverseCost",     2)
+                  .add("onUpdate",        null)
+                  .add("onDelete",        null));
 
     } else if (constraint instanceof ForeignKeyConstraint foreign) {
       Structure s = constraint.context.structure;
       BaseRelation target = s.relation(foreign.targetTable());
       econ.exec(insertConstraint,
                 new QueryParams()
-                  .add("name", constraint.name())
-                  .add("relation", tableId)
-                  .add("type", String.valueOf(ConstraintDefinition.Type.FOREIGN_KEY.marker))
-                  .add("checkExpr", null)
-                  .add("sourceColumns", foreign.sourceColumns().toArray(new String[0]))
-                  .add("targetRelation", target.id())
-                  .add("targetColumns", foreign.targetColumns().toArray(new String[0]))
-                  .add("forwardCost", foreign.forwardCost())
-                  .add("reverseCost", foreign.reverseCost())
-                  .add("onUpdate", foreign.onUpdate() == null ? null : String.valueOf(foreign.onUpdate().marker))
-                  .add("onDelete", foreign.onDelete() == null ? null : String.valueOf(foreign.onDelete().marker)));
+                  .add("name",            constraint.name())
+                  .add("relation",        tableId)
+                  .add("typ",             String.valueOf(ConstraintDefinition.Type.FOREIGN_KEY.marker))
+                  .add("checkExpr",       null)
+                  .add("sourceColumns",   foreign.sourceColumns().toArray(new String[0]))
+                  .add("targetRelation",  target.id())
+                  .add("targetColumns",   foreign.targetColumns().toArray(new String[0]))
+                  .add("forwardCost",     foreign.forwardCost())
+                  .add("reverseCost",     foreign.reverseCost())
+                  .add("onUpdate",        foreign.onUpdate() == null ? null : String.valueOf(foreign.onUpdate().marker))
+                  .add("onDelete",        foreign.onDelete() == null ? null : String.valueOf(foreign.onDelete().marker)));
 
     } else if (constraint instanceof CheckConstraint check) {
       String checkExpression = check.expr().translate(ESQL);
       econ.exec(insertConstraint,
                 new QueryParams()
-                  .add("name", constraint.name())
-                  .add("relation", tableId)
-                  .add("type", String.valueOf(ConstraintDefinition.Type.CHECK.marker))
-                  .add("checkExpr", checkExpression)
-                  .add("sourceColumns", check.expr().referredColumns().toArray(new String[0]))
-                  .add("targetRelation", null)
-                  .add("targetColumns", null)
-                  .add("forwardCost", 1)
-                  .add("reverseCost", 2)
-                  .add("onUpdate", null)
-                  .add("onDelete", null));
+                  .add("name",            constraint.name())
+                  .add("relation",        tableId)
+                  .add("typ",             String.valueOf(ConstraintDefinition.Type.CHECK.marker))
+                  .add("checkExpr",       checkExpression)
+                  .add("sourceColumns",   check.expr().referredColumns().toArray(new String[0]))
+                  .add("targetRelation",  null)
+                  .add("targetColumns",   null)
+                  .add("forwardCost",     1)
+                  .add("reverseCost",     2)
+                  .add("onUpdate",        null)
+                  .add("onDelete",        null));
 
     } else {
       throw new UnsupportedOperationException("Unrecognised constraint type: " + constraint.getClass());
@@ -1331,11 +1353,16 @@ public abstract class AbstractDatabase implements Database {
    */
   private final Map<String, List<Subscription>> subscriptions = new ConcurrentHashMap<>();
 
+  /**
+   * Subscriptions to structure change events.
+   */
+  private final List<StructureSubscription> structureSubscriptions = new ArrayList<>();
+
   private static final String INSERT_COLUMN = """
     insert into _core.columns(_id, _no_delete, relation_id, name, derived_column,
                               "type", not_null, expression, seq)
     values(@id, @noDelete, @relation, @name,
-           @derivedColumn, @type, @nonNull, @expression,
+           @derivedColumn, @typ, @nonNull, @expression,
            coalesce(from _core.columns select max(seq) where relation_id=@relation, 0) + 1)""";
 
   private static final String INSERT_COLUMN_ATTRIBUTE = """
@@ -1347,10 +1374,10 @@ public abstract class AbstractDatabase implements Database {
                                    values(newid(), @tableId, @name, @value)""";
 
   private static final String INSERT_CONSTRAINT = """
-    insert into _core.constraints(_id, name, relation_id, type, check_expr, source_columns,
+    insert into _core.constraints(_id, name, relation_id, "type", check_expr, source_columns,
                                   target_relation_id, target_columns, forward_cost, reverse_cost,
                                   on_update, on_delete)
-    values(newid(), @name, @relation, @type, @checkExpr, @sourceColumns,
+    values(newid(), @name, @relation, @typ, @checkExpr, @sourceColumns,
            @targetRelation, @targetColumns, @forwardCost, @reverseCost,
            @onUpdate, @onDelete)""";
 

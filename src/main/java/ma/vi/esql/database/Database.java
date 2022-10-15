@@ -14,6 +14,7 @@ import ma.vi.esql.semantic.type.Struct;
 import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.syntax.EsqlTransformer;
 import ma.vi.esql.syntax.define.Metadata;
+import ma.vi.esql.syntax.define.table.ColumnDefinition;
 import ma.vi.esql.syntax.define.table.ConstraintDefinition;
 import ma.vi.esql.translation.Translatable;
 
@@ -204,9 +205,35 @@ public interface Database {
                       boolean includeHistory,
                       BlockingQueue<ChangeEvent> events) {}
 
-  record ChangeEvent(String table,
-                     String user,
-                     Date   at,
+  enum Change {
+    INSERTED     ("I"),
+    DELETED      ("D"),
+    UPDATED      ("U"),
+    UPDATED_FROM ("F"),
+    UPDATED_TO   ("T");
+
+    private Change(String code) { this.code = code; }
+
+    public static Change from(String code) {
+      return switch(code) {
+        case "I" -> INSERTED;
+        case "D" -> DELETED;
+        case "U" -> UPDATED;
+        case "F" -> UPDATED_FROM;
+        case "T" -> UPDATED_TO;
+        default  -> throw new IllegalArgumentException("Invalid change code '" + code + "'");
+      };
+    }
+
+    public final String code;
+  }
+
+  record ChangeEvent(String  table,
+                     String  user,
+                     Date    at,
+                     boolean hasInserts,
+                     boolean hasDeletes,
+                     boolean hasUpdates,
                      List<Map<String, Object>> inserted,
                      List<Map<String, Object>> deleted,
                      List<Map<String, Object>> updatedFrom,
@@ -220,7 +247,36 @@ public interface Database {
 
   List<Subscription> subscriptions(String table);
 
+  Map<String, List<Subscription>> subscriptions();
+
   void unsubscribe(Subscription subscription);
+
+  // Structure change notifications
+  //////////////////////////////////////////////////////
+  enum StructureChange {
+    TABLE_CREATED,
+    TABLE_RENAMED,
+    TABLE_DROPPED,
+
+    COLUMN_ADDED,
+    COLUMN_RENAMED,
+    COLUMN_TYPE_CHANGED,
+    COLUMN_DROPPED
+  }
+
+  record StructureChangeEvent(StructureChange  change,
+                              String           tableName,
+                              String           tableNewName,
+                              ColumnDefinition column,
+                              ColumnDefinition newColumn) {}
+
+  record StructureSubscription(BlockingQueue<StructureChangeEvent> events) {}
+
+  StructureSubscription structureSubscribe();
+
+  List<StructureSubscription> structureSubscriptions();
+
+  void structureUnsubscribe(StructureSubscription subscription);
 
   // Connections
   //////////////////////////////////////////////////////
@@ -312,7 +368,7 @@ public interface Database {
   default boolean tableExists(EsqlConnection con, String table) {
     T2<String, String> name = Type.splitName(table);
     try(ResultSet rs = con.connection().createStatement().executeQuery(
-      "select table_name "
+          "select table_name "
         + "  from information_schema.tables"
         + " where table_schema='" + name.a + "'"
         + "   and table_name='" + name.b + "'")) {
@@ -582,6 +638,24 @@ public interface Database {
 
     @Override
     public void unsubscribe(Subscription subscription) {}
+
+    @Override
+    public StructureSubscription structureSubscribe() {
+      return null;
+    }
+
+    @Override
+    public List<StructureSubscription> structureSubscriptions() {
+      return null;
+    }
+
+    @Override
+    public void structureUnsubscribe(StructureSubscription subscription) {}
+
+    @Override
+    public Map<String, List<Subscription>> subscriptions() {
+      return null;
+    }
 
     @Override
     public Connection pooledConnection(int isolationLevel) {

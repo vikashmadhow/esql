@@ -127,6 +127,15 @@ public interface EsqlConnection extends AutoCloseable {
   }
 
   /**
+   * Add a structure change event that happened in this connection. A structure
+   * change event is logged whenever a database object is created, dropped or
+   * changed. Logged structure change events are sent to subscribers of such
+   * events on transaction commit.
+   * @param event Change event to log.
+   */
+  void addStructureChange(Database.StructureChangeEvent event);
+
+  /**
    * Sets the connection on rollback-only mode meaning that any executed
    * statements will be automatically rolled back when the connection is
    * closed.
@@ -176,6 +185,9 @@ public interface EsqlConnection extends AutoCloseable {
     public String transactionId() {
       return null;
     }
+
+    @Override
+    public void addStructureChange(Database.StructureChangeEvent event) {}
 
     @Override public void close() {}
 
