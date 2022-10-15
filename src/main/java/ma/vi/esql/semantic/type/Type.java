@@ -204,17 +204,10 @@ public interface Type extends Symbol, Copy<Type>, Translatable<String> {
 
     } else {
       StringBuilder st = new StringBuilder();
-      if (q.a != null) {
-        st.append('"').append(q.a).append("\".");
-      } else if (target == HSQLDB) {
-        st.append("\"PUBLIC\".");
-
-      } else if (target == POSTGRESQL) {
-        st.append("\"public\".");
-
-      } else if (target == SQLSERVER) {
-        st.append("\"DBO\".");
-      }
+      if      (q.a != null)          { st.append('"').append(q.a).append("\"."); }
+      else if (target == HSQLDB)     { st.append("\"PUBLIC\"."); }
+      else if (target == POSTGRESQL) { st.append("\"public\"."); }
+      else if (target == SQLSERVER)  { st.append("\"DBO\"."); }
       st.append('"').append(q.b).append('"');
       return st.toString();
     }

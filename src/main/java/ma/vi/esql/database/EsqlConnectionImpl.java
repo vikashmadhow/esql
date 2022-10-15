@@ -5,6 +5,7 @@
 package ma.vi.esql.database;
 
 import ma.vi.esql.exec.Result;
+import ma.vi.esql.semantic.type.Type;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -108,37 +109,42 @@ public class EsqlConnectionImpl implements EsqlConnection {
          * Finalise history tracking and send notifications to subscribers, if
          * any, asynchronously.
          */
+        var subscriptions = database().subscriptions();
+        var structureSubscriptions = database().structureSubscriptions();
+        var transactionId = transactionId();
         FinaliseThreadPool.execute(() -> {
-          Set<String> tables = new HashSet<>();
+          Map<String, Set<String>> tableEvents = new HashMap<>();
           try (Connection con = database().pooledConnection();
                ResultSet rs = con.createStatement().executeQuery(
-                "select distinct table_name"
+                    "select distinct table_name, event"
                   + "  from _core._temp_history"
-                  + " where trans_id='" + transaction + "'")) {
-            while (rs.next()) tables.add(rs.getString(1));
+                  + " where trans_id='" + transactionId + "'")) {
+            while (rs.next())
+              tableEvents.computeIfAbsent(rs.getString(1), k -> new HashSet<>()).add(rs.getString(2));
           } catch (SQLException sqle) {
             throw new RuntimeException(sqle);
           }
 
           Structure structure = database().structure();
-          if (!tables.isEmpty()) {
+          if (!tableEvents.isEmpty()) {
             try {
               try (Connection con = database().pooledConnection()) {
                 /*
                  * Move to transaction history and set user.
                  */
                 con.createStatement().executeUpdate(
-                  "insert into _core.history "
-                    + "select trans_id, table_name, event, at_time, " + (user == null ? "null" : "'" + user + "'")
+                      "insert into _core.history(trans_id, table_name, event, user_id, at_time) "
+                    + "select trans_id, table_name, event, " + (user == null ? "null" : "'" + user + "', min(at_time)")
                     + "  from _core._temp_history"
-                    + " where trans_id='" + transaction + "'");
+                    + " where trans_id='" + transactionId + "'"
+                    + " group by trans_id, table_name, event");
 
                 /*
                  * Clean temporary history
                  */
                 con.createStatement().executeUpdate(
-                  "delete from _core._temp_history"
-                    + " where trans_id='" + transaction + "'");
+                      "delete from _core._temp_history"
+                    + " where trans_id='" + transactionId + "'");
                 con.commit();
               }
 
@@ -147,12 +153,12 @@ public class EsqlConnectionImpl implements EsqlConnection {
                  * Set user in fine-grained history.
                  */
                 try (Connection con = database().pooledConnection()) {
-                  for (String table : tables) {
+                  for (String table: tableEvents.keySet()) {
                     if (structure.relationExists(table + ".History")) {
                       con.createStatement().executeUpdate(
-                          "update " + table + ".History"
+                          "update " + Type.dbTableName(table + ".History", db.target())
                         + "   set _hist_user='" + user + "'"
-                        + " where _hist_trans_id='" + transaction + "'");
+                        + " where _hist_trans_id='" + transactionId + "'");
                     }
                   }
                   con.commit();
@@ -164,52 +170,73 @@ public class EsqlConnectionImpl implements EsqlConnection {
           }
 
           /*
+           * Notify structure change subscribers.
+           */
+          for (Database.StructureSubscription subscription: structureSubscriptions) {
+            try {
+              for (var e: structureChanges) subscription.events().put(e);
+            } catch (InterruptedException ignore) {}
+          }
+
+          /*
            * Notify subscribers
            */
-          for (String table: tables) {
-            List<Database.Subscription> subscriptions = database().subscriptions(table);
+          for (String table: tableEvents.keySet()) {
+            List<Database.Subscription> tableSubscriptions = subscriptions.getOrDefault(table, emptyList());
             List<Map<String, Object>> inserted    = new ArrayList<>();
             List<Map<String, Object>> deleted     = new ArrayList<>();
             List<Map<String, Object>> updatedFrom = new ArrayList<>();
             List<Map<String, Object>> updatedTo   = new ArrayList<>();
             String historyTable = table + ".History";
             if (structure.relationExists(historyTable)
-              && subscriptions.stream().anyMatch(Database.Subscription::includeHistory)) {
+             && tableSubscriptions.stream().anyMatch(Database.Subscription::includeHistory)) {
               /*
-               * History is tracked for this table and one or more
-               * subscriptions require the history: load the history.
+               * History is tracked for this table and one or more subscriptions
+               * require the history: load the history.
                */
               try (EsqlConnection con = database().esql(database().pooledConnection());
                    Result rs = con.exec("select *"
-                                          + "  from " + historyTable
-                                          + " where _hist_trans_id='" + transaction + "'")) {
+                                      + "  from " + historyTable
+                                      + " where _hist_trans_id='" + transactionId + "'")) {
                 while (rs.toNext()) {
                   String event = rs.value("_hist_event");
-                  switch (event) {
-                    case "I" -> inserted    .add(rs.valueRow());
-                    case "D" -> deleted     .add(rs.valueRow());
-                    case "F" -> updatedFrom .add(rs.valueRow());
-                    default  -> updatedTo   .add(rs.valueRow());
+                  switch (Database.Change.from(event)) {
+                    case INSERTED     -> inserted    .add(rs.valueRow());
+                    case DELETED      -> deleted     .add(rs.valueRow());
+                    case UPDATED_FROM -> updatedFrom .add(rs.valueRow());
+                    default           -> updatedTo   .add(rs.valueRow());
                   }
                 }
               }
             }
-            for (Database.Subscription subscription: subscriptions) {
+            Set<String> events = tableEvents.get(table);
+            for (Database.Subscription subscription: tableSubscriptions) {
               try {
                 subscription.events().put(
                   subscription.includeHistory()
-                  ? new Database.ChangeEvent(table, user, new Date(),
-                                             inserted,    deleted,
-                                             updatedFrom, updatedTo)
-                  : new Database.ChangeEvent(table, user, new Date(),
-                                             emptyList(), emptyList(),
-                                             emptyList(), emptyList()));
+                ? new Database.ChangeEvent(table, user, new Date(),
+                                           events.contains(Database.Change.INSERTED.code),
+                                           events.contains(Database.Change.DELETED.code),
+                                           events.contains(Database.Change.UPDATED.code),
+                                           inserted,    deleted,
+                                           updatedFrom, updatedTo)
+                : new Database.ChangeEvent(table, user, new Date(),
+                                           events.contains(Database.Change.INSERTED.code),
+                                           events.contains(Database.Change.DELETED.code),
+                                           events.contains(Database.Change.UPDATED.code),
+                                           emptyList(), emptyList(),
+                                           emptyList(), emptyList()));
               } catch (InterruptedException ignore) {}
             }
           }
         });
       }
     }
+  }
+
+  @Override
+  public void addStructureChange(Database.StructureChangeEvent event) {
+    structureChanges.add(event);
   }
 
   /**
@@ -254,6 +281,11 @@ public class EsqlConnectionImpl implements EsqlConnection {
    * is closed.
    */
   private final AtomicInteger openCount = new AtomicInteger(1);
+
+  /**
+   * The list of DDL changes to be sent to subscribers on transaction commit.
+   */
+  private final List<Database.StructureChangeEvent> structureChanges = new ArrayList<>();
 
   /**
    * Thread pool to execute history finalisation after commit.

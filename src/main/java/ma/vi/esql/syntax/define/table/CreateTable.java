@@ -40,6 +40,7 @@ import static java.lang.System.Logger.Level.ERROR;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.*;
 import static ma.vi.esql.builder.Attributes.*;
+import static ma.vi.esql.database.Database.StructureChange.TABLE_CREATED;
 import static ma.vi.esql.semantic.type.Type.dbTableName;
 import static ma.vi.esql.translation.Translatable.Target.*;
 
@@ -341,6 +342,13 @@ public class CreateTable extends Define {
           CreateTable create = builder.build();
           create.exec(target, esqlCon, path.add(create), parameters, env);
         }
+
+        /*
+         * Add structure change event for table creation that will be sent to
+         * registered subscribers.
+         */
+        esqlCon.addStructureChange(new Database.StructureChangeEvent(
+          TABLE_CREATED, tableName, null, null, null));
       } else {
         /*
          * Already exists: alter
@@ -614,7 +622,82 @@ public class CreateTable extends Define {
     }
   }
 
-  private void addFineEventCaptureTrigger(Connection con, String table) {
+  private void addFineEventCaptureTriggers(Target target, Connection con, String table) throws SQLException {
+    T2<String, String> split = Type.splitName(table);
+    String schema = split.a;
+    String tableName = split.b;
+    String dbTableName = Type.dbTableName(table, target);
+
+    if (target == SQLSERVER) {
+      String insertTrigger = Type.dbTableName((schema == null ? "" : schema + '.') + "capture_insert_history_on_" + tableName, target);
+      String deleteTrigger = Type.dbTableName((schema == null ? "" : schema + '.') + "capture_delete_history_on_" + tableName, target);
+      String updateTrigger = Type.dbTableName((schema == null ? "" : schema + '.') + "capture_update_history_on_" + tableName, target);
+      try(Statement stmt = con.createStatement()) {
+        stmt.executeUpdate(
+          """
+          create or alter trigger %1$s on %2$s after insert as
+          begin
+            if (rowcount_big() = 0) return;
+            insert into _core._temp_history(trans_id, table_name, event, at_time)
+                               values(cast(current_transaction_id() as varchar),
+                                      '%3$s', 'I', getdate());
+          end""".formatted(insertTrigger, dbTableName, table));
+
+        stmt.executeUpdate(
+          """
+          create or alter trigger %1$s on %2$s after delete as
+          begin
+            if (rowcount_big() = 0) return;
+            insert into _core._temp_history(trans_id, table_name, event, at_time)
+                               values(cast(current_transaction_id() as varchar),
+                                      '%3$s', 'D', getdate());
+          end""".formatted(deleteTrigger, dbTableName, table));
+
+        stmt.executeUpdate(
+          """
+          create or alter trigger %1$s on %2$s after update as
+          begin
+            if (rowcount_big() = 0) return;
+            insert into _core._temp_history(trans_id, table_name, event, at_time)
+                               values(cast(current_transaction_id() as varchar),
+                                      '%3$s', 'U', getdate());
+          end""".formatted(updateTrigger, dbTableName, table));
+      }
+    } else if (target == POSTGRESQL) {
+      String insertTrigger = "capture_insert_event_on_" + tableName;
+      String deleteTrigger = "capture_delete_event_on_" + tableName;
+      String updateTrigger = "capture_update_event_on_" + tableName;
+      try(Statement stmt = con.createStatement()) {
+        stmt.executeUpdate(
+          """
+          create or replace trigger %1$s
+          after       insert on %2$s
+          referencing new table as inserted
+          for each    statement
+          execute     function _core.capture_insert_event()
+          """.formatted(insertTrigger, dbTableName));
+
+        stmt.executeUpdate(
+          """
+          create or replace trigger %1$s
+          after       delete on %2$s
+          referencing old table as deleted
+          for each    statement
+          execute     function _core.capture_delete_event()
+          """.formatted(deleteTrigger, dbTableName));
+
+        stmt.executeUpdate(
+          """
+          create or replace trigger %1$s
+          after       update on %2$s
+          referencing new table as inserted
+          for each    statement
+          execute     function _core.capture_update_event()
+          """.formatted(updateTrigger, dbTableName));
+      }
+    } else {
+      throw new IllegalArgumentException(target + " is not supported yet.");
+    }
   }
 
   public String name() {

@@ -52,8 +52,8 @@ public class SelectTest extends DataTest {
                      con.exec("delete t from t:a.b.T");
                      con.exec("delete s from s:S");
                      con.exec("insert into S(_id, a, b, e, h, j) values "
-                                  + "(newid(), 1, 2, true, ['Four', 'Quatre']text, [1, 2, 3]int),"
-                                  + "(newid(), 6, 7, false, ['Nine', 'Neuf', 'X']text, [5, 6, 7, 8]int)");
+                            + "(newid(), 1, 2, true, ['Four', 'Quatre']text, [1, 2, 3]int),"
+                            + "(newid(), 6, 7, false, ['Nine', 'Neuf', 'X']text, [5, 6, 7, 8]int)");
 
                      Select select = p.parse("select a, b from s:S order by s.a asc", SELECT);
                      Context context = new Context(db.structure());

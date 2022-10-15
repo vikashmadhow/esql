@@ -13,11 +13,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Assignment to array, list and map subscripts.
 - Operations on JSON objects.
 - Support for merge queries.
-- `Truncate table` statement.
 
 - Make all expressions and functions (where possible) executable.
-- 
-- Support for creating and using sequences.
+
 - Support for creating and using views (including materialised views).
 
 - Complete documentation of ESQL grammar.
@@ -36,8 +34,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   content of a table which will then be merged with the existing data through a 
   merge statement and/or a set of insert and update statements.
 
-- Replace visual tests (printResult) with assertions, where possible.
-
 - Implement `explicit` in select (no expanded columns when explicit keyword used).
 
 - `pkey` macro expands to the primary key columns of a table.
@@ -48,7 +44,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   correspond to multiple tables. Queries and updates to virtual tables are rewritten
   as other queries/updates or whole programs.
 
+- `Truncate table` statement.
+
 - `drop index` support in ESQL.
+- Support for creating and using sequences.
 - `create sequence` support in ESQL.
 - `alter sequence` support in ESQL.
 - `drop sequence` support in ESQL.
@@ -63,8 +62,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the containing table.
 - Every expression should return a `Result` to normalise the execution of any 
   ESQL expression (need to find way that this does not affect performance unduly).
-
-- DDL notifications (notifications on creation, deletion and modification of tables).
  
 ### To optimise
 - When filtering a `With`, do not apply filter on a CTE if that CTE inner joins 
@@ -89,6 +86,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   for metadata overriding)
 - Modify queries return values don't seem to be supported correctly for SQL 
   Server.
+
+## [1.2.0] - 2022-10-15
+### Structure change and coarse history notifications
+#### Added:
+- Structure change detection and notifications (on creation, deletion and 
+  modification of tables).
+- Coarse grain change events include flags for the presence of insertions, 
+  updates and deletions in the change.
+
+#### Changed:
+- Syntax of the `alter column` part of `alter table` statement changed to 
+  disambiguate between renaming a column name and changing its type.
+- Adding a column to an existing table using `alter column` now requires the
+  `column` keyword before the column definition; this is similar to the form
+  of this statement in most databases and is also more intuitive.
+
+#### Fixed:
+- Statement to change name of table in `_core.relations` was missing the closing
+  single-quote around the new name.
+- `alter column` part of `alter table` statement was not being parsed by the 
+  syntax analyser.
+- Syntax for renaming column in Postgresql corrected.
 
 ## [1.1.3] - 2022-10-13
 ### Added:

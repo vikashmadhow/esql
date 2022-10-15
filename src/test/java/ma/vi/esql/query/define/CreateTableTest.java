@@ -140,10 +140,10 @@ public class CreateTableTest extends DataTest {
                                    m1: c,
                                    "values": {"any": {en: 'Any', fr: 'Une ou plusieurs'}, "all": {en: 'All', fr: 'Toutes'}}
                                  },
-                                 f=from A select max(a) {
-                                   m1: from A select min(a)
+                                 f=from test.CreateA select max(a) {
+                                   m1: from test.CreateA select min(a)
                                  },
-                                 g=from A select distinct c where d>5 {
+                                 g=from test.CreateA select distinct c where d>5 {
                                    m1: d
                                  },
                                  h text {

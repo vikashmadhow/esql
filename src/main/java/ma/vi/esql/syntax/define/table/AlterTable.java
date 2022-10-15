@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Map;
 
 import static java.util.Collections.singletonList;
+import static ma.vi.esql.database.Database.StructureChange.*;
 import static ma.vi.esql.semantic.type.Type.dbTableName;
 import static ma.vi.esql.semantic.type.Type.splitName;
 import static ma.vi.esql.translation.Translatable.Target.*;
@@ -127,6 +128,13 @@ public class AlterTable extends Define {
           s.relation(relation);
           s.database.renameTable(esqlCon, relation.id(), newFullName);
 
+          /*
+           * Add structure change event for table rename event that will be sent
+           * to registered subscribers.
+           */
+          esqlCon.addStructureChange(new Database.StructureChangeEvent(
+            TABLE_RENAMED, name, newFullName, null, null));
+
         } else if (alteration instanceof AddTableDefinition addTable) {
           /*
            * Add table definitions (columns, constraints and metadata)
@@ -157,6 +165,13 @@ public class AlterTable extends Define {
 //            }
             s.database.column(esqlCon, relation.id(), col, column.seq);
             relation.addColumn(col);
+
+            /*
+             * Add structure change event for table add column event that will
+             * be sent to registered subscribers.
+             */
+            esqlCon.addStructureChange(new Database.StructureChangeEvent(
+              COLUMN_ADDED, name, null, column, column));
 
           } else if (definition instanceof ConstraintDefinition constraint) {
             /*
@@ -207,15 +222,24 @@ public class AlterTable extends Define {
                     "sp_rename '" + dbName + ".\"" + column.name() + "\"', '" + def.toName() + "', 'COLUMN'");
               } else {
                 con.createStatement().executeUpdate(
-                    "ALTER TABLE " + dbName +
-                        " ALTER COLUMN \"" + column.name() +
-                        "\" RENAME TO \"" + def.toName() + '"');
+                    "ALTER TABLE " + dbName
+                  + " RENAME COLUMN \"" + column.name()
+                  + "\"  TO \"" + def.toName() + '"');
               }
             }
             s.database.columnName(esqlCon, column.id(), def.toName());
             relation.removeColumn(alterCol.columnName());
-            column = column.name(def.toName());
-            relation.addColumn(column);
+            Column newColumn = column.name(def.toName());
+            relation.addColumn(newColumn);
+
+            /*
+             * Add structure change event for column renamed event that will be
+             * sent to registered subscribers.
+             */
+            esqlCon.addStructureChange(new Database.StructureChangeEvent(
+              COLUMN_RENAMED, name, null,
+              Column.toDefinition(column),
+              Column.toDefinition(newColumn)));
           }
           if (def.toType() != null) {
             /*
@@ -236,10 +260,21 @@ public class AlterTable extends Define {
                         "\" " + def.toType().translate(db.target(), esqlCon, path.add(def), env));
               }
             }
+
+            ColumnDefinition fromDefinition = Column.toDefinition(column);
             s.database.columnType(esqlCon, column.id(), def.toType().translate(ESQL, esqlCon, path.add(def), env));
 //            column = column.type(def.toType());
             column.type(def.toType());
             relation.addOrReplaceColumn(column);
+
+            /*
+             * Add structure change event for column change type event that will
+             * be sent to registered subscribers.
+             */
+            esqlCon.addStructureChange(new Database.StructureChangeEvent(
+              COLUMN_TYPE_CHANGED, name, null,
+              fromDefinition,
+              Column.toDefinition(column)));
           }
 
           /*
@@ -377,6 +412,14 @@ public class AlterTable extends Define {
           }
           s.database.dropColumn(esqlCon, column.id());
           relation.removeColumn(drop.columnName());
+
+          /*
+           * Add structure change event for table drop column event that will
+           * be sent to registered subscribers.
+           */
+          ColumnDefinition colDef = Column.toDefinition(column);
+          esqlCon.addStructureChange(new Database.StructureChangeEvent(
+            COLUMN_DROPPED, name, null, colDef, colDef));
 
         } else if (alteration instanceof DropConstraint drop) {
           /*
