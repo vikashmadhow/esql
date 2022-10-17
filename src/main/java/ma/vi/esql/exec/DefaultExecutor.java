@@ -126,7 +126,7 @@ public class DefaultExecutor implements Executor {
   }
 
   private static <T extends Esql<?, ?>,
-                  M extends Macro    > T expand(T esql, Class<M> macroType) {
+                  M extends Macro> T expand(T esql, Class<M> macroType) {
     T expanded;
     int iteration = 0;
     while ((expanded = (T)esql.map((e, p) ->  macroType.isAssignableFrom(e.getClass())

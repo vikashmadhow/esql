@@ -25,6 +25,8 @@ import java.sql.SQLException;
 import java.util.*;
 import java.util.concurrent.BlockingQueue;
 
+import static ma.vi.esql.translation.Translatable.Target.*;
+
 /**
  * Represents a database containing tables and other persistent objects
  * which can be accessed through the {@link Structure} instance obtained
@@ -36,61 +38,6 @@ import java.util.concurrent.BlockingQueue;
 public interface Database {
   // Initialisation
   ////////////////////////////////////////////////
-
-  /**
-   * The database system (SQL_SERVER, POSTGRESQL, ORACLE, etc.).
-   */
-  String CONFIG_DB_SYSTEM = "database.system";
-
-  String DB_SYSTEM_SQLSERVER  = "SQLSERVER";
-  String DB_SYSTEM_POSTGRESQL = "POSTGRESQL";
-  String DB_SYSTEM_MYSQL      = "MYSQL";
-  String DB_SYSTEM_MARIADB    = "MARIADB";
-  String DB_SYSTEM_SQLITE     = "SQLITE";
-
-  /**
-   * The database host configuration parameter (default localhost).
-   */
-  String CONFIG_DB_HOST = "database.host";
-
-  /**
-   * The database port configuration parameter. If not specified the database
-   * default is used.
-   */
-  String CONFIG_DB_PORT = "database.port";
-
-  /**
-   * Configuration parameter for the name of the database.
-   */
-  String CONFIG_DB_NAME = "database.name";
-
-  /**
-   * Configuration parameter for the username to connect to the database.
-   */
-  String CONFIG_DB_USER = "database.user.name";
-
-  /**
-   * Configuration parameter for the password to connect to the database.
-   */
-  String CONFIG_DB_PASSWORD = "database.user.password";
-
-//  /**
-//   * Configuration parameter for whether to create the core tables if
-//   * missing; default is true.
-//   */
-//  String CONFIG_DB_CREATE_CORE_TABLES = "database.createCoreTables";
-
-  /**
-   * Configuration parameter for extensions. The value of this parameter must be
-   * a map of classes implementing the {@link Extension} interface, mapped to a
-   * set of string parameters (another map of string to string). For example
-   *
-   *    Map.of(LookupExtension.class, Map.of("schema", "_lookup"),
-   *           UserExtension.class,   Map.of("jwt", "true", "two-factor", "false"))
-   *
-   * Extension classes are initialised when the database starts.
-   */
-  String CONFIG_DB_EXTENSIONS = "database.extensions";
 
   /**
    * Initialise the database using the provided configuration.
@@ -123,24 +70,6 @@ public interface Database {
    * usually populated when the database is initialised in {@link #init(Configuration)}.
    */
   Structure structure();
-
-//  /**
-//   * Whether to create the core tables (in which are stored metadata info
-//   * on all tables and columns, among others), if they are not present. This
-//   * method returns the value of the configuration parameter
-//   * `database.createCoreTables` if it is present, or true otherwise.
-//   */
-//  default boolean createCoreTables() {
-//    return config().get(CONFIG_DB_CREATE_CORE_TABLES, Boolean.TRUE);
-//  }
-
-//  /**
-//   * Performs post initialisation of the database where special objects, such as
-//   * tables to hold metadata on other tables, can be created in the database. This
-//   * is called after the {@link #structure()} method which allows the use of ESQL
-//   * to create the objects.
-//   */
-//  void postInit(Connection con, Structure structure);
 
   /**
    * Returns the translation target for this database.
@@ -362,8 +291,83 @@ public interface Database {
    */
   void setArray(PreparedStatement ps, int paramIndex, Object array) throws SQLException;
 
+  // Configuration constants
+  /////////////////////////////////////////////////////////
+
+  /**
+   * The database system (SQL_SERVER, POSTGRESQL, ORACLE, etc.).
+   */
+  String CONFIG_DB_SYSTEM = "database.system";
+
+  String DB_SYSTEM_SQLSERVER  = "SQLSERVER";
+  String DB_SYSTEM_POSTGRESQL = "POSTGRESQL";
+  String DB_SYSTEM_MYSQL      = "MYSQL";
+  String DB_SYSTEM_MARIADB    = "MARIADB";
+  String DB_SYSTEM_SQLITE     = "SQLITE";
+
+  /**
+   * The database host configuration parameter (default localhost).
+   */
+  String CONFIG_DB_HOST = "database.host";
+
+  /**
+   * The database port configuration parameter. If not specified the database
+   * default is used.
+   */
+  String CONFIG_DB_PORT = "database.port";
+
+  /**
+   * Configuration parameter for the name of the database.
+   */
+  String CONFIG_DB_NAME = "database.name";
+
+  /**
+   * Configuration parameter for the username to connect to the database.
+   */
+  String CONFIG_DB_USER = "database.user.name";
+
+  /**
+   * Configuration parameter for the password to connect to the database.
+   */
+  String CONFIG_DB_PASSWORD = "database.user.password";
+
+  /**
+   * Configuration parameter for extensions. The value of this parameter must be
+   * a map of classes implementing the {@link Extension} interface, mapped to a
+   * set of string parameters (another map of string to string). For example
+   * <pre>
+   *    Map.of(LookupExtension.class, Map.of("schema", "_lookup"),
+   *           UserExtension.class,   Map.of("jwt", "true", "two-factor", "false"))
+   * </pre>
+   * Extension classes are initialised when the database starts.
+   */
+  String CONFIG_DB_EXTENSIONS = "database.extensions";
+
+  /**
+   * Snapshot isolation code in database supporting this.
+   */
+  int SNAPSHOT_ISOLATION = 0x1000;
+
   // Load and check database information
   /////////////////////////////////////////
+
+  default void createSchema(String schema) {
+    if (schema != null) {
+      try (Connection con = pooledConnection();
+           ResultSet rs = con.createStatement()
+                             .executeQuery("""
+                                           select 1
+                                             from information_schema.schemata
+                                            where schema_name='""" + schema + "'")) {
+        if (!rs.next()) {
+          con.createStatement().executeUpdate("create schema \"" + schema + '"');
+          con.commit();
+        }
+      } catch (SQLException sqle) {
+        throw new RuntimeException(sqle);
+      }
+    }
+  }
 
   default boolean tableExists(EsqlConnection con, String table) {
     T2<String, String> name = Type.splitName(table);
@@ -522,14 +526,6 @@ public interface Database {
     }
   }
 
-//  List<BaseRelation> loadTables();
-//
-//  /**
-//   * @param table The table to load indices for.
-//   * @return The indices on the table.
-//   */
-//  List<Index> loadIndices(String table);
-
   // Update database information
   ///////////////////////////////////////////////////
 
@@ -578,8 +574,6 @@ public interface Database {
   void constraint(EsqlConnection con, UUID tableId, ConstraintDefinition constraint);
 
   void dropConstraint(EsqlConnection con, UUID tableId, String constraintName);
-
-  int SNAPSHOT_ISOLATION = 0x1000;
 
   Database NULL_DB = new Database() {
     @Override

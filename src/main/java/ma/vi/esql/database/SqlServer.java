@@ -19,7 +19,6 @@ import java.util.HashSet;
 import java.util.Properties;
 
 import static java.util.Collections.emptyMap;
-import static ma.vi.base.collections.ArrayUtils.ARRAY_ESCAPE;
 import static ma.vi.base.lang.Errors.unchecked;
 import static ma.vi.esql.semantic.type.BaseType.BASE_TYPE;
 import static ma.vi.esql.translation.Translatable.Target.SQLSERVER;

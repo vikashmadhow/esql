@@ -14,7 +14,7 @@ import static org.junit.jupiter.api.DynamicTest.dynamicTest;
 /**
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public class CreateIndexTest extends DataTest {
+public class IndexTest extends DataTest {
   @TestFactory
   Stream<DynamicTest> create() {
     return Stream.of(databases)
@@ -24,6 +24,20 @@ public class CreateIndexTest extends DataTest {
                    try (EsqlConnection con = db.esql(db.pooledConnection())) {
                      FilterTest.setupTables(con);
                      con.exec("create unique index test_px_a on test.pX(a)");
+                   }
+                 }));
+  }
+
+  @TestFactory
+  Stream<DynamicTest> drop() {
+    return Stream.of(databases)
+                 .map(db -> dynamicTest(db.target().toString(), () -> {
+                   System.out.println(db.target());
+                   Parser p = new Parser(db.structure());
+                   try (EsqlConnection con = db.esql(db.pooledConnection())) {
+                     FilterTest.setupTables(con);
+                     con.exec("create unique index test_px_a on test.pX(a)");
+                     con.exec("drop index test_px_a on test.pX");
                    }
                  }));
   }

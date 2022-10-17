@@ -72,12 +72,22 @@ public class CoarseHistoryTest extends DataTest {
                    }
 
                    System.out.println(transId);
-                   try (EsqlConnection con = db.esql();
-                        Result rs = con.exec("""
-                                             select table_name, event
-                                               from _core.history
-                                              where trans_id='""" + transId + "'"
-                                          + " order by event")) {
+                   try (EsqlConnection con = db.esql()) {
+                     int i = 1;
+                     while(i < 10
+                       && !((Result)con.exec("""
+                                     select table_name, event
+                                       from _core.history
+                                      where trans_id='""" + transId + "'"
+                                  + " order by event")).toNext()) {
+                       Thread.sleep(100);
+                       i++;
+                     }
+                     Result rs = con.exec("""
+                                          select table_name, event
+                                            from _core.history
+                                           where trans_id='""" + transId + "'"
+                                       + " order by event");
                      matchResult(rs, List.of(Map.of("table_name", "S", "event", "D"),
                                              Map.of("table_name", "S", "event", "I"),
                                              Map.of("table_name", "S", "event", "U")));
@@ -86,7 +96,7 @@ public class CoarseHistoryTest extends DataTest {
   }
 
   @TestFactory
-  Stream<DynamicTest> coarseHistoryNotificationTest() {
+  Stream<DynamicTest> coarseHistoryNotification() {
     return Stream.of(databases)
                  .map(db -> dynamicTest(db.target().toString(), () -> {
                    System.out.println(db.target());

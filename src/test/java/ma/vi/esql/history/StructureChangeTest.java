@@ -17,7 +17,7 @@ import static org.junit.jupiter.api.DynamicTest.dynamicTest;
 
 public class StructureChangeTest extends DataTest {
   @TestFactory
-  Stream<DynamicTest> structureChangeTest() {
+  Stream<DynamicTest> structureChange() {
     return Stream.of(databases)
                  .map(db -> dynamicTest(db.target().toString(), () -> {
                    System.out.println(db.target());

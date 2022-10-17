@@ -23,6 +23,10 @@ import ma.vi.esql.syntax.define.Attribute;
 import ma.vi.esql.syntax.define.Metadata;
 import ma.vi.esql.syntax.define.NameWithMetadata;
 import ma.vi.esql.syntax.define.index.CreateIndex;
+import ma.vi.esql.syntax.define.index.DropIndex;
+import ma.vi.esql.syntax.define.sequence.AlterSequence;
+import ma.vi.esql.syntax.define.sequence.CreateSequence;
+import ma.vi.esql.syntax.define.sequence.DropSequence;
 import ma.vi.esql.syntax.define.struct.AlterStruct;
 import ma.vi.esql.syntax.define.struct.CreateStruct;
 import ma.vi.esql.syntax.define.struct.DropStruct;
@@ -273,9 +277,9 @@ public class SyntaxAnalyser extends EsqlBaseListener {
   @Override
   public void exitBaseSelection(BaseSelectionContext ctx) {
     DistinctContext distinct = ctx.distinct();
-    if (ctx.tableExpr() == null) {
-      error(ctx,"Missing or wrong from clause in Select");
-    }
+//    if (ctx.tableExpr() == null) {
+//      error(ctx,"Missing or wrong from clause in Select");
+//    }
     if (ctx.columns() == null || value(ctx.columns()) == null) {
       error(ctx,"No columns specified in Select");
     } else {
@@ -1338,6 +1342,9 @@ public class SyntaxAnalyser extends EsqlBaseListener {
     put(ctx, new DropMetadata(context));
   }
 
+  // Indexes
+  ///////////////////////////////////////
+
   @Override
   public void exitCreateIndex(CreateIndexContext  ctx) {
     put(ctx.parent, new CreateIndex(context,
@@ -1347,7 +1354,46 @@ public class SyntaxAnalyser extends EsqlBaseListener {
                                     value(ctx.expressionList())));
   }
 
-  // types
+  @Override
+  public void exitDropIndex(DropIndexContext  ctx) {
+    put(ctx.parent, new DropIndex(context,
+                                  value(ctx.identifier()),
+                                  value(ctx.qualifiedName())));
+  }
+
+  // Sequences
+  ///////////////////////////////////////
+
+  @Override
+  public void exitCreateSequence(CreateSequenceContext  ctx) {
+    put(ctx.parent, new CreateSequence(context,
+                                       value(ctx.qualifiedName()),
+                                       ctx.start == null ? null : Long.valueOf(ctx.start.getText()),
+                                       ctx.inc   == null ? null : Long.valueOf(ctx.inc.getText()),
+                                       ctx.min   == null ? null : Long.valueOf(ctx.min.getText()),
+                                       ctx.max   == null ? null : Long.valueOf(ctx.max.getText()),
+                                       ctx.cache == null ? null : Integer.valueOf(ctx.cache.getText()),
+                                       ctx.cycle != null));
+  }
+
+  @Override
+  public void exitAlterSequence(AlterSequenceContext  ctx) {
+    put(ctx.parent, new AlterSequence(context,
+                                      value(ctx.qualifiedName()),
+                                      ctx.restart == null ? null : Long.valueOf(ctx.restart.getText()),
+                                      ctx.inc     == null ? null : Long.valueOf(ctx.inc.getText()),
+                                      ctx.min     == null ? null : Long.valueOf(ctx.min.getText()),
+                                      ctx.max     == null ? null : Long.valueOf(ctx.max.getText()),
+                                      ctx.cache   == null ? null : Integer.valueOf(ctx.cache.getText()),
+                                      ctx.cycle != null));
+  }
+
+  @Override
+  public void exitDropSequence(DropSequenceContext  ctx) {
+    put(ctx.parent, new DropSequence(context, value(ctx.qualifiedName())));
+  }
+
+  // Types
   ///////////////////////////////////////
 
   @Override

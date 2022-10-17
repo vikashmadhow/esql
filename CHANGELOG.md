@@ -46,7 +46,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `Truncate table` statement.
 
-- `drop index` support in ESQL.
 - Support for creating and using sequences.
 - `create sequence` support in ESQL.
 - `alter sequence` support in ESQL.
@@ -86,6 +85,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   for metadata overriding)
 - Modify queries return values don't seem to be supported correctly for SQL 
   Server.
+
+## [1.2.2]
+### Fine-grain history and notification
+
+## [1.2.1] - 2022-10-17
+### Sequence support; finalise index support with `drop index` implementation
+Added:
+- Parsing and execution of `drop index` statement in ESQL.
+- Parsing and execution of `create sequence` statement in ESQL.
+- Parsing and execution of `drop sequence` statement in ESQL.
+- Parsing and execution of `alter sequence` statement in ESQL.
+- `createSchema` method added to `Database` to generically create a schema in 
+  the target database as needed.
+- `nextvalue` function to get the next value from a sequence.
 
 ## [1.2.0] - 2022-10-15
 ### Structure change and coarse history notifications
