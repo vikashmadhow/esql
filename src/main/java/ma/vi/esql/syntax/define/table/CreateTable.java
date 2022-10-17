@@ -30,7 +30,6 @@ import ma.vi.esql.translation.TranslationException;
 import org.pcollections.PMap;
 
 import java.sql.Connection;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.*;
@@ -250,7 +249,7 @@ public class CreateTable extends Define {
       String tableName = name();
       T2<String, String> splitName = Type.splitName(tableName);
       String schema = splitName.a;
-      db.createSchema(schema);
+      db.createSchema(con, schema);
 
       /*
        * Create or alter table:  update structure if this was not a system table

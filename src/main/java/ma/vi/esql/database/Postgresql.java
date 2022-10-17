@@ -221,6 +221,17 @@ public class Postgresql extends AbstractDatabase {
   }
 
   @Override
+  public void createSchema(Connection con, String schema) {
+    if (schema != null) {
+      try {
+        con.createStatement().executeUpdate("create schema if not exists \"" + schema + '"');
+      } catch(SQLException sqle) {
+        throw new RuntimeException(sqle);
+      }
+    }
+  }
+
+  @Override
   public String transactionId(Connection con) {
     try (ResultSet rs = con.createStatement().executeQuery(
       "select pg_current_xact_id()::text")) {

@@ -413,6 +413,20 @@ public class SqlServer extends AbstractDatabase {
   }
 
   @Override
+  public void createSchema(Connection con, String schema) {
+    if (schema != null) {
+      try (ResultSet rs = con.createStatement().executeQuery(
+        "select name from sys.schemas where name='" + schema + "'")) {
+        if (!rs.next()) {
+          con.createStatement().executeUpdate("create schema \"" + schema + '"');
+        }
+      } catch(SQLException sqle) {
+        throw new RuntimeException(sqle);
+      }
+    }
+  }
+
+  @Override
   public String transactionId(Connection con) {
     try (ResultSet rs = con.createStatement().executeQuery(
       "select cast(current_transaction_id() as varchar)")) {

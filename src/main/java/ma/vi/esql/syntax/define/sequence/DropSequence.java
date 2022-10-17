@@ -78,7 +78,7 @@ public class DropSequence extends Define {
       Connection con = esqlCon.connection();
       T2<String, String> splitName = Type.splitName(name());
       String schema = splitName.a;
-      esqlCon.database().createSchema(schema);
+      esqlCon.database().createSchema(con, schema);
 
       String dbSchemaName = Type.dbSchemaName(schema, target);
       try (ResultSet rs = con.createStatement().executeQuery(

@@ -86,12 +86,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Modify queries return values don't seem to be supported correctly for SQL 
   Server.
 
-## [1.2.2]
+## [1.2.3]
 ### Fine-grain history and notification
+
+## [1.2.2] - 2022-10-17
+### Fix schema creation
+#### Fixed:
+- Fix creation of schema which was not aligned with ongoing transaction and could
+  fail in some circumstances
 
 ## [1.2.1] - 2022-10-17
 ### Sequence support; finalise index support with `drop index` implementation
-Added:
+#### Added:
 - Parsing and execution of `drop index` statement in ESQL.
 - Parsing and execution of `create sequence` statement in ESQL.
 - Parsing and execution of `drop sequence` statement in ESQL.
