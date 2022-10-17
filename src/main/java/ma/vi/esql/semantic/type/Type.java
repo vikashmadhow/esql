@@ -198,19 +198,22 @@ public interface Type extends Symbol, Copy<Type>, Translatable<String> {
    * schema), while 'a' is simply mapped to "a".
    */
   static String dbTableName(String name, Target target) {
-    T2<String, String> q = Type.splitName(name);
-    if (target == MARIADB || target == MYSQL) {
-      return '"' + (q.a != null ? q.a + '.' : "") + q.b + '"';
-
+    if (target == ESQL) {
+      return name;
     } else {
-      StringBuilder st = new StringBuilder();
-      if      (q.a != null)          { st.append('"').append(q.a).append("\"."); }
-      else if (target == HSQLDB)     { st.append("\"PUBLIC\"."); }
-      else if (target == POSTGRESQL) { st.append("\"public\"."); }
-      else if (target == SQLSERVER)  { st.append("\"DBO\"."); }
-      st.append('"').append(q.b).append('"');
-      return st.toString();
+      T2<String, String> q = Type.splitName(name);
+      String dbSchemaName = dbSchemaName(q.a, target);
+      return (dbSchemaName != null ? '"' + dbSchemaName + "\"." : "") + '"' + q.b + '"';
     }
+  }
+
+  static String dbSchemaName(String esqlSchema, Target target) {
+    return esqlSchema != null   ? esqlSchema
+         : target == ESQL
+        || target == MARIADB
+        || target == MYSQL      ? null
+         : target == SQLSERVER  ? "dbo"
+         :                        "public";
   }
 
   /**

@@ -12,6 +12,7 @@ import ma.vi.esql.exec.function.FunctionParam;
 import ma.vi.esql.exec.function.array.InArray;
 import ma.vi.esql.exec.function.date.*;
 import ma.vi.esql.exec.function.debug.Print;
+import ma.vi.esql.exec.function.sequence.NextValue;
 import ma.vi.esql.exec.function.stat.Bin;
 import ma.vi.esql.exec.function.stat.BinFunction;
 import ma.vi.esql.exec.function.string.*;
@@ -128,6 +129,10 @@ public class Structure extends AbstractScope implements Environment {
 //                               singletonList(new FunctionParam("values", TopType))));
     functions.put("coalesce", new Coalesce());
 
+
+    // Sequence operations
+    //////////////////////////////////
+    functions.put("nextvalue", new NextValue());
 
     // Array operations
     //////////////////////////////////

@@ -250,18 +250,7 @@ public class CreateTable extends Define {
       String tableName = name();
       T2<String, String> splitName = Type.splitName(tableName);
       String schema = splitName.a;
-      if (schema != null) {
-        if (db.target() == SQLSERVER) {
-          try (ResultSet rs = con.createStatement().executeQuery(
-              "select name from sys.schemas where name='" + schema + "'")) {
-            if (!rs.next()) {
-              con.createStatement().executeUpdate("create schema \"" + schema + '"');
-            }
-          }
-        } else if (db.target() != MARIADB && db.target() != MYSQL) {
-          con.createStatement().executeUpdate("create schema if not exists \"" + schema + '"');
-        }
-      }
+      db.createSchema(schema);
 
       /*
        * Create or alter table:  update structure if this was not a system table

@@ -12,50 +12,42 @@ import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.define.Define;
-import ma.vi.esql.syntax.expression.ColumnRef;
-import ma.vi.esql.syntax.expression.Expression;
 import org.pcollections.PMap;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.List;
-import java.util.stream.Collectors;
 
 import static ma.vi.esql.exec.Result.Nothing;
 import static ma.vi.esql.semantic.type.Type.dbTableName;
 import static ma.vi.esql.translation.Translatable.Target.*;
 
 /**
- * Create index statement.
+ * Drop index statement.
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public class CreateIndex extends Define {
-  public CreateIndex(Context context,
-                     boolean unique,
-                     String  name,
-                     String  table,
-                     List<Expression<?, ?>> columns) {
-    super(context, "CreateIndex",
-          T2.of("unique",  new Esql<>(context, unique)),
+public class DropIndex extends Define {
+  public DropIndex(Context context,
+                   String  name,
+                   String  table) {
+    super(context, "DropIndex",
           T2.of("name",    new Esql<>(context, name)),
-          T2.of("table",   new Esql<>(context, table)),
-          T2.of("columns", new Esql<>(context, "columns", columns, true)));
+          T2.of("table",   new Esql<>(context, table)));
   }
 
-  public CreateIndex(CreateIndex other) {
+  public DropIndex(DropIndex other) {
     super(other);
   }
 
   @SafeVarargs
-  public CreateIndex(CreateIndex other, String value, T2<String, ? extends Esql<?, ?>>... children) {
+  public DropIndex(DropIndex other, String value, T2<String, ? extends Esql<?, ?>>... children) {
     super(other, value, children);
   }
 
   @Override
-  public CreateIndex copy() {
-    return new CreateIndex(this);
+  public DropIndex copy() {
+    return new DropIndex(this);
   }
 
   /**
@@ -64,8 +56,8 @@ public class CreateIndex extends Define {
    * of the copy.
    */
   @Override
-  public CreateIndex copy(String value, T2<String, ? extends Esql<?, ?>>... children) {
-    return new CreateIndex(this, value, children);
+  public DropIndex copy(String value, T2<String, ? extends Esql<?, ?>>... children) {
+    return new DropIndex(this, value, children);
   }
 
   @Override
@@ -74,19 +66,17 @@ public class CreateIndex extends Define {
                          EsqlPath             path,
                          PMap<String, Object> parameters,
                          Environment          env) {
-    return "create " + (unique() ? "unique " : "")
-         + "index "  + (target == POSTGRESQL ? "if not exists " : "")
-         + (target == ESQL ? name() : '"' + name() + '"')
-         + " on "    + (target == ESQL ? table() : dbTableName(table(), target))
-         + '(' + columns().stream()
-                          .map(c -> {
-                            boolean column = c instanceof ColumnRef;
-                            return (!column && target == POSTGRESQL? "(" : "")
-                                 + c.translate(target, esqlCon, path.add(c), parameters, env)
-                                 + (!column && target == POSTGRESQL? ")" : "");
-                          })
-                          .collect(Collectors.joining(", "))
-         + ')';
+    return switch (target) {
+      case POSTGRESQL -> {
+        var schema = Type.schema(table());
+        yield "drop index if exists "
+            + Type.dbTableName((schema == null ? "" : schema + '.' ) + name(), target);
+      }
+      case SQLSERVER -> "drop index \"" + name() + '"'
+                      + " on " + dbTableName(table(), target);
+
+      default ->  "drop index " + name() + " on " + table();
+    };
   }
 
   @Override
@@ -103,7 +93,7 @@ public class CreateIndex extends Define {
             + "  from sys.indexes "
             + " where object_id = object_id('" + Type.dbTableName(table(), target) + "')"
             + "   and name='" + name() + "'")) {
-          if (!rs.next()) {
+          if (rs.next()) {
             con.createStatement().executeUpdate(
               translate(target, esqlCon, path, parameters, env));
           }
@@ -122,15 +112,7 @@ public class CreateIndex extends Define {
     return childValue("name");
   }
 
-  public boolean unique() {
-    return childValue("unique");
-  }
-
   public String table() {
     return childValue("table");
-  }
-
-  public List<Expression<?, ?>> columns() {
-    return child("columns").children();
   }
 }

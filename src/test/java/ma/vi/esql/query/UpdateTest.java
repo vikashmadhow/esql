@@ -61,7 +61,7 @@ public class UpdateTest extends DataTest {
       Assertions.assertEquals(
           "update \"usr\" " +
               "set \"a\"=1, \"i\"=N'yxz' " +
-              "from \"DBO\".\"S\" \"usr\" " +
+              "from \"dbo\".\"S\" \"usr\" " +
               "where \"i\" = N'xyz@yxz.com'",
           q.translation());
       con.exec(s);

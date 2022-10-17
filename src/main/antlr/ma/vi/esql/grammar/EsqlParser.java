@@ -113,8 +113,8 @@ public class EsqlParser extends Parser {
 			"'undefined'", "'column'", "'unique'", "'primary'", "'key'", "'check'", 
 			"'foreign'", "'references'", "'cost'", "'ignore'", "'constraint'", "'restrict'", 
 			"'cascade'", "'alter'", "'rename'", "'to'", "'add'", "'metadata'", "'type'", 
-			"'no'", "'index'", "'sequence'", "'start'", "'increment'", "'minvalue'", 
-			"'maxvalue'", "'cycle'", "'cache'", "'restart'", null, null, null, null, 
+			"'no'", "'index'", "'sequence'", "'start'", "'increment'", "'minimum'", 
+			"'maximum'", "'cycle'", "'cache'", "'restart'", null, null, null, null, 
 			"'null'", null, null, null, null, null, null, "'not'"
 		};
 	}

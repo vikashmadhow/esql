@@ -18,7 +18,7 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * `Function returning true if an element is in an array. It is translated using
+ * Function returning true if an element is in an array. It is translated using
  * array operations on databases that have such support or `string_split` on SQL
  * Server.
  *
@@ -32,22 +32,27 @@ public class InArray extends Function {
   }
 
   @Override
-  public String translate(FunctionCall call, Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
+  public String translate(FunctionCall         call,
+                          Target               target,
+                          EsqlConnection       esqlCon,
+                          EsqlPath             path,
+                          PMap<String, Object> parameters,
+                          Environment          env) {
     List<Expression<?, ?>> args = call.arguments();
     return switch(target) {
       case POSTGRESQL -> args.get(0).translate(target, esqlCon, path.add(args.get(0)), env)
-                      + " in (select * from unnest("
-                      + args.get(1).translate(target, esqlCon, path.add(args.get(1)), env) + "))";
+                       + " in (select * from unnest("
+                       + args.get(1).translate(target, esqlCon, path.add(args.get(1)), env) + "))";
 
       case SQLSERVER -> args.get(0).translate(target, esqlCon, path.add(args.get(0)), env)
-                       + " in (select * from string_split("
-                       + args.get(1).translate(target, esqlCon, path.add(args.get(1)), env) + ", '|'))";
+                      + " in (select * from string_split("
+                      + args.get(1).translate(target, esqlCon, path.add(args.get(1)), env) + ", '|'))";
 
       case JAVASCRIPT -> "new Set(" + args.get(1).translate(target, esqlCon, path.add(args.get(1)), env) + ").has("
                                     + args.get(0).translate(target, esqlCon, path.add(args.get(0)), env) + ")";
 
-      default ->  name + '(' + args.get(0).translate(target, esqlCon, path.add(args.get(0)), env) + ", "
-                             + args.get(1).translate(target, esqlCon, path.add(args.get(1)), env) + ')';
+      default -> name + '(' + args.get(0).translate(target, esqlCon, path.add(args.get(0)), env) + ", "
+                            + args.get(1).translate(target, esqlCon, path.add(args.get(1)), env) + ')';
     };
   }
 }

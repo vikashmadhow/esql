@@ -25,6 +25,8 @@ import java.sql.SQLException;
 import java.util.*;
 import java.util.concurrent.BlockingQueue;
 
+import static ma.vi.esql.translation.Translatable.Target.*;
+
 /**
  * Represents a database containing tables and other persistent objects
  * which can be accessed through the {@link Structure} instance obtained
@@ -348,6 +350,24 @@ public interface Database {
 
   // Load and check database information
   /////////////////////////////////////////
+
+  default void createSchema(String schema) {
+    if (schema != null) {
+      try (Connection con = pooledConnection();
+           ResultSet rs = con.createStatement()
+                             .executeQuery("""
+                                           select 1
+                                             from information_schema.schemata
+                                            where schema_name='""" + schema + "'")) {
+        if (!rs.next()) {
+          con.createStatement().executeUpdate("create schema \"" + schema + '"');
+          con.commit();
+        }
+      } catch (SQLException sqle) {
+        throw new RuntimeException(sqle);
+      }
+    }
+  }
 
   default boolean tableExists(EsqlConnection con, String table) {
     T2<String, String> name = Type.splitName(table);

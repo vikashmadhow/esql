@@ -640,7 +640,7 @@ public class FilterTest extends DataTest {
     con.exec("""
           create table test.pX drop undefined(
             _id uuid not null,
-            a int,
+            a   int,
             primary key(_id)
           )""");
 

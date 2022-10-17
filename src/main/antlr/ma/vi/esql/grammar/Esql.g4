@@ -5,7 +5,7 @@
 /**
  * ANTLR4 grammar for a SQL-like language which can be translated to SQL
  * commands specific to a physical database (PostgreSql, SQL Server, Oracle,
- * MySQL, etc.)
+ * MySQL, etc.).
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
@@ -1109,11 +1109,11 @@ baseLiteralList
  * is formed by negative a positive integer.
  *
  * Negative numbers are now parsed as the negation operation on a number (or
- * expression) instead of being parsed as token in the lexer. If the negative sign
- * is part of the pattern of a number `n-1` would be parsed by the lexer as two
- * tokens: `n` and `-1` which is wrong. Now only the pattern for positive integers
- * is defined as a lexical rule with negative numbers treated as the negation
- * operator applied on a positive number.
+ * expression) instead of being parsed as token in the lexer. If the negative
+ * sign is part of the pattern of a number `n-1` would be parsed by the lexer as
+ * two tokens: `n` and `-1`,  which is wrong. Now only the pattern for positive
+ * integers is defined as a lexical rule with negative numbers treated as the
+ * negation operator applied on a positive number.
  */
 IntegerLiteral
     : Digits
@@ -1600,9 +1600,9 @@ createSequence
     : 'create' 'sequence' qualifiedName
       ('start'      start=integerConstant)?
       ('increment'    inc=integerConstant)?
-      ('minvalue'     min=integerConstant)?
-      ('maxvalue'     max=integerConstant)?
-      cycle='cycle'?
+      ('minimum'     min=integerConstant)?
+      ('maximum'     max=integerConstant)?
+       cycle='cycle'?
       ('cache'      cache=IntegerLiteral)?
     ;
 
@@ -1614,8 +1614,8 @@ alterSequence
     : 'alter' 'sequence' qualifiedName
       ('restart'   restart=integerConstant?)?
       ('increment'     inc=integerConstant)?
-      ('minvalue'      min=integerConstant)?
-      ('maxvalue'      max=integerConstant)?
+      ('minimum'       min=integerConstant)?
+      ('maximum'       max=integerConstant)?
       cycle='cycle'?
       ('cache'       cache=IntegerLiteral)?
     ;
