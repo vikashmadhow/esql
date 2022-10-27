@@ -9,6 +9,7 @@ import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.exec.function.Function;
 import ma.vi.esql.exec.function.FunctionCall;
 import ma.vi.esql.exec.function.FunctionParam;
+import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.expression.Expression;
@@ -36,17 +37,13 @@ public class NextValue extends Function {
                           Environment          env) {
     List<Expression<?, ?>> args = call.arguments();
     String sequence = String.valueOf(args.get(0).translate(target, esqlCon, path.add(args.get(0)), env));
+    int pos = sequence.indexOf('\'');
+    String seqName = pos == -1 ? sequence : sequence.substring(pos + 1, sequence.length() - 1);
     return switch(target) {
-      case POSTGRESQL -> "nextval("   + sequence + ")";
+      case POSTGRESQL -> "nextval('"   + Type.dbTableName(seqName, target) + "')";
       case ESQL       -> "nextvalue(" + sequence + ")";
       case JAVASCRIPT -> "await $exec.nextvalue(" + sequence + ")";
-      default         ->  {
-        int pos = sequence.indexOf('\'');
-        if (pos != -1) {
-          sequence = sequence.substring(pos + 1, sequence.length() - 1);
-        }
-        yield "next value for " + sequence;
-      }
+      default         -> "next value for " + Type.dbTableName(seqName, target);
     };
   }
 }

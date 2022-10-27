@@ -1598,12 +1598,12 @@ dropIndex
 
 createSequence
     : 'create' 'sequence' qualifiedName
-      ('start'      start=integerConstant)?
-      ('increment'    inc=integerConstant)?
+      ('start'     start=integerConstant)?
+      ('increment'   inc=integerConstant)?
       ('minimum'     min=integerConstant)?
       ('maximum'     max=integerConstant)?
        cycle='cycle'?
-      ('cache'      cache=IntegerLiteral)?
+      ('cache'     cache=IntegerLiteral)?
     ;
 
 dropSequence
@@ -1616,7 +1616,7 @@ alterSequence
       ('increment'     inc=integerConstant)?
       ('minimum'       min=integerConstant)?
       ('maximum'       max=integerConstant)?
-      cycle='cycle'?
+       cycle='cycle'?
       ('cache'       cache=IntegerLiteral)?
     ;
 

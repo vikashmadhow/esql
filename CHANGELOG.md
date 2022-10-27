@@ -86,8 +86,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Modify queries return values don't seem to be supported correctly for SQL 
   Server.
 
-## [1.2.4]
+## [1.3.0]
 ### Fine-grain history and notification
+
+## [1.2.4]
+### Fixed
+- The sequence name in `nextvalue` is now properly converted to a valid table name 
+  for PostgreSQL (including double-quoting schema and table name) and then inserted
+  between single quotes.
 
 ## [1.2.3]
 ### Added
