@@ -86,8 +86,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Modify queries return values don't seem to be supported correctly for SQL 
   Server.
 
-## [1.2.3]
+## [1.2.4]
 ### Fine-grain history and notification
+
+## [1.2.3]
+### Added
+- A spurious comma (`,`) is now allowed at the end of an attribute list (in metadata
+  and JSON object definitions). Such commas are a common source of syntax errors
+  which will now parse correctly.
+- Derived columns which are redefined as non-derived and vice-versa in a `CreateTable`
+  statement are not supported by dropping the existing column and re-adding with
+  the new status.
 
 ## [1.2.2] - 2022-10-17
 ### Fix schema creation

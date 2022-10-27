@@ -378,46 +378,62 @@ public class CreateTable extends Define {
              * Alter existing column.
              */
             Column existingColumn = existing.b();
-            Type toType = !existingColumn.computeType(path.add(existingColumn)).equals(column.type()) ? column.type() : null;
-
-            boolean setNotNull =  column.notNull() != null
-                              &&  column.notNull()
-                              && !existingColumn.notNull();
-
-            boolean dropNotNull = (column.notNull() == null || !column.notNull())
-                               && existingColumn.notNull();
-
-            Expression<?, ?> setDefault = null;
-            if (!(column instanceof DerivedColumnDefinition)
-             &&  column.expression() != null
-             && !column.expression().equals(existingColumn.defaultExpression())) {
-              setDefault = column.expression();
-            }
-            boolean dropDefault = !(column instanceof DerivedColumnDefinition)
-                               &&  column.expression() == null
-                               &&  existingColumn.defaultExpression() != null;
-
-            Metadata metadata = column.metadata();
-            boolean changedMetadata = (metadata == null && existingColumn.metadata() != null)
-                                   || (metadata != null && !metadata.equals(existingColumn.metadata()));
-
-            if (toType != null
-             || setNotNull
-             || dropNotNull
-             || setDefault != null
-             || dropDefault
-             || changedMetadata) {
-              alter = new AlterTable(context, tableName,
-                                     singletonList(new AlterColumn(context, column.name(),
-                                                                   new AlterColumnDefinition(context,
-                                                                                             null,
-                                                                                             toType,
-                                                                                             setNotNull,
-                                                                                             dropNotNull,
-                                                                                             setDefault,
-                                                                                             dropDefault,
-                                                                                             metadata))));
+            if (( existingColumn.derived() && !(column instanceof DerivedColumnDefinition))
+             || (!existingColumn.derived() &&   column instanceof DerivedColumnDefinition)) {
+              /*
+               * Derived status of column has changed. Need to drop existing column
+               * and recreate.
+               */
+              alter = new AlterTable(context, tableName, singletonList(new DropColumn(context, column.name())));
               alter.exec(target, esqlCon, path.add(alter), parameters, env);
+
+              alter = new AlterTable(context,
+                                     tableName,
+                                     singletonList(new AddTableDefinition(context, column)));
+              alter.exec(target, esqlCon, path.add(alter), parameters, env);
+
+            } else {
+              Type toType = !existingColumn.computeType(path.add(existingColumn)).equals(column.type()) ? column.type() : null;
+
+              boolean setNotNull =  column.notNull() != null
+                                &&  column.notNull()
+                                && !existingColumn.notNull();
+
+              boolean dropNotNull = (column.notNull() == null || !column.notNull())
+                                 && existingColumn.notNull();
+
+              Expression<?, ?> setDefault = null;
+              if (!(column instanceof DerivedColumnDefinition)
+               &&  column.expression() != null
+               && !column.expression().equals(existingColumn.defaultExpression())) {
+                setDefault = column.expression();
+              }
+              boolean dropDefault = !(column instanceof DerivedColumnDefinition)
+                                 &&  column.expression() == null
+                                 &&  existingColumn.defaultExpression() != null;
+
+              Metadata metadata = column.metadata();
+              boolean changedMetadata = (metadata == null && existingColumn.metadata() != null)
+                                     || (metadata != null && !metadata.equals(existingColumn.metadata()));
+
+              if (toType != null
+               || setNotNull
+               || dropNotNull
+               || setDefault != null
+               || dropDefault
+               || changedMetadata) {
+                alter = new AlterTable(context, tableName,
+                                       singletonList(new AlterColumn(context, column.name(),
+                                                                     new AlterColumnDefinition(context,
+                                                                                               null,
+                                                                                               toType,
+                                                                                               setNotNull,
+                                                                                               dropNotNull,
+                                                                                               setDefault,
+                                                                                               dropDefault,
+                                                                                               metadata))));
+                alter.exec(target, esqlCon, path.add(alter), parameters, env);
+              }
             }
           }
           seq++;

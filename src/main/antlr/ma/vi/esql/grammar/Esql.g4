@@ -147,7 +147,7 @@ metadata
  * Metadata consists of a comma-separated list of attributes.
  */
 attributeList
-    : attribute (',' attribute)*
+    : attribute (',' attribute)* ','?
     ;
 
 /**
@@ -171,7 +171,7 @@ literalMetadata
     ;
 
 literalAttributeList
-    : literalAttribute (',' literalAttribute)*
+    : literalAttribute (',' literalAttribute)* ','?
     ;
 
 literalAttribute
