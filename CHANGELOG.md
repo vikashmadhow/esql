@@ -89,6 +89,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.3.0]
 ### Fine-grain history and notification
 
+## [1.2.5]
+### Added
+- Unique columns added to table metadata so that constraints can be applied on 
+  the client side when editing.
+
 ## [1.2.4]
 ### Fixed
 - The sequence name in `nextvalue` is now properly converted to a valid table name 

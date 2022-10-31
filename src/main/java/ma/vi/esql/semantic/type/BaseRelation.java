@@ -146,7 +146,8 @@ public class BaseRelation extends Struct {
   }
 
   public void addColumn(Column column) {
-    for (Column c: expandColumn(column, aliasedColumns(columns))) {
+    // @todo check uniqueness of column
+    for (Column c: expandColumn(column, aliasedColumns(columns), false)) {
       this.columns.add(c);
       this.columnsByAlias.put(c.name(), c);
     }
@@ -325,44 +326,45 @@ public class BaseRelation extends Struct {
       newCols.addAll(columnsForAttribute(attr, "/", aliased));
     }
 
-//    /*
-//     * Add relation level attribute columns for multi columns unique constraint.
-//     */
-//    List<UniqueConstraint> uniqueCons = constraints.stream()
-//                                                   .filter(c -> c instanceof UniqueConstraint)
-//                                                   .map(c -> (UniqueConstraint)c)
-//                                                   .toList();
-//    List<List<String>> multiUnique = new ArrayList<>();
-//    for (UniqueConstraint cons: uniqueCons) {
-//      if (cons.columns().size() > 1) {
-//        multiUnique.add(cons.columns());
-//      }
-//    }
-//    if (!multiUnique.isEmpty()) {
-//      newCols.add(new Column(context,
-//                             '/' + UNIQUE,
-//                             new JsonArrayLiteral(
-//                                   context,
-//                                   multiUnique.stream()
-//                                              .map(u -> new JsonArrayLiteral(
-//                                                              context,
-//                                                              u.stream()
-//                                                               .map(s -> new StringLiteral(context, s))
-//                                                               .toList()))
-//                                              .toList()),
-//                             Types.JsonType,
-//                             null));
-//    }
-//
-//    /*
-//     * Expand columns, adding unique attribute to unique columns.
-//     */
-//    Set<String> uniqueColumns = uniqueCons.stream()
-//                                          .filter(u -> u.columns().size() == 1)
-//                                          .map(u -> u.columns().get(0))
-//                                          .collect(toSet());
+    /*
+     * Add relation level attribute columns for multi columns unique constraint.
+     */
+    List<UniqueConstraint> uniqueCons = constraints.stream()
+                                                   .filter(c -> c instanceof UniqueConstraint)
+                                                   .map(c -> (UniqueConstraint)c)
+                                                   .toList();
+    List<List<String>> multiUnique = new ArrayList<>();
+    for (UniqueConstraint cons: uniqueCons) {
+      if (cons.columns().size() > 1) {
+        multiUnique.add(cons.columns());
+      }
+    }
+    if (!multiUnique.isEmpty()) {
+      newCols.add(new Column(context,
+                             '/' + UNIQUE,
+                             new JsonArrayLiteral(
+                                   context,
+                                   multiUnique.stream()
+                                              .map(u -> new JsonArrayLiteral(
+                                                              context,
+                                                              u.stream()
+                                                               .map(s -> new StringLiteral(context, s))
+                                                               .toList()))
+                                              .toList()),
+                             Types.JsonType,
+                             null));
+    }
+
+    /*
+     * Expand columns, adding unique attribute to unique columns.
+     */
+    Set<String> uniqueColumns = uniqueCons.stream()
+                                          .filter(u -> u.columns().size() == 1)
+                                          .map(u -> u.columns().get(0))
+                                          .collect(toSet());
     for (Column column: columns) {
-      newCols.addAll(expandColumn(column, aliased));
+     newCols.addAll(expandColumn(column, aliased,
+                                 uniqueColumns.contains(column.name())));
     }
     return newCols;
   }
@@ -382,7 +384,8 @@ public class BaseRelation extends Struct {
    * </pre>
    */
   public static List<Column> expandColumn(Column column,
-                                          Map<String, String> aliased) {
+                                          Map<String, String> aliased,
+                                          boolean unique) {
     List<Column> newCols = new ArrayList<>();
     newCols.add(column);
     String colAlias = column.name();
@@ -398,13 +401,13 @@ public class BaseRelation extends Struct {
                                  null));
         }
         Map<String, Attribute> attributes = column.metadata().attributes();
-//        if (unique && !attributes.containsKey(UNIQUE)) {
-//          newCols.add(new Column(column.context,
-//                                 colAlias + '/' + UNIQUE,
-//                                 new BooleanLiteral(column.context, true),
-//                                 Types.BoolType,
-//                                 null));
-//        }
+        if (unique && !attributes.containsKey(UNIQUE)) {
+          newCols.add(new Column(column.context,
+                                 colAlias + "/" + UNIQUE,
+                                 new BooleanLiteral(column.context, true),
+                                 Types.BoolType,
+                                 null));
+        }
         if (column.notNull() && !attributes.containsKey(REQUIRED)) {
           newCols.add(new Column(column.context,
                                  colAlias + '/' + REQUIRED,
