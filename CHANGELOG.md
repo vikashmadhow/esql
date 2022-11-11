@@ -89,18 +89,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.3.0]
 ### Fine-grain history and notification
 
-## [1.2.5]
+## [1.2.6] - 2022-11-11
+### Added
+- A spurious ending comma (`,`) is now allowed at the end of any literal list 
+  including at the end of JSON array literals.
+
+## [1.2.5] - 2022-10-31
 ### Added
 - Unique columns added to table metadata so that constraints can be applied on 
   the client side when editing.
 
-## [1.2.4]
+## [1.2.4] - 2022-10-27
 ### Fixed
 - The sequence name in `nextvalue` is now properly converted to a valid table name 
   for PostgreSQL (including double-quoting schema and table name) and then inserted
   between single quotes.
 
-## [1.2.3]
+## [1.2.3] - 2022-10-27
 ### Added
 - A spurious comma (`,`) is now allowed at the end of an attribute list (in metadata
   and JSON object definitions). Such commas are a common source of syntax errors

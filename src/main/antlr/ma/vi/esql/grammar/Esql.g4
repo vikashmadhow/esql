@@ -1093,7 +1093,7 @@ baseLiteral
  * array literal.
  */
 literalList
-    : literal (',' literal)*
+    : literal (',' literal)* ','?
     ;
 
 /**
@@ -1101,7 +1101,7 @@ literalList
  * ESQL array literal.
  */
 baseLiteralList
-    : baseLiteral (',' baseLiteral)*
+    : baseLiteral (',' baseLiteral)* ','?
     ;
 
 /**
