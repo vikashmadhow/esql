@@ -1,5 +1,6 @@
 package ma.vi.esql.exec;
 
+import ma.vi.base.lang.NotFoundException;
 import ma.vi.base.reflect.Dissector;
 import ma.vi.base.reflect.Property;
 
@@ -22,6 +23,16 @@ public class QueryParams {
   public QueryParams add(Object objectAsParams) {
     for (Param p: asParams(objectAsParams)) add(p);
     return this;
+  }
+
+  /**
+   * Return a parameter value by name, if found in the parameter list, or throws
+   * `NotFoundException` if not.
+   * @param name The parameter name.
+   * @return The parameter value if found in the parameter list, or empty otherwise.
+   */
+  public <T> T get(String name) {
+    return (T)find(name).orElseThrow(() -> new NotFoundException("Could find parameter " + name));
   }
 
   /**

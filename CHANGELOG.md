@@ -89,6 +89,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.3.0]
 ### Fine-grain history and notification
 
+## [1.2.8] - 2022-11-22
+### Added
+- Add method `get` in `QueryParams` to get the value of a parameter or throw a
+  `NotFoundException` (the `find` method does the same thing but returns an 
+  `Optional`).
+
 ## [1.2.7] - 2022-11-21
 ### Fixed
 - `RESTRICT` is translated to `NO ACTION` on SQL Server as this is the equivalent
