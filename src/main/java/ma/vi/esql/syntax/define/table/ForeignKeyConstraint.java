@@ -16,6 +16,8 @@ import java.util.HashSet;
 import java.util.List;
 
 import static ma.vi.esql.semantic.type.Type.dbTableName;
+import static ma.vi.esql.syntax.define.table.ConstraintDefinition.ForeignKeyChangeAction.NO_ACTION;
+import static ma.vi.esql.syntax.define.table.ConstraintDefinition.ForeignKeyChangeAction.RESTRICT;
 import static ma.vi.esql.translation.Translatable.Target.MARIADB;
 import static ma.vi.esql.translation.Translatable.Target.MYSQL;
 
@@ -93,13 +95,24 @@ public class ForeignKeyConstraint extends ConstraintDefinition {
        */
       name = name.substring(name.length() - 64);
     }
-    return "constraint "
-      + '"' + name + '"'
-      + " foreign key(" + quotedColumnsList(sourceColumns()) + ") "
-      + "references " + dbTableName(targetTable(), target) + '('
-      + quotedColumnsList(targetColumns()) + ')'
-      + (onUpdate() != null ? " on update " + onUpdate().keyword : "")
-      + (onDelete() != null ? " on delete " + onDelete().keyword : "");
+    return switch(target) {
+      case SQLSERVER -> "constraint "
+                      + '"' + name + '"'
+                      + " foreign key(" + quotedColumnsList(sourceColumns()) + ") "
+                      + "references " + dbTableName(targetTable(), target) + '('
+                      + quotedColumnsList(targetColumns()) + ')'
+                      + (onUpdate() != null ? " on update "
+                                              + (onUpdate() == RESTRICT ? NO_ACTION.keyword : onUpdate().keyword) : "")
+                      + (onDelete() != null ? " on delete "
+                                              + (onDelete() == RESTRICT ? NO_ACTION.keyword : onDelete().keyword) : "");
+      default -> "constraint "
+               + '"' + name + '"'
+               + " foreign key(" + quotedColumnsList(sourceColumns()) + ") "
+               + "references " + dbTableName(targetTable(), target) + '('
+               + quotedColumnsList(targetColumns()) + ')'
+               + (onUpdate() != null ? " on update " + onUpdate().keyword : "")
+               + (onDelete() != null ? " on delete " + onDelete().keyword : "");
+    };
   }
 
   public List<String> sourceColumns() {
