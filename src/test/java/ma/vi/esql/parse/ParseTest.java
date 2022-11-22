@@ -100,18 +100,18 @@ public class ParseTest extends DataTest {
         assertEquals("uuid", c.type());
         assertFalse(c.derived());
         assertTrue(c.notNull());
-        assertEquals("\"uuid\"", c.attributes().get("_type"));
-        assertEquals("true", c.attributes().get("required"));
+        assertEquals("uuid", c.attributes().get("_type"));
+        assertEquals(true, c.attributes().get("required"));
 
         c = columns.get(1);
         assertEquals("a", c.name());
         assertEquals("int", c.type());
         assertFalse(c.derived());
         assertFalse(c.notNull());
-        assertEquals("\"int\"", c.attributes().get("_type"));
-        assertEquals("\"$(row.b.$v > 5)\"", c.attributes().get("m1"));
-        assertEquals("10", c.attributes().get("m2"));
-        assertEquals("\"$(row.a.$v !== 0)\"", c.attributes().get("m3"));
+        assertEquals("int", c.attributes().get("_type"));
+        assertEquals("$(row.b.$v > 5)", c.attributes().get("m1"));
+        assertEquals(10L, c.attributes().get("m2"));
+        assertEquals("$(row.a.$v !== 0)", c.attributes().get("m3"));
       }));
   }
 

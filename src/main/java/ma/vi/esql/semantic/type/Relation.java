@@ -7,13 +7,17 @@ package ma.vi.esql.semantic.type;
 import ma.vi.base.lang.NotFoundException;
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.semantic.scope.Symbol;
+import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.define.Attribute;
 import ma.vi.esql.syntax.expression.ColumnRef;
 import ma.vi.esql.syntax.expression.literal.Literal;
+import org.pcollections.HashPMap;
+import org.pcollections.IntTreePMap;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static ma.vi.esql.database.Database.NULL_DB;
 import static ma.vi.esql.translation.Translatable.Target.JAVASCRIPT;
 
 /**
@@ -102,17 +106,22 @@ public abstract class Relation extends AbstractType implements Symbol {
                                                  c.type().name(),
                                                  c.derived(),
                                                  c.notNull(),
-                                                 "\"$(" + c.expression().translate(JAVASCRIPT) + ")\"",
+                                                 c.expression() instanceof Literal<?>
+                                                   ? c.expression().exec(JAVASCRIPT, null,
+                                                                         new EsqlPath(c.expression()),
+                                                                         HashPMap.empty(IntTreePMap.empty()),
+                                                                         NULL_DB.structure())
+                                                   : "$(" + c.expression().translate(JAVASCRIPT) + ")",
                                                  c.metadata() == null
-                                                 ? Collections.emptyMap()
-                                                 : c.metadata().attributes().entrySet().stream()
-                                                               .collect(Collectors.toMap(
-                                                                 Map.Entry::getKey,
-                                                                 e -> e.getValue().attributeValue() instanceof Literal<?>
-                                                                    ? e.getValue().attributeValue().translate(JAVASCRIPT)
-                                                                    : "\"$(" + e.getValue().attributeValue().translate(JAVASCRIPT) + ")\"",
-                                                                 (e1, e2) -> e1,
-                                                                 LinkedHashMap::new))))
+                                                   ? Collections.emptyMap()
+                                                   : c.metadata().attributes().entrySet().stream()
+                                                                 .collect(Collectors.toMap(
+                                                                   Map.Entry::getKey,
+                                                                   e -> e.getValue().attributeValue() instanceof Literal<?>
+                                                                      ? e.getValue().evaluateAttribute()
+                                                                      : "$(" + e.getValue().attributeValue().translate(JAVASCRIPT) + ")",
+                                                                   (e1, e2) -> e1,
+                                                                   LinkedHashMap::new))))
                       .toList();
   }
 
