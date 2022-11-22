@@ -33,7 +33,7 @@ import static ma.vi.base.tuple.T2.of;
  *
  * @author vikash.madhow@gmail.com
  */
-public class FunctionCall extends Expression<String, String> implements TypedMacro {
+public class  FunctionCall extends Expression<String, String> implements TypedMacro {
   public FunctionCall(Context                     context,
                       String                      functionName,
                       boolean                     distinct,

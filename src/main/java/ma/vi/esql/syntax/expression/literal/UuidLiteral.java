@@ -68,7 +68,7 @@ public class UuidLiteral extends BaseLiteral<UUID> {
                        : "'" + value + "'";
       case POSTGRESQL -> "'" + value + "'::uuid";
       case ESQL       -> "u'" + value + "'";
-      case JAVASCRIPT -> value.toString();
+      case JAVASCRIPT -> '"' + value.toString() + '"';
       default         -> "'" + value.toString() + "'";
     };
   }

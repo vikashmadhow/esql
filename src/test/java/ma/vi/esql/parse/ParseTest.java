@@ -6,22 +6,117 @@ package ma.vi.esql.parse;
 
 import ma.vi.esql.DataTest;
 import ma.vi.esql.database.EsqlConnection;
+import ma.vi.esql.database.Structure;
+import ma.vi.esql.semantic.type.SimpleColumn;
+import ma.vi.esql.semantic.type.Struct;
+import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.Parser;
-import ma.vi.esql.syntax.Program;
 import ma.vi.esql.syntax.query.Select;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
 
+import java.util.List;
 import java.util.UUID;
 import java.util.stream.Stream;
 
 import static ma.vi.esql.syntax.Parser.Rules.SELECT;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.DynamicTest.dynamicTest;
 
 public class ParseTest extends DataTest {
+  @TestFactory
+  Stream<DynamicTest> basic() {
+    return Stream.of(databases)
+      .map(db -> dynamicTest(db.target().toString(), () -> {
+        Structure structure = db.structure();
+        Parser parser = new Parser(structure);
+
+        Esql<?, ?> esql = parser.parse("select * from S");
+        assertNotNull(esql);
+      }));
+  }
 
   @TestFactory
-  Stream<DynamicTest> rangeAndConditionalTest() {
+  Stream<DynamicTest> simpleColumns() {
+    return Stream.of(databases)
+      .map(db -> dynamicTest(db.target().toString(), () -> {
+        Structure structure = db.structure();
+        List<SimpleColumn> columns = structure.relation("S").cols();
+        for (SimpleColumn c: columns) System.out.println(c);
+      }));
+  }
+
+  @TestFactory
+  Stream<DynamicTest> simpleColumnsFromStruct() {
+    return Stream.of(databases)
+      .map(db -> dynamicTest(db.target().toString(), () -> {
+        try(EsqlConnection con = db.esql()) {
+          con.exec("drop struct str.A");
+          con.exec("""
+                   create struct str.A({
+                       name: 'A',
+                       description: 'A test structure'
+                     }
+                     _id uuid not null,
+                     a int {
+                       m1: b > 5,
+                       m2: 10,
+                       m3: a != 0
+                     },
+                     b int {
+                       m1: b < 0
+                     },
+                     c=a+b {
+                       m1: a > 5,
+                       m2: a + b,
+                       m3: b > 5
+                     },
+                     d=b+c {
+                       m1: 10
+                     },
+                     e int {
+                       m1: c,
+                       "values": {"any": {en: 'Any', fr: 'Une ou plusieurs'}, "all": {en: 'All', fr: 'Toutes'}}
+                     },
+                     f=from A select max(a) {
+                       m1: from A select min(a)
+                     },
+                     g=from A select distinct c where d>5 {
+                       m1: d
+                     },
+                     h text {
+                       m1: 5
+                     },
+                     i string
+                   )""");
+        }
+        Struct s = db.structure().struct("str.A");
+        List<SimpleColumn> columns = s.cols();
+        for (SimpleColumn c: columns) System.out.println(c);
+
+        SimpleColumn c = columns.get(0);
+        assertEquals("_id", c.name());
+        assertEquals("uuid", c.type());
+        assertFalse(c.derived());
+        assertTrue(c.notNull());
+        assertEquals("\"uuid\"", c.attributes().get("_type"));
+        assertEquals("true", c.attributes().get("required"));
+
+        c = columns.get(1);
+        assertEquals("a", c.name());
+        assertEquals("int", c.type());
+        assertFalse(c.derived());
+        assertFalse(c.notNull());
+        assertEquals("\"int\"", c.attributes().get("_type"));
+        assertEquals("\"$(row.b.$v > 5)\"", c.attributes().get("m1"));
+        assertEquals("10", c.attributes().get("m2"));
+        assertEquals("\"$(row.a.$v !== 0)\"", c.attributes().get("m3"));
+      }));
+  }
+
+  @TestFactory
+  Stream<DynamicTest> rangeAndConditional() {
     return Stream.of(databases)
                  .map(db -> dynamicTest(db.target().toString(), () -> {
                    System.out.println(db.target());

@@ -89,6 +89,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.3.0]
 ### Fine-grain history and notification
 
+## [1.2.9] - 2022-11-22
+### Added
+- Method `cols` to relation which returns its list of columns as `SimpleColumn`s
+  which is a Java record form of columns. This structure is easier to access and
+  work with by clients.
+
 ## [1.2.8] - 2022-11-22
 ### Added
 - Add method `get` in `QueryParams` to get the value of a parameter or throw a

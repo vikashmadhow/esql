@@ -69,7 +69,7 @@ public class StringLiteral extends BaseLiteral<String> {
                        ? value
                        : "N'" + value.replaceAll("'", "''") + '\'';
       case POSTGRESQL -> esqlToPostgresqlString(value);
-      case JAVASCRIPT -> '`' + value.replaceAll("`", "\\`") + '`';
+      case JAVASCRIPT -> '"' + value.replaceAll("\"", "\\\"") + '"';
       default         -> "'" + value + "'"; // ESQL
     };
   }

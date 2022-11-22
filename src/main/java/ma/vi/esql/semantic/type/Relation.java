@@ -9,9 +9,12 @@ import ma.vi.base.tuple.T2;
 import ma.vi.esql.semantic.scope.Symbol;
 import ma.vi.esql.syntax.define.Attribute;
 import ma.vi.esql.syntax.expression.ColumnRef;
+import ma.vi.esql.syntax.expression.literal.Literal;
 
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static ma.vi.esql.translation.Translatable.Target.JAVASCRIPT;
 
 /**
  *
@@ -85,6 +88,32 @@ public abstract class Relation extends AbstractType implements Symbol {
                       (c1, c2) -> c1,
                       LinkedHashMap::new
                     ));
+  }
+
+  /**
+   * Utility function returning the list of columns in this relation as a list
+   * of {@link SimpleColumn}s which are easier to access to work with.
+   *
+   * @return List of columns as {@link SimpleColumn}s.
+   */
+  public List<SimpleColumn> cols() {
+    return columnMap().values().stream()
+                      .map(c -> new SimpleColumn(c.name(),
+                                                 c.type().name(),
+                                                 c.derived(),
+                                                 c.notNull(),
+                                                 "\"$(" + c.expression().translate(JAVASCRIPT) + ")\"",
+                                                 c.metadata() == null
+                                                 ? Collections.emptyMap()
+                                                 : c.metadata().attributes().entrySet().stream()
+                                                               .collect(Collectors.toMap(
+                                                                 Map.Entry::getKey,
+                                                                 e -> e.getValue().attributeValue() instanceof Literal<?>
+                                                                    ? e.getValue().attributeValue().translate(JAVASCRIPT)
+                                                                    : "\"$(" + e.getValue().attributeValue().translate(JAVASCRIPT) + ")\"",
+                                                                 (e1, e2) -> e1,
+                                                                 LinkedHashMap::new))))
+                      .toList();
   }
 
   public List<T2<Relation, Column>> columns(String prefix) {
