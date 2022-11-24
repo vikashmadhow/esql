@@ -30,6 +30,13 @@ public interface Extension {
   }
 
   /**
+   * This is called after initialisation and can contain code that requires the
+   * extension to have been installed. E.g., an initializer for reports that
+   * requires the report extension to be available.
+   */
+  default void postInit(Database db, Configuration parameters) {}
+
+  /**
    * Returns a set of extension classes that must be loaded and initialised
    * before this extension is initialized. If this extension does not depend on
    * any other extensions, this method should return null or an empty set.

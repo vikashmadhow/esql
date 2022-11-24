@@ -574,6 +574,8 @@ public abstract class AbstractDatabase implements Database {
           e.init(this, toLoad.get(extension));
           extensions.put(extension, e);
           log.log(INFO, repeat(' ', level * 2) + extension.getName() + " initialized");
+
+          e.postInit(this, toLoad.get(extension));
         }
       }
     } catch (Exception e) {

@@ -89,7 +89,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.3.0]
 ### Fine-grain history and notification
 
-## [1.2.10] - 2022-11-22
+## [1.2.11] - 2022-11-24
+### Added
+- `postInit` method in `Extension` which is called after initialisation and can
+  contain code that requires the extension to have been installed. E.g., an 
+  initializer for reports that requires the report extension to be available.
+
+## [1.2.10] - 2022-11-24
 ### Added
 - Utility methods for simpler access to attribute values in `SimpleColumn`. 
 
