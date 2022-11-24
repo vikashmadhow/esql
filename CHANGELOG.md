@@ -89,6 +89,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.3.0]
 ### Fine-grain history and notification
 
+## [1.2.10] - 2022-11-22
+### Added
+- Utility methods for simpler access to attribute values in `SimpleColumn`. 
+
 ## [1.2.9] - 2022-11-22
 ### Added
 - Method `cols` to relation which returns its list of columns as `SimpleColumn`s
