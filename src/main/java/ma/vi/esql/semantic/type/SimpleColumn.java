@@ -18,7 +18,7 @@ public record SimpleColumn(String  name,
         && attributes.containsKey(attr);
   }
 
-  public <T> T value(String attr) {
+  public <T> T get(String attr) {
     return attributes == null
          ? null
          : (T)attributes.get(attr);
