@@ -28,7 +28,7 @@ public record SimpleColumn(String  name,
     attributes.put(attr, value);
   }
 
-  public boolean isTrue(String attr) {
+  public boolean is(String attr) {
     return attributes != null
         && attributes.containsKey(attr)
         && attributes.get(attr) instanceof Boolean b
