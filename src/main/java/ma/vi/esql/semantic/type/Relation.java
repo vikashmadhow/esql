@@ -113,7 +113,7 @@ public abstract class Relation extends AbstractType implements Symbol {
                                                                          NULL_DB.structure())
                                                    : "$(" + c.expression().translate(JAVASCRIPT) + ")",
                                                  c.metadata() == null
-                                                   ? Collections.emptyMap()
+                                                   ? new LinkedHashMap<>()
                                                    : c.metadata().attributes().entrySet().stream()
                                                                  .collect(Collectors.toMap(
                                                                    Map.Entry::getKey,

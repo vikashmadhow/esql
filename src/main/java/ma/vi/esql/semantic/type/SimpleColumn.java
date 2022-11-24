@@ -24,6 +24,10 @@ public record SimpleColumn(String  name,
          : (T)attributes.get(attr);
   }
 
+  public void set(String attr, Object value) {
+    attributes.put(attr, value);
+  }
+
   public boolean isTrue(String attr) {
     return attributes != null
         && attributes.containsKey(attr)
