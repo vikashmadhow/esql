@@ -18,6 +18,13 @@ public record SimpleColumn(String  name,
         && attributes.containsKey(attr);
   }
 
+  public boolean is(String attr) {
+    return attributes != null
+      && attributes.containsKey(attr)
+      && attributes.get(attr) instanceof Boolean b
+      && b;
+  }
+
   public <T> T get(String attr) {
     return attributes == null
          ? null
@@ -26,12 +33,5 @@ public record SimpleColumn(String  name,
 
   public void set(String attr, Object value) {
     attributes.put(attr, value);
-  }
-
-  public boolean is(String attr) {
-    return attributes != null
-        && attributes.containsKey(attr)
-        && attributes.get(attr) instanceof Boolean b
-        && b;
   }
 }
