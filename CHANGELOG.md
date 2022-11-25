@@ -89,6 +89,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.3.0]
 ### Fine-grain history and notification
 
+## [1.2.12] - 2022-11-25
+### Added
+- Do not expand column list when select appears in the `set` clause of an `update`.
+
 ## [1.2.11] - 2022-11-24
 ### Added
 - `postInit` method in `Extension` which is called after initialisation and can

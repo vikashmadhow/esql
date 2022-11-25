@@ -18,6 +18,7 @@ import ma.vi.esql.syntax.define.Define;
 import ma.vi.esql.syntax.expression.ColumnRef;
 import ma.vi.esql.syntax.expression.SelectExpression;
 import ma.vi.esql.syntax.macro.UntypedMacro;
+import ma.vi.esql.syntax.modify.UpdateSet;
 import org.pcollections.PMap;
 
 import java.util.*;
@@ -72,7 +73,9 @@ public class ColumnList extends Esql<String, String> implements UntypedMacro {
       QueryUpdate query = path.ancestor(QueryUpdate.class);
       TableExpr from = query.tables();
 
-      boolean expandColumns = !query.grouped() && !path.hasAncestor(SelectExpression.class);
+      boolean expandColumns = !query.grouped()
+                           && !path.hasAncestor(SelectExpression.class)
+                           && !path.hasAncestor(UpdateSet.class);
       if (expandColumns) {
         /*
          * Do not expand columns if this column list is part of a query which is
