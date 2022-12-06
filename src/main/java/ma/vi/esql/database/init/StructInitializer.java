@@ -74,10 +74,10 @@ public class StructInitializer implements Initializer<Struct> {
           Map<String, Object> columnDef = (Map<String, Object>)e.getValue();
           for (var def: columnDef.entrySet()) {
             switch(def.getKey()) {
-              case "type"       -> type    = (String)def.getValue();
-              case "required"   -> notNull = (Boolean)def.getValue();
-              case "expression" -> expression = def.getValue().toString();
-              default           -> attrs.put(def.getKey(), def.getValue().toString());
+              case "type", "_type" -> type    = (String)def.getValue();
+              case "required"      -> notNull = (Boolean)def.getValue();
+              case "expression"    -> expression = def.getValue().toString();
+              default              -> attrs.put(def.getKey(), def.getValue().toString());
             }
           }
         }

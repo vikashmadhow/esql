@@ -79,10 +79,10 @@ public class ParseTest extends DataTest {
                        m1: c,
                        "values": {"any": {en: 'Any', fr: 'Une ou plusieurs'}, "all": {en: 'All', fr: 'Toutes'}}
                      },
-                     f=from A select max(a) {
-                       m1: from A select min(a)
+                     f=from S select max(a) {
+                       m1: from S select min(a)
                      },
-                     g=from A select distinct c where d>5 {
+                     g=from S select distinct c where d>5 {
                        m1: d
                      },
                      h text {

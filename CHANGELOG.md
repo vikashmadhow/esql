@@ -89,6 +89,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.3.0]
 ### Fine-grain history and notification
 
+## [1.2.14] - 2022-12-06
+### Fixed
+- `like` and `ilike` translation on databases other than SQL Server.
+
+## [1.2.13] - 2022-12-04
+### Added
+- `StructInitializer` accepts types as both the existing `type` or the newer
+  `_type` attribute.
+
 ## [1.2.12] - 2022-11-25
 ### Added
 - Do not expand column list when select appears in the `set` clause of an `update`.

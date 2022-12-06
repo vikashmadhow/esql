@@ -70,7 +70,9 @@ public class Like extends NegatableDoubleSubExpressions<String> {
       }
       return e;
     } else {
-      return super.trans(target, esqlCon, path, parameters, env);
+      return expr1().translate(target, null, path.add(expr1()), parameters, null)
+           + (not() ? " not" : "")
+           + " like " + expr2().translate(target, null, path.add(expr2()), parameters, null);
     }
   }
 
