@@ -86,8 +86,86 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Modify queries return values don't seem to be supported correctly for SQL 
   Server.
 
-## [1.3.0]
+## [1.4.0]
 ### Fine-grain history and notification
+
+## [1.3.0]
+### Composing `select` with same-table or linked-table column expressions.
+- ESQL already allows composing filter expressions with queries to create queries
+  where a table is filtered by a condition containing columns belonging to the 
+  table or to tables that can be reached through one or more joins. For example,
+  composing the filter `{condition: x=5, table: Z}` with the query 
+  `select a, b from X` and given that there is a relationship `X` from `X` to `Z`
+  through `Y`, a resulting query such as the following could be produced:
+  ```
+    select a, b 
+      from x:X 
+      join y:Y on x.y_id=y._id
+      join z:Z on y.z_id=z._id
+    where z.x=5
+  ```
+  This query filters table `X` by a condition defined on a column defined on an
+  indirectly linked table.
+
+  A related problem would be to compose a set of columns as the projection of a 
+  `select` query. For example composing `{column: label(x), table: Z}` onto
+  `select a, b from X where b < 3` given the same relationships as above would
+  result in the following query:
+  ```
+    select a, b, label(z.x) 
+      from x:X 
+      join y:Y on x.y_id=y._id
+      join z:Z on y.z_id=z._id
+     where b < 3
+  ```
+  In the case where the whole projection is defined as composable columns, the 
+  query to compose with would be invalid under current ESQL syntax. I.e., a query
+  such as `select from x:X` would not parse. A simple solution would be to have
+  a special column that would be eliminated during composition. E.g., a candidate 
+  for such a special column could be `___`. This would parse as a valid column 
+  name in ESQL and is an unlikely column in a SQL database. Further, this column
+  looks like a blank space that needs to be filled and is thus a rather intuitive  
+  representation of a placeholder column that will be replaced with composed 
+  columns. In the event that the intent of the query is to target a column named
+  `___` in the table, column composition should not be used.
+
+  Columns are also specified in `group by` and `order by`. Thus,
+  composable columns must specify whether, in addition to the projection list, 
+  they must appear in any of those clauses. For example, composing columns
+  ```
+  [
+   {column: b, table: X, group: 'rollup'},
+   {column: x, table: Z, alias:z, group: 'normal', order: 'desc'}, 
+   {column: sum(x), table: Z},
+   {column: avg(b if z.a < 5 else c), table: Y}
+  ]
+  ```
+  onto the query `select a from X where b < 3 order by a`
+  ```
+    select x.a, x.b, z.x, sum(z.x), avg(y.b if z.a < 5 else y.c)
+      from x:X 
+      join y:Y on x.y_id=y._id
+      join z:Z on y.z_id=z._id
+     where x.b < 3
+     group by rollup(x.a, x.b, z.x) 
+     order by x.a, z.x desc
+  ```
+  Further, in this version, the composable filters will be extended to take a 
+  `grouped` parameter. When set, the filter is on an aggregrate expression which
+  is set in the `having` clause of the query (instead of the `where` clause as 
+  for normal filters). For example, additionally composing the filter 
+  `{condition: sum(x) < 1000, table: Z, grouped: true}` on the previous query 
+  results in the following:
+  ```
+    select x.a, x.b, z.x, sum(z.x), avg(y.b if z.a < 5 else y.c)
+      from x:X 
+      join y:Y on x.y_id=y._id
+      join z:Z on y.z_id=z._id
+     where x.b < 3
+     group by rollup(x.a, x.b, z.x) 
+    having sum(z.x) < 1000
+     order by x.a, z.x desc
+  ```
 
 ## [1.2.14] - 2022-12-06
 ### Fixed
