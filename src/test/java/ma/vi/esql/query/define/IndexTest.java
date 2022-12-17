@@ -2,7 +2,7 @@ package ma.vi.esql.query.define;
 
 import ma.vi.esql.DataTest;
 import ma.vi.esql.database.EsqlConnection;
-import ma.vi.esql.filter.FilterTest;
+import ma.vi.esql.filter.ComposableFilterTest;
 import ma.vi.esql.syntax.Parser;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
@@ -22,7 +22,7 @@ public class IndexTest extends DataTest {
                    System.out.println(db.target());
                    Parser p = new Parser(db.structure());
                    try (EsqlConnection con = db.esql(db.pooledConnection())) {
-                     FilterTest.setupTables(con);
+                     ComposableFilterTest.setupTables(con);
                      con.exec("create unique index test_px_a on test.pX(a)");
                    }
                  }));
@@ -35,7 +35,7 @@ public class IndexTest extends DataTest {
                    System.out.println(db.target());
                    Parser p = new Parser(db.structure());
                    try (EsqlConnection con = db.esql(db.pooledConnection())) {
-                     FilterTest.setupTables(con);
+                     ComposableFilterTest.setupTables(con);
                      con.exec("create unique index test_px_a on test.pX(a)");
                      con.exec("drop index test_px_a on test.pX");
                    }

@@ -6,7 +6,7 @@ package ma.vi.esql.syntax.query;
 
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.database.EsqlConnection;
-import ma.vi.esql.exec.Filter;
+import ma.vi.esql.exec.composable.Composable;
 import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.semantic.type.BaseRelation;
 import ma.vi.esql.semantic.type.Column;
@@ -80,7 +80,7 @@ public class DynamicTableExpr extends AbstractAliasTableExpr {
   }
 
   @Override
-  public ShortestPath findShortestPath(Filter filter) {
+  public ShortestPath findShortestPath(Composable composable) {
     return null;
   }
 
@@ -97,6 +97,16 @@ public class DynamicTableExpr extends AbstractAliasTableExpr {
   @Override
   public TableExpr aliased(String name) {
     return name == null || name.equals(alias()) ? this : null;
+  }
+
+  @Override
+  public TableExpr table(String name) {
+    return null;
+  }
+
+  @Override
+  public ColumnRef findColumn(String table, String name) {
+    return null;
   }
 
   @Override

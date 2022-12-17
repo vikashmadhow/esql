@@ -1,6 +1,8 @@
 package ma.vi.esql.exec;
 
 import ma.vi.esql.database.EsqlConnection;
+import ma.vi.esql.exec.composable.ComposableColumn;
+import ma.vi.esql.exec.composable.ComposableFilter;
 import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.exec.env.ProgramEnvironment;
 import ma.vi.esql.exec.function.NamedParameter;
@@ -72,12 +74,23 @@ public class DefaultExecutor implements Executor {
     st = expand(st, UntypedMacro.class);
 
     /*
-     * Apply filters, if any.
+     * Apply composable filters, if any.
      */
     if (qp != null && !qp.filters.isEmpty()) {
       AtomicBoolean first = new AtomicBoolean(true);
-      for (Filter filter: qp.filters) {
+      for (ComposableFilter filter: qp.filters) {
         st = st.map((e, p) -> e.filter(filter, first.get(), p));
+        first.set(false);
+      }
+    }
+
+    /*
+     * Add composable columns, if any.
+     */
+    if (qp != null && !qp.columns.isEmpty()) {
+      AtomicBoolean first = new AtomicBoolean(true);
+      for (ComposableColumn column: qp.columns) {
+        st = st.map((e, p) -> e.column(column, first.get(), p));
         first.set(false);
       }
     }

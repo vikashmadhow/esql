@@ -86,10 +86,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Modify queries return values don't seem to be supported correctly for SQL 
   Server.
 
-## [1.4.0]
+## [1.4.0] (Planned)
 ### Fine-grain history and notification
 
-## [1.3.0]
+## [1.3.0] - 2022-12-18
 ### Composing `select` with same-table or linked-table column expressions.
 - ESQL already allows composing filter expressions with queries to create queries
   where a table is filtered by a condition containing columns belonging to the 

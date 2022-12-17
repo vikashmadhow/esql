@@ -6,7 +6,7 @@ package ma.vi.esql.syntax.query;
 
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.database.EsqlConnection;
-import ma.vi.esql.exec.Filter;
+import ma.vi.esql.exec.composable.Composable;
 import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.semantic.type.Column;
 import ma.vi.esql.semantic.type.Selection;
@@ -63,12 +63,21 @@ public class SelectTableExpr extends AbstractAliasTableExpr {
   }
 
   @Override
-  public ShortestPath findShortestPath(Filter filter) {
+  public ShortestPath findShortestPath(Composable composable) {
     return null;
   }
 
   @Override
   public AppliedShortestPath applyShortestPath(ShortestPath shortest, TableExpr root) {
+    return null;
+  }
+
+  @Override
+  public ColumnRef findColumn(String table, String name) {
+    if (select().tables().table(table) != null
+     && select().columns().stream().anyMatch(c -> name.equals(c.name()))) {
+      return new ColumnRef(context, alias(), name);
+    }
     return null;
   }
 
@@ -80,6 +89,11 @@ public class SelectTableExpr extends AbstractAliasTableExpr {
   @Override
   public TableExpr aliased(String name) {
     return name == null || name.equals(alias()) ? this : null;
+  }
+
+  @Override
+  public TableExpr table(String name) {
+    return null;
   }
 
   @Override
@@ -115,8 +129,16 @@ public class SelectTableExpr extends AbstractAliasTableExpr {
   }
 
   @Override
-  protected String trans(Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
-    return '(' + select().translate(target, esqlCon, path.add(select()), parameters, env).translation() + ") \"" + alias() + '"';
+  protected String trans(Target               target,
+                         EsqlConnection       esqlCon,
+                         EsqlPath             path,
+                         PMap<String, Object> parameters,
+                         Environment          env) {
+    return '(' + select().translate(target,
+                                    esqlCon,
+                                    path.add(select()),
+                                    parameters,
+                                    env).translation() + ") \"" + alias() + '"';
   }
 
   @Override

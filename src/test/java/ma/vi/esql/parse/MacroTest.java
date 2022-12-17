@@ -6,9 +6,9 @@ package ma.vi.esql.parse;
 
 import ma.vi.esql.DataTest;
 import ma.vi.esql.database.EsqlConnection;
-import ma.vi.esql.exec.Filter;
 import ma.vi.esql.exec.QueryParams;
 import ma.vi.esql.exec.Result;
+import ma.vi.esql.exec.composable.ComposableFilter;
 import ma.vi.esql.semantic.type.AmbiguousColumnException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DynamicTest;
@@ -119,7 +119,7 @@ public class MacroTest extends DataTest {
 
                      Result rs = con.exec("select a, b, c, a*b, bin(a*c, 'a times c', 10, 25, 40, 75, 100, 200) from S order by a",
                                           new QueryParams().filter(
-                                            new Filter(
+                                            new ComposableFilter(
                                               "S", "bin(a*c, 'a times c', 10, 25, 40, 75, 100, 200) != '02. 10 <= a times c < 25'"
                                             )
                                           ));

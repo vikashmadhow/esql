@@ -938,6 +938,7 @@ public class SyntaxAnalyser extends EsqlBaseListener {
                               distinct != null && distinct.expressionList() != null ? value(distinct.expressionList()) : null,
                               value(arguments),
                               star != null,
+                              window != null,
                               window != null ? value(window.partition() != null ? window.partition().expressionList() : null) : null,
                               window != null ? value(window.orderByList()) : null,
                               frame(window)));

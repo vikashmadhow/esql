@@ -68,13 +68,13 @@ public class GroupBy extends Esql<String, String> {
             type == Type.Cube   ?   "cube(" : "")
 
          + groupBy().stream()
-                    .map(a -> a.translate(target, esqlCon, path.add(a), parameters, env))
+                    .map(a -> String.valueOf(a.translate(target, esqlCon, path.add(a), parameters, env)))
                     .collect(joining(", "))
 
          + (type != Type.Simple ? ")" : "");
   }
 
-  public List<Expression<?, String>> groupBy() {
+  public List<Expression<?, ?>> groupBy() {
     return child("groupBy").children();
   }
 

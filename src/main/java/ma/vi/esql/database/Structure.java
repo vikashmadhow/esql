@@ -59,7 +59,7 @@ public class Structure extends AbstractScope implements Environment {
     function(new Function("count", LongType,
                           singletonList(new FunctionParam("count", Any)),
                           true, Map.of(POSTGRESQL, "count",
-                                                SQLSERVER,  "count_big")));
+                                       SQLSERVER,  "count_big")));
 
     function(new Function("sum", AsPromotedNumericParameterType,
                           singletonList(new FunctionParam("sum", NumberType)),
@@ -69,33 +69,30 @@ public class Structure extends AbstractScope implements Environment {
                           singletonList(new FunctionParam("avg", NumberType)),
                           true, null));
 
-    function(new Function("var_pop", FractionalType,
+    function(new Function("varpop", FractionalType,
                           singletonList(new FunctionParam("var", NumberType)),
                           true,
                           Map.of(POSTGRESQL, "var_pop",
                                  HSQLDB,     "var_pop",
                                  SQLSERVER,  "varp")));
 
-    function(new Function("var_samp", FractionalType,
+    function(new Function("varsamp", FractionalType,
                           singletonList(new FunctionParam("var", NumberType)),
-                          true,
-                          Map.of(POSTGRESQL, "var_samp",
-                                 HSQLDB,     "var_samp",
-                                 SQLSERVER,  "var")));
+                          true, Map.of(POSTGRESQL, "var_samp",
+                                       HSQLDB,     "var_samp",
+                                       SQLSERVER,  "var")));
 
-    function(new Function("stddev_pop", FractionalType,
+    function(new Function("stddevpop", FractionalType,
                           singletonList(new FunctionParam("stddev", NumberType)),
-                          true,
-                          Map.of(POSTGRESQL, "stddev_pop",
-                                 HSQLDB,     "stddev_pop",
-                                 SQLSERVER,  "stddevp")));
+                          true, Map.of(POSTGRESQL, "stddev_pop",
+                                       HSQLDB,     "stddev_pop",
+                                       SQLSERVER,  "stddevp")));
 
-    function(new Function("stddev_samp", FractionalType,
+    function(new Function("stddevsamp", FractionalType,
                           singletonList(new FunctionParam("stddev", NumberType)),
-                          true,
-                          Map.of(POSTGRESQL, "stddev_samp",
-                                 HSQLDB,     "stddev_samp",
-                                 SQLSERVER,  "stddev")));
+                          true, Map.of(POSTGRESQL, "stddev_samp",
+                                       HSQLDB,     "stddev_samp",
+                                       SQLSERVER,  "stddev")));
 
     function(new Function("max", AsParameterType,
                           singletonList(new FunctionParam("max", Any)),
@@ -105,21 +102,19 @@ public class Structure extends AbstractScope implements Environment {
                           singletonList(new FunctionParam("min", Any)),
                           true, null));
 
-    function(new Function("string_agg", TextType,
+    function(new Function("stringagg", TextType,
                           asList(new FunctionParam("val", Any),
                                  new FunctionParam("delimiter", TextType)),
-                          true,
-                          Map.of(POSTGRESQL, "string_agg",
-                                 HSQLDB,     "group_concat",
-                                 SQLSERVER,  "string_agg")));
+                          true, Map.of(POSTGRESQL, "string_agg",
+                                       HSQLDB,     "group_concat",
+                                       SQLSERVER,  "string_agg")));
 
-    function(new Function("array_agg", TextType,
+    function(new Function("arrayagg", TextType,
                           asList(new FunctionParam("val", Any),
                                  new FunctionParam("delimiter", TextType)),
-                          true,
-                          Map.of(POSTGRESQL, "array_agg",
-                                 HSQLDB,     "array_agg",
-                                 SQLSERVER,  "string_agg")));
+                          true, Map.of(POSTGRESQL, "array_agg",
+                                       HSQLDB,     "array_agg",
+                                       SQLSERVER,  "string_agg")));
 
     // conditional
     //////////////////////

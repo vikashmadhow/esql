@@ -20,9 +20,9 @@ public record SimpleColumn(String  name,
 
   public boolean is(String attr) {
     return attributes != null
-      && attributes.containsKey(attr)
-      && attributes.get(attr) instanceof Boolean b
-      && b;
+        && attributes.containsKey(attr)
+        && attributes.get(attr) instanceof Boolean b
+        && b;
   }
 
   public <T> T get(String attr) {

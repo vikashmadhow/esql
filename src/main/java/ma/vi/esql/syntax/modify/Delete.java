@@ -5,7 +5,7 @@
 package ma.vi.esql.syntax.modify;
 
 import ma.vi.base.tuple.T2;
-import ma.vi.esql.exec.Filter;
+import ma.vi.esql.exec.composable.ComposableFilter;
 import ma.vi.esql.semantic.type.Column;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
@@ -66,13 +66,13 @@ public class Delete extends QueryUpdate {
   }
 
   @Override
-  public Delete filter(Filter filter, boolean firstFilter, EsqlPath path) {
+  public Delete filter(ComposableFilter filter, boolean firstFilter, EsqlPath path) {
     Select.FilterResult result = Select.filter(tables(), filter, firstFilter, where());
     if (result != null) {
       return new Delete(context,
                         deleteTableAlias(),
                         result.tables(),
-                        result.condition(),
+                        result.expression(),
                         metadata(),
                         columns());
     } else {

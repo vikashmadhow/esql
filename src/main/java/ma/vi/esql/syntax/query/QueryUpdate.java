@@ -10,6 +10,7 @@ import ma.vi.esql.database.EsqlConnection;
 import ma.vi.esql.exec.ColumnMapping;
 import ma.vi.esql.exec.Result;
 import ma.vi.esql.exec.env.Environment;
+import ma.vi.esql.exec.function.FunctionCall;
 import ma.vi.esql.semantic.type.*;
 import ma.vi.esql.syntax.*;
 import ma.vi.esql.syntax.define.Metadata;
@@ -209,7 +210,9 @@ public abstract class QueryUpdate extends MetadataContainer<QueryTranslation> {
        */
       if (!path.hasAncestor(SelectExpression.class,
                             InsertRow       .class,
-                            Column          .class)) {
+                            Column          .class,
+                            FunctionCall    .class,
+                            BinaryOperator  .class)) {
         /*
          * Output result metadata
          */

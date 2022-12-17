@@ -5,13 +5,14 @@
 package ma.vi.esql.syntax.query;
 
 import ma.vi.base.tuple.T2;
-import ma.vi.esql.exec.Filter;
+import ma.vi.esql.exec.composable.Composable;
 import ma.vi.esql.semantic.type.BaseRelation;
 import ma.vi.esql.semantic.type.Column;
 import ma.vi.esql.semantic.type.Relation;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
+import ma.vi.esql.syntax.expression.ColumnRef;
 
 import java.util.List;
 import java.util.Set;
@@ -52,13 +53,13 @@ public abstract class TableExpr extends Esql<String, String> {
   /**
    * Find the shortest path between the tables in this table expressions and the
    * filtered table, if any. Null if no path exists.
-   * @param filter Filter whose table is the target of the shortest path.
+   * @param composable Filter whose table is the target of the shortest path.
    * @return A shortest path, if found, or null.
    */
-  public abstract ShortestPath findShortestPath(Filter filter);
+  public abstract ShortestPath findShortestPath(Composable composable);
 
   /**
-   * Applies the shortest path found by {@link #findShortestPath(Filter)} to this
+   * Applies the shortest path found by {@link #findShortestPath(Composable)} to this
    * table expression, returning the result of this application containing the
    * changed table expression and the alias set on the target table, that can be
    * used to modify the filter condition.
@@ -69,13 +70,13 @@ public abstract class TableExpr extends Esql<String, String> {
   public abstract AppliedShortestPath applyShortestPath(ShortestPath shortest, TableExpr root);
 
   /**
-   * A shortest path found by {@link #findShortestPath(Filter)} for a filter
+   * A shortest path found by {@link #findShortestPath(Composable)} for a filter
    * consists of the source table of a path and the path itself consisting of a
    * sequence of links (foreign keys or reverse foreign keys).
    */
   public record ShortestPath(SingleTableExpr    source,
                              BaseRelation.Path  path,
-                             Filter             filter) {}
+                             Composable         composable) {}
 
   /**
    * The application of a shortest path produced by {@link #applyShortestPath(ShortestPath, TableExpr)}
@@ -119,6 +120,18 @@ public abstract class TableExpr extends Esql<String, String> {
    */
   public abstract TableExpr aliased(String name);
 
+  /**
+   * Returns the table expression for the specified table, if it is part of this
+   * table expression.
+   */
+  public abstract TableExpr table(String name);
+
   @Override
   public abstract Relation computeType(EsqlPath path);
+
+  /**
+   * Return a reference to the named column of the specified table if the table
+   * is part of this table expression and it contains the specified column.
+   */
+  public abstract ColumnRef findColumn(String table, String name);
 }

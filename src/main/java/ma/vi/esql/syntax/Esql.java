@@ -8,7 +8,8 @@ import ma.vi.base.lang.NotFoundException;
 import ma.vi.base.tuple.T1;
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.database.EsqlConnection;
-import ma.vi.esql.exec.Filter;
+import ma.vi.esql.exec.composable.ComposableColumn;
+import ma.vi.esql.exec.composable.ComposableFilter;
 import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.semantic.scope.Scope;
 import ma.vi.esql.semantic.type.Type;
@@ -432,6 +433,10 @@ public class Esql<V, T>
     return found.a;
   }
 
+  public boolean contains(Esql<?, ?> esql) {
+    return find(e -> e.equals(esql)) != null;
+  }
+
   public <X extends Esql<?, ?>> X find(Class<X> cls) {
     return find(e -> e.getClass().equals(cls));
   }
@@ -639,7 +644,20 @@ public class Esql<V, T>
    * @param path The path to this ESQL providing context on the surrounding expressions.
    * @return The ESQL resulting from applying the filter to this one.
    */
-  public Esql<V, T> filter(Filter filter, boolean firstFilter, EsqlPath path) {
+  public Esql<V, T> filter(ComposableFilter filter, boolean firstFilter, EsqlPath path) {
+    return this;
+  }
+
+  /**
+   * Transforms this ESQL by adding the composable column to it. The default
+   * version returns the ESQL as-is.
+   *
+   * @param column Composable column to add.
+   * @param firstColumn True if this is the first column being added.
+   * @param path The path to this ESQL providing context on the surrounding expressions.
+   * @return The ESQL resulting from adding the column to this one.
+   */
+  public Esql<V, T> column(ComposableColumn column, boolean firstColumn, EsqlPath path) {
     return this;
   }
 

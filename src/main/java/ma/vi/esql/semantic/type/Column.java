@@ -41,16 +41,15 @@ public class Column extends MetadataContainer<String> {
                 Metadata         metadata,
                 T2<String, ? extends Esql<?, ?>>... children) {
     super(context, "Column",
-          Stream.concat(
-            Stream.of(
-              new T2[]{
-                T2.of("name",       new Esql<>(context, name != null ? name
-                                                         : expression instanceof ColumnRef r ? r.columnName()
-                                                         : null)),
-                T2.of("expression", expression),
-//                T2.of("type",       new Esql<>(context, type)),
-                T2.of("metadata",   addId(metadata))
-              }),
+          Stream.concat(Stream.of(
+            new T2[] {
+              T2.of("name", new Esql<>(context, name != null                      ? name
+                                              : expression instanceof ColumnRef r ? r.columnName()
+                                              : null)),
+              T2.of("expression", expression),
+              // T2.of("type",       new Esql<>(context, type)),
+              T2.of("metadata",   addId(metadata))
+            }),
             Stream.of(children)).toArray(T2[]::new));
     this.type = type == null ? UnknownType : type;
   }

@@ -20,7 +20,7 @@ import java.sql.SQLException;
 
 import static ma.vi.esql.exec.Result.Nothing;
 import static ma.vi.esql.semantic.type.Type.dbTableName;
-import static ma.vi.esql.translation.Translatable.Target.*;
+import static ma.vi.esql.translation.Translatable.Target.SQLSERVER;
 
 /**
  * Drop index statement.

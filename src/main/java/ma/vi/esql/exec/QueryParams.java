@@ -3,6 +3,11 @@ package ma.vi.esql.exec;
 import ma.vi.base.lang.NotFoundException;
 import ma.vi.base.reflect.Dissector;
 import ma.vi.base.reflect.Property;
+import ma.vi.esql.exec.composable.Composable;
+import ma.vi.esql.exec.composable.ComposableColumn;
+import ma.vi.esql.exec.composable.ComposableFilter;
+import ma.vi.esql.syntax.define.Metadata;
+import ma.vi.esql.syntax.query.GroupBy;
 
 import java.util.*;
 
@@ -47,18 +52,18 @@ public class QueryParams {
          : Optional.empty();
   }
 
-  public QueryParams filter(Filter filter) {
+  public QueryParams filter(ComposableFilter filter) {
     if (filter != null) filters.add(filter);
     return this;
   }
 
-  public QueryParams filters(Collection<Filter> filters) {
+  public QueryParams filters(Collection<ComposableFilter> filters) {
     if (filters != null) this.filters.addAll(filters);
     return this;
   }
 
   public QueryParams and(String table, String alias, String condition, boolean exclude) {
-    return filter(new Filter(Filter.Op.AND, table, alias, condition, exclude));
+    return filter(new ComposableFilter(Composable.Op.AND, table, alias, condition, exclude));
   }
 
   public QueryParams and(String table, String alias, String condition) {
@@ -66,11 +71,66 @@ public class QueryParams {
   }
 
   public QueryParams or(String table, String alias, String condition, boolean exclude) {
-    return filter(new Filter(Filter.Op.OR, table, alias, condition, exclude));
+    return filter(new ComposableFilter(Composable.Op.OR, table, alias, condition, exclude));
   }
 
   public QueryParams or(String table, String alias, String condition) {
     return or(table, alias, condition, false);
+  }
+
+  public QueryParams column(ComposableColumn column) {
+    if (column != null) columns.add(column);
+    return this;
+  }
+
+  public QueryParams column(String table, String expression) {
+    columns.add(new ComposableColumn(table, null, null, expression, null));
+    return this;
+  }
+
+  public QueryParams column(String table, String alias, String expression) {
+    columns.add(new ComposableColumn(table, alias, null, expression, null));
+    return this;
+  }
+
+  public QueryParams column(String table, String alias, String name, String expression) {
+    columns.add(new ComposableColumn(table, alias, name, expression, null));
+    return this;
+  }
+
+  public QueryParams column(String table, String alias, String name, String expression, GroupBy.Type group) {
+    columns.add(new ComposableColumn(table, alias, name, expression, null, group, Composable.Order.NONE));
+    return this;
+  }
+
+  public QueryParams column(String table, String alias, String name, String expression, Metadata metadata) {
+    columns.add(new ComposableColumn(table, alias, name, expression, metadata, null, Composable.Order.NONE));
+    return this;
+  }
+
+  public QueryParams column(String table, String alias, String name, String expression, Metadata metadata, GroupBy.Type group) {
+    columns.add(new ComposableColumn(table, alias, name, expression, metadata, group, Composable.Order.NONE));
+    return this;
+  }
+
+  public QueryParams column(String table, String alias, String name, String expression, Composable.Order order) {
+    columns.add(new ComposableColumn(table, alias, name, expression, null, null, order));
+    return this;
+  }
+
+  public QueryParams column(String table, String alias, String name, String expression, Metadata metadata, Composable.Order order) {
+    columns.add(new ComposableColumn(table, alias, name, expression, metadata, null, order));
+    return this;
+  }
+
+  public QueryParams column(String table, String alias, String name, String expression, Metadata metadata, GroupBy.Type group, Composable.Order order) {
+    columns.add(new ComposableColumn(table, alias, name, expression, metadata, group, order));
+    return this;
+  }
+
+  public QueryParams columns(Collection<ComposableColumn> columns) {
+    if (columns != null) this.columns.addAll(columns);
+    return this;
   }
 
   private static Param[] asParams(Object objectAsParams) {
@@ -86,5 +146,7 @@ public class QueryParams {
 
   protected final Map<String, Param> params = new LinkedHashMap<>();
 
-  protected final List<Filter> filters = new ArrayList<>();
+  protected final List<ComposableFilter> filters = new ArrayList<>();
+
+  protected final List<ComposableColumn> columns = new ArrayList<>();
 }

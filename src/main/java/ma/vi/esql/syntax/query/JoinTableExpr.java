@@ -6,7 +6,7 @@ package ma.vi.esql.syntax.query;
 
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.database.EsqlConnection;
-import ma.vi.esql.exec.Filter;
+import ma.vi.esql.exec.composable.Composable;
 import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
@@ -68,12 +68,12 @@ public class JoinTableExpr extends AbstractJoinTableExpr {
    * is going to be the more restrictive one at this point.
    */
   @Override
-  public ShortestPath findShortestPath(Filter filter) {
+  public ShortestPath findShortestPath(Composable composable) {
     String joinType = joinType();
     return joinType == null
-        || joinType.equals("outer") ? super.findShortestPath(filter)
-         : joinType.equals("left")  ? left().findShortestPath(filter)
-         : right().findShortestPath(filter);
+        || joinType.equals("outer") ? super.findShortestPath(composable)
+         : joinType.equals("left")  ? left().findShortestPath(composable)
+         : right().findShortestPath(composable);
   }
 
   @Override

@@ -5,7 +5,7 @@
 package ma.vi.esql.syntax.modify;
 
 import ma.vi.base.tuple.T2;
-import ma.vi.esql.exec.Filter;
+import ma.vi.esql.exec.composable.ComposableFilter;
 import ma.vi.esql.semantic.type.Column;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
@@ -68,14 +68,14 @@ public class Update extends QueryUpdate {
   }
 
   @Override
-  public Update filter(Filter filter, boolean firstFilter, EsqlPath path) {
+  public Update filter(ComposableFilter filter, boolean firstFilter, EsqlPath path) {
     Select.FilterResult result = Select.filter(tables(), filter, firstFilter, where());
     if (result != null) {
       return new Update(context,
                         updateTableAlias(),
                         result.tables(),
                         set(),
-                        result.condition(),
+                        result.expression(),
                         metadata(),
                         columns());
     } else {

@@ -51,7 +51,7 @@ public class SqlServerTranslator extends AbstractTranslator {
     if (groupBy != null) {
       List<Expression<?, ?>> newGroupExpressions = new ArrayList<>();
       boolean groupExpressionsChanged = false;
-      for (Expression<?, String> expr: groupBy.groupBy()) {
+      for (Expression<?, ?> expr: groupBy.groupBy()) {
         if (expr.descendent(Select.class) != null) {
           hasComplexGroups = true;
         }

@@ -40,6 +40,7 @@ public class  FunctionCall extends Expression<String, String> implements TypedMa
                       List<Expression<?, String>> distinctOn,
                       List<Expression<?, ?>>      arguments,
                       boolean                     star,
+                      boolean                     hasWindow,
                       List<Expression<?, String>> partitions,
                       List<Order>                 orderBy,
                       WindowFrame                 frame) {
@@ -49,6 +50,7 @@ public class  FunctionCall extends Expression<String, String> implements TypedMa
           of("distinctOn", new Esql<>(context, "distinctOn", distinctOn)),
           of("arguments",  new Esql<>(context, "arguments", arguments)),
           of("star",       new Esql<>(context, star)),
+          of("hasWindow",  new Esql<>(context, hasWindow)),
           of("partitions", new Esql<>(context, "partitions", partitions)),
           of("orderBy",    new Esql<>(context, "orderBy", orderBy)),
           of("frame",      frame));
@@ -57,7 +59,7 @@ public class  FunctionCall extends Expression<String, String> implements TypedMa
   public FunctionCall(Context context,
                       String  functionName,
                       List<Expression<?, ?>> arguments) {
-    this(context, functionName, false, null, arguments, false, null, null, null);
+    this(context, functionName, false, null, arguments, false, false, null, null, null);
   }
 
   public FunctionCall(FunctionCall other) {
@@ -112,6 +114,14 @@ public class  FunctionCall extends Expression<String, String> implements TypedMa
     return esql;
   }
 
+  public Function function() {
+    Function function = context.structure.function(functionName());
+    if (function == null) {
+      function = Structure.UnknownFunction;
+    }
+    return function;
+  }
+
   @Override
   protected String trans(Target               target,
                          EsqlConnection       esqlCon,
@@ -158,12 +168,7 @@ public class  FunctionCall extends Expression<String, String> implements TypedMa
               + "))";
       }
     } else {
-      Structure s = context.structure;
-      Function function = s.function(functionName);
-      if (function == null) {
-        function = Structure.UnknownFunction;
-      }
-      StringBuilder translation = new StringBuilder(function.translate(this, target, esqlCon, path, parameters, env));
+      StringBuilder translation = new StringBuilder(function().translate(this, target, esqlCon, path, parameters, env));
 
       /*
        * add window suffix
@@ -405,6 +410,10 @@ public class  FunctionCall extends Expression<String, String> implements TypedMa
 
   public boolean star() {
     return childValue("star");
+  }
+
+  public boolean hasWindow() {
+    return childValue("hasWindow");
   }
 
   public List<Expression<?, String>> partitions() {

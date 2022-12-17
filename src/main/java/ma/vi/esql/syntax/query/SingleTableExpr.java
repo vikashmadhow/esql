@@ -8,7 +8,7 @@ import ma.vi.base.lang.NotFoundException;
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.database.EsqlConnection;
 import ma.vi.esql.database.Structure;
-import ma.vi.esql.exec.Filter;
+import ma.vi.esql.exec.composable.Composable;
 import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.semantic.type.*;
 import ma.vi.esql.syntax.Context;
@@ -72,12 +72,12 @@ public class SingleTableExpr extends AbstractAliasTableExpr {
   }
 
   @Override
-  public ShortestPath findShortestPath(Filter filter) {
+  public ShortestPath findShortestPath(Composable composable) {
     if (context.structure.relationExists(tableName())) {
       BaseRelation rel = context.structure.relation(tableName());
-      BaseRelation.Path path = rel.path(filter.table());
+      BaseRelation.Path path = rel.path(composable.table());
       return path == null ? null
-                          : new ShortestPath(this, path, filter);
+                          : new ShortestPath(this, path, composable);
     }
     return null;
   }
@@ -86,9 +86,9 @@ public class SingleTableExpr extends AbstractAliasTableExpr {
   public AppliedShortestPath applyShortestPath(ShortestPath shortest, TableExpr root) {
     if (shortest.source() == this) {
       Set<String> aliases = new HashSet<>(root.aliases());
-      String lastAlias = shortest.filter().alias();
+      String lastAlias = shortest.composable().alias();
       if (lastAlias == null) {
-        lastAlias = Type.unqualifiedName(shortest.filter().table());
+        lastAlias = Type.unqualifiedName(shortest.composable().table());
       }
       lastAlias = makeUniqueSeq(aliases, lastAlias);
 
@@ -142,6 +142,18 @@ public class SingleTableExpr extends AbstractAliasTableExpr {
     return null;
   }
 
+  @Override
+  public ColumnRef findColumn(String table, String name) {
+    if (!table.equals(tableName())) return null;
+    if (!context.structure.relationExists(tableName())) return null;
+
+    BaseRelation rel = context.structure.relation(tableName());
+    Column column = rel.findColumn(name);
+    if (column == null) return null;
+
+    return new ColumnRef(context, alias(), name);
+  }
+
   /**
    * Links can be in reverse path. (foreign key from target to source). E.g.
    * Com c <- Emp e:
@@ -184,6 +196,11 @@ public class SingleTableExpr extends AbstractAliasTableExpr {
   @Override
   public TableExpr aliased(String name) {
     return name == null || name.equals(alias()) ? this : null;
+  }
+
+  @Override
+  public TableExpr table(String name) {
+    return name.equals(tableName()) ? this : null;
   }
 
   @Override

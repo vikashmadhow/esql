@@ -5,13 +5,14 @@
 package ma.vi.esql.syntax.query;
 
 import ma.vi.base.tuple.T2;
-import ma.vi.esql.exec.Filter;
+import ma.vi.esql.exec.composable.Composable;
 import ma.vi.esql.semantic.type.Column;
 import ma.vi.esql.semantic.type.Join;
 import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
+import ma.vi.esql.syntax.expression.ColumnRef;
 import ma.vi.esql.syntax.macro.Macro;
 
 import java.util.*;
@@ -86,13 +87,29 @@ public abstract class AbstractJoinTableExpr extends TableExpr {
   public abstract AbstractJoinTableExpr copy(String value, T2<String, ? extends Esql<?, ?>>... children);
 
   @Override
-  public ShortestPath findShortestPath(Filter filter) {
-    ShortestPath left = left().findShortestPath(filter);
-    ShortestPath right = right().findShortestPath(filter);
+  public ShortestPath findShortestPath(Composable composable) {
+    ShortestPath left = left().findShortestPath(composable);
+    ShortestPath right = right().findShortestPath(composable);
     return left  == null ? right
          : right == null ? left
          : left.path().cost() < right.path().cost() ? left
          : right;
+  }
+
+  @Override
+  public ColumnRef findColumn(String table, String column) {
+    ColumnRef left = left().findColumn(table, column);
+    return left == null
+         ? right().findColumn(table, column)
+         : left;
+  }
+
+  @Override
+  public TableExpr table(String name) {
+    TableExpr left = left().table(name);
+    return left == null
+         ? right().table(name)
+         : left;
   }
 
   @Override

@@ -6,8 +6,9 @@ package ma.vi.esql.filter;
 
 import ma.vi.esql.DataTest;
 import ma.vi.esql.database.EsqlConnection;
-import ma.vi.esql.exec.Filter;
 import ma.vi.esql.exec.QueryParams;
+import ma.vi.esql.exec.composable.Composable;
+import ma.vi.esql.exec.composable.ComposableFilter;
 import ma.vi.esql.semantic.type.BaseRelation;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.Parser;
@@ -25,62 +26,13 @@ import java.util.stream.Stream;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.DynamicTest.dynamicTest;
 
-public class FilterTest extends DataTest {
+public class ComposableFilterTest extends DataTest {
   @TestFactory
   Stream<DynamicTest> path() {
     return Stream.of(databases)
                  .map(db -> dynamicTest(db.target().toString(), () -> {
                    try (EsqlConnection con = db.esql(db.pooledConnection())) {
-                     con.exec("drop table test.pX");
-                     con.exec("drop table test.pA");
-                     con.exec("drop table test.pB");
-                     con.exec("drop table test.pY");
-                     con.exec("drop table test.pZ");
-
-                     con.exec("""
-                            create table test.pX drop undefined(
-                              _id uuid not null,
-                              a int,
-                              primary key(_id)
-                            )""");
-
-                     con.exec("""
-                            create table test.pA drop undefined(
-                              _id uuid not null,
-                              a int,
-                              x_id uuid,
-                              foreign key(x_id) references test.pX(_id) cost (10, 4),
-                              primary key(_id)
-                            )""");
-
-                     con.exec("""
-                            create table test.pB drop undefined(
-                              _id uuid not null,
-                              a int,
-                              x_id uuid,
-                              foreign key(x_id) references test.pX(_id) cost (5, 5),
-                              primary key(_id)
-                            )""");
-
-                     con.exec("""
-                            create table test.pY drop undefined(
-                              _id uuid not null,
-                              a int,
-                              a_id uuid,
-                              b_id uuid,
-                              foreign key(a_id) references test.pA(_id),
-                              foreign key(b_id) references test.pB(_id),
-                              primary key(_id)
-                            )""");
-
-                     con.exec("""
-                            create table test.pZ drop undefined(
-                              _id uuid not null,
-                              a int,
-                              y_id uuid,
-                              foreign key(y_id) references test.pY(_id),
-                              primary key(_id)
-                            )""");
+                     setupTables(con);
 
                      BaseRelation x = db.structure().relation("test.pX");
                      BaseRelation z = db.structure().relation("test.pZ");
@@ -95,8 +47,8 @@ public class FilterTest extends DataTest {
                      path = x.path("test.pZ");
                      System.out.println(path);
                      pathEquals(path,
-                                new Link("test.pA", "x_id", "test.pX", "_id", true),
-                                new Link("test.pY", "a_id", "test.pA", "_id", true),
+                                new Link("test.pB", "x_id", "test.pX", "_id", true),
+                                new Link("test.pY", "b_id", "test.pB", "_id", true),
                                 new Link("test.pZ", "y_id", "test.pY", "_id", true));
                    }
                  }));
@@ -139,12 +91,12 @@ public class FilterTest extends DataTest {
                      Esql<?, ?> filtered =
                        con.prepare("select a from test.pZ where a < 2 or a > 5",
                                    new QueryParams()
-                                     .filter(new Filter(Filter.Op.OR,
-                                                        new Filter("test.pX", "x", "x.a=3"),
-                                                        new Filter(Filter.Op.AND,
-                                                                   new Filter("test.pX", "x", "x.a=4"),
-                                                                   new Filter("test.pY", "y", "y.a=7")),
-                                                        new Filter("test.pB", "b", "b.a=5"))));
+                                     .filter(new ComposableFilter(Composable.Op.OR,
+                                                                  new ComposableFilter("test.pX", "x", "x.a=3"),
+                                                                  new ComposableFilter(Composable.Op.AND,
+                                                                                       new ComposableFilter("test.pX", "x", "x.a=4"),
+                                                                                       new ComposableFilter("test.pY", "y", "y.a=7")),
+                                                                  new ComposableFilter("test.pB", "b", "b.a=5"))));
                      System.out.println(filtered);
 
                      Select select = (Select)((Program)filtered).expressions().get(0);
