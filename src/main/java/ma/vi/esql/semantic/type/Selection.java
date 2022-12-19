@@ -22,10 +22,10 @@ import static java.util.Collections.emptyList;
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 public class Selection extends Relation {
-  public Selection(List<Column> columns,
+  public Selection(List<Column>          columns,
                    Collection<Attribute> attributes,
-                   TableExpr from,
-                   String alias) {
+                   TableExpr             from,
+                   String                alias) {
     super((from == null ? "" : from.toString() + '.') + "select_" + Strings.random());
     this.columns = columns;
     this.from = from;

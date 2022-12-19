@@ -86,6 +86,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Modify queries return values don't seem to be supported correctly for SQL 
   Server.
 
+## [1.5.0] (Planned)
+### Database stored functions and triggers in ESQL
+
 ## [1.4.0] (Planned)
 ### Fine-grain history and notification
 
