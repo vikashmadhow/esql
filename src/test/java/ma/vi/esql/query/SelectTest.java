@@ -19,6 +19,7 @@ import ma.vi.esql.syntax.Parser;
 import ma.vi.esql.syntax.Program;
 import ma.vi.esql.syntax.expression.Expression;
 import ma.vi.esql.syntax.expression.UncomputedExpression;
+import ma.vi.esql.syntax.expression.literal.Literal;
 import ma.vi.esql.syntax.expression.literal.UuidLiteral;
 import ma.vi.esql.syntax.query.Select;
 import org.json.JSONArray;
@@ -426,11 +427,11 @@ public class SelectTest extends DataTest {
                                         "label", "S Links"))));
 
                      assertEquals(rs.resultAttributes().size(), 6);
-                     assertEquals(rs.resultAttributes().get("name"), "S");
-                     assertEquals(rs.resultAttributes().get("description"), "S test table");
-                     assertTrue(validateUnique.similar(rs.resultAttributes().get("validate_unique")));
-                     assertTrue(dependents.similar(rs.resultAttributes().get("dependents")));
-                     assertTrue(new JSONArray(singletonList("_id")).similar(rs.resultAttributes().get(PRIMARY_KEY)));
+                     assertEquals(literalValue((Literal<?>)rs.resultAttributes().get("name")), "S");
+                     assertEquals(literalValue((Literal<?>)rs.resultAttributes().get("description")), "S test table");
+                     assertTrue(validateUnique.similar(literalValue((Literal<?>)rs.resultAttributes().get("validate_unique"))));
+                     assertTrue(dependents.similar(literalValue((Literal<?>)rs.resultAttributes().get("dependents"))));
+                     assertTrue(new JSONArray(singletonList("_id")).similar(literalValue((Literal<?>)rs.resultAttributes().get(PRIMARY_KEY))));
                      assertEquals(new HashSet<>(new JSONArray(
                        Arrays.asList(
                          new JSONObject(Map.of(
@@ -451,7 +452,7 @@ public class SelectTest extends DataTest {
                        )
                      )).toList()),
                      new HashSet<>(
-                       ((JSONArray)rs.resultAttributes().get(REFERRED_BY)).toList()
+                       ((JSONArray)literalValue((Literal<?>)rs.resultAttributes().get(REFERRED_BY))).toList()
                      ));
 
                      rs.next(); assertInstanceOf(UUID.class, rs.value("_id"));
@@ -532,7 +533,7 @@ public class SelectTest extends DataTest {
 //                     assertThat(rs.resultAttributes().entrySet(),
 //                                containsInAnyOrder(expected.entrySet()));
 
-                     assertEquals(expected, rs.resultAttributes());
+                     assertEquals(expected, literalValueMap(rs.resultAttributes()));
                      rs.next(); assertInstanceOf(UUID.class, rs.value("_id"));
                                 assertEquals(1, (Long)rs.value("a"));
                                 assertEquals(3, (Long)rs.get("a").metadata().get("m1"));
@@ -549,7 +550,7 @@ public class SelectTest extends DataTest {
                                 assertEquals(false, rs.value("e"));
                                 assertArrayEquals(new String[]{"Nine", "Neuf", "X"}, rs.value("h"));
                                 assertArrayEquals(new Integer[]{5,6,7,8}, rs.value("j"));
-                     assertEquals(expected, rs.resultAttributes());
+                     assertEquals(expected, literalValueMap(rs.resultAttributes()));
                    }
                  }));
   }
@@ -578,7 +579,7 @@ public class SelectTest extends DataTest {
                      Result rs = con.exec(select);
 
                      Map<String, Object> expected = Map.of("name", "t", "description", "Dynamic test");
-                     assertEquals(expected, rs.resultAttributes());
+                     assertEquals(expected, literalValueMap(rs.resultAttributes()));
                      rs.next(); assertInstanceOf(UUID.class, rs.value("_id"));
                                 assertEquals(1, (Long)rs.value("a"));
                                 assertEquals(3, (Long)rs.get("a").metadata().get("m1"));
@@ -594,7 +595,7 @@ public class SelectTest extends DataTest {
                                 assertEquals(false, rs.value("e"));
                                 assertArrayEquals(new String[]{"Nine", "Neuf", "X"}, rs.value("h"));
                                 assertArrayEquals(new Integer[]{5,6,7,8}, rs.value("j"));
-                     assertEquals(expected, rs.resultAttributes());
+                     assertEquals(expected, literalValueMap(rs.resultAttributes()));
                    }
                  }));
   }

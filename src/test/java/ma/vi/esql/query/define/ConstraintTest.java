@@ -9,6 +9,7 @@ import ma.vi.esql.semantic.type.Column;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.Parser;
 import ma.vi.esql.syntax.define.table.ForeignKeyConstraint;
+import ma.vi.esql.syntax.expression.literal.Literal;
 import ma.vi.esql.translation.Translatable;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -23,6 +24,7 @@ import java.util.stream.Stream;
 import static java.util.Collections.singletonList;
 import static ma.vi.esql.builder.Attributes.*;
 import static ma.vi.esql.translation.Translatable.Target.ESQL;
+import static ma.vi.esql.translation.Translatable.Target.JAVASCRIPT;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.DynamicTest.dynamicTest;
 
@@ -167,9 +169,9 @@ public class ConstraintTest extends DataTest {
                      Result rs = con.exec("select * from a.b.X");
 
                      assertEquals(rs.resultAttributes().size(), 5);
-                     assertEquals(rs.resultAttributes().get("name"), "X");
-                     assertEquals(rs.resultAttributes().get("description"), "X test table");
-                     assertTrue(new JSONArray(singletonList("_id")).similar(rs.resultAttributes().get(PRIMARY_KEY)));
+                     assertEquals(literalValue((Literal<?>)rs.resultAttributes().get("name")), "X");
+                     assertEquals(literalValue((Literal<?>)rs.resultAttributes().get("description")), "X test table");
+                     assertTrue(new JSONArray(singletonList("_id")).similar(literalValue((Literal<?>)rs.resultAttributes().get(PRIMARY_KEY))));
                      assertEquals(new HashSet<>(new JSONArray(
                        List.of(
                          new JSONObject(Map.of(
@@ -185,7 +187,7 @@ public class ConstraintTest extends DataTest {
                        )
                      ).toList()),
                      new HashSet<>(
-                       ((JSONArray)rs.resultAttributes().get(REFERENCES)).toList()));
+                       ((JSONArray)literalValue((Literal<?>)rs.resultAttributes().get(REFERENCES))).toList()));
 
                      assertTrue(new JSONArray(
                        List.of(
@@ -195,7 +197,7 @@ public class ConstraintTest extends DataTest {
                            "to_columns", new JSONArray(singletonList("_id"))
                          ))
                        )
-                     ).similar(rs.resultAttributes().get(REFERRED_BY)));
+                     ).similar(literalValue((Literal<?>)rs.resultAttributes().get(REFERRED_BY))));
                    }
                  }));
   }
@@ -258,16 +260,16 @@ public class ConstraintTest extends DataTest {
 
                      Result rs = con.exec("select * from A");
                      assertEquals(rs.resultAttributes().size(), 4);
-                     assertEquals(rs.resultAttributes().get("name"), "A");
-                     assertEquals(rs.resultAttributes().get("description"), "A test table");
-                     assertTrue(new JSONArray(singletonList("_id")).similar(rs.resultAttributes().get(PRIMARY_KEY)));
+                     assertEquals(literalValue((Literal<?>)rs.resultAttributes().get("name")), "A");
+                     assertEquals(literalValue((Literal<?>)rs.resultAttributes().get("description")), "A test table");
+                     assertTrue(new JSONArray(singletonList("_id")).similar(literalValue((Literal<?>)rs.resultAttributes().get(PRIMARY_KEY))));
                      assertTrue(new JSONArray(
                        List.of(
-                         p.parseExpression("$(e >= 5)").translate(ESQL),
-                         p.parseExpression("$(e <= 100)").translate(ESQL),
-                         p.parseExpression("$(length(h) >= 3)").translate(ESQL)
+                         p.parseExpression("$(e >= 5)").translate(JAVASCRIPT),
+                         p.parseExpression("$(e <= 100)").translate(JAVASCRIPT),
+                         p.parseExpression("$(length(h) >= 3)").translate(JAVASCRIPT)
                        )
-                     ).similar(rs.resultAttributes().get(CHECK)));
+                     ).similar(literalValue((Literal<?>)rs.resultAttributes().get(CHECK))));
                    }
 
                    assertThrows(RuntimeException.class, () -> {

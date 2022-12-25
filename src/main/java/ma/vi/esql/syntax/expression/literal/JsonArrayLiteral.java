@@ -63,9 +63,11 @@ public class JsonArrayLiteral extends Literal<List<? extends Literal<?>>> {
   }
 
   @Override
-  protected String trans(Target target,
-                         EsqlConnection esqlCon, EsqlPath path,
-                         PMap<String, Object> parameters, Environment env) {
+  protected String trans(Target               target,
+                         EsqlConnection       esqlCon,
+                         EsqlPath             path,
+                         PMap<String, Object> parameters,
+                         Environment          env) {
     String t = items().stream()
                       .map(e -> e.translate(target, esqlCon, path.add(e), parameters, env))
                       .collect(joining(",", "[", "]"));
@@ -93,7 +95,11 @@ public class JsonArrayLiteral extends Literal<List<? extends Literal<?>>> {
   }
 
   @Override
-  public JSONArray exec(Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
+  public JSONArray exec(Target               target,
+                        EsqlConnection       esqlCon,
+                        EsqlPath             path,
+                        PMap<String, Object> parameters,
+                        Environment          env) {
     return new JSONArray(items().stream()
                                 .map(e -> e.exec(target, esqlCon, path, parameters, env))
                                 .collect(Collectors.toList()));

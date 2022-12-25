@@ -253,7 +253,8 @@ public abstract class QueryUpdate extends MetadataContainer<QueryTranslation> {
             /*
              * Result metadata is a literal: add its computed value.
              */
-            resultAttributes.put(attrName, attributeValue.exec(target, NULL_CONNECTION, path, parameters, NULL_DB.structure()));
+//            resultAttributes.put(attrName, attributeValue.exec(target, NULL_CONNECTION, path, parameters, NULL_DB.structure()));
+            resultAttributes.put(attrName, attributeValue);
           } else {
             throw new TranslationException(
                 "Result metadata column " + column + " is a " + attributeValue.getClass().getSimpleName()

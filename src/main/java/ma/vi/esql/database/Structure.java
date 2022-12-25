@@ -116,12 +116,15 @@ public class Structure extends AbstractScope implements Environment {
                                        HSQLDB,     "array_agg",
                                        SQLSERVER,  "string_agg")));
 
+    // Cryptography
+    /////////////////////////////
+
+    // sha256
+    // select convert(varchar(max), hashbytes('SHA2_256', 'test1'), 2)
+//    functions.put("sha256", new Sha256());
+
     // conditional
     //////////////////////
-//    functions.put("coalesce",
-//                  new Function("coalesce",
-//                               AsParameterType,
-//                               singletonList(new FunctionParam("values", TopType))));
     functions.put("coalesce", new Coalesce());
 
 

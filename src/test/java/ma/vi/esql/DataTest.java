@@ -9,20 +9,25 @@ import ma.vi.esql.database.EsqlConnection;
 import ma.vi.esql.exec.ColumnMapping;
 import ma.vi.esql.exec.Result;
 import ma.vi.esql.exec.ResultColumn;
+import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.Parser;
 import ma.vi.esql.syntax.Program;
 import ma.vi.esql.syntax.expression.literal.DateLiteral;
+import ma.vi.esql.syntax.expression.literal.Literal;
+import ma.vi.esql.translation.Translatable;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.jupiter.api.BeforeAll;
+import org.pcollections.HashPMap;
+import org.pcollections.IntTreePMap;
 
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
+import static ma.vi.esql.database.Database.NULL_DB;
+import static ma.vi.esql.database.EsqlConnection.NULL_CONNECTION;
 import static org.apache.commons.lang3.StringUtils.repeat;
 import static org.apache.commons.lang3.StringUtils.rightPad;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -332,5 +337,21 @@ public class DataTest {
 
   private static String lengthen(String val, int length) {
     return rightPad(val == null ? " " : val, length, " ").substring(0, length);
+  }
+
+  public static Object literalValue(Literal<?> literal) {
+    return literal.exec(Translatable.Target.JAVASCRIPT,
+                        NULL_CONNECTION,
+                        new EsqlPath(literal),
+                        HashPMap.empty(IntTreePMap.empty()),
+                        NULL_DB.structure());
+  }
+
+  public static Map<String, Object> literalValueMap(Map<String, Object> attributes) {
+    return attributes.entrySet().stream().collect(
+      Collectors.toMap(Map.Entry::getKey,
+                       e -> literalValue((Literal<?>)e.getValue()),
+                       (k1, k2) -> k1,
+                       LinkedHashMap::new));
   }
 }

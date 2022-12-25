@@ -92,6 +92,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.4.0] (Planned)
 ### Fine-grain history and notification
 
+## [1.3.1] - 2022-12-25
+- `UncomputedExpression` is translated to Javascript when sent to client. Previously
+  it was being translated to ESQL.
+- Result attributes are returned as expressions in the `Result` instead of text 
+  literals. This allows for them to be computed dynamically on the client side.
+
 ## [1.3.0] - 2022-12-18
 ### Composing `select` with same-table or linked-table column expressions.
 - ESQL already allows composing filter expressions with queries to create queries
