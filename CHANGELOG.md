@@ -92,6 +92,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.4.0] (Planned)
 ### Fine-grain history and notification
 
+## [1.3.2] - 2022-12-26
+- `offset` and `limit` in `SelectBuilder` can now take an expression as their
+  argument (instead of a raw string that will be parsed into an expressions).
+
 ## [1.3.1] - 2022-12-25
 - `UncomputedExpression` is translated to Javascript when sent to client. Previously
   it was being translated to ESQL.

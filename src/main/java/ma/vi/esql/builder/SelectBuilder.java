@@ -194,12 +194,20 @@ public class SelectBuilder implements Builder<Select> {
   }
 
   public SelectBuilder offset(String expression) {
-    offset = parser.parseExpression(expression);
+    return offset(parser.parseExpression(expression));
+  }
+
+  public SelectBuilder offset(Expression<?, String> expression) {
+    offset = expression;
     return this;
   }
 
   public SelectBuilder limit(String expression) {
-    limit = parser.parseExpression(expression);
+    return limit(parser.parseExpression(expression));
+  }
+
+  public SelectBuilder limit(Expression<?, String> expression) {
+    limit = expression;
     return this;
   }
 
