@@ -174,10 +174,10 @@ public class Attributes {
    * The type of files that can be stored in the column. The column must be of
    * type text. Files are stored as a JSON object with the following structure:
    * {
-   *   name: <filename>,
-   *   size: <size of file in bytes>,
-   *   type: <mime type of file>,
-   *   data: <base64 encoded content of file>
+   *   name: `filename`,
+   *   size: `size of file in bytes`,
+   *   type: `mime type of file`,
+   *   data: `base64 encoded content of file`
    * }
    */
   public static final String FILE_TYPE = "file_type";
