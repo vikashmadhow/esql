@@ -163,14 +163,6 @@ public class Attributes {
 
   // File upload and download
   ///////////////////////////////////////////////////////
-
-  /**
-   * If set to true, files can be uploaded into this column as
-   * base64 text data. File metadata can be placed in other columns
-   * specified in other attributes (see next).
-   */
-  public static final String FILE = "file";
-
   /**
    * If set to true, files can be uploaded into this column as
    * raw binary data and stored as an external file (outside the
@@ -178,20 +170,17 @@ public class Attributes {
    */
   public static final String EXTERNAL_FILE = "external_file";
 
-  /*
-   * The column in which to store the file size.
+  /**
+   * The type of files that can be stored in the column. The column must be of
+   * type text. Files are stored as a JSON object with the following structure:
+   * {
+   *   name: <filename>,
+   *   size: <size of file in bytes>,
+   *   type: <mime type of file>,
+   *   data: <base64 encoded content of file>
+   * }
    */
-  public static final String FILE_SIZE_COLUMN = "file_size_column";
-
-  /*
-   * The column in which to store the file mime type.
-   */
-  public static final String FILE_TYPE_COLUMN = "file_type_column";
-
-  /*
-   * The column in which to store the file name.
-   */
-  public static final String FILE_NAME_COLUMN = "file_name_column";
+  public static final String FILE_TYPE = "file_type";
 
   /**
    * The order in which this member should appear when the object is being
@@ -201,12 +190,6 @@ public class Attributes {
    * added through ALTER TABLE are always added at the end of the table.
    */
   public static final String SEQUENCE = "sequence";
-
-//    /**
-//     * When set on a column, marks it as containing a value which can be used
-//     * to order the records of the table.
-//     */
-//    public static final String SEQUENCER = "sequencer";
 
   /**
    * If records can be sorted by this column. Default is true.
@@ -237,6 +220,12 @@ public class Attributes {
   public static final String MAIN_COLUMN = "main_column";
 
   /**
+   * Marks a column as containing a unique readable identifier for the record.
+   * For example, an employee number, a company code. etc.
+   */
+  public static final String IDENTIFIER = "identifier";
+
+  /**
    * A formatting pattern to apply to the value of the member when latter need to
    * be converted to a string or back. The formatting is done on the client-side.
    */
@@ -263,25 +252,6 @@ public class Attributes {
    */
   public static final String INACTIVE_TEXT = "inactive_text";
 
-  /**
-   * One or more CSS classes to apply to member.
-   */
-  public static final String CSS_CLASSES = "css_classes";
-
-  /**
-   * A set of CSS styles to apply directly to the member.
-   */
-  public static final String STYLE = "style";
-
-  /**
-   * A width, in pixel, to apply to the component displaying this member.
-   * This width may be ignored when its application will break the layout
-   * of the display. The width can also be one of the several constant
-   * responsive widths which would allow the system to manage the size
-   * of the control in response to changes in the size of the client
-   * viewport.
-   */
-  public static final String WIDTH = "width";
 
   /**
    * Date resolution: whether to select date (i.e day, default), week, month or year.
@@ -340,6 +310,11 @@ public class Attributes {
    * lines as the value of this attribute.
    */
   public static final String LINES = "lines";
+
+  /**
+   * Maximum number of lines that a text area will be allowed to grow to.
+   */
+  public static final String MAX_LINES = "max_lines";
 
   /**
    * The language of the content of the field. Can be Javascript, C, etc.
@@ -473,21 +448,39 @@ public class Attributes {
    */
   public static final String LINK_LABEL = "link_label";
 
-//  /**
-//   * A query expression executed against the link table to obtain the code name.
-//   * This can also be the name of a column in the link table to use as the code name.
-//   */
-//  public static final String LINK_CODE_NAME = "link_code_name";
+  /**
+   * A filter condition limiting the choices of the selector for this member.
+   */
+  public static final String LINK_WHERE = "LINK_WHERE";
 
   /**
-   * A json array of objects with two mandatory properties, code and label, and
-   * an optional 'group' property.
+   * Link table options as a json array of objects with two properties, code and label.
    * For instance,
+   * <pre>
    * [
-   * {code: 1, label: 'Option 1', group: 'A'},
-   * {code: 2, label: 'Option 2', group: 'A'},
-   * {code: 3, label: 'Option 3', group: 'B'}
+   *   {code: 'A', label: 'Option 1'},
+   *   {code: 'B', label: 'Option 2'},
+   *   {code: 'C', label: 'Option 3'}
    * ]
+   * </pre>
+   * This can also be provided as a JSON object with member names as code and their
+   * value as the label, for a more succint representation:
+   * <pre>
+   * {
+   *   A: 'Option 1',
+   *   B: 'Option 2',
+   *   C: 'Option 3'
+   * }
+   * </pre>
+   * The object representation can further have an object value to support multi-language
+   * labels:
+   * <pre>
+   * {
+   *   A: {en: 'Option 1', fr: 'Choix 1'},
+   *   B: {en: 'Option 2', fr: 'Choix 2'},
+   *   C: {en: 'Option 3', fr: 'Choix 3'}
+   * }
+   * </pre>
    */
   public static final String VALUES = "values";
 
@@ -496,11 +489,6 @@ public class Attributes {
    * Default is false for lookups and true for link tables.
    */
   public static final String HIDE_CODE = "hide_code";
-
-  /**
-   * A filter condition limiting the choices of the selector for this member.
-   */
-  public static final String LINK_WHERE = "LINK_WHERE";
 
   /**
    * An ordering for the items of a selector.
