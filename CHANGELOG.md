@@ -93,6 +93,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fine-grain history and notification
 ### Select from a function (acting as a dynamic table, e.g. `select label from t:(joinlabel(null, '_id', 'a', 'S'))`)
 
+## [1.3.4] - 2022-12-27
+### Fixed
+- Do not apply filter to a select query without a from clause (e.g. `select 
+  nextvalue('numgen')`) as this would cause a NPE. 
+
 ## [1.3.3] - 2022-12-27
 - Common metadata attributes names updated in `Attributes` class.
 

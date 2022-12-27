@@ -336,7 +336,7 @@ public class Select extends QueryUpdate {
 
   @Override
   public Select filter(ComposableFilter filter, boolean firstFilter, EsqlPath path) {
-    if (getClass().equals(Select.class)) {
+    if (getClass().equals(Select.class) && tables() != null) {
       FilterResult result = filter(tables(), filter, firstFilter, where());
       if (result != null) {
         boolean doNotPutDistinct = doNotPutDistinct(context.structure.database.target(), path);
