@@ -14,6 +14,8 @@ import ma.vi.esql.syntax.define.Metadata;
 import ma.vi.esql.syntax.expression.ColumnRef;
 import ma.vi.esql.syntax.expression.Expression;
 import ma.vi.esql.syntax.expression.literal.NullLiteral;
+import ma.vi.esql.syntax.expression.logical.And;
+import ma.vi.esql.syntax.expression.logical.Or;
 import ma.vi.esql.syntax.query.*;
 
 import java.util.ArrayList;
@@ -157,6 +159,26 @@ public class SelectBuilder implements Builder<Select> {
   public SelectBuilder where(Expression<?, String> expression) {
     this.where = expression;
     return this;
+  }
+
+  public SelectBuilder and(String expression) {
+    return and(parser.parseExpression(expression));
+  }
+
+  public SelectBuilder and(Expression<?, String> expression) {
+    return where == null
+         ? where(expression)
+         : where(new And(context, where, expression));
+  }
+
+  public SelectBuilder or(String expression) {
+    return or(parser.parseExpression(expression));
+  }
+
+  public SelectBuilder or(Expression<?, String> expression) {
+    return where == null
+         ? where(expression)
+         : where(new Or(context, where, expression));
   }
 
   public SelectBuilder groupBy(String expression) {

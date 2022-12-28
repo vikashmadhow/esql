@@ -93,6 +93,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fine-grain history and notification
 ### Select from a function (acting as a dynamic table, e.g. `select label from t:(joinlabel(null, '_id', 'a', 'S'))`)
 
+## [1.3.5] - 2022-12-28
+### Added
+- `and` and `or` added to `SelectBuilder`, combines expression with the `where` 
+  clause, if any, of the `select` being built. If there are no `where` clause, 
+  the added expression becomes the `where` clause.
+
 ## [1.3.4] - 2022-12-27
 ### Fixed
 - Do not apply filter to a select query without a from clause (e.g. `select 
