@@ -102,7 +102,8 @@ public abstract class Relation extends AbstractType implements Symbol {
    */
   public List<SimpleColumn> cols() {
     return columnMap().values().stream()
-                      .map(c -> new SimpleColumn(c.name(),
+                      .map(c -> new SimpleColumn(c.context,
+                                                 c.name(),
                                                  c.type().name(),
                                                  c.derived(),
                                                  c.notNull(),
@@ -112,16 +113,7 @@ public abstract class Relation extends AbstractType implements Symbol {
                                                                          HashPMap.empty(IntTreePMap.empty()),
                                                                          NULL_DB.structure())
                                                    : "$(" + c.expression().translate(JAVASCRIPT) + ")",
-                                                 c.metadata() == null
-                                                   ? new LinkedHashMap<>()
-                                                   : c.metadata().attributes().entrySet().stream()
-                                                                 .collect(Collectors.toMap(
-                                                                   Map.Entry::getKey,
-                                                                   e -> e.getValue().attributeValue() instanceof Literal<?>
-                                                                      ? e.getValue().evaluateAttribute()
-                                                                      : "$(" + e.getValue().attributeValue().translate(JAVASCRIPT) + ")",
-                                                                   (e1, e2) -> e1,
-                                                                   LinkedHashMap::new))))
+                                                 c.metadata()))
                       .toList();
   }
 

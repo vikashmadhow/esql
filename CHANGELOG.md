@@ -93,6 +93,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fine-grain history and notification
 ### Select from a function (acting as a dynamic table, e.g. `select label from t:(joinlabel(null, '_id', 'a', 'S'))`)
 
+## [1.3.6] - 2023-01-05
+### Added
+- `get` method in `SimpleColumn` now takes an optional default value to return 
+  when the attribute is not present in the column.
+- `is` method in `SimpleColumn` now takes an optional default value to return 
+  when the attribute is not present in the column.
+- `metadata` and `context` included in `SimpleColumn` which is needed in cases 
+  where the original column needs to be reconstructed (or a similar structure
+  needs to be built).
+
+### Fixed
+- Fixed automatic grouping of composable columns which was not grouping some
+  columns which were not already subsumed by existing groupings.
+
 ## [1.3.5] - 2022-12-28
 ### Added
 - `and` and `or` added to `SelectBuilder`, combines expression with the `where` 

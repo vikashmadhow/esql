@@ -236,7 +236,7 @@ public class Select extends QueryUpdate {
                                .collect(Collectors.toSet());
     String name = column.name();
     if (name == null
-      && result.expression() instanceof ColumnRef ref) {
+     && result.expression() instanceof ColumnRef ref) {
       name = ref.columnName();
     }
     if (name == null) name = "column";
@@ -284,7 +284,7 @@ public class Select extends QueryUpdate {
         List<Expression<?, ?>> colExprs = List.of(col.expression());
         if (col.expression() instanceof FunctionCall f && f.hasWindow()) {
           /*
-           * A window function cannot be added to the group by clause; instead
+           * A window function cannot be added to the `group by` clause; instead
            * we can extract all column references from the function call and add
            * them, if any, to the group list
            */
@@ -298,7 +298,7 @@ public class Select extends QueryUpdate {
         for (Expression<?, ?> colExpr: colExprs) {
           boolean exists = false;
           for (Expression<?, ?> expr: groupExpressions) {
-            if (expr.contains(colExpr)) {
+            if (colExpr.contains(expr)) {
               exists = true;
               break;
             }
