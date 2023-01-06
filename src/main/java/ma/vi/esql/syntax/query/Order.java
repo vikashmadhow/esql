@@ -55,7 +55,7 @@ public class Order extends Esql<String, String> {
                          PMap<String, Object> parameters,
                          Environment          env) {
     String dir = dir();
-    return order().translate(target, esqlCon, path.add(order()), parameters, env)
+    return String.valueOf(order().translate(target, esqlCon, path.add(order()), parameters, env))
         + (dir == null ? "" : ' ' + dir);
   }
 

@@ -318,6 +318,19 @@ public class Select extends QueryUpdate {
       }
     }
 
+    /*
+     * Add order if specified.
+     */
+    List<Order> orderBy = orderBy();
+    if (column.order() != null
+     && column.order() != Composable.Order.NONE) {
+      if (orderBy == null) orderBy = new ArrayList<>();
+      else                 orderBy = new ArrayList<>(orderBy);
+      orderBy.add(new Order(context,
+                            result.expression(),
+                            column.order() == Composable.Order.DESC ? "desc" : null));
+    }
+
     boolean doNotPutDistinct = doNotPutDistinct(context.structure.database.target(), path);
     return new Select(context,
                       metadata(),
@@ -329,7 +342,7 @@ public class Select extends QueryUpdate {
                       where(),
                       groupBy,
                       having(),
-                      orderBy(),
+                      orderBy,
                       offset(),
                       limit());
   }

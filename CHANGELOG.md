@@ -46,11 +46,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `Truncate table` statement.
 
-- Support for creating and using sequences.
-- `create sequence` support in ESQL.
-- `alter sequence` support in ESQL.
-- `drop sequence` support in ESQL.
-
 - Change notification and subscription.
 - Fine-grain history.
 - Snapshots.
@@ -92,6 +87,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.4.0] (Planned)
 ### Fine-grain history and notification
 ### Select from a function (acting as a dynamic table, e.g. `select label from t:(joinlabel(null, '_id', 'a', 'S'))`)
+
+## [1.3.7] - 2023-01-06
+### Added
+- Implement `order` when composing `ComposableColumn` in `select`s.
+
+### Fixed:
+- Translation of `SelectExpression` in `Order` forcibly translated to strings.
 
 ## [1.3.6] - 2023-01-05
 ### Added
