@@ -4,7 +4,7 @@ import ma.vi.esql.builder.Attr;
 import ma.vi.esql.builder.CreateTableBuilder;
 import ma.vi.esql.database.Database;
 import ma.vi.esql.database.EsqlConnection;
-import ma.vi.esql.semantic.type.Struct;
+import ma.vi.esql.semantic.type.BaseRelation;
 import ma.vi.esql.syntax.Context;
 
 import java.util.LinkedHashMap;
@@ -41,13 +41,13 @@ import java.util.Map;
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public class TableInitializer implements Initializer<Struct> {
+public class TableInitializer implements Initializer<BaseRelation> {
   @Override
-  public Struct add(Database db,
-                    boolean  overwrite,
-                    String   name,
-                    Struct   existing,
-                    Map<String, Object> definition) {
+  public BaseRelation add(Database     db,
+                          boolean      overwrite,
+                          String       name,
+                          BaseRelation existing,
+                          Map<String, Object> definition) {
     CreateTableBuilder builder = new CreateTableBuilder(new Context(db.structure()));
     builder.name(name);
     for (var e: definition.entrySet()) {
@@ -100,9 +100,9 @@ public class TableInitializer implements Initializer<Struct> {
   }
 
   @Override
-  public Struct get(Database db, String name) {
-    return db.structure().structExists(name)
-         ? db.structure().struct(name)
+  public BaseRelation get(Database db, String name) {
+    return db.structure().relationExists(name)
+         ? db.structure().relation(name)
          : null;
   }
 }
