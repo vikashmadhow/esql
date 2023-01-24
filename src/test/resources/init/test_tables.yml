@@ -1,0 +1,65 @@
+$overwrite: true
+
+TestImportTable:
+  $metadata:
+    name: "'Test import Table'"
+    description: "'This is a test import table'"
+  _id:
+    type: uuid
+    required: true
+    unique: true
+  id:
+    type: int
+    required: true
+    unique: true
+  first_name:
+    type: string
+    required: true
+  last_name:
+    type: string
+    required: true
+  name: "first_name || ' ' || last_name"
+  a:
+    type: int
+    expression: 1
+    m1: 2 * id
+  b:
+    expression: a * 3
+    m1: 3 * id
+  phone:
+    type: string
+  address:
+    type: text
+  date_of_birth:
+    type: date
+
+
+a.b.TestImportTable2:
+  _id:
+    type: uuid
+    required: true
+    unique: true
+  id:
+    type: int
+    required: true
+    unique: true
+  first_name:
+    type: string
+    required: true
+  last_name:
+    type: string
+    required: true
+  name: "first_name || ' ' || last_name"
+  a:
+    type: int
+    expression: 1
+    m1: 2 * id
+  b:
+    expression: a * 3
+    m1: 3 * id
+  phone:
+    type: string
+  address:
+    type: text
+  date_of_birth:
+    type: date

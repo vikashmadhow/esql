@@ -88,6 +88,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fine-grain history and notification
 ### Select from a function (acting as a dynamic table, e.g. `select label from t:(joinlabel(null, '_id', 'a', 'S'))`)
 
+## [1.3.8] - 2023-01-24
+### Added
+- `TableInitializer` for creating `table` defined in a YAML file or from other
+  hierarchical formats.
+
 ## [1.3.7] - 2023-01-06
 ### Added
 - Implement `order` when composing `ComposableColumn` in `select`s.
