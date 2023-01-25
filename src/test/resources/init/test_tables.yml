@@ -57,6 +57,11 @@ a.b.TestImportTable2:
   b:
     expression: a * 3
     m1: 3 * id
+  c_id:
+    type: uuid
+    link_table: "'TestImportTable'"
+    link_code: "'_id'"
+    link_label: "'first_name'"
   phone:
     type: string
   address:

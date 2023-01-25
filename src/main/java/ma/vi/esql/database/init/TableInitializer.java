@@ -1,6 +1,7 @@
 package ma.vi.esql.database.init;
 
 import ma.vi.esql.builder.Attr;
+import ma.vi.esql.builder.Attributes;
 import ma.vi.esql.builder.CreateTableBuilder;
 import ma.vi.esql.database.Database;
 import ma.vi.esql.database.EsqlConnection;
@@ -9,6 +10,8 @@ import ma.vi.esql.syntax.Context;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+
+import static ma.vi.esql.builder.Attributes.*;
 
 /**
  * An initializer to create tables from a hierarchical representation (such as
@@ -65,7 +68,7 @@ public class TableInitializer implements Initializer<BaseRelation> {
          */
         boolean notNull = false;
         String expression = null;
-        Map<String, String> attrs =new LinkedHashMap<>();
+        Map<String, String> attrs = new LinkedHashMap<>();
         String type = null;
 
         if (e.getValue() instanceof String ex) {
@@ -81,6 +84,16 @@ public class TableInitializer implements Initializer<BaseRelation> {
             }
           }
         }
+        if (attrs.containsKey(UNIQUE)) {
+          builder.unique(columnName);
+        }
+        if (attrs.containsKey(LINK_TABLE)
+         && attrs.containsKey(LINK_CODE)) {
+          builder.foreignKey(columnName,
+                             removeQuotes(attrs.get(LINK_TABLE)),
+                             removeQuotes(attrs.get(LINK_CODE)));
+        }
+
         Attr[] attributes = attrs.entrySet().stream()
                                  .map(a -> new Attr(a.getKey(), a.getValue()))
                                  .toArray(Attr[]::new);
@@ -104,5 +117,12 @@ public class TableInitializer implements Initializer<BaseRelation> {
     return db.structure().relationExists(name)
          ? db.structure().relation(name)
          : null;
+  }
+
+  private static String removeQuotes(String text) {
+    return text == null         ?  null
+         : text.startsWith("'")
+        && text.endsWith  ("'") ? text.substring(1, text.length() -1)
+         : text;
   }
 }

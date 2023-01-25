@@ -65,7 +65,7 @@ public class StructInitializer implements Initializer<Struct> {
          */
         boolean notNull = false;
         String expression = null;
-        Map<String, String> attrs =new LinkedHashMap<>();
+        Map<String, String> attrs = new LinkedHashMap<>();
         String type = null;
 
         if (e.getValue() instanceof String ex) {

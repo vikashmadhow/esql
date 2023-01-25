@@ -88,6 +88,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fine-grain history and notification
 ### Select from a function (acting as a dynamic table, e.g. `select label from t:(joinlabel(null, '_id', 'a', 'S'))`)
 
+## [1.3.9] - 2023-01-25
+### Added
+- `TableInitializer` creates unique constraints from `unique` attribute in definition.
+- `TableInitializer` creates foreign key constraints from `link_table` and `link_code`
+  attributes in definition.
+
 ## [1.3.8] - 2023-01-24
 ### Added
 - `TableInitializer` for creating `table` defined in a YAML file or from other
