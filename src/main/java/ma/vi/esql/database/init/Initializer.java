@@ -112,8 +112,8 @@ public interface Initializer<T> {
                      Object   definition,
                      String   defaultName) {
     return definition instanceof String name ? get(db, name)
-         : definition instanceof Map    map  ? add(db, overwrite, defaultName, (Map<String, Object>)map)
-         : definition instanceof List   list ? add(db, overwrite, defaultName, (List<Object>)list)
+         : definition instanceof Map  map  ? add(db, overwrite, defaultName, (Map<String, Object>)map)
+         : definition instanceof List list ? add(db, overwrite, defaultName, (List<Object>)list)
          : null;
   }
 

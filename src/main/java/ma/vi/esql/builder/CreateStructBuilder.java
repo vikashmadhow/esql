@@ -27,66 +27,13 @@ import static java.util.stream.Collectors.toList;
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public class CreateStructBuilder implements Builder<CreateStruct> {
+public class CreateStructBuilder extends CreateBuilder<CreateStruct, CreateStructBuilder> {
   public CreateStructBuilder(Context context) {
-    this.context = context;
+    super(context);
   }
 
   @Override
   public CreateStruct build() {
     return new CreateStruct(context, name, columns, new Metadata(context, metadata));
   }
-
-  public CreateStructBuilder name(String name) {
-    this.name = name;
-    return this;
-  }
-
-  public CreateStructBuilder metadata(String name, String expression) {
-    Parser parser = new Parser(context.structure);
-    this.metadata.add(new Attribute(context, name, parser.parseExpression(expression)));
-    return this;
-  }
-
-  public CreateStructBuilder column(String name, String type, Attr... metadata) {
-    return column(name, type, false, metadata);
-  }
-
-  public CreateStructBuilder column(String name, String type, boolean notNull, Attr... metadata) {
-    return column(name, type, notNull, null, metadata);
-  }
-
-  public CreateStructBuilder column(String name, String type, boolean notNull,
-                                    String defaultExpression, Attr... metadata) {
-    Parser parser = new Parser(context.structure);
-    this.columns.add(
-        new ColumnDefinition(context, name, Types.typeOf(type),
-                             notNull, defaultExpression == null
-                     ? null
-                     : parser.parseExpression(defaultExpression),
-                             new Metadata(context,
-                Stream.of(metadata)
-                      .map(a -> new Attribute(context, a.name(), parser.parseExpression(a.expr())))
-                      .collect(toList()))));
-    return this;
-  }
-
-  public CreateStructBuilder derivedColumn(String name, String expression, Attr... metadata) {
-    Parser parser = new Parser(context.structure);
-    this.columns.add(
-        new DerivedColumnDefinition(context, name, parser.parseExpression(expression),
-                                    new Metadata(context,
-                Stream.of(metadata)
-                      .map(a -> new Attribute(context, a.name(), parser.parseExpression(a.expr())))
-                      .collect(toList()))));
-    return this;
-  }
-
-  private String name;
-
-  private final List<ColumnDefinition> columns = new ArrayList<>();
-
-  private final List<Attribute> metadata = new ArrayList<>();
-
-  private final Context context;
 }

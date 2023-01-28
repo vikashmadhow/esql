@@ -451,7 +451,7 @@ public class Attributes {
   /**
    * A filter condition limiting the choices of the selector for this member.
    */
-  public static final String LINK_WHERE = "LINK_WHERE";
+  public static final String LINK_WHERE = "link_where";
 
   /**
    * Link table options as a json array of objects with two properties, code and label.
@@ -493,7 +493,7 @@ public class Attributes {
   /**
    * An ordering for the items of a selector.
    */
-  public static final String LINK_ORDER = "LINK_ORDER";
+  public static final String LINK_ORDER = "link_order";
 
   /**
    * If this is set, a drop-down list with all distinct values for the column in

@@ -96,18 +96,18 @@ public class DatePart extends Function {
       }
     } else if (target == JAVASCRIPT) {
       return switch (part) {
-        case Year         -> "(" + arg + ").year()";
-        case Quarter      -> "(" + arg + ").quarter()";
+        case Year         -> "("  + arg + ").getFullYear()";
+        case Quarter      -> "("  + arg + ").quarter()";
         case Semester     -> "((" + arg + ").quarter()==1 || (" + arg + ").quarter()==2 ? 1 : 2)";
-        case Month        -> "((" + arg + ").month() + 1)";
-        case Week         -> "(" + arg + ").week()";
+        case Month        -> "((" + arg + ").getMonth() + 1)";
+        case Week         -> "("  + arg + ").week()";
         case DayOfWeek    -> "((" + arg + ").dayOfWeek() + 1)";
-        case DayOfYear    -> "(" + arg + ").dayOfYear()";
-        case Day          -> "(" + arg + ").date()";
-        case Hour         -> "(" + arg + ").hour()";
-        case Minute       -> "(" + arg + ").minute()";
-        case Second       -> "(" + arg + ").second()";
-        case Millisecond  -> "(" + arg + ").millisecond()";
+        case DayOfYear    -> "("  + arg + ").dayOfYear()";
+        case Day          -> "("  + arg + ").date()";
+        case Hour         -> "("  + arg + ").hour()";
+        case Minute       -> "("  + arg + ").minute()";
+        case Second       -> "("  + arg + ").second()";
+        case Millisecond  -> "("  + arg + ").millisecond()";
         case Microsecond  -> "((" + arg + ").millisecond() * 1000)";
       };
     } else {

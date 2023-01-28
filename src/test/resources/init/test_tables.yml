@@ -19,6 +19,9 @@ TestImportTable:
     type: string
     required: true
   name: "first_name || ' ' || last_name"
+  derived_name:
+    type: "#computed"
+    expression: "first_name || ' ' || last_name"
   a:
     type: int
     expression: 1

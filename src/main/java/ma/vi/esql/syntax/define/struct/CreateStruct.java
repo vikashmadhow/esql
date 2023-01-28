@@ -17,6 +17,7 @@ import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
+import ma.vi.esql.syntax.define.Create;
 import ma.vi.esql.syntax.define.Define;
 import ma.vi.esql.syntax.define.Metadata;
 import ma.vi.esql.syntax.define.table.*;
@@ -41,7 +42,7 @@ import static ma.vi.esql.translation.Translatable.Target.SQLSERVER;
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public class CreateStruct extends Define {
+public class CreateStruct extends Define implements Create {
   public CreateStruct(Context                context,
                       String                 name,
                       List<ColumnDefinition> columns,

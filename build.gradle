@@ -56,7 +56,7 @@ java {
   withSourcesJar()
 }
 
-version = "1.3.9"
+version = "1.3.10"
 group = 'ma.vi'
 sourceCompatibility = JavaVersion.VERSION_17
 
@@ -118,20 +118,20 @@ dependencies {
   api("ma.vi:base:latest.release")
   api("org.json:json:latest.release")
 
-  api("org.postgresql:postgresql:42.3.6")
+  api("org.postgresql:postgresql:42.5.1")
   api("com.microsoft.sqlserver:mssql-jdbc:10.2.1.jre17")
 
-  implementation("org.mariadb.jdbc:mariadb-java-client:2.7.3")
+  implementation("org.mariadb.jdbc:mariadb-java-client:3.1.2")
   implementation("mysql:mysql-connector-java:8.0.25")
-  implementation("org.hsqldb:hsqldb:2.6.1")
+  implementation("org.hsqldb:hsqldb:2.7.1")
   implementation("com.zaxxer:HikariCP:5.0.1")
 
   implementation("org.apache.commons:commons-lang3:latest.release")
   implementation("org.yaml:snakeyaml:latest.release")
 
   // Use JUnit test framework
-  testImplementation(platform("org.junit:junit-bom:5.8.2"))
-  testImplementation("org.junit.jupiter:junit-jupiter:5.8.2")
+  testImplementation(platform("org.junit:junit-bom:5.9.2"))
+  testImplementation("org.junit.jupiter:junit-jupiter:5.9.2")
   testImplementation("org.hamcrest:hamcrest:2.2")
 }
 

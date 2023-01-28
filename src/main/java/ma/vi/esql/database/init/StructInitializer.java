@@ -1,14 +1,10 @@
 package ma.vi.esql.database.init;
 
-import ma.vi.esql.builder.Attr;
 import ma.vi.esql.builder.CreateStructBuilder;
 import ma.vi.esql.database.Database;
-import ma.vi.esql.database.EsqlConnection;
 import ma.vi.esql.semantic.type.Struct;
 import ma.vi.esql.syntax.Context;
-
-import java.util.LinkedHashMap;
-import java.util.Map;
+import ma.vi.esql.syntax.define.struct.CreateStruct;
 
 /**
  * An initializer to create structs from a hierarchical representation (such as
@@ -41,62 +37,12 @@ import java.util.Map;
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public class StructInitializer implements Initializer<Struct> {
+public class StructInitializer extends CreateInitializer<Struct,
+                                                         CreateStruct,
+                                                         CreateStructBuilder> {
   @Override
-  public Struct add(Database db,
-                    boolean  overwrite,
-                    String   name,
-                    Struct   existing,
-                    Map<String, Object> definition) {
-    CreateStructBuilder builder = new CreateStructBuilder(new Context(db.structure()));
-    builder.name(name);
-    for (var e: definition.entrySet()) {
-      String columnName = e.getKey();
-      if (columnName.equals(METADATA)) {
-        /*
-         * Struct-level metadata.
-         */
-        Map<String, Object> columnDef = (Map<String, Object>)e.getValue();
-        for (var def: columnDef.entrySet())
-          builder.metadata(def.getKey(), def.getValue().toString());
-      } else {
-        /*
-         * Columns.
-         */
-        boolean notNull = false;
-        String expression = null;
-        Map<String, String> attrs = new LinkedHashMap<>();
-        String type = null;
-
-        if (e.getValue() instanceof String ex) {
-          expression = ex;
-        } else {
-          Map<String, Object> columnDef = (Map<String, Object>)e.getValue();
-          for (var def: columnDef.entrySet()) {
-            switch(def.getKey()) {
-              case "type", "_type" -> type    = (String)def.getValue();
-              case "required"      -> notNull = (Boolean)def.getValue();
-              case "expression"    -> expression = def.getValue().toString();
-              default              -> attrs.put(def.getKey(), def.getValue().toString());
-            }
-          }
-        }
-        Attr[] attributes = attrs.entrySet().stream()
-                                 .map(a -> new Attr(a.getKey(), a.getValue()))
-                                 .toArray(Attr[]::new);
-        if (type == null && expression != null) {
-          builder.derivedColumn(columnName, expression, attributes);
-        } else if (type == null) {
-          throw new IllegalArgumentException("Type not specified for non-derived " + columnName);
-        } else {
-          builder.column(columnName, type, notNull, expression, attributes);
-        }
-      }
-    }
-    try (EsqlConnection con = db.esql()) {
-      con.exec(builder.build());
-    }
-    return get(db, name);
+  protected CreateStructBuilder builder(Database db) {
+    return new CreateStructBuilder(new Context(db.structure()));
   }
 
   @Override

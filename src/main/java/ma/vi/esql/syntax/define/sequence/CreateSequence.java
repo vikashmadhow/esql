@@ -11,6 +11,7 @@ import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
+import ma.vi.esql.syntax.define.Create;
 import ma.vi.esql.syntax.define.Define;
 import org.pcollections.PMap;
 
@@ -27,7 +28,7 @@ import static ma.vi.esql.translation.Translatable.Target.POSTGRESQL;
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public class CreateSequence extends Define {
+public class CreateSequence extends Define implements Create {
   public CreateSequence(Context context,
                         String  name,
                         Long    start,

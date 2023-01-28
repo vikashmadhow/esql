@@ -21,6 +21,7 @@ import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.define.Attribute;
+import ma.vi.esql.syntax.define.Create;
 import ma.vi.esql.syntax.define.Define;
 import ma.vi.esql.syntax.define.Metadata;
 import ma.vi.esql.syntax.expression.*;
@@ -48,7 +49,7 @@ import static ma.vi.esql.translation.Translatable.Target.*;
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public class CreateTable extends Define {
+public class CreateTable extends Define implements Create {
   public CreateTable(Context                    context,
                      String                     name,
                      boolean                    dropUndefined,

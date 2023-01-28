@@ -11,6 +11,7 @@ import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
+import ma.vi.esql.syntax.define.Create;
 import ma.vi.esql.syntax.define.Define;
 import ma.vi.esql.syntax.expression.ColumnRef;
 import ma.vi.esql.syntax.expression.Expression;
@@ -31,7 +32,7 @@ import static ma.vi.esql.translation.Translatable.Target.*;
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public class CreateIndex extends Define {
+public class CreateIndex extends Define implements Create {
   public CreateIndex(Context context,
                      boolean unique,
                      String  name,

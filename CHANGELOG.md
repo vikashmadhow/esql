@@ -88,6 +88,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fine-grain history and notification
 ### Select from a function (acting as a dynamic table, e.g. `select label from t:(joinlabel(null, '_id', 'a', 'S'))`)
 
+## [1.3.10] - 2023-01-28
+### Added
+- `TableInitializer` creates derived column when the type is set `#computed`.
+- `Create` interface to tag subclasses of `Define` that creates database objects.
+- Common code `CreateStructBuilder` and `CreateTableBuilder` refactored into
+  `CreateBuilder` abstract class.
+- Common code in `StructInitializer` and `TableInitializer` refactored into
+  `CreateInitializer` abstract class.
+- Translation of `year` and `month` function to Javascript uses methods in 
+  Javascript`Date` object instead of those in the `moment` library as the latter
+  is deprecated and no longer expected to be used on the client-side.
+
 ## [1.3.9] - 2023-01-25
 ### Added
 - `TableInitializer` creates unique constraints from `unique` attribute in definition.
