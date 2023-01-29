@@ -92,7 +92,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - `TableInitializer` creates derived column when the type is set `#computed`.
 - `Create` interface to tag subclasses of `Define` that creates database objects.
-- Common code `CreateStructBuilder` and `CreateTableBuilder` refactored into
+- Common code in `CreateStructBuilder` and `CreateTableBuilder` refactored into
   `CreateBuilder` abstract class.
 - Common code in `StructInitializer` and `TableInitializer` refactored into
   `CreateInitializer` abstract class.

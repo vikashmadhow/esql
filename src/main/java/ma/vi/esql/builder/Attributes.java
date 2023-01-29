@@ -20,59 +20,70 @@ package ma.vi.esql.builder;
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 public class Attributes {
-
   /**
-   * If set in the metadata of the id of a record, indicates that the
-   * record is new and should be inserted in the database. The absence
-   * of this attribute indicates that a record  with the same id should
-   * already exist in the database.
+   * Contains an array of ids of children records which have been deleted on the
+   * client and must be deleted on the server.
    */
-  public static final String NEW_RECORD = "new_record";
-
-  /*
-   * If set in the metadata of a children field (children are the one-to-many
-   * associated records linked to the current record), contains an array of ids
-   * of children records which should be deleted from the server.
-   */
-  public static final String DELETED_CHILDREN = "deleted_children";
+  public static final String DELETED = "$deleted";
 
   /**
    * Added to the metadata of records and columns when modified.
    */
   public static final String CHANGED = "$changed";
 
-  /*
-   * An initial value to set on a field on creation.
-   */
-  public static final String INITIAL_VALUE = "initial_value";
-
   /**
-   * Name of the default ID column.
-   */
-  public static final String ID = "_id";
-
-  /**
-   * The data type of the column on which this attribute is set.
+   * Contains the type of the column or table.
    */
   public static final String TYPE = "_type";
 
-  /**
-   * The expression to compute as the default value for a column when no value is
-   * specified in an insert statement, and the expression to compute the value for
-   * a derived column.
-   */
-  public static final String EXPRESSION = "_expression";
+  // Children rows
+  ////////////////////////////////////////////////////////////////
 
   /**
-   * The name of a column containing a sequence number to order a set
-   * rows by.
+   * Added to the metadata of the parent table to define a set of children tables
+   * that appear as children rows for a parent row when the latter is edited. Each
+   * child of a parent must have a `_type` containing the name of the child table
+   * and a `link_column` containing the name of the column in the child table that
+   * will hold the id for its parent row. E.g.
+   * ```
+   * create table hr.Employee({
+   *   children: {
+   *     emergency: {
+   *       _type:       'hr.EmployeeEmergencyContact',
+   *       link_column: 'employee_id',
+   *     },
+   *     languages: {
+   *       _type:       'hr.EmployeeLanguage',
+   *       link_column: 'employee_id',
+   *     }
+   *   }
+   *   ...
+   * )
+   * ```
    */
-  public static final String SEQUENCE_COLUMN = "sequence_column";
+  public static final String CHILDREN = "children";
 
   /**
-   * The name a column that will contain the id of a parent row.
+   * The name of a column in a children row that will contain the id of a parent row.
    */
-  public static final String PARENT_LINK_COLUMN = "link_column";
+  public static final String LINK_COLUMN = "link_column";
+
+  /**
+   * A special attribute set in each child row during editing and containing the
+   * id of its parent row. This is set in the child link column on save.
+   */
+  public static final String PARENT_ID = "$parent_id";
+
+  /**
+   * The order in which this member should appear when the object is being
+   * edited/viewed. Fields with lower sequence numbers are displayed before
+   * those with higher ones.
+   *
+   * This is also used to specify a column which keeps the order for children rows.
+   * When this is present, children rows can be ordered (with a drag indicator, e.g.)
+   * and the value of this column is updated to reflect the order of child row.
+   */
+  public static final String SEQUENCE = "sequence";
 
   /**
    * Set to true on derived fields.
@@ -80,11 +91,28 @@ public class Attributes {
   public static final String DERIVED = "derived";
 
   /**
-   * The expression for computing value of non-derived fields when they are being
-   * edited. This expression should use conditionals to not overwrite manual changes
-   * made by the user to the field.
+   * The expression for derived fields
    */
-  public static final String VALUE_EXPRESSION = "value_expression";
+  public static final String DERIVED_EXPRESSION = "derived_expression";
+
+  /**
+   * A value or expression to assign to a column if the column does not already
+   * contain a value (i.e. it is null or blank). Since this is a derived expression
+   * the field is set as read-only.
+   */
+  public static final String DERIVED_IF_NULL = "derived_if_null";
+
+  /**
+   * A value or expression to assign to a column in a new row. Since this is a
+   * derived expression the field is set as read-only.
+   */
+  public static final String DERIVED_IF_NEW = "derived_if_new";
+
+  /**
+   * A value or expression to assign to a column initially if the column does not
+   * already contain a value (i.e. it is null or blank).
+   */
+  public static final String INITIAL_VALUE = "initial_value";
 
   /**
    * A human-readable title for the member. The label may contain member references
@@ -108,7 +136,7 @@ public class Attributes {
   // @todo table level attributes: candidate keys, table level validations and warnings
 
   /**
-   * A human readable name of the entity.
+   * A human-readable name of the entity.
    */
   public static final String NAME = "name";
 
@@ -342,26 +370,26 @@ public class Attributes {
 ////////////////////////////////////////////////////////
 
 // fonts
-// export const FONT_NAME      = "font_name";
-// export const TEXT_COLOR     = "text_color";
-// export const BOLD           = "bold";
-// export const ITALIC         = "italic";
-// export const UNDERLINE      = "underline";
-// export const STRIKETHROUGH  = "strikethrough";
-// export const FONT_SIZE      = "font_size";
+// public static final String FONT_NAME      = "font_name";
+// public static final String TEXT_COLOR     = "text_color";
+// public static final String BOLD           = "bold";
+// public static final String ITALIC         = "italic";
+// public static final String UNDERLINE      = "underline";
+// public static final String STRIKETHROUGH  = "strikethrough";
+// public static final String FONT_SIZE      = "font_size";
 //
 // // alignment
-// export const ALIGN_LEFT     = "align_left";
-// export const ALIGN_RIGHT    = "align_right";
-// export const ALIGN_CENTER   = "align_center";
-// export const ALIGN_JUSTIFY  = "align_justify";
+// public static final String ALIGN_LEFT     = "align_left";
+// public static final String ALIGN_RIGHT    = "align_right";
+// public static final String ALIGN_CENTER   = "align_center";
+// public static final String ALIGN_JUSTIFY  = "align_justify";
 //
 // // borders
-// export const BORDER_LEFT     = "border_left";
-// export const BORDER_RIGHT    = "border_right";
-// export const BORDER_TOP      = "border_top";
-// export const BORDER_BOTTOM   = "border_bottom";
-// export const BORDER_DIAGONAL = "border_diagonal";
+// public static final String BORDER_LEFT     = "border_left";
+// public static final String BORDER_RIGHT    = "border_right";
+// public static final String BORDER_TOP      = "border_top";
+// public static final String BORDER_BOTTOM   = "border_bottom";
+// public static final String BORDER_DIAGONAL = "border_diagonal";
 //
 //  public static final String EXCEL_FONT = "excel_font";
 //  public static final String EXCEL_ALIGNMENT = "excel_alignment";
@@ -513,14 +541,6 @@ public class Attributes {
    * can be used by other fields referring to this field.
    */
   public static final String VALUE_NAME = "value_name";
-
-  /**
-   * When set to true on columns associated to lookups or other tables,
-   * the full list of possible values for the column is not pre-loaded;
-   * instead, as the user types, a list of highest matching options is
-   * loaded and displayed.
-   */
-  public static final String ADAPTIVE = "adaptive";
 
   /**
    * Primary key info.

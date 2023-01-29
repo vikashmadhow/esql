@@ -98,7 +98,7 @@ public abstract class CreateInitializer<O,
           }
         }
         Attr[] attributes = attrs.entrySet().stream()
-                                 .map(a -> new Attr(a.getKey(), a.getValue()))
+                                 .map(a -> new Attr(a.getKey(), removeExprMarks(a.getValue())))
                                  .toArray(Attr[]::new);
         if ((type == null || type.equals("#computed")) && expression != null) {
           builder.derivedColumn(columnName, expression, attributes);
@@ -114,5 +114,19 @@ public abstract class CreateInitializer<O,
       con.exec((Esql<?, ?>)builder.build());
     }
     return get(db, name);
+  }
+
+  private static String removeExprMarks(String expr) {
+    return expr == null          ? null
+         : expr.startsWith("$(")
+        && expr.endsWith(")")    ? expr.substring(2, expr.length() - 1)
+         : expr;
+  }
+
+  protected static String removeQuotes(String text) {
+    return text == null         ?  null
+         : text.startsWith("'")
+        && text.endsWith  ("'") ? text.substring(1, text.length() -1)
+         : text;
   }
 }

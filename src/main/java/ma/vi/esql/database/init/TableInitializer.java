@@ -57,7 +57,7 @@ public class TableInitializer extends CreateInitializer<BaseRelation,
       builder.unique(columnName);
     }
     if (attrs.containsKey(LINK_TABLE)
-      && attrs.containsKey(LINK_CODE)) {
+     && attrs.containsKey(LINK_CODE)) {
       builder.foreignKey(columnName,
                          removeQuotes(attrs.get(LINK_TABLE)),
                          removeQuotes(attrs.get(LINK_CODE)));
@@ -69,12 +69,5 @@ public class TableInitializer extends CreateInitializer<BaseRelation,
     return db.structure().relationExists(name)
          ? db.structure().relation(name)
          : null;
-  }
-
-  private static String removeQuotes(String text) {
-    return text == null         ?  null
-         : text.startsWith("'")
-        && text.endsWith  ("'") ? text.substring(1, text.length() -1)
-         : text;
   }
 }
