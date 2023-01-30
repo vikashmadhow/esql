@@ -68,6 +68,20 @@ public class Attributes {
    */
   public static final String LINK_COLUMN = "link_column";
 
+
+  /**
+   * The expression to compute as the default value for a column when no value is
+   * specified in an insert statement, and the expression to compute the value for
+   * a derived column.
+   */
+  public static final String EXPRESSION = "_expression";
+
+  /**
+   * Name of the default ID column.
+   */
+  public static final String ID = "_id";
+
+
   /**
    * A special attribute set in each child row during editing and containing the
    * id of its parent row. This is set in the child link column on save.
@@ -209,15 +223,6 @@ public class Attributes {
    * }
    */
   public static final String FILE_TYPE = "file_type";
-
-  /**
-   * The order in which this member should appear when the object is being
-   * edited/viewed. Fields with lower sequence numbers are displayed before
-   * those with higher ones. Fields without a sequence number will be given
-   * one based on the order that they were added to the table. New fields
-   * added through ALTER TABLE are always added at the end of the table.
-   */
-  public static final String SEQUENCE = "sequence";
 
   /**
    * If records can be sorted by this column. Default is true.
