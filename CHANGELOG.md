@@ -88,6 +88,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fine-grain history and notification
 ### Select from a function (acting as a dynamic table, e.g. `select label from t:(joinlabel(null, '_id', 'a', 'S'))`)
 
+## [1.3.11.1] - 2023-01-31
+### Fixed
+- Fixed `AddMonths` translation on Postgresql. 
+
 ## [1.3.11] - 2023-01-31
 ### Added
 - try-cast operator `?:` attempts to cast a value to a type and returns null 

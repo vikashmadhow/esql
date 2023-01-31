@@ -37,7 +37,7 @@ public class AddMonths extends Function {
     List<Expression<?, ?>> args = call.arguments();
     if (target == POSTGRESQL) {
       return args.get(0).translate(target)
-           + "concat(" + args.get(1).translate(target) + ", ' month')::interval";
+           + " + concat(" + args.get(1).translate(target) + ", ' month')::interval";
     } else if (target == SQLSERVER) {
       return "dateadd(month, "
            + args.get(1).translate(target) + ", "
