@@ -53,15 +53,32 @@ public class Postgresql extends AbstractDatabase {
   public void init(Configuration config) {
     super.init(config);
     try (Connection c = pooledConnection()) {
-      // Postgresql specific
+      /*
+       * Postgresql specific.
+       */
 
       // create UUID extension
       // c.createStatement().executeUpdate("CREATE SCHEMA IF NOT EXISTS \"" + CORE_SCHEMA + '"');
       c.createStatement().executeUpdate("CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\" SCHEMA pg_catalog");
 
-      // function for getting type (_core.type_name(type_id))
+      /*
+       * trycast emulation.
+       */
       c.createStatement().executeUpdate("""
-        CREATE OR REPLACE FUNCTION "_core".type_name(typeid oid) RETURNS TEXT AS $$\s
+       CREATE OR REPLACE FUNCTION _core._try_cast(_in text, INOUT _out ANYELEMENT) LANGUAGE plpgsql AS
+        $$
+        BEGIN
+           EXECUTE format('SELECT %L::%s', $1, pg_typeof(_out)) INTO _out;
+        EXCEPTION WHEN others THEN
+           -- do nothing: _out carries default
+        END
+        $$;""");
+
+      /*
+       * function for getting type (_core.type_name(type_id))
+       */
+      c.createStatement().executeUpdate("""
+        CREATE OR REPLACE FUNCTION "_core".type_name(typeid oid) RETURNS TEXT AS $$
         DECLARE
             typename    text;
             namespace   text;

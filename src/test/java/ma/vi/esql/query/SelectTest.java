@@ -4,6 +4,8 @@
 
 package ma.vi.esql.query;
 
+import ma.vi.base.collections.Maps;
+import ma.vi.base.tuple.T2;
 import ma.vi.esql.DataTest;
 import ma.vi.esql.Databases;
 import ma.vi.esql.TestDatabase;
@@ -141,6 +143,37 @@ public class SelectTest extends DataTest {
                        Map.of("a", 3, "b", 4),
                        Map.of("a", 9, "b", 7)
                      ));
+                   }
+                 }));
+  }
+
+  @TestFactory
+  Stream<DynamicTest> castAndTryCast() {
+    return Stream.of(databases)
+                 .map(db -> dynamicTest(db.target().toString(), () -> {
+                   System.out.println(db.target());
+                   Parser p = new Parser(db.structure());
+                   try (EsqlConnection con = db.esql(db.pooledConnection())) {
+                     con.exec("delete t from t:a.b.T");
+                     con.exec("delete s from s:S");
+                     con.exec("insert into S(_id, a, b, e, i, n, h, j) values "
+                                  + "(newid(), '1'::int, '2'::int, 'true'::bool, 5::string, '2001-02-01'?:date, ['Four', 'Quatre']text, [1, 2, 3]int),"
+                                  + "(newid(), '2'?:int, 'x'?:int, 'p'?:bool,    d'2001-02-01'::string, '2001-p231'?:date,  ['Four', 'Quatre']text, [1, 2, 3]int),"
+                                  + "(newid(), trycast('3' as int), trycast('x' as int), trycast('p' as bool), trycast(d'2001-02-01' as string), trycast('2001-p231' as date), ['Four', 'Quatre']text, [1, 2, 3]int)");
+
+                     Result rs = con.exec("select a, b, e, i, n from S order by a");
+                     matchResult(rs, List.of(
+                       Map.of("a", 1, "b", 2, "e", true, "i", "5", "n", LocalDate.parse("2001-02-01")),
+                       Maps.of(T2.of("a", 2),
+                               T2.of("b", null),
+                               T2.of("e", null),
+                               T2.of("i", "2001-02-01"),
+                               T2.of("n", null)),
+                       Maps.of(T2.of("a", 3),
+                               T2.of("b", null),
+                               T2.of("e", null),
+                               T2.of("i", "2001-02-01"),
+                               T2.of("n", null))));
                    }
                  }));
   }

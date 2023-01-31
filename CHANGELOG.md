@@ -88,6 +88,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fine-grain history and notification
 ### Select from a function (acting as a dynamic table, e.g. `select label from t:(joinlabel(null, '_id', 'a', 'S'))`)
 
+## [1.3.11] - 2023-01-31
+### Added
+- try-cast operator `?:` attempts to cast a value to a type and returns null 
+  instead of failing if the value cannot be converted to the type.
+- Support for standard cast syntax (`cast(expr as type)`).
+- Long form try-cast syntax (`trycast(expr as type)`).
+
 ## [1.3.10] - 2023-01-28
 ### Added
 - `TableInitializer` creates derived column when the type is set `#computed`.

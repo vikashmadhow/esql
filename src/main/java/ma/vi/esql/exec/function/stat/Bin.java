@@ -11,7 +11,7 @@ import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
-import ma.vi.esql.syntax.expression.Cast;
+import ma.vi.esql.syntax.expression.cast.Cast;
 import ma.vi.esql.syntax.expression.Concatenation;
 import ma.vi.esql.syntax.expression.Expression;
 import ma.vi.esql.syntax.expression.comparison.Case;

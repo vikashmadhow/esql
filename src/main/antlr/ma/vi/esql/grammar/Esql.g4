@@ -664,11 +664,27 @@ expr
     | '(' expr ')'                                              #GroupingExpr
 
       /*
-       * Refers to the default value applicable in certain context such as
-        when
-       * inserting values and updating columns (to their defaults)
+       * Cast an expression to a type. Fails with an exception if the conversion
+       * cannot be performed.
        */
     | expr '::' type                                            #CastExpr
+
+      /*
+       * Long form of a cast expression.
+       */
+    | 'cast' '(' expr 'as' type ')'                             #StdCastExpr
+
+      /*
+       * Tries to cast an expression to a type. Returns null if the conversion
+       * cannot be performed.
+       */
+    | expr '?:' type                                            #TryCastExpr
+
+      /*
+       * Tries to cast an expression to a type. Returns null if the conversion
+       * cannot be performed.
+       */
+    | 'trycast' '(' expr 'as' type ')'                          #StdTryCastExpr
 
       /*
        * The default value applicable in certain context such as when inserting
@@ -890,7 +906,10 @@ elseIf
  */
 simpleExpr
     : '(' simpleExpr ')'                                                #SimpleGroupingExpr
-    | type '<' simpleExpr '>'                                           #SimpleCastExpr
+    | simpleExpr '::' type                                              #SimpleCastExpr
+    | 'cast' '(' simpleExpr 'as' type ')'                               #SimpleStdCastExpr
+    | simpleExpr '?:' type                                              #SimpleTryCastExpr
+    | 'trycast' '(' simpleExpr 'as' type ')'                            #SimpleStdTryCastExpr
     | literal                                                           #SimpleLiteralExpr
 //    | simpleExpr ('?' simpleExpr)+                                      #SimpleCoalesceExpr
     | simpleExpr ('||' simpleExpr)+                                     #SimpleConcatenationExpr

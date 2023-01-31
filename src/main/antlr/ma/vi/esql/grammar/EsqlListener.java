@@ -594,6 +594,18 @@ public interface EsqlListener extends ParseTreeListener {
 	 */
 	void exitQuantifiedComparison(EsqlParser.QuantifiedComparisonContext ctx);
 	/**
+	 * Enter a parse tree produced by the {@code StdTryCastExpr}
+	 * labeled alternative in {@link EsqlParser#expr}.
+	 * @param ctx the parse tree
+	 */
+	void enterStdTryCastExpr(EsqlParser.StdTryCastExprContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code StdTryCastExpr}
+	 * labeled alternative in {@link EsqlParser#expr}.
+	 * @param ctx the parse tree
+	 */
+	void exitStdTryCastExpr(EsqlParser.StdTryCastExprContext ctx);
+	/**
 	 * Enter a parse tree produced by the {@code ModifyStatement}
 	 * labeled alternative in {@link EsqlParser#expr}.
 	 * @param ctx the parse tree
@@ -689,6 +701,18 @@ public interface EsqlListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitContinue(EsqlParser.ContinueContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code TryCastExpr}
+	 * labeled alternative in {@link EsqlParser#expr}.
+	 * @param ctx the parse tree
+	 */
+	void enterTryCastExpr(EsqlParser.TryCastExprContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code TryCastExpr}
+	 * labeled alternative in {@link EsqlParser#expr}.
+	 * @param ctx the parse tree
+	 */
+	void exitTryCastExpr(EsqlParser.TryCastExprContext ctx);
 	/**
 	 * Enter a parse tree produced by the {@code LogicalAndExpr}
 	 * labeled alternative in {@link EsqlParser#expr}.
@@ -906,6 +930,18 @@ public interface EsqlListener extends ParseTreeListener {
 	 */
 	void exitFunctionInvocation(EsqlParser.FunctionInvocationContext ctx);
 	/**
+	 * Enter a parse tree produced by the {@code StdCastExpr}
+	 * labeled alternative in {@link EsqlParser#expr}.
+	 * @param ctx the parse tree
+	 */
+	void enterStdCastExpr(EsqlParser.StdCastExprContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code StdCastExpr}
+	 * labeled alternative in {@link EsqlParser#expr}.
+	 * @param ctx the parse tree
+	 */
+	void exitStdCastExpr(EsqlParser.StdCastExprContext ctx);
+	/**
 	 * Enter a parse tree produced by the {@code Return}
 	 * labeled alternative in {@link EsqlParser#expr}.
 	 * @param ctx the parse tree
@@ -1118,6 +1154,18 @@ public interface EsqlListener extends ParseTreeListener {
 	 */
 	void exitElseIf(EsqlParser.ElseIfContext ctx);
 	/**
+	 * Enter a parse tree produced by the {@code SimpleTryCastExpr}
+	 * labeled alternative in {@link EsqlParser#simpleExpr}.
+	 * @param ctx the parse tree
+	 */
+	void enterSimpleTryCastExpr(EsqlParser.SimpleTryCastExprContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code SimpleTryCastExpr}
+	 * labeled alternative in {@link EsqlParser#simpleExpr}.
+	 * @param ctx the parse tree
+	 */
+	void exitSimpleTryCastExpr(EsqlParser.SimpleTryCastExprContext ctx);
+	/**
 	 * Enter a parse tree produced by the {@code SimpleConcatenationExpr}
 	 * labeled alternative in {@link EsqlParser#simpleExpr}.
 	 * @param ctx the parse tree
@@ -1141,6 +1189,78 @@ public interface EsqlListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitSimpleFunctionInvocation(EsqlParser.SimpleFunctionInvocationContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code SimpleLiteralExpr}
+	 * labeled alternative in {@link EsqlParser#simpleExpr}.
+	 * @param ctx the parse tree
+	 */
+	void enterSimpleLiteralExpr(EsqlParser.SimpleLiteralExprContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code SimpleLiteralExpr}
+	 * labeled alternative in {@link EsqlParser#simpleExpr}.
+	 * @param ctx the parse tree
+	 */
+	void exitSimpleLiteralExpr(EsqlParser.SimpleLiteralExprContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code SimpleStdCastExpr}
+	 * labeled alternative in {@link EsqlParser#simpleExpr}.
+	 * @param ctx the parse tree
+	 */
+	void enterSimpleStdCastExpr(EsqlParser.SimpleStdCastExprContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code SimpleStdCastExpr}
+	 * labeled alternative in {@link EsqlParser#simpleExpr}.
+	 * @param ctx the parse tree
+	 */
+	void exitSimpleStdCastExpr(EsqlParser.SimpleStdCastExprContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code SimpleGroupingExpr}
+	 * labeled alternative in {@link EsqlParser#simpleExpr}.
+	 * @param ctx the parse tree
+	 */
+	void enterSimpleGroupingExpr(EsqlParser.SimpleGroupingExprContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code SimpleGroupingExpr}
+	 * labeled alternative in {@link EsqlParser#simpleExpr}.
+	 * @param ctx the parse tree
+	 */
+	void exitSimpleGroupingExpr(EsqlParser.SimpleGroupingExprContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code SimpleExponentiationExpr}
+	 * labeled alternative in {@link EsqlParser#simpleExpr}.
+	 * @param ctx the parse tree
+	 */
+	void enterSimpleExponentiationExpr(EsqlParser.SimpleExponentiationExprContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code SimpleExponentiationExpr}
+	 * labeled alternative in {@link EsqlParser#simpleExpr}.
+	 * @param ctx the parse tree
+	 */
+	void exitSimpleExponentiationExpr(EsqlParser.SimpleExponentiationExprContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code SimpleStdTryCastExpr}
+	 * labeled alternative in {@link EsqlParser#simpleExpr}.
+	 * @param ctx the parse tree
+	 */
+	void enterSimpleStdTryCastExpr(EsqlParser.SimpleStdTryCastExprContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code SimpleStdTryCastExpr}
+	 * labeled alternative in {@link EsqlParser#simpleExpr}.
+	 * @param ctx the parse tree
+	 */
+	void exitSimpleStdTryCastExpr(EsqlParser.SimpleStdTryCastExprContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code SimpleSelectExpr}
+	 * labeled alternative in {@link EsqlParser#simpleExpr}.
+	 * @param ctx the parse tree
+	 */
+	void enterSimpleSelectExpr(EsqlParser.SimpleSelectExprContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code SimpleSelectExpr}
+	 * labeled alternative in {@link EsqlParser#simpleExpr}.
+	 * @param ctx the parse tree
+	 */
+	void exitSimpleSelectExpr(EsqlParser.SimpleSelectExprContext ctx);
 	/**
 	 * Enter a parse tree produced by the {@code SimpleAdditionExpr}
 	 * labeled alternative in {@link EsqlParser#simpleExpr}.
@@ -1178,30 +1298,6 @@ public interface EsqlListener extends ParseTreeListener {
 	 */
 	void exitSimpleMultiplicationExpr(EsqlParser.SimpleMultiplicationExprContext ctx);
 	/**
-	 * Enter a parse tree produced by the {@code SimpleLiteralExpr}
-	 * labeled alternative in {@link EsqlParser#simpleExpr}.
-	 * @param ctx the parse tree
-	 */
-	void enterSimpleLiteralExpr(EsqlParser.SimpleLiteralExprContext ctx);
-	/**
-	 * Exit a parse tree produced by the {@code SimpleLiteralExpr}
-	 * labeled alternative in {@link EsqlParser#simpleExpr}.
-	 * @param ctx the parse tree
-	 */
-	void exitSimpleLiteralExpr(EsqlParser.SimpleLiteralExprContext ctx);
-	/**
-	 * Enter a parse tree produced by the {@code SimpleGroupingExpr}
-	 * labeled alternative in {@link EsqlParser#simpleExpr}.
-	 * @param ctx the parse tree
-	 */
-	void enterSimpleGroupingExpr(EsqlParser.SimpleGroupingExprContext ctx);
-	/**
-	 * Exit a parse tree produced by the {@code SimpleGroupingExpr}
-	 * labeled alternative in {@link EsqlParser#simpleExpr}.
-	 * @param ctx the parse tree
-	 */
-	void exitSimpleGroupingExpr(EsqlParser.SimpleGroupingExprContext ctx);
-	/**
 	 * Enter a parse tree produced by the {@code SimpleCastExpr}
 	 * labeled alternative in {@link EsqlParser#simpleExpr}.
 	 * @param ctx the parse tree
@@ -1214,18 +1310,6 @@ public interface EsqlListener extends ParseTreeListener {
 	 */
 	void exitSimpleCastExpr(EsqlParser.SimpleCastExprContext ctx);
 	/**
-	 * Enter a parse tree produced by the {@code SimpleExponentiationExpr}
-	 * labeled alternative in {@link EsqlParser#simpleExpr}.
-	 * @param ctx the parse tree
-	 */
-	void enterSimpleExponentiationExpr(EsqlParser.SimpleExponentiationExprContext ctx);
-	/**
-	 * Exit a parse tree produced by the {@code SimpleExponentiationExpr}
-	 * labeled alternative in {@link EsqlParser#simpleExpr}.
-	 * @param ctx the parse tree
-	 */
-	void exitSimpleExponentiationExpr(EsqlParser.SimpleExponentiationExprContext ctx);
-	/**
 	 * Enter a parse tree produced by the {@code SimpleCaseExpr}
 	 * labeled alternative in {@link EsqlParser#simpleExpr}.
 	 * @param ctx the parse tree
@@ -1237,18 +1321,6 @@ public interface EsqlListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitSimpleCaseExpr(EsqlParser.SimpleCaseExprContext ctx);
-	/**
-	 * Enter a parse tree produced by the {@code SimpleSelectExpr}
-	 * labeled alternative in {@link EsqlParser#simpleExpr}.
-	 * @param ctx the parse tree
-	 */
-	void enterSimpleSelectExpr(EsqlParser.SimpleSelectExprContext ctx);
-	/**
-	 * Exit a parse tree produced by the {@code SimpleSelectExpr}
-	 * labeled alternative in {@link EsqlParser#simpleExpr}.
-	 * @param ctx the parse tree
-	 */
-	void exitSimpleSelectExpr(EsqlParser.SimpleSelectExprContext ctx);
 	/**
 	 * Enter a parse tree produced by the {@code SimpleColumnExpr}
 	 * labeled alternative in {@link EsqlParser#simpleExpr}.

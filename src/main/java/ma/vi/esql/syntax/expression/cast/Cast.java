@@ -2,7 +2,7 @@
  * Copyright (c) 2020 Vikash Madhow
  */
 
-package ma.vi.esql.syntax.expression;
+package ma.vi.esql.syntax.expression.cast;
 
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.database.EsqlConnection;
@@ -11,6 +11,7 @@ import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
+import ma.vi.esql.syntax.expression.Expression;
 import org.pcollections.PMap;
 
 /**
@@ -60,14 +61,13 @@ public class Cast extends Expression<String, String> {
                          EsqlPath             path,
                          PMap<String, Object> parameters,
                          Environment          env) {
+    String exprTrans = expr().translate(target, esqlCon, path.add(expr()), parameters, env);
+    String typeTrans = toType().translate(target, esqlCon, path, parameters, env);
     return switch (target) {
-      case ESQL       -> expr().translate(target, esqlCon, path.add(expr()), parameters, env)
-                       + "::" + toType().translate(target, esqlCon, path, parameters, env);
-      case POSTGRESQL -> '(' + expr().translate(target, esqlCon, path.add(expr()), parameters, env) + ")::"
-                             + toType().translate(target, esqlCon, path, parameters, env);
-      case JAVASCRIPT -> expr().translate(target, esqlCon, path.add(expr()), parameters, env);    // ignore cast for Javascript
-      default         -> "cast(" + expr().translate(target, esqlCon, path.add(expr()), parameters, env)
-                       + " as " + toType().translate(target, esqlCon, path, parameters, env) + ')';
+      case ESQL       -> exprTrans + "::" + typeTrans;
+      case POSTGRESQL -> '(' + exprTrans + ")::" + typeTrans;
+      case JAVASCRIPT -> exprTrans;                               // ignore cast for Javascript
+      default         -> "cast(" + exprTrans + " as " + typeTrans + ')';
     };
   }
 

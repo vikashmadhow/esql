@@ -33,6 +33,8 @@ import ma.vi.esql.syntax.define.struct.DropStruct;
 import ma.vi.esql.syntax.define.table.*;
 import ma.vi.esql.syntax.expression.*;
 import ma.vi.esql.syntax.expression.arithmetic.*;
+import ma.vi.esql.syntax.expression.cast.Cast;
+import ma.vi.esql.syntax.expression.cast.TryCast;
 import ma.vi.esql.syntax.expression.comparison.*;
 import ma.vi.esql.syntax.expression.literal.BooleanLiteral;
 import ma.vi.esql.syntax.expression.literal.DateLiteral;
@@ -796,8 +798,38 @@ public class SyntaxAnalyser extends EsqlBaseListener {
   }
 
   @Override
+  public void exitStdCastExpr(StdCastExprContext ctx) {
+    put(ctx, new Cast(context, get(ctx.expr()), value(ctx.type())));
+  }
+
+  @Override
   public void exitSimpleCastExpr(SimpleCastExprContext ctx) {
     put(ctx, new Cast(context, get(ctx.simpleExpr()), value(ctx.type())));
+  }
+
+  @Override
+  public void exitSimpleStdCastExpr(SimpleStdCastExprContext ctx) {
+    put(ctx, new Cast(context, get(ctx.simpleExpr()), value(ctx.type())));
+  }
+
+  @Override
+  public void exitTryCastExpr(TryCastExprContext ctx) {
+    put(ctx, new TryCast(context, get(ctx.expr()), value(ctx.type())));
+  }
+
+  @Override
+  public void exitStdTryCastExpr(StdTryCastExprContext ctx) {
+    put(ctx, new TryCast(context, get(ctx.expr()), value(ctx.type())));
+  }
+
+  @Override
+  public void exitSimpleTryCastExpr(SimpleTryCastExprContext ctx) {
+    put(ctx, new TryCast(context, get(ctx.simpleExpr()), value(ctx.type())));
+  }
+
+  @Override
+  public void exitSimpleStdTryCastExpr(SimpleStdTryCastExprContext ctx) {
+    put(ctx, new TryCast(context, get(ctx.simpleExpr()), value(ctx.type())));
   }
 
   @Override
