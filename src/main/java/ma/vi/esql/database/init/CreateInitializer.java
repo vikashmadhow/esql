@@ -52,6 +52,16 @@ public abstract class CreateInitializer<O,
 
   abstract protected B builder(Database db);
 
+  /**
+   * Treat required as non-null. Default is true. If this is false, the column
+   * is not set as non-null even when there is a required attribute set on it.
+   * The attribute is, however, preserved and can be used to validate the column
+   * without being enforced at the database level.
+   */
+  protected boolean requiredAsNull() {
+    return true;
+  }
+
   protected void processAttributes(B builder,
                                    String columnName,
                                    Map<String, String> attrs) {}
@@ -90,7 +100,10 @@ public abstract class CreateInitializer<O,
             switch(def.getKey()) {
               case "type",
                    "_type"       -> type    = (String)def.getValue();
-              case "required"    -> notNull = (Boolean)def.getValue();
+              case "required"    -> {
+                if (requiredAsNull()) notNull = (Boolean)def.getValue();
+                else                  attrs.put(def.getKey(), def.getValue().toString());
+              }
               case "expression",
                    "_expression" -> expression = def.getValue().toString();
               default            -> attrs.put(def.getKey(), def.getValue().toString());

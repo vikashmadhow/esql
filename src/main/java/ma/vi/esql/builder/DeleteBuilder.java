@@ -37,11 +37,17 @@ public class DeleteBuilder implements Builder<Delete> {
   @Override
   public Delete build() {
     return new Delete(context,
+                      unfiltered,
                       deleteTableAlias,
                       from,
                       where,
                       returnMetadata.isEmpty() ? null : new Metadata(context, returnMetadata),
                       returnColumns.isEmpty() ? null : returnColumns);
+  }
+
+  public DeleteBuilder unfiltered(boolean unfiltered) {
+    this.unfiltered = unfiltered;
+    return this;
   }
 
   public DeleteBuilder table(String deleteTableAlias) {
@@ -136,6 +142,7 @@ public class DeleteBuilder implements Builder<Delete> {
     return this;
   }
 
+  private boolean unfiltered;
   private String deleteTableAlias;
 
   private TableExpr from;

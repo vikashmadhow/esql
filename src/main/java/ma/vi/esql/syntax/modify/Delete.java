@@ -28,12 +28,14 @@ import static ma.vi.base.tuple.T2.of;
  */
 public class Delete extends QueryUpdate {
   public Delete(Context       context,
+                boolean       unfiltered,
                 String        deleteTableAlias,
                 TableExpr     from,
                 Expression<?, String> where,
                 Metadata      returnMetadata,
                 List<Column>  returnColumns) {
     super(context, "Delete",
+          of("unfiltered",       new Esql<>(context, unfiltered)),
           of("deleteTableAlias", new Esql<>(context, deleteTableAlias)),
           of("tables",           from),
           of("where",            where),
@@ -67,22 +69,29 @@ public class Delete extends QueryUpdate {
 
   @Override
   public Delete filter(ComposableFilter filter, boolean firstFilter, EsqlPath path) {
-    Select.FilterResult result = Select.filter(tables(), filter, firstFilter, where());
-    if (result != null) {
-      return new Delete(context,
-                        deleteTableAlias(),
-                        result.tables(),
-                        result.expression(),
-                        metadata(),
-                        columns());
-    } else {
+    if (unfiltered())
       return this;
-    }
+
+    Select.FilterResult result = Select.filter(tables(), filter, firstFilter, where());
+    if (result == null)
+      return this;
+
+    return new Delete(context,
+                      unfiltered(),
+                      deleteTableAlias(),
+                      result.tables(),
+                      result.expression(),
+                      metadata(),
+                      columns());
   }
 
   @Override
   public boolean modifying() {
     return true;
+  }
+
+  public Boolean unfiltered() {
+    return childValue("unfiltered");
   }
 
   public String deleteTableAlias() {

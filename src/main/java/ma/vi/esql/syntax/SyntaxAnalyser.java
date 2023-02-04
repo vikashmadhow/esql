@@ -289,9 +289,10 @@ public class SyntaxAnalyser extends EsqlBaseListener {
       ColumnList.disambiguateNames(value(ctx.columns()), namedColumns);
       put(ctx, new Select(context,
                           ctx.literalMetadata() == null ? null : get(ctx.literalMetadata()),
+                          ctx.unfiltered() != null,
+                          ctx.explicit() != null,
                           distinct != null && distinct.getText().startsWith("distinct"),
                           distinct != null && distinct.expressionList() != null ? value(distinct.expressionList()) : null,
-                          ctx.explicit() != null,
                           namedColumns,
                           ctx.tableExpr() == null ? null : get(ctx.tableExpr()),
                           ctx.where == null ? null : get(ctx.where),
@@ -531,6 +532,7 @@ public class SyntaxAnalyser extends EsqlBaseListener {
   @Override
   public void exitDelete(DeleteContext ctx) {
     put(ctx, new Delete(context,
+                        ctx.unfiltered() != null,
                         value(ctx.alias()),
                         get(ctx.tableExpr()),
                         ctx.expr() == null ? null : get(ctx.expr()),
@@ -544,6 +546,7 @@ public class SyntaxAnalyser extends EsqlBaseListener {
   @Override
   public void exitUpdate(UpdateContext ctx) {
     put(ctx, new Update(context,
+                        ctx.unfiltered() != null,
                         value(ctx.alias()),
                         get(ctx.tableExpr()),
                         get(ctx.setList()),
@@ -925,9 +928,10 @@ public class SyntaxAnalyser extends EsqlBaseListener {
     }
     Select s = new Select(context,
                           null,
+                          ctx.unfiltered() != null,
+                          true,
                           distinct != null && distinct.getText().startsWith("distinct"),
                           distinct != null && distinct.expressionList() != null ? value(distinct.expressionList()) : null,
-                          true,
                           singletonList(new Column(context, colName, get(ctx.col), Types.UnknownType, null)),
                           get(ctx.tableExpr()),
                           ctx.where != null ? get(ctx.where) : null,

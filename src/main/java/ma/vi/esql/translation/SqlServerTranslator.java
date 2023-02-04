@@ -278,9 +278,10 @@ public class SqlServerTranslator extends AbstractTranslator {
         Select innerSelect = new Select(
             select.context,
             select.metadata(),
+            select.unfiltered(),
+            select.explicit(),
             select.distinct(),
             select.distinctOn(),
-            select.explicit(),
             innerCols,
             select.from(),
             select.where(),
@@ -293,9 +294,10 @@ public class SqlServerTranslator extends AbstractTranslator {
         Select outerSelect = new Select(
             select.context,
             select.metadata(),
+            select.unfiltered(),
+            select.explicit(),
             select.distinct(),
             select.distinctOn(),
-            select.explicit(),
             outerCols,
             new SelectTableExpr(select.context, innerSelect, innerSelectAlias),
             null,

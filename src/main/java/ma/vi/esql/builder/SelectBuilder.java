@@ -42,18 +42,23 @@ public class SelectBuilder implements Builder<Select> {
   public Select build() {
     return new Select(context,
                       metadata.isEmpty() ? null : new Metadata(context, metadata),
-                      distinct, distinctOn, explicit, columns, from, where,
+                      unfiltered, explicit, distinct, distinctOn, columns, from, where,
                       groupBy.isEmpty() ? null : new GroupBy(context, groupBy, groupType),
                       having, orderBy, offset, limit);
   }
 
-  public SelectBuilder distinct(boolean distinct) {
-    this.distinct = distinct;
+  public SelectBuilder unfiltered(boolean unfiltered) {
+    this.unfiltered = unfiltered;
     return this;
   }
 
   public SelectBuilder explicit(boolean explicit) {
     this.explicit = explicit;
+    return this;
+  }
+
+  public SelectBuilder distinct(boolean distinct) {
+    this.distinct = distinct;
     return this;
   }
 
@@ -233,9 +238,10 @@ public class SelectBuilder implements Builder<Select> {
     return this;
   }
 
+  private boolean unfiltered;
+  private boolean explicit;
   private boolean distinct;
   private final List<Expression<?, ?>> distinctOn = new ArrayList<>();
-  private boolean explicit;
   private final List<Attribute> metadata = new ArrayList<>();
   private final List<Column> columns = new ArrayList<>();
   private TableExpr from;

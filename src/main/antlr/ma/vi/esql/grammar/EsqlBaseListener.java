@@ -210,6 +210,18 @@ public class EsqlBaseListener implements EsqlListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterUnfiltered(EsqlParser.UnfilteredContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitUnfiltered(EsqlParser.UnfilteredContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterColumns(EsqlParser.ColumnsContext ctx) { }
 	/**
 	 * {@inheritDoc}

@@ -88,6 +88,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fine-grain history and notification
 ### Select from a function (acting as a dynamic table, e.g. `select label from t:(joinlabel(null, '_id', 'a', 'S'))`)
 
+## [1.3.12] - 2023-02-04
+### Added
+- `unfiltered` keyword in `select`, `update` and `delete` which, when present,
+  disables filter composition on the query (or part of the query if it is part
+  of a complex composition or common-table-expression `with` query).
+- `CreateInitializer` can now optionally treat required as non-null (default)
+  but preserved in metadata for client-size validation without being enforced at 
+  the database level.
+
 ## [1.3.11.1] - 2023-01-31
 ### Fixed
 - Fixed `AddMonths` translation on Postgresql. 

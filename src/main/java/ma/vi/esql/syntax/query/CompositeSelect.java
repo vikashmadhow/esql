@@ -25,9 +25,10 @@ public class CompositeSelect extends Select {
                          List<Select> selects) {
     super(context,
           null,
+          selects.get(0).unfiltered(),
+          selects.get(0).explicit(),
           selects.get(0).distinct(),
           selects.get(0).distinctOn(),
-          selects.get(0).explicit(),
           selects.get(0).columns(),
           selects.get(0).tables(),
           selects.get(0).where(),

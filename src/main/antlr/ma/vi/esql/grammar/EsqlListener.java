@@ -176,6 +176,16 @@ public interface EsqlListener extends ParseTreeListener {
 	 */
 	void exitExplicit(EsqlParser.ExplicitContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link EsqlParser#unfiltered}.
+	 * @param ctx the parse tree
+	 */
+	void enterUnfiltered(EsqlParser.UnfilteredContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link EsqlParser#unfiltered}.
+	 * @param ctx the parse tree
+	 */
+	void exitUnfiltered(EsqlParser.UnfilteredContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link EsqlParser#columns}.
 	 * @param ctx the parse tree
 	 */

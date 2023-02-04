@@ -292,6 +292,42 @@ public class ComposableFilterTest extends DataTest {
   }
 
   @TestFactory
+  Stream<DynamicTest> filterOnSubSelectsUnfiltered() {
+    return Stream.of(databases)
+                 .map(db -> dynamicTest(db.target().toString(), () -> {
+                   try (EsqlConnection con = db.esql(db.pooledConnection())) {
+                     setupTables(con);
+                     Esql<?, ?> filtered =
+                       con.prepare("""
+                                   select unfiltered z.*,
+                                          (select unfiltered min(a) from test.pA)
+                                     from z:test.pZ
+                                     times t1(a, b):((1, 2), (3,4), (4,5))
+                                     join s1:(select unfiltered a from z1:test.pZ) on s1.a=z.a
+                                     join y:test.pY on z.y_id=y._id
+                                     full join c:test.pC on z.a=c.a
+                                    where z.a < 2
+                                      and exists(select unfiltered pC._id
+                                                   from test.pC
+                                                   join test.pY on pC.a=pY.a)
+                                   """,
+                                   new QueryParams()
+                                     .and("test.pX", "x", "x.a=3"));
+                     System.out.println(filtered);
+//                     Select select = (Select)((Program)filtered).expressions().get(0);
+//                     TableExpr from = select.from();
+//                     Parser p = new Parser(db.structure());
+//                     fromEquals(from, "test.pZ", "z",
+//                                new Join("test.pY", "y", null, p.parseExpression("z.y_id=y._id")),
+//                                new Join("test.pC", "c", "full", p.parseExpression("z.a=c.a")),
+//                                new Join("test.pX", "x", null, p.parseExpression("c.x_id=x._id")));
+//                     assertEquals(p.parseExpression("z.a < 2 and x.a = 3"), select.where());
+                     con.execPrepared(filtered);
+                   }
+                 }));
+  }
+
+  @TestFactory
   Stream<DynamicTest> filterOnWith() {
     return Stream.of(databases)
                  .map(db -> dynamicTest(db.target().toString(), () -> {

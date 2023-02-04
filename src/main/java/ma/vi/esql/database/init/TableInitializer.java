@@ -44,9 +44,22 @@ import static ma.vi.esql.builder.Attributes.*;
 public class TableInitializer extends CreateInitializer<BaseRelation,
                                                         CreateTable,
                                                         CreateTableBuilder> {
+  public TableInitializer() {
+    this(true);
+  }
+
+  public TableInitializer(boolean requiredAsNonNull) {
+    this.requiredAsNonNull = requiredAsNonNull;
+  }
+
+  @Override
+  protected boolean requiredAsNull() {
+    return requiredAsNonNull;
+  }
+
   @Override
   protected CreateTableBuilder builder(Database db) {
-    return new CreateTableBuilder(new Context(db.structure()));
+    return new CreateTableBuilder(new Context(db.structure())).dropUndefined(true);
   }
 
   @Override
@@ -70,4 +83,6 @@ public class TableInitializer extends CreateInitializer<BaseRelation,
          ? db.structure().relation(name)
          : null;
   }
+
+  private final boolean requiredAsNonNull;
 }

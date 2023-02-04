@@ -72,7 +72,11 @@ queryUpdate
  * compose more complex `selects` in the same statement.
  */
 select
-    :  'select' (literalMetadata ','?)? distinct? explicit? columns
+    :  'select' (literalMetadata ','?)?
+                unfiltered?
+                explicit?
+                distinct?
+                columns
       (  'from' tableExpr)?
       ( 'where' where=expr)?
       ( 'group' 'by' groupByList)?
@@ -196,6 +200,15 @@ distinct
  */
 explicit
     : 'explicit'
+    ;
+
+/**
+ * The optional `unfiltered` keyword, when specified, disable the composition of
+ * filters with the query or a specific part of the query (e.g. in a complex query
+ * using `with` common table expressions, or set combinations).
+ */
+unfiltered
+    : 'unfiltered'
     ;
 
 /**
@@ -558,7 +571,7 @@ defaultValues
  * `select` query.
  */
 update
-    :  'update' alias
+    :  'update' unfiltered? alias
          'from' tableExpr
           'set' setList
       ( 'where' expr)?
@@ -632,7 +645,7 @@ set
  * `select` query.
  */
 delete
-    :  'delete' alias
+    :  'delete' unfiltered? alias
          'from' tableExpr
       ( 'where' expr)?
       ('return' literalMetadata? columns)?
@@ -952,10 +965,10 @@ columnReference
  *    age_min: from People select min(age)
  */
 selectExpression
-    : 'from' tableExpr
-      'select' distinct? (alias ':')? col=expr
-     ('where' where=expr)?
-     ('order' 'by' orderByList)?
+    :   'from' tableExpr
+      'select' unfiltered? distinct? (alias ':')? col=expr
+     ( 'where' where=expr)?
+     ( 'order' 'by' orderByList)?
      ('offset' offset=expr)?
     ;
 

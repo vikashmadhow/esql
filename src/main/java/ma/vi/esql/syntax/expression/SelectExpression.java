@@ -35,9 +35,10 @@ public class SelectExpression extends Select {
   public SelectExpression(Context context, Select select) {
     super(context,
           null,
+          select.unfiltered(),
+          select.explicit(),
           select.distinct(),
           select.distinctOn(),
-          select.explicit(),
           select.columns(),
           select.tables(),
           select.where(),

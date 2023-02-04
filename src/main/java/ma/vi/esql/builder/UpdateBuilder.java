@@ -38,12 +38,18 @@ public class UpdateBuilder implements Builder<Update> {
   @Override
   public Update build() {
     return new Update(context,
+                      unfiltered,
                       updateTableAlias,
                       from,
                       new UpdateSet(context, set),
                       where,
                       returnMetadata.isEmpty() ? null : new Metadata(context, returnMetadata),
                       returnColumns.isEmpty() ? null : returnColumns);
+  }
+
+  public UpdateBuilder unfiltered(boolean unfiltered) {
+    this.unfiltered = unfiltered;
+    return this;
   }
 
   public UpdateBuilder table(String updateTableAlias) {
@@ -147,6 +153,7 @@ public class UpdateBuilder implements Builder<Update> {
     return this;
   }
 
+  private boolean unfiltered;
   private String updateTableAlias;
   private TableExpr from;
 

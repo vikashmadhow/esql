@@ -42,9 +42,10 @@ public class Select extends QueryUpdate {
   @SafeVarargs
   public Select(Context                  context,
                 Metadata                 metadata,
+                boolean                  unfiltered,
+                boolean                  explicit,
                 boolean                  distinct,
                 List<Expression<?, ?>>   distinctOn,
-                boolean                  explicit,
                 List<Column>             columns,
                 TableExpr                from,
                 Expression<?, String>    where,
@@ -57,8 +58,9 @@ public class Select extends QueryUpdate {
     super(context, "Select",
           Stream.concat(
             Stream.of(
-              of("distinct",    new Esql<>(context, distinct)),
+              of("unfiltered",  new Esql<>(context, unfiltered)),
               of("explicit",    new Esql<>(context, explicit)),
+              of("distinct",    new Esql<>(context, distinct)),
               of("tables",      from),
               of("metadata",    metadata),
               of("distinctOn",  new Esql<>(context, "distinctOn", distinctOn)),
@@ -334,9 +336,10 @@ public class Select extends QueryUpdate {
     boolean doNotPutDistinct = doNotPutDistinct(context.structure.database.target(), path);
     return new Select(context,
                       metadata(),
+                      unfiltered(),
+                      explicit(),
                       (result.hasReverseLinks && !doNotPutDistinct) || distinct(),
                       distinctOn(),
-                      explicit(),
                       Stream.concat(nonAggregates.stream(), aggregates.stream()).toList(),
                       result.tables,
                       where(),
@@ -349,15 +352,18 @@ public class Select extends QueryUpdate {
 
   @Override
   public Select filter(ComposableFilter filter, boolean firstFilter, EsqlPath path) {
-    if (getClass().equals(Select.class) && tables() != null) {
+    if (getClass().equals(Select.class)
+     && tables() != null
+     && !unfiltered()) {
       FilterResult result = filter(tables(), filter, firstFilter, where());
       if (result != null) {
         boolean doNotPutDistinct = doNotPutDistinct(context.structure.database.target(), path);
         return new Select(context,
                           metadata(),
+                          unfiltered(),
+                          explicit(),
                           (result.hasReverseLinks && !doNotPutDistinct) || distinct(),
                           distinctOn(),
-                          explicit(),
                           columns(),
                           result.tables,
                           result.expression,
@@ -586,6 +592,10 @@ public class Select extends QueryUpdate {
 
   public List<Expression<?, ?>> distinctOn() {
     return child("distinctOn").children();
+  }
+
+  public Boolean unfiltered() {
+    return childValue("unfiltered");
   }
 
   public Boolean explicit() {

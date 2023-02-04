@@ -28,6 +28,7 @@ import static ma.vi.base.tuple.T2.of;
  */
 public class Update extends QueryUpdate {
   public Update(Context       context,
+                boolean       unfiltered,
                 String        updateTableAlias,
                 TableExpr     from,
                 UpdateSet     set,
@@ -35,6 +36,7 @@ public class Update extends QueryUpdate {
                 Metadata      returnMetadata,
                 List<Column>  returnColumns) {
     super(context, "Update",
+          of("unfiltered",       new Esql<>(context, unfiltered)),
           of("updateTableAlias", new Esql<>(context, updateTableAlias)),
           of("set",              set),
           of("tables",           from),
@@ -68,24 +70,33 @@ public class Update extends QueryUpdate {
   }
 
   @Override
-  public Update filter(ComposableFilter filter, boolean firstFilter, EsqlPath path) {
-    Select.FilterResult result = Select.filter(tables(), filter, firstFilter, where());
-    if (result != null) {
-      return new Update(context,
-                        updateTableAlias(),
-                        result.tables(),
-                        set(),
-                        result.expression(),
-                        metadata(),
-                        columns());
-    } else {
+  public Update filter(ComposableFilter filter,
+                       boolean          firstFilter,
+                       EsqlPath         path) {
+    if (unfiltered())
       return this;
-    }
+
+    Select.FilterResult result = Select.filter(tables(), filter, firstFilter, where());
+    if (result == null)
+      return this;
+
+    return new Update(context,
+                      unfiltered(),
+                      updateTableAlias(),
+                      result.tables(),
+                      set(),
+                      result.expression(),
+                      metadata(),
+                      columns());
   }
 
   @Override
   public boolean modifying() {
     return true;
+  }
+
+  public Boolean unfiltered() {
+    return childValue("unfiltered");
   }
 
   public UpdateSet set() {
