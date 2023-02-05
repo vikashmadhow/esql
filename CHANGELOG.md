@@ -88,6 +88,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fine-grain history and notification
 ### Select from a function (acting as a dynamic table, e.g. `select label from t:(joinlabel(null, '_id', 'a', 'S'))`)
 
+## [1.3.12.1] - 2023-02-05
+### Fixed
+- Fixed ESQL translation of `trycast`.
+
 ## [1.3.12] - 2023-02-04
 ### Added
 - `unfiltered` keyword in `select`, `update` and `delete` which, when present,

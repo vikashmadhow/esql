@@ -64,7 +64,7 @@ public class TryCast extends Expression<String, String> {
     String exprTrans = expr().translate(target, esqlCon, path.add(expr()), parameters, env);
     String typeTrans = toType().translate(target, esqlCon, path, parameters, env);
     return switch (target) {
-      case ESQL       -> exprTrans + ":?" + typeTrans;
+      case ESQL       -> "trycast(" + exprTrans + " as " + typeTrans + ")";
       case POSTGRESQL -> "_core._try_cast(" + exprTrans + "::text, null::" + typeTrans + ')';
       case JAVASCRIPT -> exprTrans;                                 // ignore cast for Javascript
       default         -> "try_cast(" + exprTrans + " as " + typeTrans + ')';
@@ -74,7 +74,7 @@ public class TryCast extends Expression<String, String> {
   @Override
   public void _toString(StringBuilder st, int level, int indent) {
     expr()._toString(st, level, indent);
-    st.append(":?").append(toType().name());
+    st.append("?:").append(toType().name());
   }
 
   public Type toType() {
