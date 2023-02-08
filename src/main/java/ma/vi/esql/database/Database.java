@@ -366,9 +366,13 @@ public interface Database {
   }
 
   default boolean tableExists(EsqlConnection con, String table) {
+    return tableExists(con.connection(), table);
+  }
+
+  default boolean tableExists(Connection con, String table) {
     T2<String, String> name = Type.splitName(table);
-    try(ResultSet rs = con.connection().createStatement().executeQuery(
-          "select table_name "
+    try(ResultSet rs = con.createStatement().executeQuery(
+      "select table_name "
         + "  from information_schema.tables"
         + " where table_schema='" + name.a + "'"
         + "   and table_name='" + name.b + "'")) {
@@ -377,6 +381,7 @@ public interface Database {
       throw new RuntimeException(sqle);
     }
   }
+
 
   /**
    * Creates the _core.relations table if it does not exist already.
