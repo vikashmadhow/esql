@@ -66,7 +66,11 @@ public class CompositeSelect extends Select {
   }
 
   @Override
-  public QueryTranslation trans(Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
+  public QueryTranslation trans(Target               target,
+                                EsqlConnection       esqlCon,
+                                EsqlPath             path,
+                                PMap<String, Object> parameters,
+                                Environment          env) {
     boolean first = true;
     StringBuilder st = new StringBuilder();
     QueryTranslation q = null;
@@ -87,7 +91,7 @@ public class CompositeSelect extends Select {
       }
       QueryTranslation trans = select.translate(target, null, path.add(select),
                                                 parameters.plus("addAttributes", parameters.getOrDefault("addAttributes", true))
-                                                          .plus("optimiseAttributesLoading", false), null);
+                                                          .plus("optimiseAttributesLoading", false), env);
       st.append(trans.translation());
       if (q == null) {
         q = trans;

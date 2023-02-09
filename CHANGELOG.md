@@ -88,6 +88,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fine-grain history and notification
 ### Select from a function (acting as a dynamic table, e.g. `select label from t:(joinlabel(null, '_id', 'a', 'S'))`)
 
+## [1.3.12.2] - 2023-02-09
+### Fixed
+- Fixed NPE in `CompositeSelect` passing a `null` instead of the environment. 
+
 ## [1.3.12.1] - 2023-02-05
 ### Fixed
 - Fixed ESQL translation of `trycast`.
