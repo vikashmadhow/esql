@@ -378,6 +378,18 @@ public class EsqlBaseListener implements EsqlListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterFunctionTableExpr(EsqlParser.FunctionTableExprContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitFunctionTableExpr(EsqlParser.FunctionTableExprContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterSelectTableExpr(EsqlParser.SelectTableExprContext ctx) { }
 	/**
 	 * {@inheritDoc}

@@ -323,7 +323,6 @@ public class SyntaxAnalyser extends EsqlBaseListener {
     put(ctx, new Esql<>(context, ctx.getText()));
   }
 
-
   @Override
   public void exitColumns(ColumnsContext ctx) {
     /*
@@ -365,6 +364,16 @@ public class SyntaxAnalyser extends EsqlBaseListener {
   @Override
   public void exitSingleTableExpr(SingleTableExprContext ctx) {
     put(ctx, new SingleTableExpr(context, value(ctx.qualifiedName()), value(ctx.alias())));
+  }
+
+  @Override
+  public void exitFunctionTableExpr(FunctionTableExprContext ctx) {
+    String name = value(ctx.qualifiedName());
+    if (name == null || !name.equals("string_split")) {
+      throw new TranslationException("Only string_split is currently supported "
+                                   + "as a table-returning function in ESQL");
+    }
+    put(ctx, new StringSplitTableExpr(context, value(ctx.alias()), value(ctx.arguments())));
   }
 
   @Override

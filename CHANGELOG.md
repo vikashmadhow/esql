@@ -81,12 +81,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Modify queries return values don't seem to be supported correctly for SQL 
   Server.
 
-## [1.5.0] (Planned)
+## [1.6.0] (Planned)
 ### Database stored functions and triggers in ESQL
 
-## [1.4.0] (Planned)
+## [1.5.0] (Planned)
 ### Fine-grain history and notification
-### Select from a function (acting as a dynamic table, e.g. `select label from t:(joinlabel(null, '_id', 'a', 'S'))`)
+
+## [1.4.0] - 2023-02-15
+### Select from a function (acting as a dynamic table, e.g. `select label from t:joinlabel(null, '_id', 'a', 'S')`
+- ESQL syntax rules have been updated to accept a function call in the `from`
+  clause of a query. In this form, the function is expected to return a table
+  that can be queried and/or combined using relational join operators with other
+  tables.
+- `string_split` has been implemented as a table-returning function that uses
+  this new syntax to allow its result to be queried and combined with other tables.
 
 ## [1.3.12.2] - 2023-02-09
 ### Fixed
@@ -118,14 +126,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.3.10] - 2023-01-28
 ### Added
-- `TableInitializer` creates derived column when the type is set `#computed`.
+- `TableInitializer` creates derived column when the type is set to `#computed`.
 - `Create` interface to tag subclasses of `Define` that creates database objects.
 - Common code in `CreateStructBuilder` and `CreateTableBuilder` refactored into
   `CreateBuilder` abstract class.
 - Common code in `StructInitializer` and `TableInitializer` refactored into
   `CreateInitializer` abstract class.
 - Translation of `year` and `month` function to Javascript uses methods in 
-  Javascript`Date` object instead of those in the `moment` library as the latter
+  Javascript `Date` object instead of those in the `moment` library as the latter
   is deprecated and no longer expected to be used on the client-side.
 
 ## [1.3.9] - 2023-01-25
@@ -158,7 +166,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Fixed automatic grouping of composable columns which was not grouping some
-  columns which were not already subsumed by existing groupings.
+  columns not already subsumed by existing groupings.
 
 ## [1.3.5] - 2022-12-28
 ### Added
@@ -176,7 +184,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.3.2] - 2022-12-26
 - `offset` and `limit` in `SelectBuilder` can now take an expression as their
-  argument (instead of a raw string that will be parsed into an expressions).
+  argument (instead of a raw string that will be parsed into an expression).
 
 ## [1.3.1] - 2022-12-25
 - `UncomputedExpression` is translated to Javascript when sent to client. Previously

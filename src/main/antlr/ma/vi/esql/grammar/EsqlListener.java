@@ -330,6 +330,18 @@ public interface EsqlListener extends ParseTreeListener {
 	 */
 	void exitCrossProductTableExpr(EsqlParser.CrossProductTableExprContext ctx);
 	/**
+	 * Enter a parse tree produced by the {@code FunctionTableExpr}
+	 * labeled alternative in {@link EsqlParser#tableExpr}.
+	 * @param ctx the parse tree
+	 */
+	void enterFunctionTableExpr(EsqlParser.FunctionTableExprContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code FunctionTableExpr}
+	 * labeled alternative in {@link EsqlParser#tableExpr}.
+	 * @param ctx the parse tree
+	 */
+	void exitFunctionTableExpr(EsqlParser.FunctionTableExprContext ctx);
+	/**
 	 * Enter a parse tree produced by the {@code SelectTableExpr}
 	 * labeled alternative in {@link EsqlParser#tableExpr}.
 	 * @param ctx the parse tree

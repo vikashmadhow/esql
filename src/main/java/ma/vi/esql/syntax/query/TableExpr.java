@@ -115,7 +115,7 @@ public abstract class TableExpr extends Esql<String, String> {
 
   /**
    * Returns the table expression with the specified alias, which can be the alias
-   * associated to this table expression or to one of its sub-components (as is
+   * associated to this table expression or to one of its subcomponents (as is
    * the case for joins).
    */
   public abstract TableExpr aliased(String name);

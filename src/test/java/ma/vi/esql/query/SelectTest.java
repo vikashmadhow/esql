@@ -94,6 +94,76 @@ public class SelectTest extends DataTest {
   }
 
   @TestFactory
+  Stream<DynamicTest> simpleSelectFromStringSplit() {
+    return Stream.of(databases)
+                 .map(db -> dynamicTest(db.target().toString(), () -> {
+                   System.out.println(db.target());
+                   try (EsqlConnection con = db.esql(db.pooledConnection())) {
+                     Result rs = con.exec("select * from t:string_split('a,b,c', ',') order by value");
+                     matchResult(rs, List.of(Map.of("value", "a"), Map.of("value", "b"), Map.of("value", "c")));
+                   }
+                 }));
+  }
+
+  @TestFactory
+  Stream<DynamicTest> crossSelectFromStringSplit() {
+    return Stream.of(databases)
+                 .map(db -> dynamicTest(db.target().toString(), () -> {
+                   System.out.println(db.target());
+                   try (EsqlConnection con = db.esql(db.pooledConnection())) {
+                     Result rs = con.exec("""
+                                          select v1:s.value, v2:t.value
+                                            from s:string_split('a,b,c', ',')
+                                           times t:string_split('a,b,c', ',')
+                                           order by 1, 2""");
+                     matchResult(rs,
+                                 List.of(Map.of("v1", "a", "v2", "a"),
+                                         Map.of("v1", "a", "v2", "b"),
+                                         Map.of("v1", "a", "v2", "c"),
+                                         Map.of("v1", "b", "v2", "a"),
+                                         Map.of("v1", "b", "v2", "b"),
+                                         Map.of("v1", "b", "v2", "c"),
+                                         Map.of("v1", "c", "v2", "a"),
+                                         Map.of("v1", "c", "v2", "b"),
+                                         Map.of("v1", "c", "v2", "c")));
+                   }
+                 }));
+  }
+
+  @TestFactory
+  Stream<DynamicTest> joinSelectFromStringSplit() {
+    return Stream.of(databases)
+                 .map(db -> dynamicTest(db.target().toString(), () -> {
+                   System.out.println(db.target());
+                   try (EsqlConnection con = db.esql(db.pooledConnection())) {
+                     Result rs = con.exec("""
+                                          select v1:s.value, v2:t.value
+                                            from s:string_split('a,b,c', ',')
+                                            join t:string_split('a,b,c', ',') on s.value=t.value
+                                           order by 1, 2""");
+                     matchResult(rs,
+                                 List.of(Map.of("v1", "a", "v2", "a"),
+                                         Map.of("v1", "b", "v2", "b"),
+                                         Map.of("v1", "c", "v2", "c")));
+                   }
+                 }));
+  }
+
+  @TestFactory
+  Stream<DynamicTest> aggregateFromStringSplit() {
+    return Stream.of(databases)
+                 .map(db -> dynamicTest(db.target().toString(), () -> {
+                   System.out.println(db.target());
+                   try (EsqlConnection con = db.esql(db.pooledConnection())) {
+                     Result rs = con.exec("""
+                                          select v:stringagg(upper(trim(value)), ',')
+                                            from s:string_split('a, b,   c ,D, e,   f', ',')""");
+                     matchResult(rs, List.of(Map.of("v", "A,B,C,D,E,F")));
+                   }
+                 }));
+  }
+
+  @TestFactory
   Stream<DynamicTest> searchByInArray() {
     return Stream.of(databases)
                  .map(db -> dynamicTest(db.target().toString(), () -> {
