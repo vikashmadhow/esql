@@ -13,6 +13,7 @@ import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.expression.Expression;
+import ma.vi.esql.syntax.query.Select;
 import org.pcollections.PMap;
 
 import java.util.List;
@@ -25,14 +26,16 @@ import static java.util.stream.Collectors.joining;
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 public class In extends Expression<String, String> {
-  public In(Context context,
-            Expression<?, ?> expr,
-            boolean not,
-            List<Expression<?, ?>> expressionList) {
+  public In(Context                context,
+            Expression<?, ?>       expr,
+            boolean                not,
+            List<Expression<?, ?>> expressionList,
+            Select                 select) {
     super(context, "In",
-          T2.of("expr", expr),
-          T2.of("not", new Esql<>(context, not)),
-          T2.of("list", new Esql<>(context, null, expressionList)));
+          T2.of("expr",   expr),
+          T2.of("not",    new Esql<>(context, not)),
+          T2.of("list",   new Esql<>(context, null, expressionList)),
+          T2.of("select", select));
   }
 
   public In(In other) {
@@ -65,12 +68,25 @@ public class In extends Expression<String, String> {
   }
 
   @Override
-  protected String trans(Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
-    return expr().translate(target, esqlCon, path.add(expr()), parameters, env) + (not() ? " not in (" : " in (")
-        + list().stream()
-                .map(e -> e.translate(target, esqlCon, path.add(e), parameters, env))
-                .collect(joining(", "))
-        + ')';
+  protected String trans(Target               target,
+                         EsqlConnection       esqlCon,
+                         EsqlPath             path,
+                         PMap<String, Object> parameters,
+                         Environment          env) {
+    List<Expression<?, String>> list = list();
+    if (list != null && !list.isEmpty()) {
+      return expr().translate(target, esqlCon, path.add(expr()), parameters, env)
+           + (not() ? " not in (" : " in (")
+           + list().stream()
+                   .map(e -> e.translate(target, esqlCon, path.add(e), parameters, env))
+                   .collect(joining(", "))
+           + ')';
+    } else {
+      return expr().translate(target, esqlCon, path.add(expr()), parameters, env)
+           + (not() ? " not in (" : " in (")
+           + select().translate(target, esqlCon, path, parameters, env).toString()
+           + ')';
+    }
   }
 
   @Override
@@ -78,11 +94,15 @@ public class In extends Expression<String, String> {
     expr()._toString(st, level, indent);
     st.append(not() ? " not in (" : " in (");
 
-    boolean first = true;
-    for (Expression<?, String> e: list()) {
-      if (first) { first = false; }
-      else       { st.append(", "); }
-      e._toString(st, level, indent);
+    if (list() != null) {
+      boolean first = true;
+      for (Expression<?, String> e: list()) {
+        if (first) { first = false; }
+        else       { st.append(", "); }
+        e._toString(st, level, indent);
+      }
+    } else {
+      select()._toString(st, level, indent);
     }
     st.append(')');
   }
@@ -97,5 +117,9 @@ public class In extends Expression<String, String> {
 
   public List<Expression<?, String>> list() {
     return child("list").children();
+  }
+
+  public Select select() {
+    return child("select");
   }
 }

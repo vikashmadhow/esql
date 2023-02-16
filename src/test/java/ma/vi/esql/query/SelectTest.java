@@ -183,6 +183,25 @@ public class SelectTest extends DataTest {
                  }));
   }
 
+
+  @TestFactory
+  Stream<DynamicTest> inOnSelect() {
+    return Stream.of(databases)
+                 .map(db -> dynamicTest(db.target().toString(), () -> {
+                   System.out.println(db.target());
+                   try (EsqlConnection con = db.esql(db.pooledConnection())) {
+                     Result rs = con.exec("""
+                                          select t.value
+                                            from t:string_split('a,b,c,d,c,a', ',')
+                                           where t.value in (select s.value
+                                                               from s:string_split('b,c,b', ','))
+                                           order by t.value""");
+                     matchResult(rs, List.of(Map.of("value", "b"),
+                                             Map.of("value", "c")));
+                   }
+                 }));
+  }
+
   @TestFactory
   Stream<DynamicTest> searchByInArray() {
     return Stream.of(databases)

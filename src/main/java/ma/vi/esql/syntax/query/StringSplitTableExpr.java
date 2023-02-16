@@ -43,7 +43,7 @@ public class StringSplitTableExpr extends AbstractAliasTableExpr {
           alias,
           of("distinct",   new Esql<>(context, distinct)),
           of("distinctOn", new Esql<>(context, "distinctOn", distinctOn)),
-          of("arguments",  new Esql<>(context, "arguments", arguments)));
+          of("arguments",  new Esql<>(context, "arguments",  arguments)));
     if (arguments.size() < 2) {
       throw new TranslationException("string_split needs 2 arguments: a string to split and the character to split around");
     }
@@ -136,7 +136,7 @@ public class StringSplitTableExpr extends AbstractAliasTableExpr {
     String text = arguments().get(0).translate(target, esqlCon, path, parameters, env).toString();
     String sep  = arguments().get(1).translate(target, esqlCon, path, parameters, env).toString();
     if (target == Target.ESQL){
-      return alias() + ":string_split(" + text + ", " + sep + ")";
+      return alias() + ":string_split(" + (distinct() ? "distinct " : "") + text + ", " + sep + ")";
     } else {
       String split = target == Target.SQLSERVER
                    ? "string_split(" + text + ", " + sep + ") " + alias()
@@ -152,6 +152,7 @@ public class StringSplitTableExpr extends AbstractAliasTableExpr {
   @Override
   public void _toString(StringBuilder st, int level, int indent) {
     st.append(alias()).append(":string_split(");
+    if (distinct()) st.append("distinct ");
     arguments().get(0)._toString(st, level + 1, indent);
     st.append(", ");
     arguments().get(1)._toString(st, level + 1, indent);
