@@ -365,7 +365,7 @@ setName
  */
 tableExpr
     : (alias ':')? qualifiedName                              #SingleTableExpr
-    | alias ':'    qualifiedName '(' arguments? ')'           #FunctionTableExpr
+    | alias ':'    qualifiedName '(' distinct? arguments? ')' #FunctionTableExpr
     | alias ':' '(' select ')'                                #SelectTableExpr
     | alias  dynamicColumns ':' '(' rows ')'                  #DynamicTableExpr
     | left=tableExpr 'times' right=tableExpr                  #CrossProductTableExpr

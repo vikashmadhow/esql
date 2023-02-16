@@ -87,6 +87,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.5.0] (Planned)
 ### Fine-grain history and notification
 
+## [1.4.1] - 2023-02-16
+### Added
+- Support for `distinct` keywords in table returning functions which eliminates
+  duplicated rows from the returned table.
+
 ## [1.4.0] - 2023-02-15
 ### Select from a function (acting as a dynamic table, e.g. `select label from t:joinlabel(null, '_id', 'a', 'S')`
 - ESQL syntax rules have been updated to accept a function call in the `from`

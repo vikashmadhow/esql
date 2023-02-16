@@ -373,7 +373,11 @@ public class SyntaxAnalyser extends EsqlBaseListener {
       throw new TranslationException("Only string_split is currently supported "
                                    + "as a table-returning function in ESQL");
     }
-    put(ctx, new StringSplitTableExpr(context, value(ctx.alias()), value(ctx.arguments())));
+    put(ctx, new StringSplitTableExpr(context,
+                                      value(ctx.alias()),
+                                      ctx.distinct() != null && ctx.distinct().getText().startsWith("distinct"),
+                                      ctx.distinct() != null && ctx.distinct().expressionList() != null ? value(ctx.distinct().expressionList()) : null,
+                                      value(ctx.arguments())));
   }
 
   @Override

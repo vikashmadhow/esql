@@ -22,26 +22,28 @@ import org.pcollections.PMap;
 
 import java.util.List;
 
+import static ma.vi.base.tuple.T2.of;
 import static ma.vi.esql.semantic.type.Types.UnknownType;
 
 /**
- * Represents a dynamic table created from a list of rows:
+ * Represents a table created from a `string_split` call:
  * <pre>
- *      select t.a, t.b from t{name: 't',
- *                             description: 'Dynamic'}(a, b):(('One', 1),
- *                                                            ('Two', 2))
- *                           |------------------------------------------| -&gt; Dynamic table expression
+ *   select t.value from t:string_split('a,b,c', ',')
  * </pre>
  *
  * @author vikash.madhow@gmail.com
  */
 public class StringSplitTableExpr extends AbstractAliasTableExpr {
-  public StringSplitTableExpr(Context context,
-                              String  alias,
-                              List<Expression<?, ?>> arguments) {
+  public StringSplitTableExpr(Context                     context,
+                              String                      alias,
+                              boolean                     distinct,
+                              List<Expression<?, String>> distinctOn,
+                              List<Expression<?, ?>>      arguments) {
     super(context, "StringSplitTable",
           alias,
-          T2.of("arguments", new Esql<>(context, "arguments", arguments)));
+          of("distinct",   new Esql<>(context, distinct)),
+          of("distinctOn", new Esql<>(context, "distinctOn", distinctOn)),
+          of("arguments",  new Esql<>(context, "arguments", arguments)));
     if (arguments.size() < 2) {
       throw new TranslationException("string_split needs 2 arguments: a string to split and the character to split around");
     }
@@ -133,12 +135,17 @@ public class StringSplitTableExpr extends AbstractAliasTableExpr {
                          Environment          env) {
     String text = arguments().get(0).translate(target, esqlCon, path, parameters, env).toString();
     String sep  = arguments().get(1).translate(target, esqlCon, path, parameters, env).toString();
-    if (target == Target.SQLSERVER) {
-      return "string_split(" + text + ", " + sep + ") " + alias();
-    } else if (target == Target.ESQL){
+    if (target == Target.ESQL){
       return alias() + ":string_split(" + text + ", " + sep + ")";
     } else {
-      return "unnest(string_to_array(" + text + ", " + sep + ")) " + alias() + "(value)";
+      String split = target == Target.SQLSERVER
+                   ? "string_split(" + text + ", " + sep + ") " + alias()
+                   : "unnest(string_to_array(" + text + ", " + sep + ")) " + alias() + "(value)";
+      if (distinct()) {
+        return "(select distinct value from " + split + ") " + alias();
+      } else {
+        return split;
+      }
     }
   }
 
@@ -155,8 +162,15 @@ public class StringSplitTableExpr extends AbstractAliasTableExpr {
     return childValue("alias");
   }
 
+  public boolean distinct() {
+    return childValue("distinct");
+  }
+
+  public List<Expression<?, String>> distinctOn() {
+    return child("distinctOn").children();
+  }
+
   public List<Expression<?, ?>> arguments() {
     return child("arguments").children();
   }
-
 }

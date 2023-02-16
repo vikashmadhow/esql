@@ -99,8 +99,28 @@ public class SelectTest extends DataTest {
                  .map(db -> dynamicTest(db.target().toString(), () -> {
                    System.out.println(db.target());
                    try (EsqlConnection con = db.esql(db.pooledConnection())) {
-                     Result rs = con.exec("select * from t:string_split('a,b,c', ',') order by value");
-                     matchResult(rs, List.of(Map.of("value", "a"), Map.of("value", "b"), Map.of("value", "c")));
+                     Result rs = con.exec("select * from t:string_split('a,b,c,d,c,a', ',') order by value");
+                     matchResult(rs, List.of(Map.of("value", "a"),
+                                             Map.of("value", "a"),
+                                             Map.of("value", "b"),
+                                             Map.of("value", "c"),
+                                             Map.of("value", "c"),
+                                             Map.of("value", "d")));
+                   }
+                 }));
+  }
+
+  @TestFactory
+  Stream<DynamicTest> simpleSelectFromDistinctStringSplit() {
+    return Stream.of(databases)
+                 .map(db -> dynamicTest(db.target().toString(), () -> {
+                   System.out.println(db.target());
+                   try (EsqlConnection con = db.esql(db.pooledConnection())) {
+                     Result rs = con.exec("select * from t:string_split(distinct 'a,b,c,d,c,a', ',') order by value");
+                     matchResult(rs, List.of(Map.of("value", "a"),
+                                             Map.of("value", "b"),
+                                             Map.of("value", "c"),
+                                             Map.of("value", "d")));
                    }
                  }));
   }
