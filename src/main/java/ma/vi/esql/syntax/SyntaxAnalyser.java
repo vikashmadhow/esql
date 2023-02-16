@@ -1076,7 +1076,8 @@ public class SyntaxAnalyser extends EsqlBaseListener {
     put(ctx, new In(context,
                     get(ctx.expr()),
                     ctx.Not() != null,
-                    value(ctx.expressionList())));
+                    value(ctx.expressionList()),
+                    get(ctx.select())));
    }
 
   @Override

@@ -87,6 +87,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.5.0] (Planned)
 ### Fine-grain history and notification
 
+## [1.4.2] - 2023-02-16
+### Added
+- Support for `select` sub-query in `in` operator. 
+
 ## [1.4.1] - 2023-02-16
 ### Added
 - Support for `distinct` keywords in table returning functions which eliminates

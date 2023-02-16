@@ -816,7 +816,7 @@ expr
        * True if the expression matches one of the expression in the `in` list
        * or a value returned by the `select`.
        */
-    | expr Not? 'in' '(' (expressionList) ')'                   #InExpression
+    | expr Not? 'in' '(' (select | expressionList) ')'          #InExpression
 
       /*
        * True if a comparable expression is in the range provided in the

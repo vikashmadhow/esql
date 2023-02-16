@@ -43,7 +43,7 @@ public class StringSplitTableExpr extends AbstractAliasTableExpr {
           alias,
           of("distinct",   new Esql<>(context, distinct)),
           of("distinctOn", new Esql<>(context, "distinctOn", distinctOn)),
-          of("arguments",  new Esql<>(context, "arguments", arguments)));
+          of("arguments",  new Esql<>(context, "arguments",  arguments)));
     if (arguments.size() < 2) {
       throw new TranslationException("string_split needs 2 arguments: a string to split and the character to split around");
     }

@@ -31,10 +31,10 @@ public class QuantifiedComparison extends Expression<String, String> {
                               String                quantifier,
                               Select                select) {
     super(context, "QuantifiedComparison",
-          T2.of("expr", expr),
-          T2.of("compareOp", new Esql<>(context, compareOp)),
+          T2.of("expr",       expr),
+          T2.of("compareOp",  new Esql<>(context, compareOp)),
           T2.of("quantifier", new Esql<>(context, quantifier)),
-          T2.of("select", select));
+          T2.of("select",     select));
   }
 
   public QuantifiedComparison(QuantifiedComparison other) {
