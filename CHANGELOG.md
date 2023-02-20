@@ -87,6 +87,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.5.0] (Planned)
 ### Fine-grain history and notification
 
+## [1.4.4] - 2023-02-20
+### Fixed
+- `find` method in `QueryParams` fixed to not create an `Optional` around a null
+  parameter value which is illegal. Instead `Optional.empty` will be returned and
+  the `get` method has been modified to properly handle parameters with null values
+  independently of the `find` method.
+
+## [1.4.3] - 2023-02-16
+### Added
+- `fractional` ESQL super type mapped to `Double` Java class. 
+- `integral` ESQL super type mapped to `Long` Java class. 
+
 ## [1.4.2] - 2023-02-16
 ### Added
 - Support for `select` sub-query in `in` operator. 

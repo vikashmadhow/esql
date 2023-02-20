@@ -37,7 +37,11 @@ public class QueryParams {
    * @return The parameter value if found in the parameter list, or empty otherwise.
    */
   public <T> T get(String name) {
-    return (T)find(name).orElseThrow(() -> new NotFoundException("Could find parameter " + name));
+    if (params.containsKey(name)) {
+      return (T)params.get(name).b;
+    } else {
+      throw new NotFoundException("Could find parameter " + name);
+    }
   }
 
   /**
@@ -47,7 +51,7 @@ public class QueryParams {
    * @return The parameter value if found in the parameter list, or empty otherwise.
    */
   public <T> Optional<T> find(String name) {
-    return params.containsKey(name)
+    return params.containsKey(name) && params.get(name).b != null
          ? Optional.of((T)params.get(name).b)
          : Optional.empty();
   }
