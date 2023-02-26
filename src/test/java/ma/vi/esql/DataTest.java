@@ -97,6 +97,7 @@ public class DataTest {
                                 name: 'S',
                                 description: 'S test table',
                                 validate_unique: [['a', 'b', 'e']],
+                                history: true,
                                 dependents: {
                                   links: {
                                     "type": 'a.b.T',
@@ -149,7 +150,8 @@ public class DataTest {
         s = p.parse("create table a.b.T drop undefined(" +
                     "  {" +
                     "    name: 'T'," +
-                    "    description: 'T test table'" +
+                    "    description: 'T test table', " +
+                    "    history: true " +
                     "  } " +
                     "  _id uuid not null," +
                     "  a int {" +

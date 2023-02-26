@@ -7,6 +7,8 @@ package ma.vi.esql.semantic.type;
 import ma.vi.base.lang.NotFoundException;
 import ma.vi.base.trie.PathTrie;
 import ma.vi.base.tuple.T2;
+import ma.vi.esql.database.EsqlConnection;
+import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.syntax.CircularReferenceException;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
@@ -19,6 +21,9 @@ import ma.vi.esql.syntax.expression.literal.*;
 import ma.vi.esql.syntax.expression.logical.And;
 import ma.vi.esql.syntax.query.Select;
 import ma.vi.esql.translation.TranslationException;
+import org.pcollections.HashPMap;
+import org.pcollections.IntTreePMap;
+import org.pcollections.PMap;
 
 import java.util.*;
 
@@ -26,6 +31,8 @@ import static java.util.Collections.*;
 import static java.util.stream.Collectors.toSet;
 import static ma.vi.base.string.Strings.random;
 import static ma.vi.esql.builder.Attributes.*;
+import static ma.vi.esql.database.Database.NULL_DB;
+import static ma.vi.esql.database.EsqlConnection.NULL_CONNECTION;
 import static ma.vi.esql.semantic.type.Types.UnknownType;
 import static ma.vi.esql.syntax.expression.ColumnRef.unqualify;
 
@@ -193,6 +200,23 @@ public class BaseRelation extends Struct {
       addColumn(col);
     }
     return attributes().put(name, att);
+  }
+
+  public <T> T evaluateAttribute(String name) {
+    return evaluateAttribute(name,
+                             NULL_CONNECTION,
+                             new EsqlPath(null),
+                             HashPMap.empty(IntTreePMap.empty()),
+                             NULL_DB.structure());
+  }
+
+  public <T> T evaluateAttribute(String               name,
+                                 EsqlConnection       esqlCon,
+                                 EsqlPath             path,
+                                 PMap<String, Object> parameters,
+                                 Environment env) {
+    Attribute a = attributes().get(name);
+    return a == null ? null : a.evaluateAttribute(esqlCon, path, parameters, env);
   }
 
   private static Expression<?, ?> expandDerived(Expression<?, ?> derivedExpression,

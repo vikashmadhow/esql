@@ -267,98 +267,91 @@ public class SqlServer extends AbstractDatabase {
 
       c.createStatement().executeUpdate(
           """
-              create or alter function _core.floormod(@dividend Int, @divider Int) returns Int as
-              begin
-                  return ((@dividend % @divider) + @divider) % @divider;
-              end;"""
-      );
+          create or alter function _core.floormod(@dividend Int, @divider Int) returns Int as
+          begin
+              return ((@dividend % @divider) + @divider) % @divider;
+          end;""");
 
       c.createStatement().executeUpdate(
           """
-              create or alter function _core.obfuscate_shift(@i Int) returns Int as
-              begin
-                if @i % 2 = 0
-                  set @i = @i + 3
-                else
-                  set @i = -(@i + 3);
-                return @i
-              end;"""
-      );
+          create or alter function _core.obfuscate_shift(@i Int) returns Int as
+          begin
+            if @i % 2 = 0
+              set @i = @i + 3
+            else
+              set @i = -(@i + 3);
+            return @i
+          end;""");
 
       c.createStatement().executeUpdate(
           """
-              create or alter function _core.unobfuscate(@obfuscated nvarchar(1000)) returns nvarchar(1000) as
-              begin
-                declare @unobfuscated   nvarchar(1000) = '';
-                declare @i              Int = 2;
-                declare @pos            Int;
-                declare @c              Char;
-                declare @password_chars nvarchar(100) = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-                declare @chars_len      Int = len(@password_chars);
+          create or alter function _core.unobfuscate(@obfuscated nvarchar(1000)) returns nvarchar(1000) as
+          begin
+            declare @unobfuscated   nvarchar(1000) = '';
+            declare @i              Int = 2;
+            declare @pos            Int;
+            declare @c              Char;
+            declare @password_chars nvarchar(100) = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+            declare @chars_len      Int = len(@password_chars);
 
-                while @i <= len(@obfuscated)
-                begin
-                    set @c = substring(@obfuscated, @i, 1);
-                    set @pos = charindex(@c, @password_chars collate Latin1_General_CS_AS) - _core.obfuscate_shift(cast((@i - 1) / 2 as Int)) - 1;
-                    set @unobfuscated = @unobfuscated + substring(@password_chars, _core.floormod(@pos, @chars_len) + 1, 1);
-                    set @i = @i + 2;
-                end
-                return @unobfuscated;
-              end;
-              """
-      );
+            while @i <= len(@obfuscated)
+            begin
+                set @c = substring(@obfuscated, @i, 1);
+                set @pos = charindex(@c, @password_chars collate Latin1_General_CS_AS) - _core.obfuscate_shift(cast((@i - 1) / 2 as Int)) - 1;
+                set @unobfuscated = @unobfuscated + substring(@password_chars, _core.floormod(@pos, @chars_len) + 1, 1);
+                set @i = @i + 2;
+            end
+            return @unobfuscated;
+          end;""");
 
       c.createStatement().executeUpdate(
           """
-              create or alter function _core.randomstr(@length Int) returns nvarchar(1000) as
-              begin
-                declare @str            nvarchar(1000) = '';
-                declare @i              Int = 1;
-                declare @password_chars nvarchar(100) = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
-                declare @chars_len      Int = len(@password_chars);
-                declare @random         BigInt = datepart(millisecond, getutcdate());
-                declare @a              BigInt = 1664525;
-                declare @c              BigInt = 1013904223;
-                declare @m              BigInt = power(cast(2 as bigint), 32);
+          create or alter function _core.randomstr(@length Int) returns nvarchar(1000) as
+          begin
+            declare @str            nvarchar(1000) = '';
+            declare @i              Int = 1;
+            declare @password_chars nvarchar(100) = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+            declare @chars_len      Int = len(@password_chars);
+            declare @random         BigInt = datepart(millisecond, getutcdate());
+            declare @a              BigInt = 1664525;
+            declare @c              BigInt = 1013904223;
+            declare @m              BigInt = power(cast(2 as bigint), 32);
 
-                while @i <= @length
-                begin
-                    set @random = (@a * @random + @c) % @m;
-                    set @str = @str + substring(@password_chars, @random % @chars_len + 1, 1);
-                    set @i = @i + 1;
-                end
-                return @str;
-              end;
-              """
-      );
+            while @i <= @length
+            begin
+                set @random = (@a * @random + @c) % @m;
+                set @str = @str + substring(@password_chars, @random % @chars_len + 1, 1);
+                set @i = @i + 1;
+            end
+            return @str;
+          end;""");
 
       c.createStatement().executeUpdate(
           """
-              create or alter function _core.obfuscate(@unobfuscated nvarchar(1000)) returns nvarchar(1000) as
-              begin
-                declare @obfuscated     nvarchar(1000) = '';
-                declare @i              Int = 1;
-                declare @pos            Int;
-                declare @ch              Char;
-                declare @password_chars nvarchar(100) = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-                declare @chars_len      Int = len(@password_chars);
-                declare @random         BigInt = datepart(millisecond, getutcdate());
-                declare @a              BigInt = 1664525;
-                declare @c              BigInt = 1013904223;
-                declare @m              BigInt = power(cast(2 as bigint), 32);
+          create or alter function _core.obfuscate(@unobfuscated nvarchar(1000)) returns nvarchar(1000) as
+          begin
+            declare @obfuscated     nvarchar(1000) = '';
+            declare @i              Int = 1;
+            declare @pos            Int;
+            declare @ch              Char;
+            declare @password_chars nvarchar(100) = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+            declare @chars_len      Int = len(@password_chars);
+            declare @random         BigInt = datepart(millisecond, getutcdate());
+            declare @a              BigInt = 1664525;
+            declare @c              BigInt = 1013904223;
+            declare @m              BigInt = power(cast(2 as bigint), 32);
 
-                while @i <= len(@unobfuscated)
-                begin
-                    set @ch = substring(@unobfuscated, @i, 1);
-                    set @pos = charindex(@ch, @password_chars collate Latin1_General_CS_AS) + _core.obfuscate_shift(@i - 1) - 1;
-                    set @random = (@a * @random + @c) % @m;
-                    set @obfuscated = @obfuscated + substring(@password_chars, @random % @chars_len + 1, 1);
-                    set @obfuscated = @obfuscated + substring(@password_chars, _core.floormod(@pos, @chars_len) + 1, 1);
-                    set @i = @i + 1;
-                end
-                return @obfuscated;
-              end;"""
-      );
+            while @i <= len(@unobfuscated)
+            begin
+                set @ch = substring(@unobfuscated, @i, 1);
+                set @pos = charindex(@ch, @password_chars collate Latin1_General_CS_AS) + _core.obfuscate_shift(@i - 1) - 1;
+                set @random = (@a * @random + @c) % @m;
+                set @obfuscated = @obfuscated + substring(@password_chars, @random % @chars_len + 1, 1);
+                set @obfuscated = @obfuscated + substring(@password_chars, _core.floormod(@pos, @chars_len) + 1, 1);
+                set @i = @i + 1;
+            end
+            return @obfuscated;
+          end;""");
       c.commit();
     } catch (SQLException e) {
       throw unchecked(e);

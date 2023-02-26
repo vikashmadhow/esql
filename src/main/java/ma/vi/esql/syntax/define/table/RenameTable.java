@@ -14,9 +14,9 @@ import ma.vi.esql.syntax.EsqlPath;
 import org.pcollections.PMap;
 
 /**
- * Renames a table. This only renames the last part of the qualified
- * name of the table as the remaining part is the schema and cannot
- * be renamed (without moving schema objects, etc.)
+ * Renames a table. This only renames the last part of the qualified name of the
+ * table as the remaining part is the schema and cannot be renamed (without moving
+ * schema objects, etc.)
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */

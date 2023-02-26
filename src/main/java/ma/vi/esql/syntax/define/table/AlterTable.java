@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Map;
 
 import static java.util.Collections.singletonList;
+import static ma.vi.esql.builder.Attributes.HISTORY;
 import static ma.vi.esql.database.Database.StructureChange.*;
 import static ma.vi.esql.semantic.type.Type.dbTableName;
 import static ma.vi.esql.semantic.type.Type.splitName;
@@ -118,7 +119,9 @@ public class AlterTable extends Define {
             con.createStatement().executeUpdate(
                 "sp_rename '" + dbName + "', '" + rename.toName() + "'");
           } else {
-            // change the table name only
+            /*
+             * Change the table name only.
+             */
             con.createStatement().executeUpdate(
                 "ALTER TABLE " + dbName + " RENAME TO \"" + rename.toName() + '"');
           }
@@ -127,6 +130,17 @@ public class AlterTable extends Define {
           relation.name(newFullName);
           s.relation(relation);
           s.database.renameTable(esqlCon, relation.id(), newFullName);
+
+          /*
+           * Apply change to corresponding history table, if present.
+           */
+          Boolean history = relation.evaluateAttribute(HISTORY);
+          if (history != null && history) {
+            AlterTable alter = new AlterTable(context,
+                                              name + "$history",
+                                              List.of(new RenameTable(context, rename.toName() + "$history")));
+            alter.exec(target, esqlCon, path.add(alter), parameters, env);
+          }
 
           /*
            * Add structure change event for table rename event that will be sent
@@ -157,6 +171,10 @@ public class AlterTable extends Define {
                                                   + " ADD COLUMN " + column.translate(db.target(), esqlCon, path.add(column), env));
               }
             }
+
+            applyChangeToHistoryTable(relation, context, name(), alteration,
+                                      target, esqlCon, path, parameters, env);
+
             Column col = Column.fromDefinition(column);
 //            if (parent instanceof CreateTable) {
 //              col.parent = parent;
@@ -227,6 +245,10 @@ public class AlterTable extends Define {
                   + "\"  TO \"" + def.toName() + '"');
               }
             }
+
+            applyChangeToHistoryTable(relation, context, name(), alteration,
+                                      target, esqlCon, path, parameters, env);
+
             s.database.columnName(esqlCon, column.id(), def.toName());
             relation.removeColumn(alterCol.columnName());
             Column newColumn = column.name(def.toName());
@@ -260,6 +282,9 @@ public class AlterTable extends Define {
                         "\" " + def.toType().translate(db.target(), esqlCon, path.add(def), env));
               }
             }
+
+            applyChangeToHistoryTable(relation, context, name(), alteration,
+                                      target, esqlCon, path, parameters, env);
 
             ColumnDefinition fromDefinition = Column.toDefinition(column);
             s.database.columnType(esqlCon, column.id(), def.toType().translate(ESQL, esqlCon, path.add(def), env));
@@ -410,6 +435,10 @@ public class AlterTable extends Define {
             con.createStatement().executeUpdate(
                 "ALTER TABLE " + dbName + " DROP COLUMN \"" + drop.columnName() + '"');
           }
+
+          applyChangeToHistoryTable(relation, context, name(), alteration,
+                                    target, esqlCon, path, parameters, env);
+
           s.database.dropColumn(esqlCon, column.id());
           relation.removeColumn(drop.columnName());
 
@@ -448,6 +477,27 @@ public class AlterTable extends Define {
       throw new RuntimeException(e);
     }
     return Result.Nothing;
+  }
+
+  /**
+   * Apply change to a table to its corresponding history table, if present.
+   */
+  private static void applyChangeToHistoryTable(BaseRelation         relation,
+                                                Context              context,
+                                                String               name,
+                                                Alteration           alteration,
+                                                Target               target,
+                                                EsqlConnection       esqlCon,
+                                                EsqlPath             path,
+                                                PMap<String, Object> parameters,
+                                                Environment          env) {
+    Boolean history = relation.evaluateAttribute(HISTORY);
+    if (history != null && history) {
+      AlterTable alter = new AlterTable(context,
+                                        name + "$history",
+                                        List.of(alteration));
+      alter.exec(target, esqlCon, path.add(alter), parameters, env);
+    }
   }
 
   public String name() {

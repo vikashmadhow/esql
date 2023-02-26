@@ -14,6 +14,7 @@ import org.junit.jupiter.api.TestFactory;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -118,13 +119,15 @@ public class CoarseHistoryTest extends DataTest {
                                 + "(newid(), 6, 7, false, ['Nine', 'Neuf', 'X']text, [5, 6, 7, 8]int)");
                    }
 
-                   Database.ChangeEvent e = subscription.events().take();
+                   Database.ChangeEvent e = subscription.events().poll(5, TimeUnit.SECONDS);
+                   assertNotNull(e);
                    assertEquals(e.table(), "S");
                    assertTrue(e.hasDeletes());
                    assertTrue(e.hasInserts());
                    assertTrue(e.hasUpdates());
 
-                   e = subscription.events().take();
+                   e = subscription.events().poll(5, TimeUnit.SECONDS);
+                   assertNotNull(e);
                    assertEquals(e.table(), "S");
                    assertFalse(e.hasDeletes());
                    assertTrue(e.hasInserts());

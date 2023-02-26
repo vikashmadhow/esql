@@ -50,6 +50,11 @@ public class EsqlConnectionImpl implements EsqlConnection {
   }
 
   @Override
+  public void user(String user) {
+    this.user = user;
+  }
+
+  @Override
   public String transactionId() {
     return transaction;
   }
@@ -154,11 +159,11 @@ public class EsqlConnectionImpl implements EsqlConnection {
                  */
                 try (Connection con = database().pooledConnection()) {
                   for (String table: tableEvents.keySet()) {
-                    if (structure.relationExists(table + ".History")) {
+                    if (structure.relationExists(table + "$history")) {
                       con.createStatement().executeUpdate(
-                          "update " + Type.dbTableName(table + ".History", db.target())
-                        + "   set _hist_user='" + user + "'"
-                        + " where _hist_trans_id='" + transactionId + "'");
+                          "update " + Type.dbTableName(table + "$history", db.target())
+                        + "   set history_change_user='" + user + "'"
+                        + " where history_change_trans_id='" + transactionId + "'");
                     }
                   }
                   con.commit();
@@ -187,7 +192,7 @@ public class EsqlConnectionImpl implements EsqlConnection {
             List<Map<String, Object>> deleted     = new ArrayList<>();
             List<Map<String, Object>> updatedFrom = new ArrayList<>();
             List<Map<String, Object>> updatedTo   = new ArrayList<>();
-            String historyTable = table + ".History";
+            String historyTable = table + "$history";
             if (structure.relationExists(historyTable)
              && tableSubscriptions.stream().anyMatch(Database.Subscription::includeHistory)) {
               /*
@@ -197,9 +202,9 @@ public class EsqlConnectionImpl implements EsqlConnection {
               try (EsqlConnection con = database().esql(database().pooledConnection());
                    Result rs = con.exec("select *"
                                       + "  from " + historyTable
-                                      + " where _hist_trans_id='" + transactionId + "'")) {
+                                      + " where history_change_trans_id='" + transactionId + "'")) {
                 while (rs.toNext()) {
-                  String event = rs.value("_hist_event");
+                  String event = rs.value("history_change_event");
                   switch (Database.Change.from(event)) {
                     case INSERTED     -> inserted    .add(rs.valueRow());
                     case DELETED      -> deleted     .add(rs.valueRow());
@@ -258,7 +263,7 @@ public class EsqlConnectionImpl implements EsqlConnection {
   /**
    * User for whom this connection has been created.
    */
-  protected final String user;
+  protected String user;
 
   /**
    * The id of the current transaction.
@@ -270,7 +275,7 @@ public class EsqlConnectionImpl implements EsqlConnection {
    * {@link Database#esql()} is invoked without a new SQL connection, it will
    * reuse the active connection bound to the current thread, if any, or create
    * a new ESQL connection which is then bound to the current thread.
-   *
+   * <p>
    * This variable is used to keep track of the number of times that this connection
    * has been "opened" in a try-with-resources in this manner so that it can be
    * closed at the end of the block that created it. Initially this is set to 1

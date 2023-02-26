@@ -5,6 +5,7 @@
 package ma.vi.esql.builder;
 
 import ma.vi.base.lang.Builder;
+import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Parser;
@@ -13,6 +14,7 @@ import ma.vi.esql.syntax.define.Create;
 import ma.vi.esql.syntax.define.Metadata;
 import ma.vi.esql.syntax.define.table.ColumnDefinition;
 import ma.vi.esql.syntax.define.table.DerivedColumnDefinition;
+import ma.vi.esql.syntax.expression.Expression;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,12 +42,23 @@ public abstract class CreateBuilder<T extends Create,
 
   public S metadata(String name, String expression) {
     Parser parser = new Parser(context.structure);
-    this.metadata.add(new Attribute(context, name, parser.parseExpression(expression)));
+    return metadata(name, parser.parseExpression(expression));
+  }
+
+  public S metadata(String name, Expression<?, ?> expression) {
+    this.metadata.add(new Attribute(context, name, expression));
     return (S)this;
   }
 
   public S column(String name, String type, Attr... metadata) {
     return column(name, type, false, metadata);
+  }
+
+  public S column(String name, Type type, boolean notNull,
+                  Expression<?, ?> defaultExpression, Metadata metadata) {
+    this.columns.add(new ColumnDefinition(context, name, type, notNull,
+                                          defaultExpression, metadata));
+    return (S)this;
   }
 
   public S column(String name, String type, boolean notNull, Attr... metadata) {
@@ -69,12 +82,15 @@ public abstract class CreateBuilder<T extends Create,
 
   public S derivedColumn(String name, String expression, Attr... metadata) {
     Parser parser = new Parser(context.structure);
-    this.columns.add(
-        new DerivedColumnDefinition(context, name, parser.parseExpression(expression),
-                                    new Metadata(context,
-                Stream.of(metadata)
-                      .map(a -> new Attribute(context, a.name(), parser.parseExpression(a.expr())))
-                      .collect(toList()))));
+    return derivedColumn(name, parser.parseExpression(expression),
+                         new Metadata(context,
+                                      Stream.of(metadata)
+                                            .map(a -> new Attribute(context, a.name(), parser.parseExpression(a.expr())))
+                                            .collect(toList())));
+  }
+
+  public S derivedColumn(String name, Expression<?, ?> expression, Metadata metadata) {
+    this.columns.add(new DerivedColumnDefinition(context, name, expression, metadata));
     return (S)this;
   }
 

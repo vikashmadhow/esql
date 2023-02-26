@@ -31,7 +31,7 @@ its structure and adding some columns to keep information on the event generatin
 the history record. Following is the history table created for the above table:
 
 ```
-  create table X.History({
+  create table X$history({
       name: 'History of X' 
     }
     _id uuid not null,
@@ -39,10 +39,10 @@ the history record. Following is the history table created for the above table:
     address string,
     b_id uuid,
     
-    _hist_trans_id string,
-    _hist_user string,
-    _hist_event int,
-    _hist_time datetime
+    history_change_trans_id string,
+    history_change_event int,
+    history_change_time datetime,
+    history_change_user string
   )
 ```
 
@@ -55,13 +55,13 @@ be maintained in the history.
 
 4 columns are added to the history table to capture information on the specific 
 event leading to that history entry:
-1. **_hist_trans_id**: the unique identifier of the transaction during
-   which the event happened.
-2. **_hist_user**: the user at the source of this event. This is informational
+1. **history_change_trans_id**: the unique identifier of the transaction during which the
+   event happened.
+2. **history_change_user**: the user at the source of this event. This is informational
    only and does not need to be a valid user.
-3. **_hist_event**: a code identifying the event. E.g. *1=insert, 2=delete,
+3. **history_change_event**: a code identifying the event. E.g. *1=insert, 2=delete,
    3=update_from and 4=update_to*.
-4. **_hist_time**: the date and t
+4. **history_change_time**: the date and time when the event happened.
 
 ### _core.history
 Coarse-grain changes to tables will also be recorded in the system table 

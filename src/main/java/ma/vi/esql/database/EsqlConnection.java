@@ -32,6 +32,8 @@ public interface EsqlConnection extends AutoCloseable {
 
   String user();
 
+  void user(String user);
+
   /**
    * @return A unique identifier of the single active transaction of this connection.
    */
@@ -180,6 +182,9 @@ public interface EsqlConnection extends AutoCloseable {
     public String user() {
       return null;
     }
+
+    @Override
+    public void user(String user) {}
 
     @Override
     public String transactionId() {

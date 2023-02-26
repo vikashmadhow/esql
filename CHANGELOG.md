@@ -48,8 +48,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Change notification and subscription.
 - Fine-grain history.
+- Table time-travel.
 - Snapshots.
-- Undo and redo maintaining coherent table state.
+
+- Undo and redo maintaining coherent table state (undoing a transaction requires
+  undoing on all (linked?) tables touched by the transaction).
 
 - A special keyword (`this`?) to reference the table being implicitly queried. 
   This is useful in expressions defined in attributes which will be executed against
@@ -84,15 +87,85 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.6.0] (Planned)
 ### Database stored functions and triggers in ESQL
 
-## [1.5.0] (Planned)
+## [1.5.1] - 2023-02-25
+### Added
+- Keep metadata of the source columns in the history table and add READONLY=true.
+  This allows the history data to have the same look and feel and the table data.
+- History data is set in a separate group for layout purposes. They also have 
+  metadata to make them read-only and the change event has linked to a requisite 
+  list of values. 
+- Transaction id, user and time columns in history table are now indexed.
+
+## [1.5.0] - 2023-02-24
 ### Fine-grain history and notification
+A history table records all changes made to a table, which could be used to revert
+a table to a previous state, track changes, create snapshots of the data at specific 
+points in time, and so on.
+
+## Design
+History of a table is recorded as the sequence of significant events on the table. 
+Recording of history is opt-in through the presence of a metadata attribute in 
+the table at creation time. For example, history is enabled for the following table:
+
+```
+  create table X({
+      name: 'X', 
+      description: 'X table',
+      history: true
+    }
+    _id     uuid not null,
+    name    string not null, 
+    address string,
+    b_id    uuid,
+    primary key(_id),
+    unique  (name),
+    foreign key(b_id) references B(_id)
+  )
+```
+
+A history table is created for every table for which history is enabled, mirroring
+its structure and adding some columns to keep information on the event generating
+the history record. Following is the history table created for the above table:
+
+```
+  create table X$history({
+      name: 'History of X' 
+    }
+    _id uuid not null,
+    name string not null, 
+    address string,
+    b_id uuid,
+    
+    history_change_trans_id string,
+    history_change_event int,
+    history_change_time datetime,
+    history_change_user string
+  )
+```
+
+Some constraints such as primary key, uniqueness and foreign keys are not replicated
+in the history as they would not hold: the history table contains a record for 
+each change made to the table and thus would not maintain uniqueness of any column.
+History table entries are also permanent and thus cannot maintain foreign key 
+relationships which may change with time. Non-null constraints, however, can still
+be maintained in the history.
+
+4 columns are added to the history table to capture information on the specific 
+event leading to that history entry:
+1. **history_change_trans_id**: the unique identifier of the transaction during which the
+   event happened.
+2. **history_change_user**: the user at the source of this event. This is informational
+   only and does not need to be a valid user.
+3. **history_change_event**: a code identifying the event. E.g. *I=insert, D=delete,
+   F=update_from and T=update_to*.
+4. **history_change_time**: the date and time when the event happened.
 
 ## [1.4.4] - 2023-02-20
 ### Fixed
 - `find` method in `QueryParams` fixed to not create an `Optional` around a null
   parameter value which is illegal. Instead `Optional.empty` will be returned and
-  the `get` method has been modified to properly handle parameters with null values
-  independently of the `find` method.
+  the `get` method has been modified to properly handle parameters with `null` 
+  values independently of the `find` method.
 
 ## [1.4.3] - 2023-02-16
 ### Added

@@ -568,7 +568,7 @@ public class SelectTest extends DataTest {
                                         "_referred_by", "s_id",
                                         "label", "S Links"))));
 
-                     assertEquals(rs.resultAttributes().size(), 6);
+                     assertEquals(rs.resultAttributes().size(), 7);
                      assertEquals(literalValue((Literal<?>)rs.resultAttributes().get("name")), "S");
                      assertEquals(literalValue((Literal<?>)rs.resultAttributes().get("description")), "S test table");
                      assertTrue(validateUnique.similar(literalValue((Literal<?>)rs.resultAttributes().get("validate_unique"))));
