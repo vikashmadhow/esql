@@ -87,6 +87,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.6.0] (Planned)
 ### Database stored functions and triggers in ESQL
 
+## [1.5.3] - 2023-03-15
+### Added
+- Utility `value` method in `Result` taking a default value to return when the
+  column value is null.
+
+### Fixed
+- History tables are created before the tables if the target table already exists,
+  otherwise they are created after.
+
+## [1.5.2] - 2023-03-10
+### Added
+- Translation of `select`, `update`, `delete` and `insert` to Javascript for 
+  execution on the client-side. This is primarily for translating select expressions
+  in metadata.
+
 ## [1.5.1] - 2023-02-25
 ### Added
 - Keep metadata of the source columns in the history table and add READONLY=true.

@@ -198,6 +198,11 @@ public class Result implements Iterator<Result.Row>,
     return (T)get(column).value();
   }
 
+  public <T> T value(int column, T defaultValue) {
+    T v = value(column);
+    return v == null ? defaultValue : v;
+  }
+
   /**
    * Returns the value of the column (without its metadata) with the specified
    * name of the current row.
@@ -207,6 +212,11 @@ public class Result implements Iterator<Result.Row>,
       throw new RuntimeException("No such column: " + column);
     }
     return value(columnNameToIndex.get(column));
+  }
+
+  public <T> T value(String column, T defaultValue) {
+    T v = value(column);
+    return v == null ? defaultValue : v;
   }
 
   /**

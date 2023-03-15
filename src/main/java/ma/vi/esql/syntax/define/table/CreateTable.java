@@ -7,7 +7,6 @@ package ma.vi.esql.syntax.define.table;
 import ma.vi.base.collections.Sets;
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.builder.Attr;
-import ma.vi.esql.builder.Attributes;
 import ma.vi.esql.builder.CreateTableBuilder;
 import ma.vi.esql.database.Database;
 import ma.vi.esql.database.EsqlConnection;
@@ -262,6 +261,7 @@ public class CreateTable extends Define implements Create {
        */
       String tableDisplayName = metadata().evaluateAttribute(NAME, esqlCon, path, parameters, env);
       String tableDescription = metadata().evaluateAttribute(DESCRIPTION, esqlCon, path, parameters, env);
+
       if (!db.structure().relationExists(tableName)) {
         if (db.structure().structExists(tableName)) {
           throw new ExecutionException("A struct named " + tableName + " exists; a "
@@ -317,6 +317,8 @@ public class CreateTable extends Define implements Create {
         db.structure().relation(table);
         db.structure().database.addTable(esqlCon, table);
 
+        createHistoryTable(target, tableName, tableDisplayName, esqlCon, path, parameters, env);
+
         /*
          * Add structure change event for table creation that will be sent to
          * registered subscribers.
@@ -327,6 +329,7 @@ public class CreateTable extends Define implements Create {
         /*
          * Already exists: alter
          */
+        createHistoryTable(target, tableName, tableDisplayName, esqlCon, path, parameters, env);
         BaseRelation table = db.structure().relation(tableName);
         AlterTable alter;
 
@@ -514,66 +517,73 @@ public class CreateTable extends Define implements Create {
           }
         }
       }
-
-      /*
-       * Create history table if history attribute set to true and no history
-       * table exists.
-       */
-      Boolean history = metadata().evaluateAttribute(HISTORY);
-      if (history != null && history) {
-//       && !db.structure().relationExists(tableName + "$history")) {
-        CreateTableBuilder builder = new CreateTableBuilder(context);
-        String historyTable = tableName + "$history";
-        builder.name(historyTable);
-        builder.metadata(NAME,        "'History of " + (tableDisplayName == null ? Type.unqualifiedName(tableName) : tableDisplayName + "'"));
-        builder.metadata(DESCRIPTION, "'History of " + (tableDisplayName == null ? Type.unqualifiedName(tableName) : tableDisplayName + "'"));
-        if (metadata().attribute("group") != null) {
-          Expression<?, ?> group = metadata().attribute("group").attributeValue();
-          builder.metadata("group", group);
-        }
-        builder.column("history_change_trans_id", "string",   true,  Attr.of(GROUP, "'History'"), Attr.of(READONLY, "true"));
-        builder.column("history_change_event",    "string",   true,  Attr.of(GROUP, "'History'"), Attr.of(READONLY, "true"), Attr.of("values", "{I: 'Insert', D: 'Delete', U: 'Update', F: 'Update from', T: 'Update to'}"));
-        builder.column("history_change_time",     "datetime", true,  Attr.of(GROUP, "'History'"), Attr.of(READONLY, "true"));
-        builder.column("history_change_user",     "string",   false, Attr.of(GROUP, "'History'"), Attr.of(READONLY, "true"));
-        for (ColumnDefinition col: columns()) {
-          if (col instanceof DerivedColumnDefinition d) {
-            builder.derivedColumn(d.name(), d.expression(), d.metadata());
-          } else {
-            Metadata metadata = col.metadata();
-            Map<String, Attribute> attr = metadata == null
-                                        ? new HashMap<>()
-                                        : new LinkedHashMap<>(metadata.attributes());
-            attr.put(READONLY, new Attribute(context, READONLY, new BooleanLiteral(context, true)));
-            builder.column(col.name(), col.type(), false, null,
-                           new Metadata(context, new ArrayList<>(attr.values())));
-          }
-        }
-        CreateTable create = builder.build();
-        create.exec(target, esqlCon, path.add(create), parameters, env);
-
-        /*
-         * Index transaction_id column in history table.
-         */
-        var index = new CreateIndex(context, false, "idx_trans_id_on_" + historyTable, historyTable,
-                                    List.of(new ColumnRef(context, null, "history_change_trans_id")));
-        index.exec(target, esqlCon, path.add(index), parameters, env);
-
-        index = new CreateIndex(context, false, "idx_user_on_" + historyTable, historyTable,
-                                    List.of(new ColumnRef(context, null, "history_change_user")));
-        index.exec(target, esqlCon, path.add(index), parameters, env);
-
-        index = new CreateIndex(context, false, "idx_time_on_" + historyTable, historyTable,
-                                    List.of(new ColumnRef(context, null, "history_change_time")));
-        index.exec(target, esqlCon, path.add(index), parameters, env);
-
-        addFineEventCaptureTriggers(target, con, tableName);
-      }
-
       return Result.Nothing;
     } catch (SQLException e) {
       log.log(ERROR, e.getMessage());
       log.log(ERROR, "Original query: " + this);
       throw new RuntimeException(e);
+    }
+  }
+
+  /**
+   * Create history table if history attribute set to true and no history
+   * table exists.
+   */
+  private void createHistoryTable(Target               target,
+                                  String               tableName,
+                                  String               tableDisplayName,
+                                  EsqlConnection       esqlCon,
+                                  EsqlPath             path,
+                                  PMap<String, Object> parameters,
+                                  Environment          env) throws SQLException {
+    Boolean history = metadata().evaluateAttribute(HISTORY);
+    if (history != null && history) {
+//       && !db.structure().relationExists(tableName + "$history")) {
+      CreateTableBuilder builder = new CreateTableBuilder(context);
+      String historyTable = tableName + "$history";
+      builder.name(historyTable);
+      builder.metadata(NAME,        "'History of " + (tableDisplayName == null ? Type.unqualifiedName(tableName) : tableDisplayName + "'"));
+      builder.metadata(DESCRIPTION, "'History of " + (tableDisplayName == null ? Type.unqualifiedName(tableName) : tableDisplayName + "'"));
+      if (metadata().attribute("group") != null) {
+        Expression<?, ?> group = metadata().attribute("group").attributeValue();
+        builder.metadata("group", group);
+      }
+      builder.column("history_change_trans_id", "string",   true,  Attr.of(GROUP, "'History'"), Attr.of(READONLY, "true"));
+      builder.column("history_change_event",    "string",   true,  Attr.of(GROUP, "'History'"), Attr.of(READONLY, "true"), Attr.of("values", "{I: 'Insert', D: 'Delete', U: 'Update', F: 'Update from', T: 'Update to'}"));
+      builder.column("history_change_time",     "datetime", true,  Attr.of(GROUP, "'History'"), Attr.of(READONLY, "true"));
+      builder.column("history_change_user",     "string",   false, Attr.of(GROUP, "'History'"), Attr.of(READONLY, "true"));
+      for (ColumnDefinition col: columns()) {
+        if (col instanceof DerivedColumnDefinition d) {
+          builder.derivedColumn(d.name(), d.expression(), d.metadata());
+        } else {
+          Metadata metadata = col.metadata();
+          Map<String, Attribute> attr = metadata == null
+                                      ? new HashMap<>()
+                                      : new LinkedHashMap<>(metadata.attributes());
+          attr.put(READONLY, new Attribute(context, READONLY, new BooleanLiteral(context, true)));
+          builder.column(col.name(), col.type(), false, null,
+                         new Metadata(context, new ArrayList<>(attr.values())));
+        }
+      }
+      CreateTable create = builder.build();
+      create.exec(target, esqlCon, path.add(create), parameters, env);
+
+      /*
+       * Index transaction_id column in history table.
+       */
+      var index = new CreateIndex(context, false, "idx_trans_id_on_" + historyTable, historyTable,
+                                  List.of(new ColumnRef(context, null, "history_change_trans_id")));
+      index.exec(target, esqlCon, path.add(index), parameters, env);
+
+      index = new CreateIndex(context, false, "idx_user_on_" + historyTable, historyTable,
+                                  List.of(new ColumnRef(context, null, "history_change_user")));
+      index.exec(target, esqlCon, path.add(index), parameters, env);
+
+      index = new CreateIndex(context, false, "idx_time_on_" + historyTable, historyTable,
+                                  List.of(new ColumnRef(context, null, "history_change_time")));
+      index.exec(target, esqlCon, path.add(index), parameters, env);
+
+      addFineEventCaptureTriggers(target, esqlCon.connection(), tableName);
     }
   }
 
@@ -589,7 +599,9 @@ public class CreateTable extends Define implements Create {
    * @param table The table for which the triggers are being created.
    * @throws SQLException On any error when creating the triggers.
    */
-  private void addCoarseEventCaptureTriggers(Target target, Connection con, String table) throws SQLException {
+  private void addCoarseEventCaptureTriggers(Target     target,
+                                             Connection con,
+                                             String     table) throws SQLException {
     T2<String, String> split = Type.splitName(table);
     String schema = split.a;
     String tableName = split.b;

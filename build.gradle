@@ -56,9 +56,10 @@ java {
   withSourcesJar()
 }
 
-version = "1.5.1"
+version = "1.5.3"
 group = 'ma.vi'
 sourceCompatibility = JavaVersion.VERSION_17
+targetCompatibility = JavaVersion.VERSION_17
 
 project.ext {
   moduleName = project.group + '.' + project.name
