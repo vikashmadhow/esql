@@ -358,12 +358,28 @@ public class ColumnRef extends    Expression<String, String>
    * attribute expressions so that they refer to correct table when being used in a
    * selection with a compound table expressions.
    */
-  public static <T extends Esql<?, ?>> T qualify(T esql, String qualifier) {
+  public static <T extends Esql<?, ?>> T qualify(T      esql,
+                                                 String qualifier) {
+    return qualify(esql, qualifier, true);
+  }
+
+  /**
+   * Change the qualifier of all column references in an expression to the specified
+   * one, replacing the existing ones if replaceExistingQualifier is true. This is
+   * necessary in cases where the qualifier needs to be a specific one ('inserted', for
+   * instance, in the output clause of an insert command in SQL Server) or to qualify
+   * attribute expressions so that they refer to correct table when being used in a
+   * selection with a compound table expressions.
+   */
+  public static <T extends Esql<?, ?>> T qualify(T       esql,
+                                                 String  qualifier,
+                                                 boolean replaceExisting) {
     return (T)esql.map((e, path) -> {
       if (e instanceof ColumnRef ref
        && !path.hasAncestor(UncomputedExpression.class)) {
         SelectExpression selExpr = path.ancestor(SelectExpression.class);
-        if (selExpr == null) {
+        if (selExpr == null
+        && (replaceExisting || ref.qualifier() == null)) {
           return ref.qualifier(qualifier);
         }
       }

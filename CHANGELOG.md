@@ -87,6 +87,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.6.0] (Planned)
 ### Database stored functions and triggers in ESQL
 
+## [1.5.4] - 2023-03-17
+### Added
+- `qualify` method in `ColumnRef` now takes a new `replaceExisting` argument 
+  which, when true (default), sets all qualifiers in the ESQL statement with the
+  provided one. When false, the provided qualifier is set only column references
+  without a qualifier.
+
 ## [1.5.3] - 2023-03-15
 ### Added
 - Utility `value` method in `Result` taking a default value to return when the
