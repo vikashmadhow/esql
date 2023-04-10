@@ -8,6 +8,7 @@ import ma.vi.base.tuple.T2;
 import ma.vi.esql.semantic.type.*;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
+import ma.vi.esql.syntax.define.Attribute;
 import ma.vi.esql.syntax.expression.Expression;
 import ma.vi.esql.translation.TranslationException;
 import org.json.JSONArray;
@@ -22,10 +23,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * Parent of literals in ESQL.
@@ -174,36 +172,30 @@ public abstract class Literal<V> extends Expression<V, String> {
       return new IntervalLiteral(context, value.toString());
 
     } else if (value instanceof JSONArray a) {
-      Type type = null;
-      if (a.length() > 0) {
-        Class<?> componentType = null;
-        for (int i = 0; i < a.length(); i++) {
-          Object element = a.get(i);
-          if (element != null) {
-            componentType = element.getClass();
-            break;
-          }
-        }
-        if (componentType != null) {
-          type = Types.typeOf(componentType);
-          if (type.kind() != Kind.BASE) {
-            throw new TranslationException("Only arrays of base types are supported. " + type + " is not a base type.");
-          }
-        }
-      }
-      if (type == null) {
-        /*
-         * Assume string type for empty arrays or for those containing only
-         * null entries, whereby the component-type cannot be dynamically
-         * determined.
-         */
-        type = Types.StringType;
-      }
-      List<BaseLiteral<?>> array = new ArrayList<>();
+      List<Literal<?>> array = new ArrayList<>();
       for (int i = 0; i < a.length(); i++) {
-        array.add((BaseLiteral<?>)makeLiteral(context, a.get(i)));
+        array.add(makeLiteral(context, a.get(i)));
       }
-      return new BaseArrayLiteral(context, type, array);
+      return new JsonArrayLiteral(context, array);
+
+    } else if (value instanceof List a) {
+      List<Literal<?>> array = new ArrayList<>();
+      for (Object item : a) array.add(makeLiteral(context, item));
+      return new JsonArrayLiteral(context, array);
+
+    } else if (value instanceof JSONObject o) {
+      List<Attribute> attrs = new ArrayList<>();
+      for (String k: o.keySet()) {
+        attrs.add(new Attribute(context, k, makeLiteral(context, o.get(k))));
+      }
+      return new JsonObjectLiteral(context, attrs);
+
+    } else if (value instanceof Map o) {
+      List<Attribute> attrs = new ArrayList<>();
+      for (String k: ((Map<String, Object>)o).keySet()) {
+        attrs.add(new Attribute(context, k, makeLiteral(context, o.get(k))));
+      }
+      return new JsonObjectLiteral(context, attrs);
 
     } else if (value.getClass().isArray()) {
       Class<?> componentType = value.getClass().getComponentType();

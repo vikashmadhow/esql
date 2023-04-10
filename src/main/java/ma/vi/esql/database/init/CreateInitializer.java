@@ -1,14 +1,22 @@
 package ma.vi.esql.database.init;
 
-import ma.vi.esql.builder.Attr;
 import ma.vi.esql.builder.CreateBuilder;
 import ma.vi.esql.database.Database;
 import ma.vi.esql.database.EsqlConnection;
+import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
+import ma.vi.esql.syntax.Parser;
+import ma.vi.esql.syntax.define.Attribute;
 import ma.vi.esql.syntax.define.Create;
+import ma.vi.esql.syntax.define.Metadata;
+import ma.vi.esql.syntax.expression.Expression;
+import org.json.JSONArray;
 
-import java.util.LinkedHashMap;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+
+import static ma.vi.esql.syntax.expression.literal.Literal.makeLiteral;
 
 /**
  * An abstract initializer to create structs or tables from a hierarchical
@@ -64,7 +72,7 @@ public abstract class CreateInitializer<O,
 
   protected void processAttributes(B builder,
                                    String columnName,
-                                   Map<String, String> attrs) {}
+                                   List<Attribute> attrs) {}
 
   @Override
   public O add(Database db,
@@ -74,6 +82,8 @@ public abstract class CreateInitializer<O,
                Map<String, Object> definition) {
     B builder = builder(db);
     builder.name(name);
+    Context context = new Context(db.structure());
+    Parser parser = new Parser(db.structure());
     for (var e: definition.entrySet()) {
       String columnName = e.getKey();
       if (columnName.equals(METADATA)) {
@@ -89,7 +99,7 @@ public abstract class CreateInitializer<O,
          */
         boolean notNull = false;
         String expression = null;
-        Map<String, String> attrs = new LinkedHashMap<>();
+        List<Attribute> attrs = new ArrayList<>();
         String type = null;
 
         if (e.getValue() instanceof String ex) {
@@ -97,28 +107,33 @@ public abstract class CreateInitializer<O,
         } else {
           Map<String, Object> columnDef = (Map<String, Object>)e.getValue();
           for (var def: columnDef.entrySet()) {
+            Object value = def.getValue();
+            if (value != null && value.getClass().isArray()) {
+              value = new JSONArray(value);
+            }
             switch(def.getKey()) {
               case "type",
-                   "_type"       -> type    = (String)def.getValue();
+                   "_type"       -> type = (String)value;
               case "required"    -> {
                 if (requiredAsNull()) notNull = (Boolean)def.getValue();
-                else                  attrs.put(def.getKey(), def.getValue().toString());
+                else                  attrs.add(new Attribute(context,
+                                                              def.getKey(),
+                                                              parse(parser, context, value)));
               }
               case "expression",
-                   "_expression" -> expression = def.getValue().toString();
-              default            -> attrs.put(def.getKey(), def.getValue().toString());
+                   "_expression" -> expression = value.toString();
+              default            -> attrs.add(new Attribute(context,
+                                                            def.getKey(),
+                                                            parse(parser, context, value)));
             }
           }
         }
-        Attr[] attributes = attrs.entrySet().stream()
-                                 .map(a -> new Attr(a.getKey(), removeExprMarks(a.getValue())))
-                                 .toArray(Attr[]::new);
         if ((type == null || type.equals("#computed")) && expression != null) {
-          builder.derivedColumn(columnName, expression, attributes);
+          builder.derivedColumn(columnName, expression, new Metadata(context, attrs));
         } else if (type == null) {
           throw new IllegalArgumentException("Type not specified for non-derived " + columnName);
         } else {
-          builder.column(columnName, type, notNull, expression, attributes);
+          builder.column(columnName, type, notNull, expression, new Metadata(context, attrs));
         }
         processAttributes(builder, columnName, attrs);
       }
@@ -129,17 +144,25 @@ public abstract class CreateInitializer<O,
     return get(db, name);
   }
 
-  private static String removeExprMarks(String expr) {
-    return expr == null          ? null
-         : expr.startsWith("$(")
-        && expr.endsWith(")")    ? expr.substring(2, expr.length() - 1)
-         : expr;
+  private static Expression<?, ?> parse(Parser parser, Context context, Object expr) {
+    return expr instanceof String e
+         ? parser.parseExpression(removeExprMarks(e))
+         : makeLiteral(context, expr);
   }
 
-  protected static String removeQuotes(String text) {
-    return text == null         ?  null
-         : text.startsWith("'")
+  private static String removeExprMarks(Object expr) {
+    return expr == null          ? null
+         : expr instanceof String text
+        && text.startsWith("$(")
+        && text.endsWith(")")    ? text.substring(2, text.length() - 1)
+         : String.valueOf(expr);
+  }
+
+  protected static Object removeQuotes(Object expr) {
+    return expr == null         ?  null
+         : expr instanceof String text
+        && text.startsWith("'")
         && text.endsWith  ("'") ? text.substring(1, text.length() -1)
-         : text;
+         : expr;
   }
 }

@@ -54,6 +54,16 @@ public abstract class CreateBuilder<T extends Create,
     return column(name, type, false, metadata);
   }
 
+  public S column(String name, String type, boolean notNull,
+                  String defaultExpression, Metadata metadata) {
+    if (defaultExpression == null) {
+      return column(name, Types.typeOf(type), notNull, null, metadata);
+    } else {
+      Parser parser = new Parser(context.structure);
+      return column(name, Types.typeOf(type), notNull, parser.parseExpression(defaultExpression), metadata);
+    }
+  }
+
   public S column(String name, Type type, boolean notNull,
                   Expression<?, ?> defaultExpression, Metadata metadata) {
     this.columns.add(new ColumnDefinition(context, name, type, notNull,
@@ -65,8 +75,11 @@ public abstract class CreateBuilder<T extends Create,
     return column(name, type, notNull, null, metadata);
   }
 
-  public S column(String name, String type, boolean notNull,
-                              String defaultExpression, Attr... metadata) {
+  public S column(String name,
+                  String type,
+                  boolean notNull,
+                  String defaultExpression,
+                  Attr... metadata) {
     Parser parser = new Parser(context.structure);
     this.columns.add(
         new ColumnDefinition(context, name, Types.typeOf(type),
@@ -87,6 +100,11 @@ public abstract class CreateBuilder<T extends Create,
                                       Stream.of(metadata)
                                             .map(a -> new Attribute(context, a.name(), parser.parseExpression(a.expr())))
                                             .collect(toList())));
+  }
+
+  public S derivedColumn(String name, String expression, Metadata metadata) {
+    Parser parser = new Parser(context.structure);
+    return derivedColumn(name, parser.parseExpression(expression), metadata);
   }
 
   public S derivedColumn(String name, Expression<?, ?> expression, Metadata metadata) {

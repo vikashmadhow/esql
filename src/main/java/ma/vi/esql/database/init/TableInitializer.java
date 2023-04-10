@@ -4,10 +4,16 @@ import ma.vi.esql.builder.CreateTableBuilder;
 import ma.vi.esql.database.Database;
 import ma.vi.esql.semantic.type.BaseRelation;
 import ma.vi.esql.syntax.Context;
+import ma.vi.esql.syntax.define.Attribute;
 import ma.vi.esql.syntax.define.table.CreateTable;
+import ma.vi.esql.syntax.expression.ColumnRef;
+import ma.vi.esql.syntax.expression.Expression;
 
+import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
+import static java.util.stream.Collectors.toMap;
 import static ma.vi.esql.builder.Attributes.*;
 
 /**
@@ -65,16 +71,30 @@ public class TableInitializer extends CreateInitializer<BaseRelation,
   @Override
   protected void processAttributes(CreateTableBuilder  builder,
                                    String              columnName,
-                                   Map<String, String> attrs) {
+                                   List<Attribute>     attributes) {
+    Map<String, Attribute> attrs = attributes.stream()
+                                             .collect(toMap(Attribute::name,
+                                                            Function.identity()));
     if (attrs.containsKey(UNIQUE)) {
       builder.unique(columnName);
+    }
+    if (attrs.containsKey(PRIMARY_KEY)
+     || columnName.equals("_id")) {
+      builder.primaryKey(columnName);
     }
     if (attrs.containsKey(LINK_TABLE)
      && attrs.containsKey(LINK_CODE)) {
       builder.foreignKey(columnName,
-                         removeQuotes(attrs.get(LINK_TABLE)),
-                         removeQuotes(attrs.get(LINK_CODE)));
+                         attrs.get(LINK_TABLE).evaluateAttribute().toString(),
+                         linkCode(attrs.get(LINK_CODE)));
     }
+  }
+
+  private static String linkCode(Attribute a) {
+    Expression<?, ?> expr = a.attributeValue();
+    return expr instanceof ColumnRef ref
+         ? ref.columnName()
+         : a.evaluateAttribute().toString();
   }
 
   @Override

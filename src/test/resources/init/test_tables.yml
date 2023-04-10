@@ -42,6 +42,11 @@ a.b.TestImportTable2:
     type: uuid
     required: true
     unique: true
+    _referred_by:
+      - from_table: "TestImportTable"
+        from_columns: "_id"
+      - from_table: "TestImportTable"
+        from_columns: "id"
   id:
     type: int
     required: true

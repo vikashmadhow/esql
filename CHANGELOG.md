@@ -87,6 +87,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.6.0] (Planned)
 ### Database stored functions and triggers in ESQL
 
+## [1.5.6] - 2023-04-10
+### Added+
+- `TableInitializer` creates primary key for `_id` column or `_primary_key` 
+   metadata. 
+
+## [1.5.5] - 2023-04-06
+### Added
+- `makeLiteral` builds `JsonObjectLiteral` from `JSONObject` or `Map`.
+- `makeLiteral` now builds `JsonArrayLiteral` from `JSONArray` instead of 
+  `BaseArrayLiteral`.
+- `CreateInitializer` can now work with metadata expressions of different types
+  (instead of coercing them as an expression string).
+
 ## [1.5.4] - 2023-03-17
 ### Added
 - `qualify` method in `ColumnRef` now takes a new `replaceExisting` argument 
