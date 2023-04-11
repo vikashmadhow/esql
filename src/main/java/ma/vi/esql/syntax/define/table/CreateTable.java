@@ -367,8 +367,7 @@ public class CreateTable extends Define implements Create {
              * Alter existing column.
              */
             Column existingColumn = existing.b();
-            if (( existingColumn.derived() && !(column instanceof DerivedColumnDefinition))
-             || (!existingColumn.derived() &&   column instanceof DerivedColumnDefinition)) {
+            if (existingColumn.derived() != column instanceof DerivedColumnDefinition) {
               /*
                * Derived status of column has changed. Need to drop existing column
                * and recreate.

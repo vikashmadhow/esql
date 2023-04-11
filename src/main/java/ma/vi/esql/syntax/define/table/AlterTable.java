@@ -155,52 +155,42 @@ public class AlterTable extends Define {
            */
           TableDefinition definition = addTable.definition();
           if (definition instanceof ColumnDefinition column) {
-            T2<Relation, Column> existing = relation.findColumn(ColumnRef.of(null, column.name()));
-            if (existing == null) {
+            // T2<Relation, Column> existing = relation.findColumn(ColumnRef.of(null, column.name()));
+            if (!(column instanceof DerivedColumnDefinition) &&
+                !db.columnExists(con, name, column.name())) {
               /*
-               * add a column to table
+               * Add column to table for non-derived columns only. Derived columns
+               * are only inserted in the _core.columns table.
                */
-              if (!(column instanceof DerivedColumnDefinition)) {
-                /*
-                 * Alter table only for non-derived columns. Derived columns are
-                 * only inserted in the _core.fields table, below.
-                 */
-                if (db.target() == SQLSERVER) {
-                  con.createStatement().executeUpdate("ALTER TABLE " + dbName
-                                                    + " ADD " + column.translate(db.target(), esqlCon, path.add(column), env));
-                } else {
-                  con.createStatement().executeUpdate("ALTER TABLE " + dbName
-                                                    + " ADD COLUMN " + column.translate(db.target(), esqlCon, path.add(column), env));
-                }
+              if (db.target() == SQLSERVER) {
+                con.createStatement().executeUpdate("ALTER TABLE " + dbName
+                                                 + " ADD " + column.translate(db.target(), esqlCon, path.add(column), env));
+              } else {
+                con.createStatement().executeUpdate("ALTER TABLE " + dbName
+                                                 + " ADD COLUMN " + column.translate(db.target(), esqlCon, path.add(column), env));
               }
-
-              Column col = Column.fromDefinition(column);
-  //            if (parent instanceof CreateTable) {
-  //              col.parent = parent;
-  //            } else {
-  //              col.parent = new Esql<>(column.context, relation);
-  //            }
-              s.database.column(esqlCon, relation.id(), col, column.seq);
-              relation.addColumn(col);
-
-              applyChangeToHistoryTable(relation, context, name(), alteration,
-                                        target, esqlCon, path, parameters, env);
-
-              /*
-               * Add structure change event for table add column event that will
-               * be sent to registered subscribers.
-               */
-              esqlCon.addStructureChange(new Database.StructureChangeEvent(
-                COLUMN_ADDED, name, null, column, column));
             }
+            Column col = Column.fromDefinition(column);
+            s.database.column(esqlCon, relation.id(), col, column.seq);
+            relation.addColumn(col);
+
+            applyChangeToHistoryTable(relation, context, name(), alteration,
+                                      target, esqlCon, path, parameters, env);
+
+            /*
+             * Add structure change event for table add column event that will
+             * be sent to registered subscribers.
+             */
+            esqlCon.addStructureChange(new Database.StructureChangeEvent(
+              COLUMN_ADDED, name, null, column, column));
           } else if (definition instanceof ConstraintDefinition constraint) {
             /*
              * add a constraint to table
              */
             if (!(constraint instanceof ForeignKeyConstraint)
              || !((ForeignKeyConstraint)constraint).ignore()) {
-              con.createStatement().executeUpdate("ALTER TABLE " + dbName +
-                                                  " ADD " + constraint.translate(db.target(), esqlCon, path.add(constraint), env));
+              con.createStatement().executeUpdate("ALTER TABLE " + dbName
+                                               + " ADD " + constraint.translate(db.target(), esqlCon, path.add(constraint), env));
             }
             s.database.constraint(esqlCon, relation.id(), constraint);
             relation.constraint(constraint);

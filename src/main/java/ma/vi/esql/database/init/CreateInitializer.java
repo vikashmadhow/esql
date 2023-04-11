@@ -115,10 +115,11 @@ public abstract class CreateInitializer<O,
               case "type",
                    "_type"       -> type = (String)value;
               case "required"    -> {
-                if (requiredAsNull()) notNull = (Boolean)def.getValue();
-                else                  attrs.add(new Attribute(context,
-                                                              def.getKey(),
-                                                              parse(parser, context, value)));
+                if (requiredAsNull()
+                 || columnName.equals("_id")) notNull = (Boolean)def.getValue();
+                else                          attrs.add(new Attribute(context,
+                                                                      def.getKey(),
+                                                                      parse(parser, context, value)));
               }
               case "expression",
                    "_expression" -> expression = value.toString();

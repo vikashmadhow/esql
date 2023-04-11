@@ -87,8 +87,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.6.0] (Planned)
 ### Database stored functions and triggers in ESQL
 
+## [1.5.7] - 2023-04-11
+### Added
+- `TableInitializer` creates primary key for `_id` column or `_primary_key` 
+   metadata. 
+- `columnExists` method in `Database` which returns true if a column exists in a
+  table as set in the `information_schema.columns` view.
+
+### Fixed
+- Corrected an error when a column in table was changed from derived to non-derived
+  or vice-versa. The table structure in the database and the in the _core tables
+  would be out-of-sync in some cases, which would then cause an exception on the
+  next run.
+
 ## [1.5.6] - 2023-04-10
-### Added+
+### Added
 - `TableInitializer` creates primary key for `_id` column or `_primary_key` 
    metadata. 
 

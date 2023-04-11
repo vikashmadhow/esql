@@ -382,6 +382,23 @@ public interface Database {
     }
   }
 
+  default boolean columnExists(EsqlConnection con, String table, String column) {
+    return columnExists(con.connection(), table, column);
+  }
+
+  default boolean columnExists(Connection con, String table, String column) {
+    T2<String, String> name = Type.splitName(table);
+    try(ResultSet rs = con.createStatement().executeQuery(
+      "select column_name "
+        + "  from information_schema.columns"
+        + " where table_schema='" + name.a + "'"
+        + "   and table_name='"   + name.b + "'"
+        + "   and column_name='"  + column + "'")) {
+      return rs.next();
+    } catch (SQLException sqle) {
+      throw new RuntimeException(sqle);
+    }
+  }
 
   /**
    * Creates the _core.relations table if it does not exist already.
