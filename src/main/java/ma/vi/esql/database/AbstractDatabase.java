@@ -1001,9 +1001,8 @@ public abstract class AbstractDatabase implements Database {
                                      from _core.columns
                                     where relation_id=@relation
                                       and seq=@seq""",
-                                  new QueryParams()
-                                        .add("relation", tableId)
-                                        .add("seq",      seq))) {
+                                  new QueryParams().add("relation", tableId)
+                                                   .add("seq",      seq))) {
           if (rs.toNext()) {
             econ.exec("""
                       update c
@@ -1016,40 +1015,92 @@ public abstract class AbstractDatabase implements Database {
                            .add("seq",      seq));
           }
         }
-        econ.exec("""
-                  insert into _core.columns(_id, _no_delete, relation_id, name, derived_column,
-                                            "type", not_null, expression, seq)
-                  values(@id, @noDelete, @relation, @name, @derivedColumn,
-                         @typ, @nonNull, @expression, @seq)""",
-                  new QueryParams()
-                        .add("id",            columnId)
-                        .add("noDelete",      noDelete)
-                        .add("relation",      tableId)
-                        .add("name",          column.name())
-                        .add("derivedColumn", column.derived())
-                        .add("typ",           column.computeType(new EsqlPath(column)).translate(ESQL))
-                        .add("nonNull",       column.notNull())
-                        .add("expression",    column.derived()                   ? column.expression()       .translate(ESQL)
-                                            : column.defaultExpression() != null ? column.defaultExpression().translate(ESQL)
-                                            : null)
-                        .add("seq",           seq));
+        Result colRs = econ.exec("""
+                                 select _id
+                                   from _core.columns
+                                  where relation_id=@relation
+                                    and name=@name""",
+                                 new QueryParams().add("relation", tableId)
+                                                  .add("name",     column.name()));
+        if (colRs.toNext()) {
+          columnId = colRs.value("_id");
+          econ.exec("""
+                    update c
+                      from c:_core.columns
+                       set _no_delete     = @noDelete,
+                           derived_column = @derivedColumn,
+                           "type"         = @typ,
+                           not_null       = @nonNull,
+                           expression     = @expression,
+                           seq            = @seq
+                     where _id = @id""",
+                    new QueryParams()
+                      .add("id",            columnId)
+                      .add("noDelete",      noDelete)
+                      .add("derivedColumn", column.derived())
+                      .add("typ",           column.computeType(new EsqlPath(column)).translate(ESQL))
+                      .add("nonNull",       column.notNull())
+                      .add("expression",    column.derived()                   ? column.expression()       .translate(ESQL)
+                                          : column.defaultExpression() != null ? column.defaultExpression().translate(ESQL)
+                                          : null)
+                      .add("seq",           seq));
+        } else {
+          econ.exec("""
+                    insert into _core.columns(_id, _no_delete, relation_id, name, derived_column,
+                                              "type", not_null, expression, seq)
+                    values(@id, @noDelete, @relation, @name, @derivedColumn,
+                           @typ, @nonNull, @expression, @seq)""",
+                    new QueryParams()
+                          .add("id",            columnId)
+                          .add("noDelete",      noDelete)
+                          .add("relation",      tableId)
+                          .add("name",          column.name())
+                          .add("derivedColumn", column.derived())
+                          .add("typ",           column.computeType(new EsqlPath(column)).translate(ESQL))
+                          .add("nonNull",       column.notNull())
+                          .add("expression",    column.derived()                   ? column.expression()       .translate(ESQL)
+                                              : column.defaultExpression() != null ? column.defaultExpression().translate(ESQL)
+                                              : null)
+                          .add("seq",           seq));
+        }
       }
-      addColumnMetadata(econ, column, insertColAttr);
+      addColumnMetadata(econ, columnId, column);
     }
   }
 
   private void addColumnMetadata(EsqlConnection econ,
-                                 Column column,
-                                 Insert insertColAttr) {
+                                 UUID           columnId,
+                                 Column         column) {
     if (column.metadata() != null && column.metadata().attributes() != null) {
       for (Attribute attr: column.metadata().attributes().values()) {
         if (!attr.name().equals(ID)) {
           Expression<?, ?> value = attr.attributeValue();
-          econ.exec(insertColAttr,
-                    new QueryParams()
-                      .add("columnId", column.id())
-                      .add("name", attr.name())
-                      .add("value", value == null ? null : value.translate(ESQL)));
+          try (Result attRs = econ.exec("""
+                                        select _id
+                                          from _core.column_attributes
+                                         where column_id = @columnId
+                                           and attribute = @name""",
+                                        new QueryParams().add("columnId", columnId != null ? columnId : column.id())
+                                                         .add("name",     attr.name()))) {
+            if (attRs.toNext()) {
+              econ.exec("""
+                        update att
+                          from att:_core.column_attributes
+                           set value=@value
+                         where _id=@id""",
+                        new QueryParams()
+                          .add("id",    attRs.value("_id"))
+                          .add("value", value == null ? null : value.translate(ESQL)));
+            } else {
+              econ.exec("""
+                        insert into _core.column_attributes(_id, column_id, attribute, value)
+                                                     values(newid(), @columnId, @name, @value)""",
+                        new QueryParams()
+                          .add("columnId", columnId != null ? columnId : column.id())
+                          .add("name",     attr.name())
+                          .add("value",    value == null ? null : value.translate(ESQL)));
+            }
+          }
         }
       }
     }

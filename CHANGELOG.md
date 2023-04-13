@@ -87,6 +87,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.6.0] (Planned)
 ### Database stored functions and triggers in ESQL
 
+## [1.5.8] - 2023-04-13
+### Added
+- `addColumn` method in `Database` changed to check whether column already exists
+  in `_core.columns` before inserting; in case of prior existence, the column 
+  definition is updated.
+- `addColumnMetadata` method in `Database` changed to check whether column attribute
+  already exists in `_core.column_attributes` before inserting; in case of prior 
+  existence, the attribute value is updated.
+
 ## [1.5.7] - 2023-04-11
 ### Added
 - `TableInitializer` creates primary key for `_id` column or `_primary_key` 
