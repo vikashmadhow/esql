@@ -391,10 +391,10 @@ public abstract class QueryUpdate extends MetadataContainer<QueryTranslation> {
       if (producesResult) {
         ResultSet rs = con.createStatement(TYPE_SCROLL_INSENSITIVE, CONCUR_READ_ONLY)
                           .executeQuery(q.translation());
-        return new Result(db, rs, q);
+        return new Result(esqlCon, rs, q);
       } else {
         con.createStatement().executeUpdate(q.translation());
-        return new Result(db, null, q);
+        return new Result(esqlCon, null, q);
       }
     } catch (SQLException e) {
       log.log(ERROR, e.getMessage());

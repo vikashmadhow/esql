@@ -87,6 +87,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.6.0] (Planned)
 ### Database stored functions and triggers in ESQL
 
+## [1.5.9] - 2023-04-20
+### Added
+- `Result` stores the connection that created it in a public final field.
+- The `db` member of the `Result` class has been removed as it can now be accessed
+  through the connection that produced the result.
+
 ## [1.5.8] - 2023-04-13
 ### Added
 - `addColumn` method in `Database` changed to check whether column already exists

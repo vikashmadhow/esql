@@ -5,8 +5,9 @@ import org.yaml.snakeyaml.Yaml;
 
 import java.io.InputStream;
 import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
+
+import static java.util.stream.Collectors.toMap;
+import static java.util.stream.IntStream.range;
 
 /**
  * Initializers creates database structures from a hierarchical representation
@@ -39,12 +40,12 @@ public interface Initializer<T> {
                 String       name,
                 T            existing,
                 List<Object> definition) {
-    Map<String, Object> def = IntStream.range(0, definition.size())
-                                       .boxed()
-                                       .collect(Collectors.toMap(String::valueOf,
-                                                                 definition::get,
-                                                                 (d1, d2) -> d1,
-                                                                 LinkedHashMap::new));
+    Map<String, Object> def = range(0, definition.size())
+                                .boxed()
+                                .collect(toMap(String::valueOf,
+                                               definition::get,
+                                               (d1, d2) -> d1,
+                                               LinkedHashMap::new));
     return add(db, overwrite, name, existing, def);
   }
 

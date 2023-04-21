@@ -10,7 +10,7 @@ import ma.vi.base.string.Strings;
 import ma.vi.base.tuple.T2;
 import ma.vi.base.util.Numbers;
 import ma.vi.esql.database.DataException;
-import ma.vi.esql.database.Database;
+import ma.vi.esql.database.EsqlConnection;
 import ma.vi.esql.semantic.type.*;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.query.AttributeIndex;
@@ -40,16 +40,16 @@ public class Result implements Iterator<Result.Row>,
   /**
    * Construct a Result object.
    *
-   * @param db The database from which the data was loaded.
+   * @param connection The connection that produced this result.
    * @param rs The underlying resultset containing the data for the query and
    *           which will be iterated over to produce the rows of this Result.
    * @param query The query translation object containing information on the source
    *              ESQL query, its SQL translation, columns and attributes mapping.
    */
-  public Result(Database         db,
+  public Result(EsqlConnection   connection,
                 ResultSet        rs,
                 QueryTranslation query) {
-    this.db = db;
+    this.connection = connection;
     this.rs = rs;
     this.query = query;
     this.columnNameToIndex = query.columns() == null
@@ -364,7 +364,7 @@ public class Result implements Iterator<Result.Row>,
         /*
          * Array support.
          */
-        value = db.getArray(rs, index, Types.classOf(arrayType.componentType.name()));
+        value = connection.database().getArray(rs, index, Types.classOf(arrayType.componentType.name()));
 
       } else if (value instanceof String && Strings.isUUID((String)value)) {
         /*
@@ -415,9 +415,9 @@ public class Result implements Iterator<Result.Row>,
                                                                        emptyList(), emptyMap()));
 
   /**
-   * The database from which the data was loaded.
+   * The connection that produced this result.
    */
-  private final Database db;
+  public final EsqlConnection connection;
 
   /**
    * The underlying resultset containing the data for the query and which will
