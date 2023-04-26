@@ -44,98 +44,108 @@ public class DefaultExecutor implements Executor {
 
   @Override
   public Esql<?, ?> prepare(Esql<?, ?> esql, QueryParams qp) {
-    Esql<?, ?> st = esql;
+    try {
+      Esql<?, ?> st = esql;
 
-    /*
-     * Substitute parameters into statement.
-     */
-    if (qp !=null && !qp.params.isEmpty()) {
-      st = esql.map((e, p) -> {
-        if (e instanceof NamedParameter) {
-          String paramName = ((NamedParameter)e).name();
-          if (qp.params.containsKey(paramName)) {
-            Param param = qp.params.get(paramName);
-            Object value = param.b;
-            return value instanceof Esql             ? (Esql<?, ?>)value
-                 : value == null                     ? new NullLiteral(esql.context)
-                 : value instanceof QueryTranslation ? makeLiteral(esql.context, value.toString())
-                                                     : makeLiteral(esql.context, value);
+      /*
+       * Substitute parameters into statement.
+       */
+      if (qp !=null && !qp.params.isEmpty()) {
+        st = esql.map((e, p) -> {
+          if (e instanceof NamedParameter) {
+            String paramName = ((NamedParameter)e).name();
+            if (qp.params.containsKey(paramName)) {
+              Param param = qp.params.get(paramName);
+              Object value = param.b;
+              return value instanceof Esql             ? (Esql<?, ?>)value
+                   : value == null                     ? new NullLiteral(esql.context)
+                   : value instanceof QueryTranslation ? makeLiteral(esql.context, value.toString())
+                                                       : makeLiteral(esql.context, value);
+            }
           }
+          return e;
+        });
+      }
+
+      /*
+       * Base macro expansion for base-level changes not requiring any type information
+       * or necessary for determining type information later (such as expanding `*`
+       * in column lists).
+       */
+      st = expand(st, UntypedMacro.class);
+
+      /*
+       * Apply composable filters, if any.
+       */
+      if (qp != null && !qp.filters.isEmpty()) {
+        AtomicBoolean first = new AtomicBoolean(true);
+        for (ComposableFilter filter: qp.filters) {
+          st = st.map((e, p) -> e.filter(filter, first.get(), p));
+          first.set(false);
         }
-        return e;
+      }
+
+      /*
+       * Add composable columns, if any.
+       */
+      if (qp != null && !qp.columns.isEmpty()) {
+        AtomicBoolean first = new AtomicBoolean(true);
+        for (ComposableColumn column: qp.columns) {
+          st = st.map((e, p) -> e.column(column, first.get(), p));
+          first.set(false);
+        }
+      }
+
+      /*
+       * Expand typed macros in statement (macros requiring type information to be
+       * present when expanding).
+       */
+      st = expand(st, TypedMacro.class);
+
+      /*
+       * Scope symbols.
+       */
+      var db = connection().database();
+      st.scope(db.structure(), new EsqlPath(st));
+
+      /*
+       * Type computation.
+       */
+      st.forEach((e, p) -> {
+        e.computeType(p);
+        return true;
       });
-    }
 
-    /*
-     * Base macro expansion for base-level changes not requiring any type information
-     * or necessary for determining type information later (such as expanding `*`
-     * in column lists).
-     */
-    st = expand(st, UntypedMacro.class);
-
-    /*
-     * Apply composable filters, if any.
-     */
-    if (qp != null && !qp.filters.isEmpty()) {
-      AtomicBoolean first = new AtomicBoolean(true);
-      for (ComposableFilter filter: qp.filters) {
-        st = st.map((e, p) -> e.filter(filter, first.get(), p));
-        first.set(false);
+      /*
+       * Transform ESQL through registered transformers prior to execution.
+       */
+      for (EsqlTransformer t: db.esqlTransformers()) {
+        st = t.transform(db, st);
       }
+      return st;
+    } catch (Exception e) {
+      connection.rollbackOnly();
+      throw (RuntimeException)e;
     }
-
-    /*
-     * Add composable columns, if any.
-     */
-    if (qp != null && !qp.columns.isEmpty()) {
-      AtomicBoolean first = new AtomicBoolean(true);
-      for (ComposableColumn column: qp.columns) {
-        st = st.map((e, p) -> e.column(column, first.get(), p));
-        first.set(false);
-      }
-    }
-
-    /*
-     * Expand typed macros in statement (macros requiring type information to be
-     * present when expanding).
-     */
-    st = expand(st, TypedMacro.class);
-
-    /*
-     * Scope symbols.
-     */
-    var db = connection().database();
-    st.scope(db.structure(), new EsqlPath(st));
-
-    /*
-     * Type computation.
-     */
-    st.forEach((e, p) -> {
-      e.computeType(p);
-      return true;
-    });
-
-    /*
-     * Transform ESQL through registered transformers prior to execution.
-     */
-    for (EsqlTransformer t: db.esqlTransformers()) {
-      st = t.transform(db, st);
-    }
-    return st;
   }
 
   @Override
   public <R> R execPrepared(Esql<?, ?> esql, QueryParams qp) {
-    var db = connection.database();
-    Environment env = new ProgramEnvironment(db.structure());
-    if (qp != null) {
-      for (Param p: qp.params.values()) env.add(p.a, p.b);
+    try {
+      var db = connection.database();
+      Environment env = new ProgramEnvironment(db.structure());
+      if (qp != null) {
+        for (Param p: qp.params.values()) env.add(p.a, p.b);
+      }
+      return (R)esql.exec(db.target(),
+                          connection,
+                          new EsqlPath(esql),
+                          HashPMap.empty(IntTreePMap.empty()),
+                          env);
+    } catch (Exception e) {
+      connection.rollbackOnly();
+      throw (RuntimeException)e;
     }
-    return (R)esql.exec(db.target(),
-                        connection,
-                        new EsqlPath(esql),
-                        HashPMap.empty(IntTreePMap.empty()),
-                        env);
   }
 
   private static <T extends Esql<?, ?>,

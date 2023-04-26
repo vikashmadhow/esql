@@ -87,6 +87,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.6.0] (Planned)
 ### Database stored functions and triggers in ESQL
 
+## [1.5.10] - 2023-04-24
+### Added
+- `DefaultExecutor` catches exception and sets the `rollbackOnly` flag of its 
+   underlying `EsqlConnection` so that the connection is not committed on close. 
+
 ## [1.5.9] - 2023-04-20
 ### Added
 - `Result` stores the connection that created it in a public final field.
