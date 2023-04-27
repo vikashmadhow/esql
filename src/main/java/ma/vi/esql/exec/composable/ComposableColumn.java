@@ -21,7 +21,7 @@ public record ComposableColumn(String       table,
                           String   expression,
                           Metadata metadata) {
     this(table,
-         Type.unqualifiedName(table),
+         table == null ? null : Type.unqualifiedName(table),
          name,
          expression,
          metadata,

@@ -73,7 +73,8 @@ public class SingleTableExpr extends AbstractAliasTableExpr {
 
   @Override
   public ShortestPath findShortestPath(Composable composable) {
-    if (context.structure.relationExists(tableName())) {
+    if (composable.table() != null
+     && context.structure.relationExists(tableName())) {
       BaseRelation rel = context.structure.relation(tableName());
       BaseRelation.Path path = rel.path(composable.table());
       return path == null ? null

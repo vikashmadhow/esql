@@ -828,12 +828,12 @@ public class ComposableColumnTest extends DataTest {
   }
 
   public static void setupTables(EsqlConnection con) {
-    con.exec("drop table test.pX");
+    con.exec("drop table test.pZ");
+    con.exec("drop table test.pY");
     con.exec("drop table test.pA");
     con.exec("drop table test.pB");
     con.exec("drop table test.pC");
-    con.exec("drop table test.pY");
-    con.exec("drop table test.pZ");
+    con.exec("drop table test.pX");
 
     con.exec("""
           create table test.pX drop undefined(

@@ -543,6 +543,7 @@ public class Types {
     baseTypeMapping.put("integral",   Long.class);
     baseTypeMapping.put("float",      Float.class);
     baseTypeMapping.put("double",     Double.class);
+    baseTypeMapping.put("number",     Double.class);
     baseTypeMapping.put("money",      Double.class);
     baseTypeMapping.put("fractional", Double.class);
     baseTypeMapping.put("bool",       Boolean.class);

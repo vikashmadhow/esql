@@ -12,6 +12,7 @@ import ma.vi.esql.exec.function.FunctionParam;
 import ma.vi.esql.exec.function.array.InArray;
 import ma.vi.esql.exec.function.date.*;
 import ma.vi.esql.exec.function.debug.Print;
+import ma.vi.esql.exec.function.number.Round;
 import ma.vi.esql.exec.function.sequence.NextValue;
 import ma.vi.esql.exec.function.stat.Bin;
 import ma.vi.esql.exec.function.stat.BinFunction;
@@ -184,9 +185,7 @@ public class Structure extends AbstractScope implements Environment {
     function(new Function("floor", LongType,
                           singletonList(new FunctionParam("p", NumberType))));
 
-    function(new Function("round", LongType,
-                          Arrays.asList(new FunctionParam("p", NumberType),
-                                        new FunctionParam("p", IntType))));
+    function(new Round());
 
     function(new Function("sign", IntType,
                           singletonList(new FunctionParam("p", NumberType))));

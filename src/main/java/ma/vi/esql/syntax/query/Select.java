@@ -189,20 +189,27 @@ public class Select extends QueryUpdate {
                          BinaryOperator  .class))
       return this;
 
-    FilterResult result = compose(tables(), column);
-    if (result == null) {
-      /*
-       * A link from the current tables in the select expression to the table of
-       * the column could not be found. The column might be embedded inside a
-       * sub-select from which the current statement is selecting from. Attempt
-       * to find a column to cover those cases, if any.
-       */
-      ColumnRef col = tables().findColumn(column.table(), column.expression());
-      if (col == null) return this;
-      result = new FilterResult(tables(), col, false);
+    FilterResult result = null;
+    Expression<?, String> resultExpr;
+    if (column.table() == null) {
+      Parser parser = new Parser(context.structure);
+      resultExpr = parser.parseExpression(column.expression());
+    } else {
+      result = compose(tables(), column);
+      if (result == null) {
+        /*
+         * A link from the current tables in the select expression to the table of
+         * the column could not be found. The column might be embedded inside a
+         * sub-select from which the current statement is selecting from. Attempt
+         * to find a column to cover those cases, if any.
+         */
+        ColumnRef col = tables().findColumn(column.table(), column.expression());
+        if (col == null) return this;
+        result = new FilterResult(tables(), col, false);
+      }
+      resultExpr = result.expression();
     }
 
-    Expression<?, String> resultExpr = result.expression;
     boolean hasSameColumn = columns().stream().anyMatch(c -> c.expression().equals(resultExpr));
     if (hasSameColumn)
       return this;
@@ -221,14 +228,10 @@ public class Select extends QueryUpdate {
      * definition), thus requiring a grouping clause; and non-aggregates.
      */
     List<Column> nonAggregates = cols.stream()
-                                     .filter(c -> !(c.expression() instanceof FunctionCall f)
-                                               || !f.function().aggregate
-                                               ||  f.hasWindow())
+                                     .filter(c -> !aggregate(c.expression()))
                                      .collect(toCollection(ArrayList::new));
     List<Column> aggregates = cols.stream()
-                                  .filter(c ->  c.expression() instanceof FunctionCall f
-                                            &&  f.function().aggregate
-                                            && !f.hasWindow())
+                                  .filter(c -> aggregate(c.expression()))
                                   .collect(toCollection(ArrayList::new));
     /*
      * Ensure that the new column has a unique name in the column list.
@@ -238,7 +241,7 @@ public class Select extends QueryUpdate {
                                .collect(Collectors.toSet());
     String name = column.name();
     if (name == null
-     && result.expression() instanceof ColumnRef ref) {
+     && resultExpr instanceof ColumnRef ref) {
       name = ref.columnName();
     }
     if (name == null) name = "column";
@@ -246,14 +249,11 @@ public class Select extends QueryUpdate {
 
     Column newCol = new Column(context,
                                name,
-                               result.expression(),
+                               resultExpr,
                                null,
                                column.metadata());
-    boolean aggregate =  result.expression() instanceof FunctionCall f
-                     &&  f.function().aggregate
-                     && !f.hasWindow();
-    if (aggregate) aggregates.add(newCol);
-    else           nonAggregates.add(newCol);
+    if (aggregate(resultExpr)) aggregates.add(newCol);
+    else                       nonAggregates.add(newCol);
 
     /*
      * Grouping is required if there are both aggregates and non-aggregates; check
@@ -284,11 +284,12 @@ public class Select extends QueryUpdate {
       boolean changed = false;
       for (Column col: nonAggregates) {
         List<Expression<?, ?>> colExprs = List.of(col.expression());
-        if (col.expression() instanceof FunctionCall f && f.hasWindow()) {
+        boolean isWindow = col.expression() instanceof FunctionCall f && f.hasWindow();
+        if (isWindow) {
           /*
            * A window function cannot be added to the `group by` clause; instead
            * we can extract all column references from the function call and add
-           * them, if any, to the group list
+           * them, if any, to the group list.
            */
           Set<Expression<?, ?>> colRefs = new LinkedHashSet<>();
           col.expression().forEach((e, p) -> {
@@ -299,8 +300,8 @@ public class Select extends QueryUpdate {
         }
         for (Expression<?, ?> colExpr: colExprs) {
           boolean exists = false;
-          for (Expression<?, ?> expr: groupExpressions) {
-            if (colExpr.contains(expr)) {
+          for (Expression<?, ?> groupExpr: groupExpressions) {
+            if ((isWindow && groupExpr.contains(colExpr)) || groupExpr.equals(colExpr)) {
               exists = true;
               break;
             }
@@ -329,7 +330,7 @@ public class Select extends QueryUpdate {
       if (orderBy == null) orderBy = new ArrayList<>();
       else                 orderBy = new ArrayList<>(orderBy);
       orderBy.add(new Order(context,
-                            result.expression(),
+                            resultExpr,
                             column.order() == Composable.Order.DESC ? "desc" : null));
     }
 
@@ -338,16 +339,24 @@ public class Select extends QueryUpdate {
                       metadata(),
                       unfiltered(),
                       explicit(),
-                      (result.hasReverseLinks && !doNotPutDistinct) || distinct(),
+                      (result != null && result.hasReverseLinks && !doNotPutDistinct) || distinct(),
                       distinctOn(),
                       Stream.concat(nonAggregates.stream(), aggregates.stream()).toList(),
-                      result.tables,
+                      result == null ? tables() : result.tables,
                       where(),
                       groupBy,
                       having(),
                       orderBy,
                       offset(),
                       limit());
+  }
+
+  private static boolean aggregate(Esql<?, ?> expr) {
+    if (expr.find(Select.class) != null) {
+      return false;
+    }
+    List<FunctionCall> calls = expr.findAll(FunctionCall.class);
+    return calls.stream().anyMatch(c ->  c.function().aggregate && !c.hasWindow());
   }
 
   @Override

@@ -429,16 +429,29 @@ public class Esql<V, T>
         return false;
       }
       return true;
-    } , null);
+    }, null);
     return found.a;
-  }
-
-  public boolean contains(Esql<?, ?> esql) {
-    return find(e -> e.equals(esql)) != null;
   }
 
   public <X extends Esql<?, ?>> X find(Class<X> cls) {
     return find(e -> e.getClass().equals(cls));
+  }
+
+  public <X extends Esql<?, ?>> List<X> findAll(Predicate<Esql<?, ?>> predicate) {
+    List<X> found = new ArrayList<>();
+    forEach((e, path) -> {
+      if (predicate.test(e)) found.add((X)e);
+      return true;
+    }, null);
+    return found;
+  }
+
+  public <X extends Esql<?, ?>> List<X> findAll(Class<X> cls) {
+    return findAll(e -> e.getClass().equals(cls));
+  }
+
+  public boolean contains(Esql<?, ?> esql) {
+    return find(e -> e.equals(esql)) != null;
   }
 
   public <X extends Esql<V, T>> X map(BiFunction<Esql<?, ?>, EsqlPath, Esql<?, ?>> mapper) {

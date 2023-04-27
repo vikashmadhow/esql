@@ -87,6 +87,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.6.0] (Planned)
 ### Database stored functions and triggers in ESQL
 
+## [1.5.11] - 2023-04-27
+### Added
+- `ComposableColumn` can now have a `null` table whereby no table link is 
+  attempted. Instead the expression of the composable column is simply added
+  to the column list of the `select`.
+- Column expression is identified as part of an aggregate if it calls any aggregate
+  function without a window clause; previously only expressions that were a single
+  function call to an aggregate function would be identified as an aggregate. This
+  change allows aggregate function to be nested into another expression such as
+  a concatenation or bracket-grouping.
+- New `round` function with correct translation for Postgresql, Sql Server, 
+  Javascript and Esql. Execution of that function in ESQL uses the `Numbers`
+  class for more accurate rounding.
+- `number` ESQL abstract type mapped to `Double` Java class.
+
 ## [1.5.10] - 2023-04-24
 ### Added
 - `DefaultExecutor` catches exception and sets the `rollbackOnly` flag of its 
