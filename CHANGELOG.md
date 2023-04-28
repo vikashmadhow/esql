@@ -101,6 +101,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Javascript and Esql. Execution of that function in ESQL uses the `Numbers`
   class for more accurate rounding.
 - `number` ESQL abstract type mapped to `Double` Java class.
+- Return and parameter types of `inmonth` macro function specified to help with
+  type inference.
 
 ## [1.5.10] - 2023-04-24
 ### Added

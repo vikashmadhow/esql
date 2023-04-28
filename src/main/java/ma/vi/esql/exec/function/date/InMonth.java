@@ -6,7 +6,7 @@ package ma.vi.esql.exec.function.date;
 
 import ma.vi.esql.exec.function.Function;
 import ma.vi.esql.exec.function.FunctionCall;
-import ma.vi.esql.semantic.type.Types;
+import ma.vi.esql.exec.function.FunctionParam;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
@@ -24,10 +24,10 @@ import org.apache.commons.lang3.StringUtils;
 import java.time.LocalDate;
 import java.util.List;
 
-import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static ma.vi.esql.database.Database.NULL_DB;
 import static ma.vi.esql.database.EsqlConnection.NULL_CONNECTION;
+import static ma.vi.esql.semantic.type.Types.*;
 import static ma.vi.esql.translation.Translatable.Target.ESQL;
 
 /**
@@ -39,7 +39,10 @@ import static ma.vi.esql.translation.Translatable.Target.ESQL;
  */
 public class InMonth extends Function implements TypedMacro {
   public InMonth() {
-    super("inmonth", Types.StringType, emptyList());
+    super("inmonth", BoolType,
+          List.of(new FunctionParam("date",  DateType),
+                  new FunctionParam("month", IntType),
+                  new FunctionParam("year",  IntType)));
   }
 
   @Override
@@ -49,8 +52,8 @@ public class InMonth extends Function implements TypedMacro {
     List<Expression<?, ?>> arguments = call.arguments();
 
     if (arguments.isEmpty()) {
-      throw new TranslationException(esql, "inmonth function needs at 3 arguments (the date to check "
-                                         + "and the month and year that the date must fall in)");
+      throw new TranslationException(esql, "inmonth function needs 3 arguments: the date followed "
+                                         + "by the month and year to check that the date is in");
     }
 
     /*
