@@ -192,8 +192,36 @@ public class Select extends QueryUpdate {
     FilterResult result = null;
     Expression<?, String> resultExpr;
     if (column.table() == null) {
+      /*
+       * A column can be composed without specifying any target table; in such
+       * cases, it is assumed that the required tables are already included in
+       * the `from` clause of the select. All column references must be fully
+       * and correctly qualified for this composition to work. If a column is
+       * not qualified, the composition fails with an exception. If it is
+       * qualified with a wrong qualifier (one that is not associated to a table
+       * in the table list of the query), the composition is silently ignored.
+       * This is because the composition may succeed in another part of the query
+       * (such as when composing on a select containing an inner select or is
+       * part of a set-composed select).
+       */
       Parser parser = new Parser(context.structure);
       resultExpr = parser.parseExpression(column.expression());
+
+      Set<String> aliases = tables().aliases();
+      List<ColumnRef> refs = resultExpr.findAll(ColumnRef.class);
+      if (refs.stream().anyMatch(r -> r.qualifier() == null))
+        throw new IllegalArgumentException("Composing a column without a target table ("
+                                          + column + ") requires that all column references "
+                                          + "in the column expression contain a qualifier "
+                                          + "(alias of the table containing the column)");
+
+      if (refs.stream().anyMatch(r -> !aliases.contains(r.qualifier())))
+        /*
+         * Silently ignore composition when qualifier for any column is not in
+         * the table list.
+         */
+        return this;
+
     } else {
       result = compose(tables(), column);
       if (result == null) {

@@ -63,7 +63,7 @@ public abstract class AbstractJoinTableExpr extends TableExpr {
 
   @Override
   public Set<String> aliases() {
-    Set<String> aliases = new HashSet<>(left().aliases());
+    Set<String> aliases = new LinkedHashSet<>(left().aliases());
     aliases.addAll(right().aliases());
     return aliases;
   }

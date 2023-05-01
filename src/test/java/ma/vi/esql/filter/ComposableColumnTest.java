@@ -7,6 +7,7 @@ package ma.vi.esql.filter;
 import ma.vi.esql.DataTest;
 import ma.vi.esql.database.EsqlConnection;
 import ma.vi.esql.exec.QueryParams;
+import ma.vi.esql.exec.composable.ComposableColumn;
 import ma.vi.esql.semantic.type.BaseRelation;
 import ma.vi.esql.semantic.type.Column;
 import ma.vi.esql.syntax.Esql;
@@ -301,179 +302,6 @@ public class ComposableColumnTest extends DataTest {
                  }));
   }
 
-//  @TestFactory
-//  Stream<DynamicTest> hierarchicalFilters() {
-//    return Stream.of(databases)
-//                 .map(db -> dynamicTest(db.target().toString(), () -> {
-//                   try (EsqlConnection con = db.esql(db.pooledConnection())) {
-//                     setupTables(con);
-//                     Esql<?, ?> filtered =
-//                       con.prepare("select a from test.pZ where a < 2 or a > 5",
-//                                   new QueryParams()
-//                                     .filter(new ComposableFilter(Composable.Op.OR,
-//                                                                  new ComposableFilter("test.pX", "x", "x.a=3"),
-//                                                                  new ComposableFilter(Composable.Op.AND,
-//                                                                                       new ComposableFilter("test.pX", "x", "x.a=4"),
-//                                                                                       new ComposableFilter("test.pY", "y", "y.a=7")),
-//                                                                  new ComposableFilter("test.pB", "b", "b.a=5"))));
-//                     System.out.println(filtered);
-//
-//                     Select select = (Select)((Program)filtered).expressions().get(0);
-//                     TableExpr from = select.from();
-//                     Parser p = new Parser(db.structure());
-//                     fromEquals(from, "test.pZ", "pZ",
-//                                new Join("test.pY", "pY", null, p.parseExpression("pZ.y_id=pY._id")),
-//                                new Join("test.pB", "pB", null, p.parseExpression("pY.b_id=pB._id")),
-//                                new Join("test.pX", "x",  null, p.parseExpression("pB.x_id=x._id")));
-//
-//                     assertEquals(p.parseExpression("(pZ.a < 2 or pZ.a > 5) and (x.a = 3 or (x.a = 4 and pY.a=7) or pB.a = 5)"), select.where());
-//                     con.execPrepared(filtered);
-//                   }
-//                 }));
-//  }
-//
-//  @TestFactory
-//  Stream<DynamicTest> reverseAndForcedPathFilter() {
-//    return Stream.of(databases)
-//                 .map(db -> dynamicTest(db.target().toString(), () -> {
-//                   try (EsqlConnection con = db.esql(db.pooledConnection())) {
-//                     setupTables(con);
-//                     Esql<?, ?> filtered =
-//                       con.prepare("select * from test.pX where a < 2",
-//                                   new QueryParams()
-//                                     .and("test.pA", "a", "a.a=3")  // forcing through pA even if higher cost than B
-//                                     .and("test.pZ", "z", "z.a<4"));
-//                     System.out.println(filtered);
-//
-//                     Select select = (Select)((Program)filtered).expressions().get(0);
-//                     TableExpr from = select.from();
-//                     Parser p = new Parser(db.structure());
-//                     fromEquals(from, "test.pX", "pX",
-//                                new Join("test.pA", "a",  null, p.parseExpression("pX._id=a.x_id")),
-//                                new Join("test.pY", "pY", null, p.parseExpression("a._id=pY.a_id")),
-//                                new Join("test.pZ", "z",  null, p.parseExpression("pY._id=z.y_id")));
-//
-//                     assertEquals(p.parseExpression("(pX.a < 2) and a.a=3 and z.a<4"), select.where());
-//                     con.execPrepared(filtered);
-//                   }
-//                 }));
-//  }
-//
-//  @TestFactory
-//  Stream<DynamicTest> filterOnLeftJoin() {
-//    return Stream.of(databases)
-//                 .map(db -> dynamicTest(db.target().toString(), () -> {
-//                   try (EsqlConnection con = db.esql(db.pooledConnection())) {
-//                     setupTables(con);
-//                     Esql<?, ?> filtered =
-//                       con.prepare("""
-//                                   select z.*
-//                                     from z:test.pZ
-//                                     join y:test.pY on z.y_id=y._id
-//                                     join c:test.pC on z.a=c.a
-//                                    where z.a < 2
-//                                   """,
-//                                   new QueryParams()
-//                                     .and("test.pX", "x", "x.a=3"));
-//                     System.out.println(filtered);
-//
-//                     Select select = (Select)((Program)filtered).expressions().get(0);
-//                     TableExpr from = select.from();
-//                     Parser p = new Parser(db.structure());
-//                     fromEquals(from, "test.pZ", "z",
-//                                new Join("test.pY", "y", null, p.parseExpression("z.y_id=y._id")),
-//                                new Join("test.pC", "c", null, p.parseExpression("z.a=c.a")),
-//                                new Join("test.pX", "x", null, p.parseExpression("c.x_id=x._id")));
-//                     assertEquals(p.parseExpression("(z.a < 2) and x.a = 3"), select.where());
-//
-//                     filtered =
-//                       con.prepare("""
-//                                   select z.*
-//                                     from z:test.pZ
-//                                     join y:test.pY on z.y_id=y._id
-//                                     left join c:test.pC on z.a=c.a
-//                                    where z.a < 2
-//                                   """,
-//                                   new QueryParams()
-//                                     .and("test.pX", "x", "x.a=3"));
-//                     System.out.println(filtered);
-//
-//                     select = (Select)((Program)filtered).expressions().get(0);
-//                     from = select.from();
-//                     fromEquals(from, "test.pZ", "z",
-//                                new Join("test.pY", "y", null, p.parseExpression("z.y_id=y._id")),
-//                                new Join("test.pB", "pB", null, p.parseExpression("y.b_id=pB._id")),
-//                                new Join("test.pX", "x", null, p.parseExpression("pB.x_id=x._id")),
-//                                new Join("test.pC", "c", "left", p.parseExpression("z.a=c.a")));
-//                     assertEquals(p.parseExpression("(z.a < 2) and x.a = 3"), select.where());
-//
-//                     con.execPrepared(filtered);
-//                   }
-//                 }));
-//  }
-//
-//  @TestFactory
-//  Stream<DynamicTest> filterOnRightJoin() {
-//    return Stream.of(databases)
-//                 .map(db -> dynamicTest(db.target().toString(), () -> {
-//                   try (EsqlConnection con = db.esql(db.pooledConnection())) {
-//                     setupTables(con);
-//                     Esql<?, ?> filtered =
-//                       con.prepare("""
-//                                   select z.*
-//                                     from z:test.pZ
-//                                     join y:test.pY on z.y_id=y._id
-//                                     right join c:test.pC on z.a=c.a
-//                                    where z.a < 2
-//                                   """,
-//                                   new QueryParams()
-//                                     .and("test.pX", "x", "x.a=3"));
-//                     System.out.println(filtered);
-//
-//                     Select select = (Select)((Program)filtered).expressions().get(0);
-//                     TableExpr from = select.from();
-//                     Parser p = new Parser(db.structure());
-//                     fromEquals(from, "test.pZ", "z",
-//                                new Join("test.pY", "y", null, p.parseExpression("z.y_id=y._id")),
-//                                new Join("test.pC", "c", "right", p.parseExpression("z.a=c.a")),
-//                                new Join("test.pX", "x", null, p.parseExpression("c.x_id=x._id")));
-//                     assertEquals(p.parseExpression("(z.a < 2) and x.a = 3"), select.where());
-//                     con.execPrepared(filtered);
-//                   }
-//                 }));
-//  }
-//
-//  @TestFactory
-//  Stream<DynamicTest> filterOnFullJoin() {
-//    return Stream.of(databases)
-//                 .map(db -> dynamicTest(db.target().toString(), () -> {
-//                   try (EsqlConnection con = db.esql(db.pooledConnection())) {
-//                     setupTables(con);
-//                     Esql<?, ?> filtered =
-//                       con.prepare("""
-//                                   select z.*
-//                                     from z:test.pZ
-//                                     join y:test.pY on z.y_id=y._id
-//                                     full join c:test.pC on z.a=c.a
-//                                    where z.a < 2
-//                                   """,
-//                                   new QueryParams()
-//                                     .and("test.pX", "x", "x.a=3"));
-//                     System.out.println(filtered);
-//
-//                     Select select = (Select)((Program)filtered).expressions().get(0);
-//                     TableExpr from = select.from();
-//                     Parser p = new Parser(db.structure());
-//                     fromEquals(from, "test.pZ", "z",
-//                                new Join("test.pY", "y", null, p.parseExpression("z.y_id=y._id")),
-//                                new Join("test.pC", "c", "full", p.parseExpression("z.a=c.a")),
-//                                new Join("test.pX", "x", null, p.parseExpression("c.x_id=x._id")));
-//                     assertEquals(p.parseExpression("(z.a < 2) and x.a = 3"), select.where());
-//                     con.execPrepared(filtered);
-//                   }
-//                 }));
-//  }
-
   @TestFactory
   Stream<DynamicTest> addColumnToSingleSubSelect() {
     return Stream.of(databases)
@@ -500,7 +328,6 @@ public class ComposableColumnTest extends DataTest {
                    }
                  }));
   }
-
 
   @TestFactory
   Stream<DynamicTest> addColumnToSubSelects() {
@@ -538,240 +365,33 @@ public class ComposableColumnTest extends DataTest {
                  }));
   }
 
-//  @TestFactory
-//  Stream<DynamicTest> filterOnWith() {
-//    return Stream.of(databases)
-//                 .map(db -> dynamicTest(db.target().toString(), () -> {
-//                   try (EsqlConnection con = db.esql(db.pooledConnection())) {
-//                     setupTables(con);
-//                     Esql<?, ?> filtered =
-//                       con.prepare("""
-//                                   with w1(a) (
-//                                    select min(a) from test.pA
-//                                   ),
-//                                   w2(
-//                                    select a:max(a) from test.pZ
-//                                   )
-//                                   select w1.a, w2.a, pY.*
-//                                     from w1 times test.pY times w2
-//                                   """,
-//                                   new QueryParams()
-//                                     .and("test.pX", "x", "x.a=3"));
-//                     System.out.println(filtered);
-////                     Select select = (Select)((Program)filtered).expressions().get(0);
-////                     TableExpr from = select.from();
-////                     Parser p = new Parser(db.structure());
-////                     fromEquals(from, "test.pZ", "z",
-////                                new Join("test.pY", "y", null, p.parseExpression("z.y_id=y._id")),
-////                                new Join("test.pC", "c", "full", p.parseExpression("z.a=c.a")),
-////                                new Join("test.pX", "x", null, p.parseExpression("c.x_id=x._id")));
-////                     assertEquals(p.parseExpression("z.a < 2 and x.a = 3"), select.where());
-//                     con.execPrepared(filtered);
-//                   }
-//                 }));
-//  }
-//
-//  @TestFactory
-//  Stream<DynamicTest> filterOnWithRecursive() {
-//    return Stream.of(databases)
-//                 .map(db -> dynamicTest(db.target().toString(), () -> {
-//                   try (EsqlConnection con = db.esql(db.pooledConnection())) {
-//                     setupTables(con);
-//                     Esql<?, ?> filtered =
-//                       con.prepare("""
-//                                   with recursive w1(a) (
-//                                    select a from test.pA where a < 0
-//                                    union
-//                                    select pA.a
-//                                      from w1 join test.pA on w1.a=pA.a
-//                                     where pA.a > w1.a
-//                                   ),
-//                                   w2(
-//                                    select a:max(a) from test.pZ
-//                                   )
-//                                   select w1.a, w2.a, pY.*
-//                                     from w1 times test.pY times w2
-//                                   """,
-//                                   new QueryParams()
-//                                     .and("test.pX", "x", "x.a=3"));
-//                     System.out.println(filtered);
-////                     Select select = (Select)((Program)filtered).expressions().get(0);
-////                     TableExpr from = select.from();
-////                     Parser p = new Parser(db.structure());
-////                     fromEquals(from, "test.pZ", "z",
-////                                new Join("test.pY", "y", null, p.parseExpression("z.y_id=y._id")),
-////                                new Join("test.pC", "c", "full", p.parseExpression("z.a=c.a")),
-////                                new Join("test.pX", "x", null, p.parseExpression("c.x_id=x._id")));
-////                     assertEquals(p.parseExpression("z.a < 2 and x.a = 3"), select.where());
-//                     con.execPrepared(filtered);
-//                   }
-//                 }));
-//  }
-//
-//  @TestFactory
-//  Stream<DynamicTest> filterOnUpdate() {
-//    return Stream.of(databases)
-//                 .map(db -> dynamicTest(db.target().toString(), () -> {
-//                   try (EsqlConnection con = db.esql(db.pooledConnection())) {
-//                     setupTables(con);
-//                     Esql<?, ?> filtered =
-//                       con.prepare("""
-//                                   update z
-//                                     from z:test.pZ
-//                                     join y:test.pY on z.y_id=y._id
-//                                     join c:test.pC on z.a=c.a
-//                                      set a=c.a,
-//                                          _id=y._id
-//                                    where z.a < 2
-//                                   """,
-//                                   new QueryParams()
-//                                     .and("test.pX", "x", "x.a=3"));
-//                     System.out.println(filtered);
-//
-//                     Update update = (Update)((Program)filtered).expressions().get(0);
-//                     TableExpr from = update.from();
-//                     Parser p = new Parser(db.structure());
-//                     fromEquals(from, "test.pZ", "z",
-//                                new Join("test.pY", "y", null, p.parseExpression("z.y_id=y._id")),
-//                                new Join("test.pC", "c", null, p.parseExpression("z.a=c.a")),
-//                                new Join("test.pX", "x", null, p.parseExpression("c.x_id=x._id")));
-//                     assertEquals(p.parseExpression("(z.a < 2) and x.a = 3"), update.where());
-//                     con.execPrepared(filtered);
-//
-//                     filtered =
-//                       con.prepare("""
-//                                   update z
-//                                     from z:test.pZ
-//                                     join y:test.pY on z.y_id=y._id
-//                                     left join c:test.pC on z.a=c.a
-//                                      set a=c.a,
-//                                          _id=y._id
-//                                    where z.a < 2
-//                                   """,
-//                                   new QueryParams()
-//                                     .and("test.pX", "x", "x.a=3"));
-//                     System.out.println(filtered);
-//
-//                     update = (Update)((Program)filtered).expressions().get(0);
-//                     from = update.from();
-//                     fromEquals(from, "test.pZ", "z",
-//                                new Join("test.pY", "y", null, p.parseExpression("z.y_id=y._id")),
-//                                new Join("test.pB", "pB", null, p.parseExpression("y.b_id=pB._id")),
-//                                new Join("test.pX", "x", null, p.parseExpression("pB.x_id=x._id")),
-//                                new Join("test.pC", "c", "left", p.parseExpression("z.a=c.a")));
-//                     assertEquals(p.parseExpression("(z.a < 2) and x.a = 3"), update.where());
-//                     con.execPrepared(filtered);
-//                   }
-//                 }));
-//  }
-//
-//  @TestFactory
-//  Stream<DynamicTest> filterOnDelete() {
-//    return Stream.of(databases)
-//                 .map(db -> dynamicTest(db.target().toString(), () -> {
-//                   try (EsqlConnection con = db.esql(db.pooledConnection())) {
-//                     setupTables(con);
-//                     Esql<?, ?> filtered =
-//                       con.prepare("""
-//                                   delete z
-//                                     from z:test.pZ
-//                                     join y:test.pY on z.y_id=y._id
-//                                     join c:test.pC on z.a=c.a
-//                                    where z.a < 2
-//                                   """,
-//                                   new QueryParams()
-//                                     .and("test.pX", "x", "x.a=3"));
-//                     System.out.println(filtered);
-//
-//                     Delete delete = (Delete)((Program)filtered).expressions().get(0);
-//                     TableExpr from = delete.from();
-//                     Parser p = new Parser(db.structure());
-//                     fromEquals(from, "test.pZ", "z",
-//                                new Join("test.pY", "y", null, p.parseExpression("z.y_id=y._id")),
-//                                new Join("test.pC", "c", null, p.parseExpression("z.a=c.a")),
-//                                new Join("test.pX", "x", null, p.parseExpression("c.x_id=x._id")));
-//                     assertEquals(p.parseExpression("(z.a < 2) and x.a = 3"), delete.where());
-//                     con.execPrepared(filtered);
-//
-//                     filtered =
-//                       con.prepare("""
-//                                   delete z
-//                                     from z:test.pZ
-//                                     join y:test.pY on z.y_id=y._id
-//                                     left join c:test.pC on z.a=c.a
-//                                    where z.a < 2
-//                                   """,
-//                                   new QueryParams()
-//                                     .and("test.pX", "x", "x.a=3"));
-//                     System.out.println(filtered);
-//
-//                     delete = (Delete)((Program)filtered).expressions().get(0);
-//                     from = delete.from();
-//                     fromEquals(from, "test.pZ", "z",
-//                                new Join("test.pY", "y", null, p.parseExpression("z.y_id=y._id")),
-//                                new Join("test.pB", "pB", null, p.parseExpression("y.b_id=pB._id")),
-//                                new Join("test.pX", "x", null, p.parseExpression("pB.x_id=x._id")),
-//                                new Join("test.pC", "c", "left", p.parseExpression("z.a=c.a")));
-//                     assertEquals(p.parseExpression("(z.a < 2) and x.a = 3"), delete.where());
-//                     con.execPrepared(filtered);
-//                   }
-//                 }));
-//  }
-//
-//  @TestFactory
-//  Stream<DynamicTest> filterOnInsert() {
-//    return Stream.of(databases)
-//                 .map(db -> dynamicTest(db.target().toString(), () -> {
-//                   try (EsqlConnection con = db.esql(db.pooledConnection())) {
-//                     setupTables(con);
-//                     Esql<?, ?> filtered =
-//                       con.prepare("""
-//                                   insert into test.pZ(_id, a)
-//                                   select newid(), c.a
-//                                     from z:test.pZ
-//                                     join y:test.pY on z.y_id=y._id
-//                                     join c:test.pC on z.a=c.a
-//                                    where z.a < 2
-//                                   """,
-//                                   new QueryParams()
-//                                     .and("test.pX", "x", "x.a=3"));
-//                     System.out.println(filtered);
-//
-//                     Select select = ((Insert)((Program)filtered).expressions().get(0)).select();
-//                     TableExpr from = select.from();
-//                     Parser p = new Parser(db.structure());
-//                     fromEquals(from, "test.pZ", "z",
-//                                new Join("test.pY", "y", null, p.parseExpression("z.y_id=y._id")),
-//                                new Join("test.pC", "c", null, p.parseExpression("z.a=c.a")),
-//                                new Join("test.pX", "x", null, p.parseExpression("c.x_id=x._id")));
-//                     assertEquals(p.parseExpression("(z.a < 2) and x.a = 3"), select.where());
-//                     con.execPrepared(filtered);
-//
-//                     filtered =
-//                       con.prepare("""
-//                                   insert into test.pZ(_id, a)
-//                                   select newid(), c.a
-//                                     from z:test.pZ
-//                                     join y:test.pY on z.y_id=y._id
-//                                     left join c:test.pC on z.a=c.a
-//                                    where z.a < 2
-//                                   """,
-//                                   new QueryParams()
-//                                     .and("test.pX", "x", "x.a=3"));
-//                     System.out.println(filtered);
-//
-//                     select = ((Insert)((Program)filtered).expressions().get(0)).select();
-//                     from = select.from();
-//                     fromEquals(from, "test.pZ", "z",
-//                                new Join("test.pY", "y", null, p.parseExpression("z.y_id=y._id")),
-//                                new Join("test.pB", "pB", null, p.parseExpression("y.b_id=pB._id")),
-//                                new Join("test.pX", "x", null, p.parseExpression("pB.x_id=x._id")),
-//                                new Join("test.pC", "c", "left", p.parseExpression("z.a=c.a")));
-//                     assertEquals(p.parseExpression("(z.a < 2) and x.a = 3"), select.where());
-//                     con.execPrepared(filtered);
-//                   }
-//                 }));
-//  }
+  @TestFactory
+  Stream<DynamicTest> addColumnWithMissingTable() {
+    return Stream.of(databases)
+                 .map(db -> dynamicTest(db.target().toString(), () -> {
+                   try (EsqlConnection con = db.esql(db.pooledConnection())) {
+                     setupTables(con);
+                     Esql<?, ?> filtered =
+                       con.prepare("""
+                                   select z.*,
+                                          (select min(a) from test.pA)
+                                     from z:test.pZ
+                                     times t1(a, b):((1, 2), (3,4), (4,5))
+                                     join s1:(select ___ from z1:test.pZ) on s1.a=z.a
+                                     join y:test.pY on z.y_id=y._id
+                                     full join c:test.pC on z.a=c.a
+                                    where z.a < 2
+                                      and exists(select pC._id
+                                                   from test.pC
+                                                   join test.pY on pC.a=pY.a)
+                                   """,
+                                   new QueryParams()
+                                        .column(new ComposableColumn(null, "a", "z1.a", null)));
+                     System.out.println(filtered);
+                     con.execPrepared(filtered);
+                   }
+                 }));
+  }
 
   record Link(String  fromTable,
               String  fromColumn,

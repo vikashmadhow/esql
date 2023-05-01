@@ -87,6 +87,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.6.0] (Planned)
 ### Database stored functions and triggers in ESQL
 
+## [1.5.12] - 2023-04-27
+### Added
+- A column can be composed without specifying any target table; in such cases, 
+  it is assumed that the required tables are already included in the `from` 
+  clause of the select. All column references must now be fully and correctly 
+  qualified for this composition to work. If a column is not qualified, the 
+  composition fails with an exception. If it is qualified with a wrong qualifier 
+  (one that is not associated to a table in the table list of the query), the 
+  composition is silently ignored. This is because the composition may succeed 
+  in another part of the query (such as when composing on a select containing an
+  inner select or is part of a set-composed select).
+
 ## [1.5.11] - 2023-04-27
 ### Added
 - `ComposableColumn` can now have a `null` table whereby no table link is 
