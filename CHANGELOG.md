@@ -87,6 +87,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.6.0] (Planned)
 ### Database stored functions and triggers in ESQL
 
+## [1.5.13] - 2023-05-02
+### Fixed
+- Fixed parsing of `convert` expression in SQL Server.
+
 ## [1.5.12] - 2023-04-27
 ### Added
 - A column can be composed without specifying any target table; in such cases, 

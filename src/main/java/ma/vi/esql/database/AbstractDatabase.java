@@ -35,6 +35,7 @@ import java.sql.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingDeque;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -1359,6 +1360,11 @@ public abstract class AbstractDatabase implements Database {
       expr = SQL_SERVER_LEN.matcher(expr).replaceAll("length($1)");
       expr = SQL_KEYWORDS.matcher(expr).replaceAll(m -> m.group().toLowerCase());
       expr = expr.replace("::bpchar", "::char");
+
+      if (expr.toLowerCase().contains("convert")) {
+        Matcher matcher = SQL_CONVERT.matcher(expr.toLowerCase());
+        expr = matcher.replaceAll("$2::$1");
+      }
       return parser.parseExpression(expr);
     }
   }
@@ -1456,6 +1462,8 @@ public abstract class AbstractDatabase implements Database {
    * Replace len() function with length in SQL Server.
    */
   private static final Pattern SQL_SERVER_LEN = Pattern.compile("len\\s*\\((.+)\\)");
+
+  private static final Pattern SQL_CONVERT = Pattern.compile("convert\\((\\w+)\\s*,\\s*([^)]+)\\)");
 
   /**
    * Keywords to change to lowercase.
