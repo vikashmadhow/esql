@@ -87,6 +87,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.6.0] (Planned)
 ### Database stored functions and triggers in ESQL
 
+## [1.5.14] - 2023-05-02
+### Added
+- Arguments of `concat` function is cast to `text` type before concatenation. 
+  This removes certain error cases from certain databases such as when concatenating
+  a `string` to `uuid` on SQL Server.
+- Extends detection of where a boolean expression is allowed on SQL Server. This
+  resolves an issue where `bool` columns where being wrongly converted to an 
+  equality expression in the `set` clause of an `update`
+- Extends `cast` and `trycast` on SQL Server to properly cast value of `bool` 
+  type.
+
 ## [1.5.13] - 2023-05-02
 ### Fixed
 - Fixed parsing of `convert` expression in SQL Server.

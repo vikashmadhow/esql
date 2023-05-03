@@ -9,14 +9,18 @@ import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.exec.function.Function;
 import ma.vi.esql.exec.function.FunctionCall;
 import ma.vi.esql.exec.function.FunctionParam;
+import ma.vi.esql.semantic.type.Type;
 import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.expression.Expression;
+import ma.vi.esql.syntax.expression.cast.Cast;
+import ma.vi.esql.translation.TranslationException;
 import org.pcollections.PMap;
 
 import java.util.Iterator;
 
 import static java.util.Arrays.asList;
+import static ma.vi.esql.semantic.type.Types.TextType;
 import static ma.vi.esql.translation.Translatable.Target.JAVASCRIPT;
 
 /**
@@ -32,19 +36,28 @@ public class Concat extends Function {
   }
 
   @Override
-  public String translate(FunctionCall call, Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
+  public String translate(FunctionCall         call,
+                          Target               target,
+                          EsqlConnection       esqlCon,
+                          EsqlPath             path,
+                          PMap<String, Object> parameters,
+                          Environment          env) {
     StringBuilder sb = new StringBuilder();
     Iterator<Expression<?, ?>> args = call.arguments().iterator();
 
     if (target == JAVASCRIPT) {
       Expression<?, ?> arg = args.next();
-      sb.append("(").append(arg.translate(target, esqlCon, path.add(arg), env)).append(").concat(");
+      sb.append("(")
+        .append(arg.translate(target,
+                              esqlCon,
+                              path.add(arg),
+                              env))
+        .append(").concat(");
 
     } else {
       // sql server, esql and all databases
       sb.append(name).append('(');
     }
-
     boolean first = true;
     while (args.hasNext()) {
       if (first) {
@@ -53,7 +66,20 @@ public class Concat extends Function {
         sb.append(", ");
       }
       Expression<?, ?> arg = args.next();
-      sb.append(arg.translate(target, esqlCon, path.add(arg), env));
+      Type type;
+      try {
+        type = arg.computeType(path.add(arg));
+      } catch (TranslationException e) {
+        type = null;
+      }
+      if (type != Types.StringType
+       && type != TextType) {
+        arg = new Cast(call.context, arg, TextType);
+      }
+      sb.append(arg.translate(target,
+                              esqlCon,
+                              path.add(arg),
+                              env));
     }
     return sb.append(')').toString();
   }

@@ -25,6 +25,7 @@ import ma.vi.esql.syntax.define.table.AlterTable;
 import ma.vi.esql.syntax.define.table.ColumnDefinition;
 import ma.vi.esql.syntax.define.table.CreateTable;
 import ma.vi.esql.syntax.define.table.DerivedColumnDefinition;
+import ma.vi.esql.syntax.expression.comparison.*;
 import ma.vi.esql.syntax.macro.TypedMacro;
 import ma.vi.esql.syntax.query.QueryUpdate;
 import ma.vi.esql.syntax.query.TableExpr;
@@ -273,7 +274,15 @@ public class ColumnRef extends    Expression<String, String>
     boolean sqlServerBool = target == Target.SQLSERVER
                          && computeType(path.add(this)) == Types.BoolType
                          && !requireIif(path, parameters)
-                         && (path.ancestor(FunctionCall.class) == null);
+                         && path.ancestor(FunctionCall.class)       == null
+                         && path.ancestor(LessThan.class)           == null
+                         && path.ancestor(LessThanOrEqual.class)    == null
+                         && path.ancestor(GreaterThan.class)        == null
+                         && path.ancestor(GreaterThanOrEqual.class) == null
+                         && path.ancestor(Equality.class)           == null
+                         && path.ancestor(Inequality.class)         == null
+                         && path.ancestor(IsNull.class)             == null
+                         && path.ancestor("set")                    == null;
     return switch (target) {
       case ESQL        -> qualifiedName();
       case JAVASCRIPT  -> qualifier() == null

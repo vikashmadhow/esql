@@ -9,6 +9,7 @@ import static ma.vi.esql.semantic.type.Types.UnknownType;
  */
 public interface Symbol {
   String name();
+
   default Type type() {
     return UnknownType;
   }

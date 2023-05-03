@@ -90,8 +90,11 @@ public class EsqlPath {
     EsqlPath path = tail;
     Esql<?, ?> previous = head;
     while (path != null) {
-      if (path.head.has(name) && path.head.child(name) == previous) {
-        return (T)previous;
+      if (path.head.has(name)) {
+        Esql<?, ?> child = path.head.child(name);
+        if (child != null && (child == previous || child.contains(previous))) {
+          return (T)previous;
+        }
       }
       previous = path.head;
       path = path.tail;
@@ -103,8 +106,11 @@ public class EsqlPath {
     EsqlPath path = tail;
     Esql<?, ?> previous = head;
     while (path != null) {
-      if (path.head.has(name) && path.head.child(name) == previous) {
-        return T2.of((T)previous, path);
+      if (path.head.has(name)) {
+        Esql<?, ?> child = path.head.child(name);
+        if (child != null && (child == previous || child.contains(previous))) {
+          return T2.of((T)previous, path);
+        }
       }
       previous = path.head;
       path = path.tail;
@@ -135,8 +141,11 @@ public class EsqlPath {
     EsqlPath path = tail;
     Esql<?, ?> previous = head;
     while (path != null) {
-      if (path.head.has(name) && path.head.child(name) == previous) {
-        return distance;
+      if (path.head.has(name)) {
+        Esql<?, ?> child = path.head.child(name);
+        if (child != null && (child == previous || child.contains(previous))) {
+          return distance;
+        }
       }
       distance++;
       previous = path.head;

@@ -5,6 +5,7 @@ import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.define.Attribute;
+import ma.vi.esql.syntax.expression.Expression;
 import ma.vi.esql.syntax.modify.UpdateSet;
 import org.pcollections.PMap;
 
@@ -87,7 +88,8 @@ public interface Translator {
         if (target != ESQL) st.append('"');
         st.append(columnName);
         if (target != ESQL) st.append('"');
-        st.append('=').append(set.attributeValue().translate(target, null, path, env));
+        Expression<?, ?> expr = set.attributeValue();
+        st.append('=').append(expr.translate(target, null, path.add(expr), env));
       }
     }
   }
