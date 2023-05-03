@@ -508,13 +508,11 @@ public class SqlServerTranslator extends AbstractTranslator {
       int columnsDist = path.ancestorDistance("columns");
       int orderByDist = path.ancestorDistance("orderBy");
       int groupByDist = path.ancestorDistance("groupBy");
-      int whereDist = path.ancestorDistance("where");
-      int havingDist = path.ancestorDistance("having");
-      int onDist = path.ancestorDistance("on");
-
-      int reqIf = min(columnsDist, min(orderByDist, groupByDist));
-      int noIf = min(whereDist, min(havingDist, onDist));
-
+      int whereDist   = path.ancestorDistance("where");
+      int havingDist  = path.ancestorDistance("having");
+      int onDist      = path.ancestorDistance("on");
+      int reqIf       = min(columnsDist, min(orderByDist, groupByDist));
+      int noIf        = min(whereDist,   min(havingDist, onDist));
       return reqIf < noIf;
     }
   }

@@ -16,6 +16,8 @@ import ma.vi.esql.syntax.expression.Expression;
 import ma.vi.esql.syntax.expression.SingleSubExpression;
 import org.pcollections.PMap;
 
+import static ma.vi.esql.translation.SqlServerTranslator.requireIif;
+
 /**
  * The is null operator in ESQL.
  *
@@ -58,11 +60,36 @@ public class IsNull extends SingleSubExpression {
   }
 
   @Override
-  protected String trans(Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
-    if (target == Target.JAVASCRIPT) {
-      return expr().translate(target, esqlCon, path.add(expr()), parameters, env) + (not() ? " !== null" : " === null");
-    }
-    return expr().translate(target, esqlCon, path.add(expr()), parameters, env) + " is" + (not() ? " not" : "") + " null";
+  protected String trans(Target               target,
+                         EsqlConnection       esqlCon,
+                         EsqlPath             path,
+                         PMap<String, Object> parameters,
+                         Environment          env) {
+    return switch (target) {
+      case JAVASCRIPT -> expr().translate(target,
+                                          esqlCon,
+                                          path.add(expr()),
+                                          parameters,
+                                          env)
+                       + (not() ? " !== null" : " === null");
+      case SQLSERVER -> {
+        boolean iif = requireIif(path, parameters);
+        yield (iif ? "iif(" : "")
+             + String.valueOf(expr().translate(target,
+                                               esqlCon,
+                                               path.add(expr()),
+                                               parameters,
+                                               env))
+             + " is" + (not() ? " not" : "") + " null"
+             + (iif ? ", 1, 0)" : "");
+      }
+      default -> expr().translate(target,
+                                  esqlCon,
+                                  path.add(expr()),
+                                  parameters,
+                                  env)
+               + " is" + (not() ? " not" : "") + " null";
+    };
   }
 
   @Override

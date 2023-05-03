@@ -87,6 +87,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.6.0] (Planned)
 ### Database stored functions and triggers in ESQL
 
+## [1.5.15] - 2023-05-03
+### Added
+- Translation of string literals to Javascript uses backquotes (\`) when the 
+  string contain carriage returns (`\n`).
+
+### Fixed
+- `is null` translation to SQL Server fixed to use the adequate boolean translation
+  based on the position where it is specified in the query.
+
 ## [1.5.14] - 2023-05-02
 ### Added
 - Arguments of `concat` function is cast to `text` type before concatenation. 
