@@ -87,6 +87,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.6.0] (Planned)
 ### Database stored functions and triggers in ESQL
 
+## [1.5.16]
+### Added
+- Methods in `Result` catches exception and sets the `rollbackOnly` flag of its
+  underlying `EsqlConnection` so that the connection is not committed on close.
+- `Cast` and `TryCast` surrounds ESQL casting expression in brackets. Without this
+  casting on compound expressions produces wrong translations. E.g. casting `x + 1`
+  to type `T` will now result in `(x + 1)::T` instead of the erroneous `x + 1::T`.
+
 ## [1.5.15] - 2023-05-03
 ### Added
 - Translation of string literals to Javascript uses backquotes (\`) when the 

@@ -75,6 +75,7 @@ public class Result implements Iterator<Result.Row>,
   @Override
   public Row next() {
     if (nextRow == null && !toNext()) {
+      connection.rollbackOnly();
       throw new NoSuchElementException("At end of result, no next row");
     }
     Row row = nextRow;
@@ -84,6 +85,7 @@ public class Result implements Iterator<Result.Row>,
 
   public Row previous() {
     if (previousRow == null && !toPrevious()) {
+      connection.rollbackOnly();
       throw new NoSuchElementException("At beginning of result, no previous row");
     }
     Row row = previousRow;
@@ -112,7 +114,8 @@ public class Result implements Iterator<Result.Row>,
         endReached = true;
       }
       return next;
-    } catch (SQLException sqle) {
+    } catch (Exception sqle) {
+      connection.rollbackOnly();
       throw Errors.unchecked(sqle);
     }
   }
@@ -131,7 +134,8 @@ public class Result implements Iterator<Result.Row>,
         startReached = true;
       }
       return previous;
-    } catch (SQLException sqle) {
+    } catch (Exception sqle) {
+      connection.rollbackOnly();
       throw Errors.unchecked(sqle);
     }
   }
@@ -171,7 +175,8 @@ public class Result implements Iterator<Result.Row>,
       }
       return new ResultColumn<>(value, mapping.column(), metadata);
 
-    } catch (SQLException sqle) {
+    } catch (Exception sqle) {
+      connection.rollbackOnly();
       throw Errors.unchecked(sqle);
     }
   }
@@ -185,6 +190,7 @@ public class Result implements Iterator<Result.Row>,
    */
   public <T> ResultColumn<T> get(String column) {
     if (!columnNameToIndex.containsKey(column)) {
+      connection.rollbackOnly();
       throw new RuntimeException("No such column: " + column);
     }
     return get(columnNameToIndex.get(column));
@@ -209,6 +215,7 @@ public class Result implements Iterator<Result.Row>,
    */
   public <T> T value(String column) {
     if (!columnNameToIndex.containsKey(column)) {
+      connection.rollbackOnly();
       throw new RuntimeException("No such column: " + column);
     }
     return value(columnNameToIndex.get(column));
@@ -231,6 +238,7 @@ public class Result implements Iterator<Result.Row>,
    */
   public ColumnMapping column(String column) {
     if (!columnNameToIndex.containsKey(column)) {
+      connection.rollbackOnly();
       throw new RuntimeException("No such column: " + column);
     }
     return column(columnNameToIndex.get(column));

@@ -13,6 +13,7 @@ import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.expression.Expression;
+import ma.vi.esql.syntax.expression.GroupedExpression;
 import org.pcollections.PMap;
 
 /**
@@ -62,18 +63,25 @@ public class Cast extends Expression<String, String> {
                          EsqlPath             path,
                          PMap<String, Object> parameters,
                          Environment          env) {
+    boolean grouped = expr() instanceof GroupedExpression;
     String exprTrans = expr().translate(target, esqlCon, path.add(expr()), parameters, env);
     String typeTrans = toType().translate(target, esqlCon, path, parameters, env);
     return switch (target) {
-      case ESQL       -> exprTrans + "::" + typeTrans;
-      case POSTGRESQL -> '(' + exprTrans + ")::" + typeTrans;
       case JAVASCRIPT -> exprTrans;                               // ignore cast for Javascript
+      case ESQL,       // -> exprTrans + "::" + typeTrans;
+           POSTGRESQL -> {
+        if (grouped) {
+          yield  exprTrans + "::" + typeTrans;
+        } else {
+          yield '(' + exprTrans + ")::" + typeTrans;
+        }
+      }
       case SQLSERVER  -> {
         if (toType() == Types.BoolType) {
           yield "case when try_cast(" + exprTrans + " as int) != 0 then 1 "
               + "     when try_cast(" + exprTrans + " as int)  = 0 then 0 "
-              + "     when left(trim(lower(try_cast(" + exprTrans + " as varchar(max)))), 1) in ('t', 'y') then 1 "
-              + "     when left(trim(lower(try_cast(" + exprTrans + " as varchar(max)))), 1) in ('f', 'n') then 0 "
+              + "     when left(trim(lower(try_cast(" + exprTrans + " as varchar(max)))), 1) in ('t', 'y', '1') then 1 "
+              + "     when left(trim(lower(try_cast(" + exprTrans + " as varchar(max)))), 1) in ('f', 'n', '0') then 0 "
               + "     else null "
               + "end" ;
         } else {
@@ -86,8 +94,9 @@ public class Cast extends Expression<String, String> {
 
   @Override
   public void _toString(StringBuilder st, int level, int indent) {
+    st.append('(');
     expr()._toString(st, level, indent);
-    st.append("::").append(toType().name());
+    st.append(")::").append(toType().name());
   }
 
   public Type toType() {

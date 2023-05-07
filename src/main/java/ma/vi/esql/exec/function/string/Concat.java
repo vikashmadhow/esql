@@ -20,6 +20,7 @@ import org.pcollections.PMap;
 import java.util.Iterator;
 
 import static java.util.Arrays.asList;
+import static ma.vi.esql.semantic.type.Types.StringType;
 import static ma.vi.esql.semantic.type.Types.TextType;
 import static ma.vi.esql.translation.Translatable.Target.JAVASCRIPT;
 
@@ -30,9 +31,9 @@ import static ma.vi.esql.translation.Translatable.Target.JAVASCRIPT;
  */
 public class Concat extends Function {
   public Concat() {
-    super("concat", Types.StringType,
-          asList(new FunctionParam("a", Types.StringType),
-                 new FunctionParam("b", Types.StringType)));
+    super("concat", StringType,
+          asList(new FunctionParam("a", StringType),
+                 new FunctionParam("b", StringType)));
   }
 
   @Override
@@ -72,7 +73,7 @@ public class Concat extends Function {
       } catch (TranslationException e) {
         type = null;
       }
-      if (type != Types.StringType
+      if (type != StringType
        && type != TextType) {
         arg = new Cast(call.context, arg, TextType);
       }

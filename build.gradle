@@ -56,7 +56,7 @@ java {
   withSourcesJar()
 }
 
-version = "1.5.15"
+version = "1.5.16"
 group = 'ma.vi'
 sourceCompatibility = JavaVersion.VERSION_17
 targetCompatibility = JavaVersion.VERSION_17
@@ -80,32 +80,38 @@ java {
 
 projectFilestatistics {
   // the files to include in the generation of the statistics
-  includes = ["src/main/**/*.*"]
+  includes = [
+    "src/**/*.*",
+  ]
 
   // the files to exclude from the generation
   excludes = [
-      "**/*.woff*",
-      "**/*.babelrc",
-      "**/*.editorconfig",
-      "**/*.eot",
-      "**/*.eslintignore",
-      "**/*.gif",
-      "**/*.ico",
-      "**/*.interp",
-      "**/*.jpg",
-      "**/*.json",
-      "**/*.keep",
-      "**/*.map",
-      "**/*.orig",
-      "**/*.otf",
-      "**/*.png",
-      "**/*.svg",
-      "**/*.tokens",
-      "**/*.ttf",
+    "**/node_modules/*",
+    "**/*.woff*",
+    "**/*.babelrc",
+    "**/*.editorconfig",
+    "**/*.eot",
+    "**/*.eslintignore",
+    "**/*.gif",
+    "**/*.ico",
+    "**/*.interp",
+    "**/*.jpg",
+    "**/*.json",
+    "**/*.keep",
+    "**/*.map",
+    "**/*.orig",
+    "**/*.otf",
+    "**/*.png",
+    "**/*.svg",
+    "**/*.tokens",
+    "**/*.ttf",
+    "**/*.xls*",
+    "**/*.pfx",
+    "**/dist/*"
   ]
 
   // the output directory for the generated statistics
-  outputDirectory = 'src/docs'
+  outputDirectory = "$rootProject.buildDir/docs"
 
   // if you require to over-ride how single and multi-line comments work, or
   // need to add in some extensions which aren't built in...
