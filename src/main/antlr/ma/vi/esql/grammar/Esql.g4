@@ -1269,7 +1269,7 @@ fragment Date
  * must be separated from the second with a `.`. E.g., 10:45, 10:43:12, 15:3:5.34
  */
 fragment Time
-    : Digit? Digit ':' [012345]? Digit (':' [012345]? Digit ('.' Digit Digit? Digit?)?)?
+    : Digit? Digit ':' [012345]? Digit (':' [012345]? Digit ('.' Digit+)?)?
     ;
 
 /**
@@ -1707,7 +1707,6 @@ Not
     ;
 
 fragment Digit
-
     : [0-9]
     ;
 

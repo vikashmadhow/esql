@@ -166,6 +166,15 @@ public interface Database {
                      List<Map<String, Object>> updatedFrom,
                      List<Map<String, Object>> updatedTo) {}
 
+  /**
+   * Subscribe to changes in the table.
+   * @param table The table to watch changes to.
+   * @param includeHistory Whether to include full history or simply a notification
+   *                       of change without any details on exact changes.
+   * @return The subscription object containing the queue on which change events
+   *         will be pushed to. This object can also be used to cancel the
+   *         subscription.
+   */
   Subscription subscribe(String table, boolean includeHistory);
 
   default Subscription subscribe(String table) {
