@@ -87,6 +87,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.6.0] (Planned)
 ### Database stored functions and triggers in ESQL
 
+## [1.5.18]
+### Added
+- `toMap` method added to `QueryParams` returning a map view of the parameters 
+  with the parameter values in their raw form (not as ESQL expressions). This 
+  view provides for a simpler access to the parameter values.
+
 ## [1.5.17]
 ### Added
 - Fractional part of seconds in ESQL time literals now allows more than 3 digits

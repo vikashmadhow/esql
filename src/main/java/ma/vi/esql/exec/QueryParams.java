@@ -3,11 +3,17 @@ package ma.vi.esql.exec;
 import ma.vi.base.lang.NotFoundException;
 import ma.vi.base.reflect.Dissector;
 import ma.vi.base.reflect.Property;
+import ma.vi.esql.database.Database;
+import ma.vi.esql.database.EsqlConnection;
 import ma.vi.esql.exec.composable.Composable;
 import ma.vi.esql.exec.composable.ComposableColumn;
 import ma.vi.esql.exec.composable.ComposableFilter;
+import ma.vi.esql.syntax.Esql;
+import ma.vi.esql.syntax.EsqlPath;
+import ma.vi.esql.syntax.Parser;
 import ma.vi.esql.syntax.define.Metadata;
 import ma.vi.esql.syntax.query.GroupBy;
+import ma.vi.esql.translation.Translatable;
 
 import java.util.*;
 
@@ -54,6 +60,27 @@ public class QueryParams {
     return params.containsKey(name) && params.get(name).b != null
          ? Optional.of((T)params.get(name).b)
          : Optional.empty();
+  }
+
+  /**
+   * Returns a map view of the parameters with the parameter values in their
+   * raw form (not as ESQL expressions). This map view provides simpler access
+   * to client code that need to work with the parameter values.
+   */
+  public Map<String, Object> toMap() {
+    Map<String, Object> map = new LinkedHashMap<>();
+    EsqlPath path = new EsqlPath(null);
+    for (Map.Entry<String, Param> e: params.entrySet()) {
+      Object p = e.getValue().b();
+      map.put(e.getKey(),
+              p instanceof Esql<?, ?> expr
+              ? expr.exec(Translatable.Target.ESQL,
+                          EsqlConnection.NULL_CONNECTION,
+                          path.add(expr),
+                          null, null)
+              : p);
+    }
+    return map;
   }
 
   public QueryParams filter(ComposableFilter filter) {
