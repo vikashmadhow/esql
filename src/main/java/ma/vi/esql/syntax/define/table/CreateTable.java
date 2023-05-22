@@ -329,7 +329,6 @@ public class CreateTable extends Define implements Create {
         /*
          * Already exists: alter
          */
-        createHistoryTable(target, tableName, tableDisplayName, esqlCon, path, parameters, env);
         BaseRelation table = db.structure().relation(tableName);
         AlterTable alter;
 
@@ -515,6 +514,11 @@ public class CreateTable extends Define implements Create {
             alter.exec(target, esqlCon, path.add(alter), parameters, env);
           }
         }
+
+        /*
+         * Alter history tables.
+         */
+        createHistoryTable(target, tableName, tableDisplayName, esqlCon, path, parameters, env);
       }
       return Result.Nothing;
     } catch (SQLException e) {

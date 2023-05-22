@@ -592,18 +592,6 @@ public interface EsqlListener extends ParseTreeListener {
 	 */
 	void exitDelete(EsqlParser.DeleteContext ctx);
 	/**
-	 * Enter a parse tree produced by the {@code LikeExpr}
-	 * labeled alternative in {@link EsqlParser#expr}.
-	 * @param ctx the parse tree
-	 */
-	void enterLikeExpr(EsqlParser.LikeExprContext ctx);
-	/**
-	 * Exit a parse tree produced by the {@code LikeExpr}
-	 * labeled alternative in {@link EsqlParser#expr}.
-	 * @param ctx the parse tree
-	 */
-	void exitLikeExpr(EsqlParser.LikeExprContext ctx);
-	/**
 	 * Enter a parse tree produced by the {@code QuantifiedComparison}
 	 * labeled alternative in {@link EsqlParser#expr}.
 	 * @param ctx the parse tree
@@ -640,18 +628,6 @@ public interface EsqlListener extends ParseTreeListener {
 	 */
 	void exitModifyStatement(EsqlParser.ModifyStatementContext ctx);
 	/**
-	 * Enter a parse tree produced by the {@code Evaluate}
-	 * labeled alternative in {@link EsqlParser#expr}.
-	 * @param ctx the parse tree
-	 */
-	void enterEvaluate(EsqlParser.EvaluateContext ctx);
-	/**
-	 * Exit a parse tree produced by the {@code Evaluate}
-	 * labeled alternative in {@link EsqlParser#expr}.
-	 * @param ctx the parse tree
-	 */
-	void exitEvaluate(EsqlParser.EvaluateContext ctx);
-	/**
 	 * Enter a parse tree produced by the {@code BetweenExpr}
 	 * labeled alternative in {@link EsqlParser#expr}.
 	 * @param ctx the parse tree
@@ -663,18 +639,6 @@ public interface EsqlListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitBetweenExpr(EsqlParser.BetweenExprContext ctx);
-	/**
-	 * Enter a parse tree produced by the {@code RightOfString}
-	 * labeled alternative in {@link EsqlParser#expr}.
-	 * @param ctx the parse tree
-	 */
-	void enterRightOfString(EsqlParser.RightOfStringContext ctx);
-	/**
-	 * Exit a parse tree produced by the {@code RightOfString}
-	 * labeled alternative in {@link EsqlParser#expr}.
-	 * @param ctx the parse tree
-	 */
-	void exitRightOfString(EsqlParser.RightOfStringContext ctx);
 	/**
 	 * Enter a parse tree produced by the {@code ILikeExpr}
 	 * labeled alternative in {@link EsqlParser#expr}.
@@ -712,18 +676,6 @@ public interface EsqlListener extends ParseTreeListener {
 	 */
 	void exitBreak(EsqlParser.BreakContext ctx);
 	/**
-	 * Enter a parse tree produced by the {@code Continue}
-	 * labeled alternative in {@link EsqlParser#expr}.
-	 * @param ctx the parse tree
-	 */
-	void enterContinue(EsqlParser.ContinueContext ctx);
-	/**
-	 * Exit a parse tree produced by the {@code Continue}
-	 * labeled alternative in {@link EsqlParser#expr}.
-	 * @param ctx the parse tree
-	 */
-	void exitContinue(EsqlParser.ContinueContext ctx);
-	/**
 	 * Enter a parse tree produced by the {@code TryCastExpr}
 	 * labeled alternative in {@link EsqlParser#expr}.
 	 * @param ctx the parse tree
@@ -747,18 +699,6 @@ public interface EsqlListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitCompatibleCaseExpr(EsqlParser.CompatibleCaseExprContext ctx);
-	/**
-	 * Enter a parse tree produced by the {@code LogicalAndExpr}
-	 * labeled alternative in {@link EsqlParser#expr}.
-	 * @param ctx the parse tree
-	 */
-	void enterLogicalAndExpr(EsqlParser.LogicalAndExprContext ctx);
-	/**
-	 * Exit a parse tree produced by the {@code LogicalAndExpr}
-	 * labeled alternative in {@link EsqlParser#expr}.
-	 * @param ctx the parse tree
-	 */
-	void exitLogicalAndExpr(EsqlParser.LogicalAndExprContext ctx);
 	/**
 	 * Enter a parse tree produced by the {@code SimpleExpression}
 	 * labeled alternative in {@link EsqlParser#expr}.
@@ -796,30 +736,6 @@ public interface EsqlListener extends ParseTreeListener {
 	 */
 	void exitAssignment(EsqlParser.AssignmentContext ctx);
 	/**
-	 * Enter a parse tree produced by the {@code SelectStatement}
-	 * labeled alternative in {@link EsqlParser#expr}.
-	 * @param ctx the parse tree
-	 */
-	void enterSelectStatement(EsqlParser.SelectStatementContext ctx);
-	/**
-	 * Exit a parse tree produced by the {@code SelectStatement}
-	 * labeled alternative in {@link EsqlParser#expr}.
-	 * @param ctx the parse tree
-	 */
-	void exitSelectStatement(EsqlParser.SelectStatementContext ctx);
-	/**
-	 * Enter a parse tree produced by the {@code DefaultValue}
-	 * labeled alternative in {@link EsqlParser#expr}.
-	 * @param ctx the parse tree
-	 */
-	void enterDefaultValue(EsqlParser.DefaultValueContext ctx);
-	/**
-	 * Exit a parse tree produced by the {@code DefaultValue}
-	 * labeled alternative in {@link EsqlParser#expr}.
-	 * @param ctx the parse tree
-	 */
-	void exitDefaultValue(EsqlParser.DefaultValueContext ctx);
-	/**
 	 * Enter a parse tree produced by the {@code DefineStatement}
 	 * labeled alternative in {@link EsqlParser#expr}.
 	 * @param ctx the parse tree
@@ -843,18 +759,6 @@ public interface EsqlListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitVarDecl(EsqlParser.VarDeclContext ctx);
-	/**
-	 * Enter a parse tree produced by the {@code Comparison}
-	 * labeled alternative in {@link EsqlParser#expr}.
-	 * @param ctx the parse tree
-	 */
-	void enterComparison(EsqlParser.ComparisonContext ctx);
-	/**
-	 * Exit a parse tree produced by the {@code Comparison}
-	 * labeled alternative in {@link EsqlParser#expr}.
-	 * @param ctx the parse tree
-	 */
-	void exitComparison(EsqlParser.ComparisonContext ctx);
 	/**
 	 * Enter a parse tree produced by the {@code GroupingExpr}
 	 * labeled alternative in {@link EsqlParser#expr}.
@@ -880,42 +784,6 @@ public interface EsqlListener extends ParseTreeListener {
 	 */
 	void exitCastExpr(EsqlParser.CastExprContext ctx);
 	/**
-	 * Enter a parse tree produced by the {@code LiteralExpr}
-	 * labeled alternative in {@link EsqlParser#expr}.
-	 * @param ctx the parse tree
-	 */
-	void enterLiteralExpr(EsqlParser.LiteralExprContext ctx);
-	/**
-	 * Exit a parse tree produced by the {@code LiteralExpr}
-	 * labeled alternative in {@link EsqlParser#expr}.
-	 * @param ctx the parse tree
-	 */
-	void exitLiteralExpr(EsqlParser.LiteralExprContext ctx);
-	/**
-	 * Enter a parse tree produced by the {@code NotExpr}
-	 * labeled alternative in {@link EsqlParser#expr}.
-	 * @param ctx the parse tree
-	 */
-	void enterNotExpr(EsqlParser.NotExprContext ctx);
-	/**
-	 * Exit a parse tree produced by the {@code NotExpr}
-	 * labeled alternative in {@link EsqlParser#expr}.
-	 * @param ctx the parse tree
-	 */
-	void exitNotExpr(EsqlParser.NotExprContext ctx);
-	/**
-	 * Enter a parse tree produced by the {@code MultiplicationExpr}
-	 * labeled alternative in {@link EsqlParser#expr}.
-	 * @param ctx the parse tree
-	 */
-	void enterMultiplicationExpr(EsqlParser.MultiplicationExprContext ctx);
-	/**
-	 * Exit a parse tree produced by the {@code MultiplicationExpr}
-	 * labeled alternative in {@link EsqlParser#expr}.
-	 * @param ctx the parse tree
-	 */
-	void exitMultiplicationExpr(EsqlParser.MultiplicationExprContext ctx);
-	/**
 	 * Enter a parse tree produced by the {@code Selector}
 	 * labeled alternative in {@link EsqlParser#expr}.
 	 * @param ctx the parse tree
@@ -940,18 +808,6 @@ public interface EsqlListener extends ParseTreeListener {
 	 */
 	void exitLeftOfString(EsqlParser.LeftOfStringContext ctx);
 	/**
-	 * Enter a parse tree produced by the {@code ConcatenationExpr}
-	 * labeled alternative in {@link EsqlParser#expr}.
-	 * @param ctx the parse tree
-	 */
-	void enterConcatenationExpr(EsqlParser.ConcatenationExprContext ctx);
-	/**
-	 * Exit a parse tree produced by the {@code ConcatenationExpr}
-	 * labeled alternative in {@link EsqlParser#expr}.
-	 * @param ctx the parse tree
-	 */
-	void exitConcatenationExpr(EsqlParser.ConcatenationExprContext ctx);
-	/**
 	 * Enter a parse tree produced by the {@code FunctionInvocation}
 	 * labeled alternative in {@link EsqlParser#expr}.
 	 * @param ctx the parse tree
@@ -963,30 +819,6 @@ public interface EsqlListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitFunctionInvocation(EsqlParser.FunctionInvocationContext ctx);
-	/**
-	 * Enter a parse tree produced by the {@code StdCastExpr}
-	 * labeled alternative in {@link EsqlParser#expr}.
-	 * @param ctx the parse tree
-	 */
-	void enterStdCastExpr(EsqlParser.StdCastExprContext ctx);
-	/**
-	 * Exit a parse tree produced by the {@code StdCastExpr}
-	 * labeled alternative in {@link EsqlParser#expr}.
-	 * @param ctx the parse tree
-	 */
-	void exitStdCastExpr(EsqlParser.StdCastExprContext ctx);
-	/**
-	 * Enter a parse tree produced by the {@code Return}
-	 * labeled alternative in {@link EsqlParser#expr}.
-	 * @param ctx the parse tree
-	 */
-	void enterReturn(EsqlParser.ReturnContext ctx);
-	/**
-	 * Exit a parse tree produced by the {@code Return}
-	 * labeled alternative in {@link EsqlParser#expr}.
-	 * @param ctx the parse tree
-	 */
-	void exitReturn(EsqlParser.ReturnContext ctx);
 	/**
 	 * Enter a parse tree produced by the {@code SelectExpr}
 	 * labeled alternative in {@link EsqlParser#expr}.
@@ -1036,6 +868,222 @@ public interface EsqlListener extends ParseTreeListener {
 	 */
 	void exitFor(EsqlParser.ForContext ctx);
 	/**
+	 * Enter a parse tree produced by the {@code RangeExpr}
+	 * labeled alternative in {@link EsqlParser#expr}.
+	 * @param ctx the parse tree
+	 */
+	void enterRangeExpr(EsqlParser.RangeExprContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code RangeExpr}
+	 * labeled alternative in {@link EsqlParser#expr}.
+	 * @param ctx the parse tree
+	 */
+	void exitRangeExpr(EsqlParser.RangeExprContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code ColumnRef}
+	 * labeled alternative in {@link EsqlParser#expr}.
+	 * @param ctx the parse tree
+	 */
+	void enterColumnRef(EsqlParser.ColumnRefContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code ColumnRef}
+	 * labeled alternative in {@link EsqlParser#expr}.
+	 * @param ctx the parse tree
+	 */
+	void exitColumnRef(EsqlParser.ColumnRefContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code If}
+	 * labeled alternative in {@link EsqlParser#expr}.
+	 * @param ctx the parse tree
+	 */
+	void enterIf(EsqlParser.IfContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code If}
+	 * labeled alternative in {@link EsqlParser#expr}.
+	 * @param ctx the parse tree
+	 */
+	void exitIf(EsqlParser.IfContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code LikeExpr}
+	 * labeled alternative in {@link EsqlParser#expr}.
+	 * @param ctx the parse tree
+	 */
+	void enterLikeExpr(EsqlParser.LikeExprContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code LikeExpr}
+	 * labeled alternative in {@link EsqlParser#expr}.
+	 * @param ctx the parse tree
+	 */
+	void exitLikeExpr(EsqlParser.LikeExprContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code Evaluate}
+	 * labeled alternative in {@link EsqlParser#expr}.
+	 * @param ctx the parse tree
+	 */
+	void enterEvaluate(EsqlParser.EvaluateContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code Evaluate}
+	 * labeled alternative in {@link EsqlParser#expr}.
+	 * @param ctx the parse tree
+	 */
+	void exitEvaluate(EsqlParser.EvaluateContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code RightOfString}
+	 * labeled alternative in {@link EsqlParser#expr}.
+	 * @param ctx the parse tree
+	 */
+	void enterRightOfString(EsqlParser.RightOfStringContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code RightOfString}
+	 * labeled alternative in {@link EsqlParser#expr}.
+	 * @param ctx the parse tree
+	 */
+	void exitRightOfString(EsqlParser.RightOfStringContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code Continue}
+	 * labeled alternative in {@link EsqlParser#expr}.
+	 * @param ctx the parse tree
+	 */
+	void enterContinue(EsqlParser.ContinueContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code Continue}
+	 * labeled alternative in {@link EsqlParser#expr}.
+	 * @param ctx the parse tree
+	 */
+	void exitContinue(EsqlParser.ContinueContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code LogicalAndExpr}
+	 * labeled alternative in {@link EsqlParser#expr}.
+	 * @param ctx the parse tree
+	 */
+	void enterLogicalAndExpr(EsqlParser.LogicalAndExprContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code LogicalAndExpr}
+	 * labeled alternative in {@link EsqlParser#expr}.
+	 * @param ctx the parse tree
+	 */
+	void exitLogicalAndExpr(EsqlParser.LogicalAndExprContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code SelectStatement}
+	 * labeled alternative in {@link EsqlParser#expr}.
+	 * @param ctx the parse tree
+	 */
+	void enterSelectStatement(EsqlParser.SelectStatementContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code SelectStatement}
+	 * labeled alternative in {@link EsqlParser#expr}.
+	 * @param ctx the parse tree
+	 */
+	void exitSelectStatement(EsqlParser.SelectStatementContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code DefaultValue}
+	 * labeled alternative in {@link EsqlParser#expr}.
+	 * @param ctx the parse tree
+	 */
+	void enterDefaultValue(EsqlParser.DefaultValueContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code DefaultValue}
+	 * labeled alternative in {@link EsqlParser#expr}.
+	 * @param ctx the parse tree
+	 */
+	void exitDefaultValue(EsqlParser.DefaultValueContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code Comparison}
+	 * labeled alternative in {@link EsqlParser#expr}.
+	 * @param ctx the parse tree
+	 */
+	void enterComparison(EsqlParser.ComparisonContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code Comparison}
+	 * labeled alternative in {@link EsqlParser#expr}.
+	 * @param ctx the parse tree
+	 */
+	void exitComparison(EsqlParser.ComparisonContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code LiteralExpr}
+	 * labeled alternative in {@link EsqlParser#expr}.
+	 * @param ctx the parse tree
+	 */
+	void enterLiteralExpr(EsqlParser.LiteralExprContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code LiteralExpr}
+	 * labeled alternative in {@link EsqlParser#expr}.
+	 * @param ctx the parse tree
+	 */
+	void exitLiteralExpr(EsqlParser.LiteralExprContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code NotExpr}
+	 * labeled alternative in {@link EsqlParser#expr}.
+	 * @param ctx the parse tree
+	 */
+	void enterNotExpr(EsqlParser.NotExprContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code NotExpr}
+	 * labeled alternative in {@link EsqlParser#expr}.
+	 * @param ctx the parse tree
+	 */
+	void exitNotExpr(EsqlParser.NotExprContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code MultiplicationExpr}
+	 * labeled alternative in {@link EsqlParser#expr}.
+	 * @param ctx the parse tree
+	 */
+	void enterMultiplicationExpr(EsqlParser.MultiplicationExprContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code MultiplicationExpr}
+	 * labeled alternative in {@link EsqlParser#expr}.
+	 * @param ctx the parse tree
+	 */
+	void exitMultiplicationExpr(EsqlParser.MultiplicationExprContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code ConcatenationExpr}
+	 * labeled alternative in {@link EsqlParser#expr}.
+	 * @param ctx the parse tree
+	 */
+	void enterConcatenationExpr(EsqlParser.ConcatenationExprContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code ConcatenationExpr}
+	 * labeled alternative in {@link EsqlParser#expr}.
+	 * @param ctx the parse tree
+	 */
+	void exitConcatenationExpr(EsqlParser.ConcatenationExprContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code CoalesceExpr}
+	 * labeled alternative in {@link EsqlParser#expr}.
+	 * @param ctx the parse tree
+	 */
+	void enterCoalesceExpr(EsqlParser.CoalesceExprContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code CoalesceExpr}
+	 * labeled alternative in {@link EsqlParser#expr}.
+	 * @param ctx the parse tree
+	 */
+	void exitCoalesceExpr(EsqlParser.CoalesceExprContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code StdCastExpr}
+	 * labeled alternative in {@link EsqlParser#expr}.
+	 * @param ctx the parse tree
+	 */
+	void enterStdCastExpr(EsqlParser.StdCastExprContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code StdCastExpr}
+	 * labeled alternative in {@link EsqlParser#expr}.
+	 * @param ctx the parse tree
+	 */
+	void exitStdCastExpr(EsqlParser.StdCastExprContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code Return}
+	 * labeled alternative in {@link EsqlParser#expr}.
+	 * @param ctx the parse tree
+	 */
+	void enterReturn(EsqlParser.ReturnContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code Return}
+	 * labeled alternative in {@link EsqlParser#expr}.
+	 * @param ctx the parse tree
+	 */
+	void exitReturn(EsqlParser.ReturnContext ctx);
+	/**
 	 * Enter a parse tree produced by the {@code NoopStatement}
 	 * labeled alternative in {@link EsqlParser#expr}.
 	 * @param ctx the parse tree
@@ -1059,18 +1107,6 @@ public interface EsqlListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitWhile(EsqlParser.WhileContext ctx);
-	/**
-	 * Enter a parse tree produced by the {@code RangeExpr}
-	 * labeled alternative in {@link EsqlParser#expr}.
-	 * @param ctx the parse tree
-	 */
-	void enterRangeExpr(EsqlParser.RangeExprContext ctx);
-	/**
-	 * Exit a parse tree produced by the {@code RangeExpr}
-	 * labeled alternative in {@link EsqlParser#expr}.
-	 * @param ctx the parse tree
-	 */
-	void exitRangeExpr(EsqlParser.RangeExprContext ctx);
 	/**
 	 * Enter a parse tree produced by the {@code FunctionDecl}
 	 * labeled alternative in {@link EsqlParser#expr}.
@@ -1119,30 +1155,6 @@ public interface EsqlListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitNullCheckExpr(EsqlParser.NullCheckExprContext ctx);
-	/**
-	 * Enter a parse tree produced by the {@code ColumnRef}
-	 * labeled alternative in {@link EsqlParser#expr}.
-	 * @param ctx the parse tree
-	 */
-	void enterColumnRef(EsqlParser.ColumnRefContext ctx);
-	/**
-	 * Exit a parse tree produced by the {@code ColumnRef}
-	 * labeled alternative in {@link EsqlParser#expr}.
-	 * @param ctx the parse tree
-	 */
-	void exitColumnRef(EsqlParser.ColumnRefContext ctx);
-	/**
-	 * Enter a parse tree produced by the {@code If}
-	 * labeled alternative in {@link EsqlParser#expr}.
-	 * @param ctx the parse tree
-	 */
-	void enterIf(EsqlParser.IfContext ctx);
-	/**
-	 * Exit a parse tree produced by the {@code If}
-	 * labeled alternative in {@link EsqlParser#expr}.
-	 * @param ctx the parse tree
-	 */
-	void exitIf(EsqlParser.IfContext ctx);
 	/**
 	 * Enter a parse tree produced by the {@code CaseExpr}
 	 * labeled alternative in {@link EsqlParser#expr}.
@@ -1367,6 +1379,18 @@ public interface EsqlListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitSimpleCaseExpr(EsqlParser.SimpleCaseExprContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code SimpleCoalesceExpr}
+	 * labeled alternative in {@link EsqlParser#simpleExpr}.
+	 * @param ctx the parse tree
+	 */
+	void enterSimpleCoalesceExpr(EsqlParser.SimpleCoalesceExprContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code SimpleCoalesceExpr}
+	 * labeled alternative in {@link EsqlParser#simpleExpr}.
+	 * @param ctx the parse tree
+	 */
+	void exitSimpleCoalesceExpr(EsqlParser.SimpleCoalesceExprContext ctx);
 	/**
 	 * Enter a parse tree produced by the {@code SimpleColumnExpr}
 	 * labeled alternative in {@link EsqlParser#simpleExpr}.
