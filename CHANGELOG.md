@@ -87,6 +87,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.6.0] (Planned)
 ### Database stored functions and triggers in ESQL
 
+## [1.5.19]
+### Added
+- Ternary expressions of the form `e1 -> e2 : e3` compatible with ESQL v1 is now
+  supported. This is in addition to the new form `e2 if e1 else e3`.
+
 ## [1.5.18]
 ### Added
 - `toMap` method added to `QueryParams` returning a map view of the parameters 

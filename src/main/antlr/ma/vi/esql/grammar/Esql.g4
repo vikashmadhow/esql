@@ -865,6 +865,8 @@ expr
        */
     | <assoc=right> expr ('if' expr 'else' expr)+               #CaseExpr
 
+    | <assoc=right> expr ('->' expr ':' expr)+                  #CompatibleCaseExpr
+
     | 'function' qualifiedName '(' parameters? ')' ':' type
         expressions
       'end'                                                     #FunctionDecl
@@ -935,6 +937,7 @@ simpleExpr
     | qualifiedName '(' distinct? (arguments | star='*')? ')' window?   #SimpleFunctionInvocation
     | columnReference                                                   #SimpleColumnExpr
     | <assoc=right> simpleExpr ('if' simpleExpr 'else' simpleExpr)+     #SimpleCaseExpr
+    | <assoc=right> simpleExpr ('->' simpleExpr ':' simpleExpr)+        #CompatibleSimpleCaseExpr
     ;
 
 /**

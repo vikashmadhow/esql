@@ -1126,20 +1126,35 @@ public class SyntaxAnalyser extends EsqlBaseListener {
   }
 
   @Override
+  public void exitCompatibleCaseExpr(CompatibleCaseExprContext ctx) {
+    createCase(ctx, ctx.expr(), true);
+  }
+
+  @Override
   public void exitSimpleCaseExpr(SimpleCaseExprContext ctx) {
     createCase(ctx, ctx.simpleExpr());
   }
 
+  @Override
+  public void exitCompatibleSimpleCaseExpr(CompatibleSimpleCaseExprContext ctx) {
+    createCase(ctx, ctx.simpleExpr(), true);
+  }
+
   private void createCase(ParserRuleContext ctx,
                           List<? extends ParserRuleContext> expressions) {
+    createCase(ctx, expressions, false);
+  }
+
+  private void createCase(ParserRuleContext ctx,
+                          List<? extends ParserRuleContext> expressions,
+                          boolean compatible) {
     boolean optimised = false;
     if (expressions.size() == 3) {
       /*
-       * Multi-select case statements are broken in 3-parts
-       * corresponding to (expr -> expr : expr), associating to
-       * the right (starting at the end of the whole case expression).
-       * If the last expr is a case expression, we can optimise
-       * the whole case statement by combining it into a single one.
+       * Multi-select case statements are broken in 3-parts corresponding to
+       * (expr -> expr : expr), associating to the right (starting at the end of
+       * the whole case expression). If the last expr is a case expression, we
+       * can optimise the whole case statement by combining it into a single one.
        *
        * Thus (e1 -> e2 : case) where case is (e3 -> e4 : e5)
        * is combined into (e1 -> e2 : e3 -> e4 : e5)
@@ -1147,9 +1162,15 @@ public class SyntaxAnalyser extends EsqlBaseListener {
       Esql<?, ?> last = get(expressions.get(2));
       if (last instanceof Case lastCase) {
         List<Expression<?, ?>> caseExprs = new ArrayList<>();
-        caseExprs.add(get(expressions.get(0)));
-        caseExprs.add(get(expressions.get(1)));
-        caseExprs.addAll(lastCase.expressions());
+        if (compatible) {
+          caseExprs.add(get(expressions.get(1)));
+          caseExprs.add(get(expressions.get(0)));
+          caseExprs.addAll(lastCase.expressions());
+        } else {
+          caseExprs.add(get(expressions.get(0)));
+          caseExprs.add(get(expressions.get(1)));
+          caseExprs.addAll(lastCase.expressions());
+        }
         put(ctx, new Case(context, caseExprs));
         optimised = true;
       }

@@ -822,6 +822,18 @@ public class EsqlBaseListener implements EsqlListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterCompatibleCaseExpr(EsqlParser.CompatibleCaseExprContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitCompatibleCaseExpr(EsqlParser.CompatibleCaseExprContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterLogicalAndExpr(EsqlParser.LogicalAndExprContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -1297,6 +1309,18 @@ public class EsqlBaseListener implements EsqlListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitSimpleFunctionInvocation(EsqlParser.SimpleFunctionInvocationContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterCompatibleSimpleCaseExpr(EsqlParser.CompatibleSimpleCaseExprContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitCompatibleSimpleCaseExpr(EsqlParser.CompatibleSimpleCaseExprContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
