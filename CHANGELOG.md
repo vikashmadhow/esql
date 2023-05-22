@@ -47,7 +47,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `Truncate table` statement.
 
 - Change notification and subscription.
-- Fine-grain history.
 - Table time-travel.
 - Snapshots.
 
@@ -84,13 +83,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Modify queries return values don't seem to be supported correctly for SQL 
   Server.
 
-## [1.6.0] (Planned)
+## [1.7.0] (Planned)
 ### Database stored functions and triggers in ESQL
+
+## [1.6.0] (Planned)
+### Mirror tables
 
 ## [1.5.19]
 ### Added
-- Ternary expressions of the form `e1 -> e2 : e3` compatible with ESQL v1 is now
-  supported. This is in addition to the new form `e2 if e1 else e3`.
+- Ternary expressions of the form `e1 -> e2 | e3` compatible with ESQL v1 is now
+  supported (the syntax in ESQL v1 was `e1 -> e2 : e3` while it is `e1 -> e2 | e3`
+  in v2 as the `:` character is now used for aliasing). This is in addition to 
+  the support of the new form `e2 if e1 else e3`.
+- Coalesce expressions of the form `e1 ? e2 (?...)` compatible with ESQL v1 is 
+  now supported.
 
 ## [1.5.18]
 ### Added
@@ -117,8 +123,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   string contain carriage returns (`\n`).
 
 ### Fixed
-- `is null` translation to SQL Server fixed to use the adequate boolean translation
-  based on the position where it is specified in the query.
+- `is null` translation to SQL Server fixed to use the appropriate boolean 
+  translation based on the position where it is specified in the query.
 
 ## [1.5.14] - 2023-05-02
 ### Added

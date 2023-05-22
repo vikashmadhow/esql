@@ -93,7 +93,7 @@ select
 /**
  * Metadata in ESQL is a comma-separated list of attributes surrounded by curly
  * parentheses ({}) with each attribute consisting of a name-expression pair.
- * Metadata can beattached to a table and to its columns. For instance this is
+ * Metadata can be attached to a table and to its columns. For instance this is
  * a `create table` statement which defines metadata attributes on both the
  * table and its columns:
  *
@@ -722,13 +722,13 @@ expr
 
     | on=expr '[' expressionList ']'                            #Selector
 
-//      /*
-//       * Coalesce is a '?'-separated list of expressions returning the value of
-//       * the first non-null expression in the list. E.g. `x?0` is evaluated as
-//       * `x` if `x` is not null, 0 otherwise. `x?y?z` is evaluated as the `x` if
-//       * it is not null, `y` if `x` is null and `y` is not null, `z` otherwise.
-//       */
-//    | expr ('?' expr)+?                                         #CoalesceExpr
+      /*
+       * Coalesce is a '?'-separated list of expressions returning the value of
+       * the first non-null expression in the list. E.g. `x?0` is evaluated as
+       * `x` if `x` is not null, 0 otherwise. `x?y?z` is evaluated as the `x` if
+       * it is not null, `y` if `x` is null and `y` is not null, `z` otherwise.
+       */
+    | expr ('?' expr)+?                                         #CoalesceExpr
 
       /*
        * `||` is the concatenation operator.
@@ -865,7 +865,7 @@ expr
        */
     | <assoc=right> expr ('if' expr 'else' expr)+               #CaseExpr
 
-    | <assoc=right> expr ('->' expr ':' expr)+                  #CompatibleCaseExpr
+    | <assoc=right> expr ('->' expr '|' expr)+                  #CompatibleCaseExpr
 
     | 'function' qualifiedName '(' parameters? ')' ':' type
         expressions
@@ -927,7 +927,7 @@ simpleExpr
     | simpleExpr '?:' type                                              #SimpleTryCastExpr
     | 'trycast' '(' simpleExpr 'as' type ')'                            #SimpleStdTryCastExpr
     | literal                                                           #SimpleLiteralExpr
-//    | simpleExpr ('?' simpleExpr)+                                      #SimpleCoalesceExpr
+    | simpleExpr ('?' simpleExpr)+                                      #SimpleCoalesceExpr
     | simpleExpr ('||' simpleExpr)+                                     #SimpleConcatenationExpr
     | '-' simpleExpr                                                    #SimpleNegationExpr
     | <assoc=right> left=simpleExpr '^' right=simpleExpr                #SimpleExponentiationExpr

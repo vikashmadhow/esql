@@ -1165,7 +1165,17 @@ public class SyntaxAnalyser extends EsqlBaseListener {
         if (compatible) {
           caseExprs.add(get(expressions.get(1)));
           caseExprs.add(get(expressions.get(0)));
-          caseExprs.addAll(lastCase.expressions());
+          for (Iterator<Expression<?, ?>> i = lastCase.expressions().iterator();
+               i.hasNext(); ) {
+            Expression<?, ?> e = i.next();
+            if (i.hasNext()) {
+              Expression<?, ?> expr = i.next();
+              caseExprs.add(expr);
+              caseExprs.add(e);
+            } else {
+              caseExprs.add(e);
+            }
+          }
         } else {
           caseExprs.add(get(expressions.get(0)));
           caseExprs.add(get(expressions.get(1)));
@@ -1182,45 +1192,49 @@ public class SyntaxAnalyser extends EsqlBaseListener {
     }
   }
 
-  // create table
+  // coalesce
   /////////////////////////////////////////////////////////
 
-//  @Override
-//  public void exitCreateTable(CreateTableContext ctx) {
-//    List<TableDefinition> tableDefinitions = value(ctx.tableDefinitions());
-//    List<ColumnDefinition> columns =
-//        tableDefinitions.stream()
-//                        .filter(t -> t instanceof ColumnDefinition)
-//                        .map(t -> (ColumnDefinition)t)
-//                        .collect(toList());
-//
-//    List<ConstraintDefinition> constraints =
-//        tableDefinitions.stream()
-//                        .filter(t -> t instanceof ConstraintDefinition)
-//                        .map(t -> (ConstraintDefinition)t).toList();
-//
-//    String tableName = value(ctx.qualifiedName());
-//    List<ConstraintDefinition> withAddedTable = new ArrayList<>();
-//    for (ConstraintDefinition c: constraints) {
-//      withAddedTable.add(c.table(tableName));
-//    }
-//
-//    List<Metadata> metadata =
-//        tableDefinitions.stream()
-//                        .filter(t -> t instanceof Metadata)
-//                        .map(t -> (Metadata)t).toList();
-//
-//    List<Attribute> attributes = new ArrayList<>();
-//    for (Metadata m: metadata) {
-//      attributes.addAll(m.attributes().values());
-//    }
-//    put(ctx.parent, new CreateTable(context,
-//                                    tableName,
-//                                    ctx.dropUndefined() != null,
-//                                    columns,
-//                                    withAddedTable,
-//                                    new Metadata(context, attributes)));
-//  }
+  @Override
+  public void exitCoalesceExpr(CoalesceExprContext ctx) {
+    createCoalesce(ctx, ctx.expr());
+  }
+
+  @Override
+  public void exitSimpleCoalesceExpr(SimpleCoalesceExprContext ctx) {
+    createCoalesce(ctx, ctx.simpleExpr());
+  }
+
+  private void createCoalesce(ParserRuleContext ctx,
+                              List<? extends ParserRuleContext> expressions) {
+    boolean optimised = false;
+    if (expressions.size() == 2) {
+      /*
+       * Multi-select coalesce statements are broken in 2-parts corresponding to
+       * (expr ? expr). If the first expr is a coalesce expression, we can optimise
+       * the whole coalesce statement by combining it into a single one.
+       *
+       * Thus (coalesce ? e3) where coalesce is (e1 ? e2) is combined into
+       * (e1 ? e2 ? e3).
+       */
+      Esql<?, ?> first = get(expressions.get(0));
+      if (first instanceof Coalesce firstCoalesce) {
+        List<Expression<?, ?>> coalesceExprs = new ArrayList<>();
+        coalesceExprs.addAll(firstCoalesce.expressions());
+        coalesceExprs.add(get(expressions.get(1)));
+        put(ctx, new Coalesce(context, coalesceExprs));
+        optimised = true;
+      }
+    }
+    if (!optimised) {
+      put(ctx, new Coalesce(context, expressions.stream()
+                                                .map(e -> (Expression<?, String>)get(e))
+                                                .collect(toList())));
+    }
+  }
+
+  // create table
+  /////////////////////////////////////////////////////////
 
   @Override
   public void exitCreateTable(CreateTableContext ctx) {
@@ -1253,17 +1267,6 @@ public class SyntaxAnalyser extends EsqlBaseListener {
                                      columns,
                                      metadata == null ? new Metadata(context, emptyList()) : metadata));
   }
-
-//  @Override
-//  public void exitTableDefinitions(TableDefinitionsContext ctx) {
-//    put(ctx, new Esql<>(context, ctx.tableDefinition().stream()
-//                                    .map(t -> (TableDefinition)get(
-//                                                t.columnDefinition()        != null ? t.columnDefinition() :
-//                                                t.derivedColumnDefinition() != null ? t.derivedColumnDefinition() :
-//                                                t.constraintDefinition()    != null ? t.constraintDefinition()
-//                                                                                    : t.literalMetadata()))
-//                                    .toList()));
-//  }
 
   @Override
   public void exitColumnAndDerivedColumnDefinitions(ColumnAndDerivedColumnDefinitionsContext ctx) {

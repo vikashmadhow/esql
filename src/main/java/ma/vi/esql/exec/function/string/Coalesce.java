@@ -43,7 +43,9 @@ public class Coalesce extends Function {
           .append(arg.translate(target, esqlCon, path.add(arg), env));
       }
     } else {
-      // sql server, esql and all databases
+      /*
+       * All databases
+       */
       for (Expression<?, ?> arg: call.arguments()) {
         sb.append(sb.length() == 0 ? "coalesce(" : ", ")
           .append(arg.translate(target, esqlCon, path.add(arg), env));
