@@ -31,11 +31,12 @@ public class ConditionalsTest extends DataTest {
                             + "(newid(), 4, 8, false, ['Nine', 'Neuf', 'X']text, [5, 6, 7, 8]int)");
 
                      Result rs = con.exec("""
-                                          select sum(b     if a % 2 = 0 else
-                                                     b * 2 if a % 3 = 0 else 0)
+                                          select sum(b * 3 if a % 4 = 0 else
+                                                     b * 2 if a % 3 = 0 else
+                                                     b     if a % 2 = 0 else 0)
                                             from s:S""");
                      rs.toNext();
-                     assertEquals(24, (Long)rs.value(1));
+                     assertEquals(40, (Long)rs.value(1));
                    }
                  }));
   }
@@ -55,11 +56,12 @@ public class ConditionalsTest extends DataTest {
                             + "(newid(), 4, 8, false, ['Nine', 'Neuf', 'X']text, [5, 6, 7, 8]int)");
 
                      Result rs = con.exec("""
-                                          select sum(a % 2 = 0 -> b     |
-                                                     a % 3 = 0 -> b * 2 | 0)
+                                          select sum(a % 4 = 0 -> b * 3 |
+                                                     a % 3 = 0 -> b * 2 |
+                                                     a % 2 = 0 -> b     | 0)
                                             from s:S""");
                      rs.toNext();
-                     assertEquals(24, (Long)rs.value(1));
+                     assertEquals(40, (Long)rs.value(1));
                    }
                  }));
   }

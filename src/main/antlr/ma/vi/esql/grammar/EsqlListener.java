@@ -676,18 +676,6 @@ public interface EsqlListener extends ParseTreeListener {
 	 */
 	void exitBreak(EsqlParser.BreakContext ctx);
 	/**
-	 * Enter a parse tree produced by the {@code TryCastExpr}
-	 * labeled alternative in {@link EsqlParser#expr}.
-	 * @param ctx the parse tree
-	 */
-	void enterTryCastExpr(EsqlParser.TryCastExprContext ctx);
-	/**
-	 * Exit a parse tree produced by the {@code TryCastExpr}
-	 * labeled alternative in {@link EsqlParser#expr}.
-	 * @param ctx the parse tree
-	 */
-	void exitTryCastExpr(EsqlParser.TryCastExprContext ctx);
-	/**
 	 * Enter a parse tree produced by the {@code CompatibleCaseExpr}
 	 * labeled alternative in {@link EsqlParser#expr}.
 	 * @param ctx the parse tree
@@ -699,6 +687,18 @@ public interface EsqlListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitCompatibleCaseExpr(EsqlParser.CompatibleCaseExprContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code TryCastExpr}
+	 * labeled alternative in {@link EsqlParser#expr}.
+	 * @param ctx the parse tree
+	 */
+	void enterTryCastExpr(EsqlParser.TryCastExprContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code TryCastExpr}
+	 * labeled alternative in {@link EsqlParser#expr}.
+	 * @param ctx the parse tree
+	 */
+	void exitTryCastExpr(EsqlParser.TryCastExprContext ctx);
 	/**
 	 * Enter a parse tree produced by the {@code SimpleExpression}
 	 * labeled alternative in {@link EsqlParser#expr}.

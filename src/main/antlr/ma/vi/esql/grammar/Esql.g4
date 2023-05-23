@@ -728,12 +728,12 @@ expr
        * `x` if `x` is not null, 0 otherwise. `x?y?z` is evaluated as the `x` if
        * it is not null, `y` if `x` is null and `y` is not null, `z` otherwise.
        */
-    | expr ('?' expr)+?                                         #CoalesceExpr
+    | expr '?' expr                                             #CoalesceExpr
 
       /*
        * `||` is the concatenation operator.
        */
-    | expr ('||' expr)+                                         #ConcatenationExpr
+    | expr '||' expr                                            #ConcatenationExpr
 
       /*
        * Any numeric expression can be negated by prefixing it with `-`.
@@ -863,9 +863,9 @@ expr
        * else 'c' if z
        * else 'e'
        */
-    | <assoc=right> expr ('if' expr 'else' expr)+               #CaseExpr
+    | <assoc=right> expr 'if' expr 'else' expr                  #CaseExpr
 
-    | <assoc=right> expr ('->' expr '|' expr)+                  #CompatibleCaseExpr
+    | <assoc=right> expr '->' expr '|' expr                     #CompatibleCaseExpr
 
     | 'function' qualifiedName '(' parameters? ')' ':' type
         expressions
@@ -927,8 +927,8 @@ simpleExpr
     | simpleExpr '?:' type                                              #SimpleTryCastExpr
     | 'trycast' '(' simpleExpr 'as' type ')'                            #SimpleStdTryCastExpr
     | literal                                                           #SimpleLiteralExpr
-    | simpleExpr ('?' simpleExpr)+                                      #SimpleCoalesceExpr
-    | simpleExpr ('||' simpleExpr)+                                     #SimpleConcatenationExpr
+    | simpleExpr '?' simpleExpr                                         #SimpleCoalesceExpr
+    | simpleExpr '||' simpleExpr                                        #SimpleConcatenationExpr
     | '-' simpleExpr                                                    #SimpleNegationExpr
     | <assoc=right> left=simpleExpr '^' right=simpleExpr                #SimpleExponentiationExpr
     | left=simpleExpr op=('*' | '/' | '%') right=simpleExpr             #SimpleMultiplicationExpr

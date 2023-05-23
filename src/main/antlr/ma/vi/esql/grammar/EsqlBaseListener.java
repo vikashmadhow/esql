@@ -762,18 +762,6 @@ public class EsqlBaseListener implements EsqlListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterTryCastExpr(EsqlParser.TryCastExprContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitTryCastExpr(EsqlParser.TryCastExprContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
 	@Override public void enterCompatibleCaseExpr(EsqlParser.CompatibleCaseExprContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -781,6 +769,18 @@ public class EsqlBaseListener implements EsqlListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitCompatibleCaseExpr(EsqlParser.CompatibleCaseExprContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterTryCastExpr(EsqlParser.TryCastExprContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitTryCastExpr(EsqlParser.TryCastExprContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *

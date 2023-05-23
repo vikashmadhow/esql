@@ -89,6 +89,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.6.0] (Planned)
 ### Mirror tables
 
+## [1.5.20]
+### Added
+- Simplified and increased compatibility of grammar and parsing for short-hand 
+  forms of coalesce (?), ternary conditionals ( -> | ) and concatenation ( || ).
+
 ## [1.5.19]
 ### Added
 - Ternary expressions of the form `e1 -> e2 | e3` compatible with ESQL v1 is now

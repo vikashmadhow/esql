@@ -140,7 +140,7 @@ public class SyntaxAnalyser extends EsqlBaseListener {
     put(ctx, new NoOp(context));
   }
 
-  // general-purpose features
+  // General-purpose features
   ////////////////////////////////////////////////
   @Override
   public void exitFunctionDecl(FunctionDeclContext ctx) {
@@ -776,37 +776,27 @@ public class SyntaxAnalyser extends EsqlBaseListener {
 
   private void createConcatenation(ParserRuleContext ctx,
                                    List<? extends ParserRuleContext> expressions) {
-    boolean optimised = false;
-    if (expressions.size() == 2) {
-      /*
-       * Chained concatenation statements are broken in 2-parts corresponding to
-       * (expr '||' expr). If the first expr is a concatenation expression, we can
-       * optimise the whole concatenation function by combining it into a single one.
-       *
-       * Thus (concatenation || e3) where concatenation is (e1 || e2) is combined into
-       * (e1 || e2 || e3)
-       */
-      Expression<?, String> first = get(expressions.get(0));
-      Expression<?, String> second = get(expressions.get(1));
-      if (first instanceof Concatenation concat) {
-        List<Expression<?, ?>> concatExprs = new ArrayList<>(concat.expressions());
-        concatExprs.add(second);
-        put(ctx, new Concatenation(context, concatExprs));
-        optimised = true;
-
-      } if (second instanceof Concatenation concat) {
-        List<Expression<?, ?>> concatExprs = new ArrayList<>(concat.expressions());
-        concatExprs.add(0, first);
-        put(ctx, new Concatenation(context, concatExprs));
-        optimised = true;
-      }
-    }
-    if (!optimised) {
-      put(ctx, new Concatenation(context, expressions.stream()
-                                                     .map(e -> (Expression<?, String>)get(e))
-                                                     .collect(toList())));
+    /*
+     * Chained concatenation statements are broken in 2-parts corresponding to
+     * (expr '||' expr). If the first expr is a concatenation expression, we can
+     * optimise the whole concatenation function by combining it into a single one.
+     *
+     * Thus (concatenation || e3) where concatenation is (e1 || e2) is combined into
+     * (e1 || e2 || e3)
+     */
+    List<Expression<?, ?>> exprs = expressions.stream()
+                                              .map(e -> (Expression<?, ?>)get(e))
+                                              .collect(toList());
+    Esql<?, ?> first = exprs.get(0);
+    if (first instanceof Concatenation firstConcat) {
+      List<Expression<?, ?>> concatExprs = new ArrayList<>(firstConcat.expressions());
+      concatExprs.add(exprs.get(1));
+      put(ctx, new Concatenation(context, concatExprs));
+    } else {
+      put(ctx, new Concatenation(context, exprs));
     }
   }
+
 
   @Override
   public void exitCastExpr(CastExprContext ctx) {
@@ -1050,7 +1040,7 @@ public class SyntaxAnalyser extends EsqlBaseListener {
       case ">=" -> put(ctx, new GreaterThanOrEqual(context, get(ctx.left), get(ctx.right)));
       default   -> throw new TranslationException("Unknown comparison operator: " + compare);
     }
-   }
+  }
 
   @Override
   public void exitQuantifiedComparison(QuantifiedComparisonContext ctx) {
@@ -1059,7 +1049,7 @@ public class SyntaxAnalyser extends EsqlBaseListener {
                                       ctx.compare().getText(),
                                       ctx.Quantifier().getText(),
                                       get(ctx.select())));
-   }
+  }
 
   @Override
   public void exitRangeExpr(RangeExprContext ctx) {
@@ -1148,8 +1138,11 @@ public class SyntaxAnalyser extends EsqlBaseListener {
   private void createCase(ParserRuleContext ctx,
                           List<? extends ParserRuleContext> expressions,
                           boolean compatible) {
-    boolean optimised = false;
-    if (expressions.size() == 3) {
+    List<Expression<?, ?>> exprs = expressions.stream()
+                                              .map(e -> (Expression<?, ?>)get(e))
+                                              .collect(toList());
+    Esql<?, ?> last = exprs.get(2);
+    if (last instanceof Case lastCase) {
       /*
        * Multi-select case statements are broken in 3-parts corresponding to
        * (expr -> expr : expr), associating to the right (starting at the end of
@@ -1159,36 +1152,22 @@ public class SyntaxAnalyser extends EsqlBaseListener {
        * Thus (e1 -> e2 : case) where case is (e3 -> e4 : e5)
        * is combined into (e1 -> e2 : e3 -> e4 : e5)
        */
-      Esql<?, ?> last = get(expressions.get(2));
-      if (last instanceof Case lastCase) {
-        List<Expression<?, ?>> caseExprs = new ArrayList<>();
-        if (compatible) {
-          caseExprs.add(get(expressions.get(1)));
-          caseExprs.add(get(expressions.get(0)));
-          for (Iterator<Expression<?, ?>> i = lastCase.expressions().iterator();
-               i.hasNext(); ) {
-            Expression<?, ?> e = i.next();
-            if (i.hasNext()) {
-              Expression<?, ?> expr = i.next();
-              caseExprs.add(expr);
-              caseExprs.add(e);
-            } else {
-              caseExprs.add(e);
-            }
-          }
-        } else {
-          caseExprs.add(get(expressions.get(0)));
-          caseExprs.add(get(expressions.get(1)));
-          caseExprs.addAll(lastCase.expressions());
-        }
-        put(ctx, new Case(context, caseExprs));
-        optimised = true;
+      List<Expression<?, ?>> caseExprs = new ArrayList<>();
+      if (compatible) {
+        caseExprs.add(exprs.get(1));
+        caseExprs.add(exprs.get(0));
+      } else {
+        caseExprs.add(exprs.get(0));
+        caseExprs.add(exprs.get(1));
       }
-    }
-    if (!optimised) {
-      put(ctx, new Case(context, expressions.stream()
-                                            .map(e -> (Expression<?, String>)get(e))
-                                            .collect(toList())));
+      caseExprs.addAll(lastCase.expressions());
+      put(ctx, new Case(context, caseExprs));
+    } else {
+      if (compatible) {
+        put(ctx, new Case(context, List.of(exprs.get(1), exprs.get(0), exprs.get(2))));
+      } else {
+        put(ctx, new Case(context, exprs));
+      }
     }
   }
 
@@ -1207,29 +1186,24 @@ public class SyntaxAnalyser extends EsqlBaseListener {
 
   private void createCoalesce(ParserRuleContext ctx,
                               List<? extends ParserRuleContext> expressions) {
-    boolean optimised = false;
-    if (expressions.size() == 2) {
-      /*
-       * Multi-select coalesce statements are broken in 2-parts corresponding to
-       * (expr ? expr). If the first expr is a coalesce expression, we can optimise
-       * the whole coalesce statement by combining it into a single one.
-       *
-       * Thus (coalesce ? e3) where coalesce is (e1 ? e2) is combined into
-       * (e1 ? e2 ? e3).
-       */
-      Esql<?, ?> first = get(expressions.get(0));
-      if (first instanceof Coalesce firstCoalesce) {
-        List<Expression<?, ?>> coalesceExprs = new ArrayList<>();
-        coalesceExprs.addAll(firstCoalesce.expressions());
-        coalesceExprs.add(get(expressions.get(1)));
-        put(ctx, new Coalesce(context, coalesceExprs));
-        optimised = true;
-      }
-    }
-    if (!optimised) {
-      put(ctx, new Coalesce(context, expressions.stream()
-                                                .map(e -> (Expression<?, String>)get(e))
-                                                .collect(toList())));
+    /*
+     * Chained coalesce statements are broken in 2-parts corresponding to
+     * (expr ? expr). If the first expr is a coalesce expression, we can optimise
+     * the whole coalesce statement by combining it into a single one.
+     *
+     * Thus (coalesce ? e3) where coalesce is (e1 ? e2) is combined into
+     * (e1 ? e2 ? e3).
+     */
+    List<Expression<?, ?>> exprs = expressions.stream()
+                                              .map(e -> (Expression<?, ?>)get(e))
+                                              .collect(toList());
+    Esql<?, ?> first = exprs.get(0);
+    if (first instanceof Coalesce firstCoalesce) {
+      List<Expression<?, ?>> coalesceExprs = new ArrayList<>(firstCoalesce.expressions());
+      coalesceExprs.add(exprs.get(1));
+      put(ctx, new Coalesce(context, coalesceExprs));
+    } else {
+      put(ctx, new Coalesce(context, exprs));
     }
   }
 
