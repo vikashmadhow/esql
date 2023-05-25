@@ -46,7 +46,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `Truncate table` statement.
 
-- Change notification and subscription.
+- 'Change notification' and subscription.
 - Table time-travel.
 - Snapshots.
 
@@ -89,12 +89,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.6.0] (Planned)
 ### Mirror tables
 
-## [1.5.20]
+## [1.5.21] - 2023-05-25
+### Added
+- Method `replaceTable` in `ComposableFilter` which returns a new `ComposableFilter`
+  with its table replaced if it is contained as a key in a given replacements map. 
+  The replacement is performed recursively on all children of this filter.
+
+## [1.5.20] - 2023-05-23
 ### Added
 - Simplified and increased compatibility of grammar and parsing for short-hand 
   forms of coalesce (?), ternary conditionals ( -> | ) and concatenation ( || ).
 
-## [1.5.19]
+## [1.5.19] - 2023-05-22
 ### Added
 - Ternary expressions of the form `e1 -> e2 | e3` compatible with ESQL v1 is now
   supported (the syntax in ESQL v1 was `e1 -> e2 : e3` while it is `e1 -> e2 | e3`
@@ -103,18 +109,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Coalesce expressions of the form `e1 ? e2 (?...)` compatible with ESQL v1 is 
   now supported.
 
-## [1.5.18]
+## [1.5.18] - 2023-05-19
 ### Added
 - `toMap` method added to `QueryParams` returning a map view of the parameters 
   with the parameter values in their raw form (not as ESQL expressions). This 
   view provides for a simpler access to the parameter values.
 
-## [1.5.17]
+## [1.5.17] - 2023-05-17
 ### Added
 - Fractional part of seconds in ESQL time literals now allows more than 3 digits
   to cater for nanoseconds time resolution.
 
-## [1.5.16]
+## [1.5.16] - 2023-05-07
 ### Added
 - Methods in `Result` catches exception and sets the `rollbackOnly` flag of its
   underlying `EsqlConnection` so that the connection is not committed on close.
@@ -246,10 +252,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.5.1] - 2023-02-25
 ### Added
 - Keep metadata of the source columns in the history table and add READONLY=true.
-  This allows the history data to have the same look and feel and the table data.
+  This allows the history data to have the same look and feel as the table data.
 - History data is set in a separate group for layout purposes. They also have 
-  metadata to make them read-only and the change event has linked to a requisite 
-  list of values. 
+  metadata to make them read-only and the change event is not linked to a list 
+  of values. 
 - Transaction id, user and time columns in history table are now indexed.
 
 ## [1.5.0] - 2023-02-24
@@ -655,11 +661,12 @@ event leading to that history entry:
 - `inarray` function returns true if an element is in an array and is translated
   using array operations on database that has such support or `string_split` on
   SQL Server. 
-  - To ease support for `string_split` the format for string arrays has changed: 
-    the prefix and suffix (`[]`) has been dropped and the individual values are 
-    no longer quoted if they are strings. The separator has been changed from `,`
-    to `|` which, as a less frequent character in strings, is less likely to 
-    already exist in an element.  
+  - To ease support for `string_split` the internal format for emulated string 
+    arrays (in databases that do not have intrinsic support for arrays such as 
+    SQL Server) has changed: the prefix and suffix (`[]`) has been dropped and 
+    the individual values are no longer quoted if they are strings. The separator 
+    has been changed from `,` to `|` which, as a less frequent character in strings,
+    is less likely to already exist in an element.  
 
 ## [1.0.18] - 2022-09-26
 ### Added:
@@ -851,7 +858,7 @@ event leading to that history entry:
   functions invoked as its members.
 - When translating function calls to Javascript, named arguments are packaged into
   an object and provided as the first argument to the Javascript function. The 
-  javascript function must have its first parameter as an objct that will contain
+  javascript function must have its first parameter as an object that will contain
   the list of named arguments.
 - `UncomputedExpression` in attributes are not translated in query result so that
   they can be correctly translated during result encoding based on where the result
