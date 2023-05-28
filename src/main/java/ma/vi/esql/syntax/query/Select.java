@@ -388,7 +388,9 @@ public class Select extends QueryUpdate {
   }
 
   @Override
-  public Select filter(ComposableFilter filter, boolean firstFilter, EsqlPath path) {
+  public Select filter(ComposableFilter filter,
+                       boolean          firstFilter,
+                       EsqlPath         path) {
     if (getClass().equals(Select.class)
      && tables() != null
      && !unfiltered()) {
@@ -414,8 +416,8 @@ public class Select extends QueryUpdate {
       }
     } else {
       /*
-       * For subclasses, assume that filtering is already taken care of by filtering
-       * of their children (this is true for the current known subclasses which
+       * For subclasses, assume that filtering is already done by filtering of
+       * their children (this is true for the current known subclasses which
        * include CompositeSelect and SelectExpression).
        */
       return this;
@@ -479,12 +481,10 @@ public class Select extends QueryUpdate {
         Parser parser = new Parser(tables.context.structure);
         expression = parser.parseExpression(composable.expression());
         // if (!applied.targetAlias().equals(composable.alias())) {
-          expression = (Expression<?, String>)expression.map((e, p) -> {
-            if (e instanceof ColumnRef ref) {
-              return new ColumnRef(e.context, applied.targetAlias(), ref.columnName(), ref.type());
-            }
-            return e;
-          });
+          expression = (Expression<?, String>)expression.map(
+            (e, p) -> e instanceof ColumnRef ref
+                    ? new ColumnRef(e.context, applied.targetAlias(), ref.columnName(), ref.type())
+                    : e);
         // }
       }
       return new FilterResult(rotateLeft(applied.result()),

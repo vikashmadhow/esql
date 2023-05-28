@@ -1,4 +1,4 @@
-// Generated from ma\vi\esql\grammar\Esql.g4 by ANTLR 4.10.1
+// Generated from ma\vi\esql\grammar\Esql.g4 by ANTLR 4.13.0
 
 package ma.vi.esql.grammar;
 
@@ -12,6 +12,7 @@ import org.antlr.v4.runtime.tree.TerminalNode;
  * which can be extended to create a listener which only needs to handle a subset
  * of the available methods.
  */
+@SuppressWarnings("CheckReturnValue")
 public class EsqlBaseListener implements EsqlListener {
 	/**
 	 * {@inheritDoc}

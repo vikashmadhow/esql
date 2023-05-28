@@ -10,11 +10,13 @@ import ma.vi.esql.semantic.type.Type;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static java.lang.System.Logger.Level.WARNING;
 import static java.util.Collections.emptyList;
 import static ma.vi.esql.translation.Translatable.Target.SQLSERVER;
 
@@ -119,13 +121,36 @@ public class EsqlConnectionImpl implements EsqlConnection {
         var transactionId = transactionId();
         FinaliseThreadPool.execute(() -> {
           Map<String, Set<String>> tableEvents = new HashMap<>();
-          try (Connection con = database().pooledConnection();
-               ResultSet rs = con.createStatement().executeQuery(
-                    "select distinct table_name, event"
-                  + "  from _core._temp_history"
-                  + " where trans_id='" + transactionId + "'")) {
-            while (rs.next())
-              tableEvents.computeIfAbsent(rs.getString(1), k -> new HashSet<>()).add(rs.getString(2));
+          try (Connection con = database().pooledConnection()) {
+            Statement st = con.createStatement();
+            if (db.target() == SQLSERVER) {
+              st.executeUpdate("set lock_timeout 100");
+            } else {
+              st.executeUpdate("set local lock_timeout='100ms'");
+            }
+            int tries = 0;
+            boolean transRead = false;
+            while (tries < 10 && !transRead) {
+              try (ResultSet rs = st.executeQuery("""
+                     select distinct table_name, event
+                       from _core._temp_history
+                      where trans_id='""" + transactionId + "'")) {
+                transRead = true;
+                while (rs.next())
+                  tableEvents.computeIfAbsent(rs.getString(1), k -> new HashSet<>()).add(rs.getString(2));
+                if (db.target() == SQLSERVER) {
+                  st.executeUpdate("set lock_timeout -1");
+                } else {
+                  st.executeUpdate("set local lock_timeout='0ms'");
+                }
+              } catch (SQLException sqle) {
+                tries++;
+                log.log(WARNING, " >>> Could not obtain a lock on _core._temp_history "
+                               + "table to read coarse transaction history. Tried "
+                               + tries + " times");
+                try { Thread.sleep(100); } catch(InterruptedException ignored) {}
+              }
+            }
           } catch (SQLException sqle) {
             throw new RuntimeException(sqle);
           }
@@ -133,24 +158,61 @@ public class EsqlConnectionImpl implements EsqlConnection {
           Structure structure = database().structure();
           if (!tableEvents.isEmpty()) {
             try {
-              try (Connection con = database().pooledConnection()) {
-                /*
-                 * Move to transaction history and set user.
-                 */
-                con.createStatement().executeUpdate(
-                      "insert into _core.history(trans_id, table_name, event, user_id, at_time) "
-                    + "select trans_id, table_name, event, " + (user == null ? "null" : "'" + user + "', min(at_time)")
-                    + "  from _core._temp_history"
-                    + " where trans_id='" + transactionId + "'"
-                    + " group by trans_id, table_name, event");
+              int tries = 0;
+              boolean transferred = false;
+              while (tries < 10 && !transferred) {
+                Connection con = null;
+                try {
+                  con = database().pooledConnection();
+                  Statement st = con.createStatement();
+                  if (db.target() == SQLSERVER) {
+                    st.executeUpdate("set lock_timeout 100");
+                  } else {
+                    st.executeUpdate("set local lock_timeout='100ms'");
+                  }
+                  /*
+                   * Move to transaction history and set user.
+                   */
+                  st.executeUpdate(
+                        "insert into _core.history(trans_id, table_name, event, user_id, at_time) "
+                      + "select trans_id, table_name, event, " + (user == null ? "null" : "'" + user + "', min(at_time)")
+                      + "  from _core._temp_history"
+                      + " where trans_id='" + transactionId + "'"
+                      + " group by trans_id, table_name, event");
 
-                /*
-                 * Clean temporary history
-                 */
-                con.createStatement().executeUpdate(
-                      "delete from _core._temp_history"
-                    + " where trans_id='" + transactionId + "'");
-                con.commit();
+                  /*
+                   * Clean temporary history
+                   */
+                  st.executeUpdate(
+                        "delete from _core._temp_history"
+                      + " where trans_id='" + transactionId + "'");
+
+                  if (db.target() == SQLSERVER) {
+                    st.executeUpdate("set lock_timeout -1");
+                  } else {
+                    st.executeUpdate("set local lock_timeout='0ms'");
+                  }
+
+                  con.commit();
+                  transferred = true;
+                } catch (SQLException sqle) {
+                  tries++;
+                  log.log(WARNING, " >>> Could not obtain a lock on _core._temp_history "
+                    + "table to transfer coarse transaction history. Tried "
+                    + tries + " times");
+
+                  if (db.target() == SQLSERVER) {
+                    con.createStatement().executeUpdate("set lock_timeout -1");
+                  } else {
+                    con.createStatement().executeUpdate("set local lock_timeout='0ms'");
+                  }
+
+                  try { Thread.sleep(100); } catch(InterruptedException ignored) {}
+                } finally {
+                  if (con != null) {
+                    con.close();
+                  }
+                }
               }
 
               if (user != null) {
@@ -296,4 +358,6 @@ public class EsqlConnectionImpl implements EsqlConnection {
    * Thread pool to execute history finalisation after commit.
    */
   private static final ExecutorService FinaliseThreadPool = Executors.newCachedThreadPool();
+
+  private static final System.Logger log = System.getLogger(EsqlConnectionImpl.class.getName());
 }

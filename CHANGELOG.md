@@ -34,8 +34,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   content of a table which will then be merged with the existing data through a 
   merge statement and/or a set of insert and update statements.
 
-- Implement `explicit` in select (no expanded columns when explicit keyword used).
-
 - `pkey` macro expands to the primary key columns of a table.
 - `fkey` macro expands to the columns of a foreign key between two tables.
 
@@ -62,6 +60,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### To optimise
 - When filtering a `With`, do not apply filter on a CTE if that CTE inner joins 
   with another CTE, directly or transitively, which has already been filtered.
+  (requires breadth-first mapping instead of the depth-first mapping of ESQL.map)
 
 ### To test
 - Test composition of select statements (union, intersect, except).
@@ -88,6 +87,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.6.0] (Planned)
 ### Mirror tables
+
+## [1.5.22] - 2023-05-25
+### Added
+- Acquiring locks on `_core._temp_history` when reading and transferring coarse-
+  grained history at end of transaction commit now times out after a very short
+  period (< 100ms) to not block access to this table. When a lock acquisition 
+  fails, it is retried up to 10 times. This resolves most blocking queries on this
+  table.
+- `explicit` keyword in `select` implemented. When this keyword is present in a
+  `select`, the columns in its column list are not expanded to include their 
+  metadata.
 
 ## [1.5.21] - 2023-05-25
 ### Added

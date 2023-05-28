@@ -28,9 +28,9 @@ import static java.util.stream.Collectors.*;
 import static ma.vi.esql.syntax.expression.ColumnRef.qualify;
 
 /**
- * A list of attributes (name expression pairs) describing
- * certain parts of queries, tables, etc. This is also used as
- * the update set clause as it has the same structure.
+ * A list of attributes (name expression pairs) describing certain parts of
+ * queries, tables, etc. This is also used as the update set clause as it has
+ * the same structure.
  *
  * @author Vikash Madhow (vikash.madhow@gmail.mail)
  */
@@ -101,6 +101,16 @@ public class ColumnList extends Esql<String, String> implements UntypedMacro {
          */
         Cte cte = path.ancestor(Cte.class);
         if (cte != null && cte.fields() != null && !cte.fields().isEmpty()) {
+          expandColumns = false;
+        }
+      }
+      if (expandColumns) {
+        /*
+         * Do not expand columns if this query is part of a select with the
+         * `explicit` clause set.
+         */
+        Select select = path.ancestor(Select.class);
+        if (select != null && select.explicit() != null && select.explicit()) {
           expandColumns = false;
         }
       }

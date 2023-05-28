@@ -483,7 +483,7 @@ public class Esql<V, T>
    *
    * <p>
    * Explore the ESQL in depth-first order. For breadth-first mapping, use
-   * {@link #bfsMap(BiFunction, Predicate, EsqlPath)}
+   * bfsMap(BiFunction, Predicate, EsqlPath)
    * </p>
    *
    * @param mapper
@@ -513,41 +513,50 @@ public class Esql<V, T>
     return (X)this;
   }
 
-  public <X extends Esql<V, T>> X bfsMap(BiFunction<Esql<?, ?>, EsqlPath, Esql<?, ?>> mapper) {
-    return bfsMap(mapper, null);
-  }
-
-  public <X extends Esql<V, T>> X bfsMap(BiFunction<Esql<?, ?>, EsqlPath, Esql<?, ?>> mapper,
-                                         Predicate<Esql<?, ?>> explore) {
-    return bfsMap(mapper, explore, new EsqlPath(this));
-  }
-
-  public <X extends Esql<V, T>> X bfsMap(BiFunction<Esql<?, ?>, EsqlPath, Esql<?, ?>> mapper,
-                                         Predicate<Esql<?, ?>> explore,
-                                         EsqlPath path) {
-    if (explore == null || explore.test(this)) {
-      Esql<V, T> mapped = (Esql<V, T>)mapper.apply(this, path);
-      if (mapped == null) {
-        return null;
-      }
-      Esql<V, T> copy = null;
-      for (int i = 0; i < mapped.children.size(); i++) {
-        Esql<?, ?> child = mapped.children.get(i);
-        if (child != null) {
-          Esql<?, ?> mappedChild = child.bfsMap(mapper, explore, path.add(child));
-          if (mappedChild != child) {
-            if (copy == null) {
-              copy = mapped == this ? mapped.copy() : mapped;
-              path = path.replaceHead(copy);   // replace head of path with its copy
-            }
-            copy.children.set(i, mappedChild);
-          }
-        }
-      }
-      return (X)(copy != null ? copy : mapped);
-    }
-    return (X)this;
-  }
+//  public <X extends Esql<V, T>> X bfsMap(BiFunction<Esql<?, ?>, EsqlPath, Esql<?, ?>> mapper) {
+//    return bfsMap(mapper, null);
+//  }
+//
+//  public <X extends Esql<V, T>> X bfsMap(BiFunction<Esql<?, ?>, EsqlPath, Esql<?, ?>> mapper,
+//                                         Predicate<Esql<?, ?>> explore) {
+//    return bfsMap(mapper, explore, new EsqlPath(this));
+//  }
+//
+//  public <X extends Esql<V, T>> X bfsMap(BiFunction<Esql<?, ?>, EsqlPath, Esql<?, ?>> mapper,
+//                                         Predicate<Esql<?, ?>> explore,
+//                                         EsqlPath path) {
+//    Queue<Esql<?, ?>> toExplore = new ArrayDeque<>();
+//    toExplore.add(this);
+//    while (!toExplore.isEmpty()) {
+//      Esql<?, ?> toMap = toExplore.remove();
+//      if (explore == null || explore.test(toMap)) {
+//        Esql<V, T> copy = null;
+//        Esql<V, T> mapped = (Esql<V, T>)mapper.apply(toMap, path);
+//        if (mapped != toMap) {
+//          if (copy == null) {
+//            copy = mapped == this ? mapped.copy() : mapped;
+//            path = path.replaceHead(copy);   // replace head of path with its copy
+//          }
+//          copy.children.set(i, mappedChild);
+//        }
+//
+////        if (mapped == null) {
+////          return null;
+////        }
+//        toExplore.addAll(mapped.children);
+//
+//        for (int i = 0; i < mapped.children.size(); i++) {
+//
+//          Esql<?, ?> child = mapped.children.get(i);
+//          if (child != null) {
+//            Esql<?, ?> mappedChild = child.bfsMap(mapper, explore, path.add(child));
+//          }
+//        }
+//        return (X)(copy != null ? copy : mapped);
+//      }
+//    }
+//    return (X)this;
+//  }
 
   public <X extends Esql<?, ?>> X replace(Esql<?, ?> searchFor, Esql<?, ?> replaceWith) {
     return (X)map((e, path) -> e == searchFor ? replaceWith : e);

@@ -64,7 +64,7 @@ public class JoinTableExpr extends AbstractJoinTableExpr {
    * For left and right outer-joins, only consider the side of the join which
    * is more restrictive (left for left joins and right for right joins). For
    * full outer joins, we consider both sides as the side producing the least
-   * number of records is the more restrictive and we cannot predict which side
+   * number of records is the more restrictive, and we cannot predict which side
    * is going to be the more restrictive one at this point.
    */
   @Override
@@ -79,8 +79,10 @@ public class JoinTableExpr extends AbstractJoinTableExpr {
   @Override
   public AppliedShortestPath applyShortestPath(ShortestPath shortest, TableExpr root) {
     String joinType = joinType();
-    if (joinType == null || joinType.equals("outer")) {
+    if (joinType == null
+     || joinType.equals("outer")) {
       return super.applyShortestPath(shortest, root);
+
     } else if (joinType.equals("left")) {
       AppliedShortestPath applied = left().applyShortestPath(shortest, root);
       return applied == null ? null
@@ -102,23 +104,28 @@ public class JoinTableExpr extends AbstractJoinTableExpr {
   }
 
   @Override
-  protected String trans(Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
+  protected String trans(Target               target,
+                         EsqlConnection       esqlCon,
+                         EsqlPath             path,
+                         PMap<String, Object> parameters,
+                         Environment          env) {
+    String leftTrans  = left() .translate(target, esqlCon, path.add(left()),  parameters, env);
+    String rightTrans = right().translate(target, esqlCon, path.add(right()), parameters, env);
     if (lateral()) {
       if (target == Target.SQLSERVER) {
-        return left().translate(target, esqlCon, path.add(left()), parameters, env)
-             + " outer apply "
-             + right().translate(target, esqlCon, path.add(right()), parameters, env);
+        return leftTrans + " outer apply " + rightTrans;
+
       } else {
-        return left().translate(target, esqlCon, path.add(left()), parameters, env)
+        return leftTrans
              + (joinType() == null ? " join " : ' ' + joinType() + " join ")
              + "lateral "
-             + right().translate(target, esqlCon, path.add(right()), parameters, env) + " on "
+             + rightTrans + " on "
              + on().translate(target, esqlCon, path.add(on()), parameters, env);
       }
     } else {
-      return left().translate(target, esqlCon, path.add(left()), parameters, env)
+      return leftTrans
            + (joinType() == null ? " join " : ' ' + joinType() + " join ")
-           + right().translate(target, esqlCon, path.add(right()), parameters, env) + " on "
+           + rightTrans + " on "
            + on().translate(target, esqlCon, path.add(on()), parameters, env);
     }
   }

@@ -1,4 +1,4 @@
-// Generated from ma\vi\esql\grammar\Esql.g4 by ANTLR 4.10.1
+// Generated from ma\vi\esql\grammar\Esql.g4 by ANTLR 4.13.0
 
 package ma.vi.esql.grammar;
 
@@ -11,9 +11,9 @@ import java.util.List;
 import java.util.Iterator;
 import java.util.ArrayList;
 
-@SuppressWarnings({"all", "warnings", "unchecked", "unused", "cast"})
+@SuppressWarnings({"all", "warnings", "unchecked", "unused", "cast", "CheckReturnValue"})
 public class EsqlParser extends Parser {
-	static { RuntimeMetaData.checkVersion("4.10.1", RuntimeMetaData.VERSION); }
+	static { RuntimeMetaData.checkVersion("4.13.0", RuntimeMetaData.VERSION); }
 
 	protected static final DFA[] _decisionToDFA;
 	protected static final PredictionContextCache _sharedContextCache =
@@ -191,6 +191,7 @@ public class EsqlParser extends Parser {
 		_interp = new ParserATNSimulator(this,_ATN,_decisionToDFA,_sharedContextCache);
 	}
 
+	@SuppressWarnings("CheckReturnValue")
 	public static class ProgramContext extends ParserRuleContext {
 		public ExpressionsContext expressions() {
 			return getRuleContext(ExpressionsContext.class,0);
@@ -230,6 +231,7 @@ public class EsqlParser extends Parser {
 		return _localctx;
 	}
 
+	@SuppressWarnings("CheckReturnValue")
 	public static class ExpressionsContext extends ParserRuleContext {
 		public List<ExprContext> expr() {
 			return getRuleContexts(ExprContext.class);
@@ -302,6 +304,7 @@ public class EsqlParser extends Parser {
 		return _localctx;
 	}
 
+	@SuppressWarnings("CheckReturnValue")
 	public static class NoopContext extends ParserRuleContext {
 		public NoopContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
@@ -338,6 +341,7 @@ public class EsqlParser extends Parser {
 		return _localctx;
 	}
 
+	@SuppressWarnings("CheckReturnValue")
 	public static class ModifyContext extends ParserRuleContext {
 		public UpdateContext update() {
 			return getRuleContext(UpdateContext.class,0);
@@ -405,6 +409,7 @@ public class EsqlParser extends Parser {
 		return _localctx;
 	}
 
+	@SuppressWarnings("CheckReturnValue")
 	public static class QueryUpdateContext extends ParserRuleContext {
 		public SelectContext select() {
 			return getRuleContext(SelectContext.class,0);
@@ -465,6 +470,7 @@ public class EsqlParser extends Parser {
 		return _localctx;
 	}
 
+	@SuppressWarnings("CheckReturnValue")
 	public static class SelectContext extends ParserRuleContext {
 		public SelectContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
@@ -476,6 +482,7 @@ public class EsqlParser extends Parser {
 			super.copyFrom(ctx);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class CompositeSelectionContext extends SelectContext {
 		public List<SelectContext> select() {
 			return getRuleContexts(SelectContext.class);
@@ -496,6 +503,7 @@ public class EsqlParser extends Parser {
 			if ( listener instanceof EsqlListener ) ((EsqlListener)listener).exitCompositeSelection(this);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class WithSelectionContext extends SelectContext {
 		public WithContext with() {
 			return getRuleContext(WithContext.class,0);
@@ -510,6 +518,7 @@ public class EsqlParser extends Parser {
 			if ( listener instanceof EsqlListener ) ((EsqlListener)listener).exitWithSelection(this);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class BaseSelectionContext extends SelectContext {
 		public ExprContext where;
 		public ExprContext having;
@@ -521,11 +530,11 @@ public class EsqlParser extends Parser {
 		public LiteralMetadataContext literalMetadata() {
 			return getRuleContext(LiteralMetadataContext.class,0);
 		}
-		public UnfilteredContext unfiltered() {
-			return getRuleContext(UnfilteredContext.class,0);
-		}
 		public ExplicitContext explicit() {
 			return getRuleContext(ExplicitContext.class,0);
+		}
+		public UnfilteredContext unfiltered() {
+			return getRuleContext(UnfilteredContext.class,0);
 		}
 		public DistinctContext distinct() {
 			return getRuleContext(DistinctContext.class,0);
@@ -606,20 +615,20 @@ public class EsqlParser extends Parser {
 				setState(235);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
-				if (_la==T__20) {
+				if (_la==T__19) {
 					{
 					setState(234);
-					unfiltered();
+					explicit();
 					}
 				}
 
 				setState(238);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
-				if (_la==T__19) {
+				if (_la==T__20) {
 					{
 					setState(237);
-					explicit();
+					unfiltered();
 					}
 				}
 
@@ -775,6 +784,7 @@ public class EsqlParser extends Parser {
 		return _localctx;
 	}
 
+	@SuppressWarnings("CheckReturnValue")
 	public static class MetadataContext extends ParserRuleContext {
 		public AttributeListContext attributeList() {
 			return getRuleContext(AttributeListContext.class,0);
@@ -818,6 +828,7 @@ public class EsqlParser extends Parser {
 		return _localctx;
 	}
 
+	@SuppressWarnings("CheckReturnValue")
 	public static class AttributeListContext extends ParserRuleContext {
 		public List<AttributeContext> attribute() {
 			return getRuleContexts(AttributeContext.class);
@@ -890,6 +901,7 @@ public class EsqlParser extends Parser {
 		return _localctx;
 	}
 
+	@SuppressWarnings("CheckReturnValue")
 	public static class AttributeContext extends ParserRuleContext {
 		public IdentifierContext identifier() {
 			return getRuleContext(IdentifierContext.class,0);
@@ -936,6 +948,7 @@ public class EsqlParser extends Parser {
 		return _localctx;
 	}
 
+	@SuppressWarnings("CheckReturnValue")
 	public static class LiteralMetadataContext extends ParserRuleContext {
 		public LiteralAttributeListContext literalAttributeList() {
 			return getRuleContext(LiteralAttributeListContext.class,0);
@@ -979,6 +992,7 @@ public class EsqlParser extends Parser {
 		return _localctx;
 	}
 
+	@SuppressWarnings("CheckReturnValue")
 	public static class LiteralAttributeListContext extends ParserRuleContext {
 		public List<LiteralAttributeContext> literalAttribute() {
 			return getRuleContexts(LiteralAttributeContext.class);
@@ -1051,6 +1065,7 @@ public class EsqlParser extends Parser {
 		return _localctx;
 	}
 
+	@SuppressWarnings("CheckReturnValue")
 	public static class LiteralAttributeContext extends ParserRuleContext {
 		public IdentifierContext identifier() {
 			return getRuleContext(IdentifierContext.class,0);
@@ -1097,6 +1112,7 @@ public class EsqlParser extends Parser {
 		return _localctx;
 	}
 
+	@SuppressWarnings("CheckReturnValue")
 	public static class DistinctContext extends ParserRuleContext {
 		public ExpressionListContext expressionList() {
 			return getRuleContext(ExpressionListContext.class,0);
@@ -1168,6 +1184,7 @@ public class EsqlParser extends Parser {
 		return _localctx;
 	}
 
+	@SuppressWarnings("CheckReturnValue")
 	public static class ExplicitContext extends ParserRuleContext {
 		public ExplicitContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
@@ -1204,6 +1221,7 @@ public class EsqlParser extends Parser {
 		return _localctx;
 	}
 
+	@SuppressWarnings("CheckReturnValue")
 	public static class UnfilteredContext extends ParserRuleContext {
 		public UnfilteredContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
@@ -1240,6 +1258,7 @@ public class EsqlParser extends Parser {
 		return _localctx;
 	}
 
+	@SuppressWarnings("CheckReturnValue")
 	public static class ColumnsContext extends ParserRuleContext {
 		public List<ColumnContext> column() {
 			return getRuleContexts(ColumnContext.class);
@@ -1301,6 +1320,7 @@ public class EsqlParser extends Parser {
 		return _localctx;
 	}
 
+	@SuppressWarnings("CheckReturnValue")
 	public static class ColumnContext extends ParserRuleContext {
 		public ColumnContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
@@ -1312,6 +1332,7 @@ public class EsqlParser extends Parser {
 			super.copyFrom(ctx);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class StarColumnContext extends ColumnContext {
 		public QualifierContext qualifier() {
 			return getRuleContext(QualifierContext.class,0);
@@ -1326,6 +1347,7 @@ public class EsqlParser extends Parser {
 			if ( listener instanceof EsqlListener ) ((EsqlListener)listener).exitStarColumn(this);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class SingleColumnContext extends ColumnContext {
 		public ExprContext expr() {
 			return getRuleContext(ExprContext.class,0);
@@ -1416,6 +1438,7 @@ public class EsqlParser extends Parser {
 		return _localctx;
 	}
 
+	@SuppressWarnings("CheckReturnValue")
 	public static class QualifierContext extends ParserRuleContext {
 		public TerminalNode Identifier() { return getToken(EsqlParser.Identifier, 0); }
 		public QualifierContext(ParserRuleContext parent, int invokingState) {
@@ -1455,6 +1478,7 @@ public class EsqlParser extends Parser {
 		return _localctx;
 	}
 
+	@SuppressWarnings("CheckReturnValue")
 	public static class AliasContext extends ParserRuleContext {
 		public Token root;
 		public List<AliasPartContext> aliasPart() {
@@ -1528,6 +1552,7 @@ public class EsqlParser extends Parser {
 		return _localctx;
 	}
 
+	@SuppressWarnings("CheckReturnValue")
 	public static class AliasPartContext extends ParserRuleContext {
 		public AliasPartContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
@@ -1539,6 +1564,7 @@ public class EsqlParser extends Parser {
 			super.copyFrom(ctx);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class EscapedAliasPartContext extends AliasPartContext {
 		public TerminalNode EscapedIdentifier() { return getToken(EsqlParser.EscapedIdentifier, 0); }
 		public EscapedAliasPartContext(AliasPartContext ctx) { copyFrom(ctx); }
@@ -1551,6 +1577,7 @@ public class EsqlParser extends Parser {
 			if ( listener instanceof EsqlListener ) ((EsqlListener)listener).exitEscapedAliasPart(this);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class NormalAliasPartContext extends AliasPartContext {
 		public QualifiedNameContext qualifiedName() {
 			return getRuleContext(QualifiedNameContext.class,0);
@@ -1604,6 +1631,7 @@ public class EsqlParser extends Parser {
 		return _localctx;
 	}
 
+	@SuppressWarnings("CheckReturnValue")
 	public static class IdentifierContext extends ParserRuleContext {
 		public TerminalNode Identifier() { return getToken(EsqlParser.Identifier, 0); }
 		public TerminalNode EscapedIdentifier() { return getToken(EsqlParser.EscapedIdentifier, 0); }
@@ -1651,6 +1679,7 @@ public class EsqlParser extends Parser {
 		return _localctx;
 	}
 
+	@SuppressWarnings("CheckReturnValue")
 	public static class QualifiedNameContext extends ParserRuleContext {
 		public List<TerminalNode> Identifier() { return getTokens(EsqlParser.Identifier); }
 		public TerminalNode Identifier(int i) {
@@ -1710,6 +1739,7 @@ public class EsqlParser extends Parser {
 		return _localctx;
 	}
 
+	@SuppressWarnings("CheckReturnValue")
 	public static class SetNameContext extends ParserRuleContext {
 		public List<IdentifierContext> identifier() {
 			return getRuleContexts(IdentifierContext.class);
@@ -1765,6 +1795,7 @@ public class EsqlParser extends Parser {
 		return _localctx;
 	}
 
+	@SuppressWarnings("CheckReturnValue")
 	public static class TableExprContext extends ParserRuleContext {
 		public TableExprContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
@@ -1776,6 +1807,7 @@ public class EsqlParser extends Parser {
 			super.copyFrom(ctx);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class SingleTableExprContext extends TableExprContext {
 		public QualifiedNameContext qualifiedName() {
 			return getRuleContext(QualifiedNameContext.class,0);
@@ -1793,6 +1825,7 @@ public class EsqlParser extends Parser {
 			if ( listener instanceof EsqlListener ) ((EsqlListener)listener).exitSingleTableExpr(this);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class DynamicTableExprContext extends TableExprContext {
 		public AliasContext alias() {
 			return getRuleContext(AliasContext.class,0);
@@ -1813,6 +1846,7 @@ public class EsqlParser extends Parser {
 			if ( listener instanceof EsqlListener ) ((EsqlListener)listener).exitDynamicTableExpr(this);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class CrossProductTableExprContext extends TableExprContext {
 		public TableExprContext left;
 		public TableExprContext right;
@@ -1832,6 +1866,7 @@ public class EsqlParser extends Parser {
 			if ( listener instanceof EsqlListener ) ((EsqlListener)listener).exitCrossProductTableExpr(this);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class FunctionTableExprContext extends TableExprContext {
 		public AliasContext alias() {
 			return getRuleContext(AliasContext.class,0);
@@ -1855,6 +1890,7 @@ public class EsqlParser extends Parser {
 			if ( listener instanceof EsqlListener ) ((EsqlListener)listener).exitFunctionTableExpr(this);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class SelectTableExprContext extends TableExprContext {
 		public AliasContext alias() {
 			return getRuleContext(AliasContext.class,0);
@@ -1872,6 +1908,7 @@ public class EsqlParser extends Parser {
 			if ( listener instanceof EsqlListener ) ((EsqlListener)listener).exitSelectTableExpr(this);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class JoinTableExprContext extends TableExprContext {
 		public TableExprContext left;
 		public Token joinType;
@@ -1966,7 +2003,7 @@ public class EsqlParser extends Parser {
 				setState(410);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
-				if ((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << T__0) | (1L << T__1) | (1L << T__3) | (1L << T__11) | (1L << T__17) | (1L << T__23) | (1L << T__25) | (1L << T__26) | (1L << T__37) | (1L << T__39) | (1L << T__42) | (1L << T__43) | (1L << T__44) | (1L << T__47) | (1L << T__49) | (1L << T__52) | (1L << T__53) | (1L << T__57) | (1L << T__61) | (1L << T__62))) != 0) || ((((_la - 71)) & ~0x3f) == 0 && ((1L << (_la - 71)) & ((1L << (T__70 - 71)) | (1L << (T__74 - 71)) | (1L << (T__76 - 71)) | (1L << (T__78 - 71)) | (1L << (T__80 - 71)) | (1L << (T__81 - 71)) | (1L << (T__82 - 71)) | (1L << (T__99 - 71)) | (1L << (T__100 - 71)) | (1L << (T__103 - 71)) | (1L << (T__117 - 71)) | (1L << (EscapedIdentifier - 71)))) != 0) || ((((_la - 135)) & ~0x3f) == 0 && ((1L << (_la - 135)) & ((1L << (IntegerLiteral - 135)) | (1L << (FloatingPointLiteral - 135)) | (1L << (BooleanLiteral - 135)) | (1L << (NullLiteral - 135)) | (1L << (StringLiteral - 135)) | (1L << (MultiLineStringLiteral - 135)) | (1L << (UuidLiteral - 135)) | (1L << (DateLiteral - 135)) | (1L << (IntervalLiteral - 135)) | (1L << (Not - 135)) | (1L << (Identifier - 135)))) != 0)) {
+				if ((((_la) & ~0x3f) == 0 && ((1L << _la) & -4294963722368839658L) != 0) || ((((_la - 71)) & ~0x3f) == 0 && ((1L << (_la - 71)) & -9223231289165865647L) != 0) || ((((_la - 135)) & ~0x3f) == 0 && ((1L << (_la - 135)) & 3583L) != 0)) {
 					{
 					setState(409);
 					arguments();
@@ -2049,12 +2086,12 @@ public class EsqlParser extends Parser {
 						setState(434);
 						_errHandler.sync(this);
 						_la = _input.LA(1);
-						if ((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << T__25) | (1L << T__26) | (1L << T__27))) != 0)) {
+						if ((((_la) & ~0x3f) == 0 && ((1L << _la) & 469762048L) != 0)) {
 							{
 							setState(433);
 							((JoinTableExprContext)_localctx).joinType = _input.LT(1);
 							_la = _input.LA(1);
-							if ( !((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << T__25) | (1L << T__26) | (1L << T__27))) != 0)) ) {
+							if ( !((((_la) & ~0x3f) == 0 && ((1L << _la) & 469762048L) != 0)) ) {
 								((JoinTableExprContext)_localctx).joinType = (Token)_errHandler.recoverInline(this);
 							}
 							else {
@@ -2105,6 +2142,7 @@ public class EsqlParser extends Parser {
 		return _localctx;
 	}
 
+	@SuppressWarnings("CheckReturnValue")
 	public static class DynamicColumnsContext extends ParserRuleContext {
 		public List<NameWithMetadataContext> nameWithMetadata() {
 			return getRuleContexts(NameWithMetadataContext.class);
@@ -2183,6 +2221,7 @@ public class EsqlParser extends Parser {
 		return _localctx;
 	}
 
+	@SuppressWarnings("CheckReturnValue")
 	public static class NameWithMetadataContext extends ParserRuleContext {
 		public IdentifierContext identifier() {
 			return getRuleContext(IdentifierContext.class,0);
@@ -2236,6 +2275,7 @@ public class EsqlParser extends Parser {
 		return _localctx;
 	}
 
+	@SuppressWarnings("CheckReturnValue")
 	public static class LateralContext extends ParserRuleContext {
 		public LateralContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
@@ -2272,6 +2312,7 @@ public class EsqlParser extends Parser {
 		return _localctx;
 	}
 
+	@SuppressWarnings("CheckReturnValue")
 	public static class GroupByListContext extends ParserRuleContext {
 		public GroupByListContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
@@ -2283,6 +2324,7 @@ public class EsqlParser extends Parser {
 			super.copyFrom(ctx);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class CubeGroupContext extends GroupByListContext {
 		public ExpressionListContext expressionList() {
 			return getRuleContext(ExpressionListContext.class,0);
@@ -2297,6 +2339,7 @@ public class EsqlParser extends Parser {
 			if ( listener instanceof EsqlListener ) ((EsqlListener)listener).exitCubeGroup(this);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class SimpleGroupContext extends GroupByListContext {
 		public ExpressionListContext expressionList() {
 			return getRuleContext(ExpressionListContext.class,0);
@@ -2311,6 +2354,7 @@ public class EsqlParser extends Parser {
 			if ( listener instanceof EsqlListener ) ((EsqlListener)listener).exitSimpleGroup(this);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class RollupGroupContext extends GroupByListContext {
 		public ExpressionListContext expressionList() {
 			return getRuleContext(ExpressionListContext.class,0);
@@ -2426,6 +2470,7 @@ public class EsqlParser extends Parser {
 		return _localctx;
 	}
 
+	@SuppressWarnings("CheckReturnValue")
 	public static class OrderByListContext extends ParserRuleContext {
 		public List<OrderByContext> orderBy() {
 			return getRuleContexts(OrderByContext.class);
@@ -2487,6 +2532,7 @@ public class EsqlParser extends Parser {
 		return _localctx;
 	}
 
+	@SuppressWarnings("CheckReturnValue")
 	public static class OrderByContext extends ParserRuleContext {
 		public ExprContext expr() {
 			return getRuleContext(ExprContext.class,0);
@@ -2539,6 +2585,7 @@ public class EsqlParser extends Parser {
 		return _localctx;
 	}
 
+	@SuppressWarnings("CheckReturnValue")
 	public static class DirectionContext extends ParserRuleContext {
 		public DirectionContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
@@ -2584,6 +2631,7 @@ public class EsqlParser extends Parser {
 		return _localctx;
 	}
 
+	@SuppressWarnings("CheckReturnValue")
 	public static class SetopContext extends ParserRuleContext {
 		public SetopContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
@@ -2649,6 +2697,7 @@ public class EsqlParser extends Parser {
 		return _localctx;
 	}
 
+	@SuppressWarnings("CheckReturnValue")
 	public static class WithContext extends ParserRuleContext {
 		public Token recursive;
 		public CteListContext cteList() {
@@ -2707,6 +2756,7 @@ public class EsqlParser extends Parser {
 		return _localctx;
 	}
 
+	@SuppressWarnings("CheckReturnValue")
 	public static class CteListContext extends ParserRuleContext {
 		public List<CteContext> cte() {
 			return getRuleContexts(CteContext.class);
@@ -2766,6 +2816,7 @@ public class EsqlParser extends Parser {
 		return _localctx;
 	}
 
+	@SuppressWarnings("CheckReturnValue")
 	public static class CteContext extends ParserRuleContext {
 		public IdentifierContext identifier() {
 			return getRuleContext(IdentifierContext.class,0);
@@ -2827,6 +2878,7 @@ public class EsqlParser extends Parser {
 		return _localctx;
 	}
 
+	@SuppressWarnings("CheckReturnValue")
 	public static class NamesContext extends ParserRuleContext {
 		public List<IdentifierContext> identifier() {
 			return getRuleContexts(IdentifierContext.class);
@@ -2890,6 +2942,7 @@ public class EsqlParser extends Parser {
 		return _localctx;
 	}
 
+	@SuppressWarnings("CheckReturnValue")
 	public static class InsertContext extends ParserRuleContext {
 		public QualifiedNameContext qualifiedName() {
 			return getRuleContext(QualifiedNameContext.class,0);
@@ -3028,6 +3081,7 @@ public class EsqlParser extends Parser {
 		return _localctx;
 	}
 
+	@SuppressWarnings("CheckReturnValue")
 	public static class RowsContext extends ParserRuleContext {
 		public List<RowContext> row() {
 			return getRuleContexts(RowContext.class);
@@ -3089,6 +3143,7 @@ public class EsqlParser extends Parser {
 		return _localctx;
 	}
 
+	@SuppressWarnings("CheckReturnValue")
 	public static class RowContext extends ParserRuleContext {
 		public ExpressionListContext expressionList() {
 			return getRuleContext(ExpressionListContext.class,0);
@@ -3132,6 +3187,7 @@ public class EsqlParser extends Parser {
 		return _localctx;
 	}
 
+	@SuppressWarnings("CheckReturnValue")
 	public static class DefaultValuesContext extends ParserRuleContext {
 		public DefaultValuesContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
@@ -3170,6 +3226,7 @@ public class EsqlParser extends Parser {
 		return _localctx;
 	}
 
+	@SuppressWarnings("CheckReturnValue")
 	public static class UpdateContext extends ParserRuleContext {
 		public AliasContext alias() {
 			return getRuleContext(AliasContext.class,0);
@@ -3282,6 +3339,7 @@ public class EsqlParser extends Parser {
 		return _localctx;
 	}
 
+	@SuppressWarnings("CheckReturnValue")
 	public static class SetListContext extends ParserRuleContext {
 		public List<SetContext> set() {
 			return getRuleContexts(SetContext.class);
@@ -3343,6 +3401,7 @@ public class EsqlParser extends Parser {
 		return _localctx;
 	}
 
+	@SuppressWarnings("CheckReturnValue")
 	public static class SetContext extends ParserRuleContext {
 		public SetNameContext setName() {
 			return getRuleContext(SetNameContext.class,0);
@@ -3389,6 +3448,7 @@ public class EsqlParser extends Parser {
 		return _localctx;
 	}
 
+	@SuppressWarnings("CheckReturnValue")
 	public static class DeleteContext extends ParserRuleContext {
 		public AliasContext alias() {
 			return getRuleContext(AliasContext.class,0);
@@ -3494,6 +3554,7 @@ public class EsqlParser extends Parser {
 		return _localctx;
 	}
 
+	@SuppressWarnings("CheckReturnValue")
 	public static class ExprContext extends ParserRuleContext {
 		public ExprContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
@@ -3505,6 +3566,7 @@ public class EsqlParser extends Parser {
 			super.copyFrom(ctx);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class QuantifiedComparisonContext extends ExprContext {
 		public ExprContext expr() {
 			return getRuleContext(ExprContext.class,0);
@@ -3526,6 +3588,7 @@ public class EsqlParser extends Parser {
 			if ( listener instanceof EsqlListener ) ((EsqlListener)listener).exitQuantifiedComparison(this);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class StdTryCastExprContext extends ExprContext {
 		public ExprContext expr() {
 			return getRuleContext(ExprContext.class,0);
@@ -3543,6 +3606,7 @@ public class EsqlParser extends Parser {
 			if ( listener instanceof EsqlListener ) ((EsqlListener)listener).exitStdTryCastExpr(this);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class ModifyStatementContext extends ExprContext {
 		public ModifyContext modify() {
 			return getRuleContext(ModifyContext.class,0);
@@ -3557,6 +3621,7 @@ public class EsqlParser extends Parser {
 			if ( listener instanceof EsqlListener ) ((EsqlListener)listener).exitModifyStatement(this);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class BetweenExprContext extends ExprContext {
 		public ExprContext left;
 		public ExprContext mid;
@@ -3578,6 +3643,7 @@ public class EsqlParser extends Parser {
 			if ( listener instanceof EsqlListener ) ((EsqlListener)listener).exitBetweenExpr(this);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class ILikeExprContext extends ExprContext {
 		public ExprContext left;
 		public ExprContext right;
@@ -3598,6 +3664,7 @@ public class EsqlParser extends Parser {
 			if ( listener instanceof EsqlListener ) ((EsqlListener)listener).exitILikeExpr(this);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class InExpressionContext extends ExprContext {
 		public ExprContext expr() {
 			return getRuleContext(ExprContext.class,0);
@@ -3619,6 +3686,7 @@ public class EsqlParser extends Parser {
 			if ( listener instanceof EsqlListener ) ((EsqlListener)listener).exitInExpression(this);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class BreakContext extends ExprContext {
 		public BreakContext(ExprContext ctx) { copyFrom(ctx); }
 		@Override
@@ -3630,6 +3698,7 @@ public class EsqlParser extends Parser {
 			if ( listener instanceof EsqlListener ) ((EsqlListener)listener).exitBreak(this);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class CompatibleCaseExprContext extends ExprContext {
 		public List<ExprContext> expr() {
 			return getRuleContexts(ExprContext.class);
@@ -3647,6 +3716,7 @@ public class EsqlParser extends Parser {
 			if ( listener instanceof EsqlListener ) ((EsqlListener)listener).exitCompatibleCaseExpr(this);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class TryCastExprContext extends ExprContext {
 		public ExprContext expr() {
 			return getRuleContext(ExprContext.class,0);
@@ -3664,6 +3734,7 @@ public class EsqlParser extends Parser {
 			if ( listener instanceof EsqlListener ) ((EsqlListener)listener).exitTryCastExpr(this);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class SimpleExpressionContext extends ExprContext {
 		public SimpleExprContext simpleExpr() {
 			return getRuleContext(SimpleExprContext.class,0);
@@ -3678,6 +3749,7 @@ public class EsqlParser extends Parser {
 			if ( listener instanceof EsqlListener ) ((EsqlListener)listener).exitSimpleExpression(this);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class ForEachContext extends ExprContext {
 		public IdentifierContext key;
 		public IdentifierContext value;
@@ -3703,6 +3775,7 @@ public class EsqlParser extends Parser {
 			if ( listener instanceof EsqlListener ) ((EsqlListener)listener).exitForEach(this);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class AssignmentContext extends ExprContext {
 		public IdentifierContext identifier() {
 			return getRuleContext(IdentifierContext.class,0);
@@ -3720,6 +3793,7 @@ public class EsqlParser extends Parser {
 			if ( listener instanceof EsqlListener ) ((EsqlListener)listener).exitAssignment(this);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class DefineStatementContext extends ExprContext {
 		public DefineContext define() {
 			return getRuleContext(DefineContext.class,0);
@@ -3734,6 +3808,7 @@ public class EsqlParser extends Parser {
 			if ( listener instanceof EsqlListener ) ((EsqlListener)listener).exitDefineStatement(this);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class VarDeclContext extends ExprContext {
 		public IdentifierContext identifier() {
 			return getRuleContext(IdentifierContext.class,0);
@@ -3754,6 +3829,7 @@ public class EsqlParser extends Parser {
 			if ( listener instanceof EsqlListener ) ((EsqlListener)listener).exitVarDecl(this);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class GroupingExprContext extends ExprContext {
 		public ExprContext expr() {
 			return getRuleContext(ExprContext.class,0);
@@ -3768,6 +3844,7 @@ public class EsqlParser extends Parser {
 			if ( listener instanceof EsqlListener ) ((EsqlListener)listener).exitGroupingExpr(this);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class CastExprContext extends ExprContext {
 		public ExprContext expr() {
 			return getRuleContext(ExprContext.class,0);
@@ -3785,6 +3862,7 @@ public class EsqlParser extends Parser {
 			if ( listener instanceof EsqlListener ) ((EsqlListener)listener).exitCastExpr(this);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class SelectorContext extends ExprContext {
 		public ExprContext on;
 		public ExpressionListContext expressionList() {
@@ -3803,6 +3881,7 @@ public class EsqlParser extends Parser {
 			if ( listener instanceof EsqlListener ) ((EsqlListener)listener).exitSelector(this);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class LeftOfStringContext extends ExprContext {
 		public ExprContext str;
 		public ExprContext count;
@@ -3822,6 +3901,7 @@ public class EsqlParser extends Parser {
 			if ( listener instanceof EsqlListener ) ((EsqlListener)listener).exitLeftOfString(this);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class FunctionInvocationContext extends ExprContext {
 		public Token star;
 		public QualifiedNameContext qualifiedName() {
@@ -3846,6 +3926,7 @@ public class EsqlParser extends Parser {
 			if ( listener instanceof EsqlListener ) ((EsqlListener)listener).exitFunctionInvocation(this);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class SelectExprContext extends ExprContext {
 		public SelectExpressionContext selectExpression() {
 			return getRuleContext(SelectExpressionContext.class,0);
@@ -3860,6 +3941,7 @@ public class EsqlParser extends Parser {
 			if ( listener instanceof EsqlListener ) ((EsqlListener)listener).exitSelectExpr(this);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class NamedParameterContext extends ExprContext {
 		public TerminalNode Identifier() { return getToken(EsqlParser.Identifier, 0); }
 		public NamedParameterContext(ExprContext ctx) { copyFrom(ctx); }
@@ -3872,6 +3954,7 @@ public class EsqlParser extends Parser {
 			if ( listener instanceof EsqlListener ) ((EsqlListener)listener).exitNamedParameter(this);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class ExponentiationExprContext extends ExprContext {
 		public ExprContext left;
 		public ExprContext right;
@@ -3891,6 +3974,7 @@ public class EsqlParser extends Parser {
 			if ( listener instanceof EsqlListener ) ((EsqlListener)listener).exitExponentiationExpr(this);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class ForContext extends ExprContext {
 		public ExprContext init;
 		public ExprContext condition;
@@ -3914,6 +3998,7 @@ public class EsqlParser extends Parser {
 			if ( listener instanceof EsqlListener ) ((EsqlListener)listener).exitFor(this);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class RangeExprContext extends ExprContext {
 		public ExprContext left;
 		public OrderingContext leftCompare;
@@ -3945,6 +4030,7 @@ public class EsqlParser extends Parser {
 			if ( listener instanceof EsqlListener ) ((EsqlListener)listener).exitRangeExpr(this);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class ColumnRefContext extends ExprContext {
 		public ColumnReferenceContext columnReference() {
 			return getRuleContext(ColumnReferenceContext.class,0);
@@ -3959,6 +4045,7 @@ public class EsqlParser extends Parser {
 			if ( listener instanceof EsqlListener ) ((EsqlListener)listener).exitColumnRef(this);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class IfContext extends ExprContext {
 		public ImplyContext imply() {
 			return getRuleContext(ImplyContext.class,0);
@@ -3982,6 +4069,7 @@ public class EsqlParser extends Parser {
 			if ( listener instanceof EsqlListener ) ((EsqlListener)listener).exitIf(this);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class LikeExprContext extends ExprContext {
 		public ExprContext left;
 		public ExprContext right;
@@ -4002,6 +4090,7 @@ public class EsqlParser extends Parser {
 			if ( listener instanceof EsqlListener ) ((EsqlListener)listener).exitLikeExpr(this);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class EvaluateContext extends ExprContext {
 		public ExprContext expr() {
 			return getRuleContext(ExprContext.class,0);
@@ -4016,6 +4105,7 @@ public class EsqlParser extends Parser {
 			if ( listener instanceof EsqlListener ) ((EsqlListener)listener).exitEvaluate(this);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class RightOfStringContext extends ExprContext {
 		public ExprContext str;
 		public ExprContext count;
@@ -4035,6 +4125,7 @@ public class EsqlParser extends Parser {
 			if ( listener instanceof EsqlListener ) ((EsqlListener)listener).exitRightOfString(this);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class ContinueContext extends ExprContext {
 		public ContinueContext(ExprContext ctx) { copyFrom(ctx); }
 		@Override
@@ -4046,6 +4137,7 @@ public class EsqlParser extends Parser {
 			if ( listener instanceof EsqlListener ) ((EsqlListener)listener).exitContinue(this);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class LogicalAndExprContext extends ExprContext {
 		public ExprContext left;
 		public ExprContext right;
@@ -4065,6 +4157,7 @@ public class EsqlParser extends Parser {
 			if ( listener instanceof EsqlListener ) ((EsqlListener)listener).exitLogicalAndExpr(this);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class SelectStatementContext extends ExprContext {
 		public SelectContext select() {
 			return getRuleContext(SelectContext.class,0);
@@ -4079,6 +4172,7 @@ public class EsqlParser extends Parser {
 			if ( listener instanceof EsqlListener ) ((EsqlListener)listener).exitSelectStatement(this);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class DefaultValueContext extends ExprContext {
 		public DefaultValueContext(ExprContext ctx) { copyFrom(ctx); }
 		@Override
@@ -4090,6 +4184,7 @@ public class EsqlParser extends Parser {
 			if ( listener instanceof EsqlListener ) ((EsqlListener)listener).exitDefaultValue(this);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class ComparisonContext extends ExprContext {
 		public ExprContext left;
 		public ExprContext right;
@@ -4112,6 +4207,7 @@ public class EsqlParser extends Parser {
 			if ( listener instanceof EsqlListener ) ((EsqlListener)listener).exitComparison(this);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class LiteralExprContext extends ExprContext {
 		public LiteralContext literal() {
 			return getRuleContext(LiteralContext.class,0);
@@ -4126,6 +4222,7 @@ public class EsqlParser extends Parser {
 			if ( listener instanceof EsqlListener ) ((EsqlListener)listener).exitLiteralExpr(this);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class NotExprContext extends ExprContext {
 		public TerminalNode Not() { return getToken(EsqlParser.Not, 0); }
 		public ExprContext expr() {
@@ -4141,6 +4238,7 @@ public class EsqlParser extends Parser {
 			if ( listener instanceof EsqlListener ) ((EsqlListener)listener).exitNotExpr(this);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class MultiplicationExprContext extends ExprContext {
 		public ExprContext left;
 		public Token op;
@@ -4161,6 +4259,7 @@ public class EsqlParser extends Parser {
 			if ( listener instanceof EsqlListener ) ((EsqlListener)listener).exitMultiplicationExpr(this);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class ConcatenationExprContext extends ExprContext {
 		public List<ExprContext> expr() {
 			return getRuleContexts(ExprContext.class);
@@ -4178,6 +4277,7 @@ public class EsqlParser extends Parser {
 			if ( listener instanceof EsqlListener ) ((EsqlListener)listener).exitConcatenationExpr(this);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class CoalesceExprContext extends ExprContext {
 		public List<ExprContext> expr() {
 			return getRuleContexts(ExprContext.class);
@@ -4195,6 +4295,7 @@ public class EsqlParser extends Parser {
 			if ( listener instanceof EsqlListener ) ((EsqlListener)listener).exitCoalesceExpr(this);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class StdCastExprContext extends ExprContext {
 		public ExprContext expr() {
 			return getRuleContext(ExprContext.class,0);
@@ -4212,6 +4313,7 @@ public class EsqlParser extends Parser {
 			if ( listener instanceof EsqlListener ) ((EsqlListener)listener).exitStdCastExpr(this);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class ReturnContext extends ExprContext {
 		public ExprContext expr() {
 			return getRuleContext(ExprContext.class,0);
@@ -4226,6 +4328,7 @@ public class EsqlParser extends Parser {
 			if ( listener instanceof EsqlListener ) ((EsqlListener)listener).exitReturn(this);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class NoopStatementContext extends ExprContext {
 		public NoopContext noop() {
 			return getRuleContext(NoopContext.class,0);
@@ -4240,6 +4343,7 @@ public class EsqlParser extends Parser {
 			if ( listener instanceof EsqlListener ) ((EsqlListener)listener).exitNoopStatement(this);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class WhileContext extends ExprContext {
 		public ExprContext expr() {
 			return getRuleContext(ExprContext.class,0);
@@ -4257,6 +4361,7 @@ public class EsqlParser extends Parser {
 			if ( listener instanceof EsqlListener ) ((EsqlListener)listener).exitWhile(this);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class FunctionDeclContext extends ExprContext {
 		public QualifiedNameContext qualifiedName() {
 			return getRuleContext(QualifiedNameContext.class,0);
@@ -4280,6 +4385,7 @@ public class EsqlParser extends Parser {
 			if ( listener instanceof EsqlListener ) ((EsqlListener)listener).exitFunctionDecl(this);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class LogicalOrExprContext extends ExprContext {
 		public ExprContext left;
 		public ExprContext right;
@@ -4299,6 +4405,7 @@ public class EsqlParser extends Parser {
 			if ( listener instanceof EsqlListener ) ((EsqlListener)listener).exitLogicalOrExpr(this);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class AdditionExprContext extends ExprContext {
 		public ExprContext left;
 		public Token op;
@@ -4319,6 +4426,7 @@ public class EsqlParser extends Parser {
 			if ( listener instanceof EsqlListener ) ((EsqlListener)listener).exitAdditionExpr(this);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class NullCheckExprContext extends ExprContext {
 		public ExprContext expr() {
 			return getRuleContext(ExprContext.class,0);
@@ -4335,6 +4443,7 @@ public class EsqlParser extends Parser {
 			if ( listener instanceof EsqlListener ) ((EsqlListener)listener).exitNullCheckExpr(this);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class CaseExprContext extends ExprContext {
 		public List<ExprContext> expr() {
 			return getRuleContexts(ExprContext.class);
@@ -4352,6 +4461,7 @@ public class EsqlParser extends Parser {
 			if ( listener instanceof EsqlListener ) ((EsqlListener)listener).exitCaseExpr(this);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class NegationExprContext extends ExprContext {
 		public ExprContext expr() {
 			return getRuleContext(ExprContext.class,0);
@@ -4831,7 +4941,7 @@ public class EsqlParser extends Parser {
 				setState(742);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
-				if ((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << T__0) | (1L << T__1) | (1L << T__3) | (1L << T__11) | (1L << T__17) | (1L << T__23) | (1L << T__25) | (1L << T__26) | (1L << T__37) | (1L << T__39) | (1L << T__42) | (1L << T__43) | (1L << T__44) | (1L << T__47) | (1L << T__49) | (1L << T__52) | (1L << T__53) | (1L << T__57) | (1L << T__61) | (1L << T__62))) != 0) || ((((_la - 71)) & ~0x3f) == 0 && ((1L << (_la - 71)) & ((1L << (T__70 - 71)) | (1L << (T__74 - 71)) | (1L << (T__76 - 71)) | (1L << (T__78 - 71)) | (1L << (T__80 - 71)) | (1L << (T__81 - 71)) | (1L << (T__82 - 71)) | (1L << (T__99 - 71)) | (1L << (T__100 - 71)) | (1L << (T__103 - 71)) | (1L << (T__117 - 71)) | (1L << (EscapedIdentifier - 71)))) != 0) || ((((_la - 135)) & ~0x3f) == 0 && ((1L << (_la - 135)) & ((1L << (IntegerLiteral - 135)) | (1L << (FloatingPointLiteral - 135)) | (1L << (BooleanLiteral - 135)) | (1L << (NullLiteral - 135)) | (1L << (StringLiteral - 135)) | (1L << (MultiLineStringLiteral - 135)) | (1L << (UuidLiteral - 135)) | (1L << (DateLiteral - 135)) | (1L << (IntervalLiteral - 135)) | (1L << (Not - 135)) | (1L << (Identifier - 135)))) != 0)) {
+				if ((((_la) & ~0x3f) == 0 && ((1L << _la) & -4294963722368839658L) != 0) || ((((_la - 71)) & ~0x3f) == 0 && ((1L << (_la - 71)) & -9223231289165865647L) != 0) || ((((_la - 135)) & ~0x3f) == 0 && ((1L << (_la - 135)) & 3583L) != 0)) {
 					{
 					setState(741);
 					expressions();
@@ -4864,7 +4974,7 @@ public class EsqlParser extends Parser {
 				setState(754);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
-				if ((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << T__0) | (1L << T__1) | (1L << T__3) | (1L << T__11) | (1L << T__17) | (1L << T__23) | (1L << T__25) | (1L << T__26) | (1L << T__37) | (1L << T__39) | (1L << T__42) | (1L << T__43) | (1L << T__44) | (1L << T__47) | (1L << T__49) | (1L << T__52) | (1L << T__53) | (1L << T__57) | (1L << T__61) | (1L << T__62))) != 0) || ((((_la - 71)) & ~0x3f) == 0 && ((1L << (_la - 71)) & ((1L << (T__70 - 71)) | (1L << (T__74 - 71)) | (1L << (T__76 - 71)) | (1L << (T__78 - 71)) | (1L << (T__80 - 71)) | (1L << (T__81 - 71)) | (1L << (T__82 - 71)) | (1L << (T__99 - 71)) | (1L << (T__100 - 71)) | (1L << (T__103 - 71)) | (1L << (T__117 - 71)) | (1L << (EscapedIdentifier - 71)))) != 0) || ((((_la - 135)) & ~0x3f) == 0 && ((1L << (_la - 135)) & ((1L << (IntegerLiteral - 135)) | (1L << (FloatingPointLiteral - 135)) | (1L << (BooleanLiteral - 135)) | (1L << (NullLiteral - 135)) | (1L << (StringLiteral - 135)) | (1L << (MultiLineStringLiteral - 135)) | (1L << (UuidLiteral - 135)) | (1L << (DateLiteral - 135)) | (1L << (IntervalLiteral - 135)) | (1L << (Not - 135)) | (1L << (Identifier - 135)))) != 0)) {
+				if ((((_la) & ~0x3f) == 0 && ((1L << _la) & -4294963722368839658L) != 0) || ((((_la - 71)) & ~0x3f) == 0 && ((1L << (_la - 71)) & -9223231289165865647L) != 0) || ((((_la - 135)) & ~0x3f) == 0 && ((1L << (_la - 135)) & 3583L) != 0)) {
 					{
 					setState(753);
 					expressions();
@@ -4990,7 +5100,7 @@ public class EsqlParser extends Parser {
 						setState(781);
 						((MultiplicationExprContext)_localctx).op = _input.LT(1);
 						_la = _input.LA(1);
-						if ( !((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << T__21) | (1L << T__23) | (1L << T__59))) != 0)) ) {
+						if ( !((((_la) & ~0x3f) == 0 && ((1L << _la) & 1152921504627818496L) != 0)) ) {
 							((MultiplicationExprContext)_localctx).op = (Token)_errHandler.recoverInline(this);
 						}
 						else {
@@ -5324,6 +5434,7 @@ public class EsqlParser extends Parser {
 		return _localctx;
 	}
 
+	@SuppressWarnings("CheckReturnValue")
 	public static class ImplyContext extends ParserRuleContext {
 		public ExprContext expr() {
 			return getRuleContext(ExprContext.class,0);
@@ -5370,6 +5481,7 @@ public class EsqlParser extends Parser {
 		return _localctx;
 	}
 
+	@SuppressWarnings("CheckReturnValue")
 	public static class ElseIfContext extends ParserRuleContext {
 		public ImplyContext imply() {
 			return getRuleContext(ImplyContext.class,0);
@@ -5411,6 +5523,7 @@ public class EsqlParser extends Parser {
 		return _localctx;
 	}
 
+	@SuppressWarnings("CheckReturnValue")
 	public static class SimpleExprContext extends ParserRuleContext {
 		public SimpleExprContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
@@ -5422,6 +5535,7 @@ public class EsqlParser extends Parser {
 			super.copyFrom(ctx);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class SimpleTryCastExprContext extends SimpleExprContext {
 		public SimpleExprContext simpleExpr() {
 			return getRuleContext(SimpleExprContext.class,0);
@@ -5439,6 +5553,7 @@ public class EsqlParser extends Parser {
 			if ( listener instanceof EsqlListener ) ((EsqlListener)listener).exitSimpleTryCastExpr(this);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class SimpleConcatenationExprContext extends SimpleExprContext {
 		public List<SimpleExprContext> simpleExpr() {
 			return getRuleContexts(SimpleExprContext.class);
@@ -5456,6 +5571,7 @@ public class EsqlParser extends Parser {
 			if ( listener instanceof EsqlListener ) ((EsqlListener)listener).exitSimpleConcatenationExpr(this);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class SimpleFunctionInvocationContext extends SimpleExprContext {
 		public Token star;
 		public QualifiedNameContext qualifiedName() {
@@ -5480,6 +5596,7 @@ public class EsqlParser extends Parser {
 			if ( listener instanceof EsqlListener ) ((EsqlListener)listener).exitSimpleFunctionInvocation(this);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class CompatibleSimpleCaseExprContext extends SimpleExprContext {
 		public List<SimpleExprContext> simpleExpr() {
 			return getRuleContexts(SimpleExprContext.class);
@@ -5497,6 +5614,7 @@ public class EsqlParser extends Parser {
 			if ( listener instanceof EsqlListener ) ((EsqlListener)listener).exitCompatibleSimpleCaseExpr(this);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class SimpleLiteralExprContext extends SimpleExprContext {
 		public LiteralContext literal() {
 			return getRuleContext(LiteralContext.class,0);
@@ -5511,6 +5629,7 @@ public class EsqlParser extends Parser {
 			if ( listener instanceof EsqlListener ) ((EsqlListener)listener).exitSimpleLiteralExpr(this);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class SimpleStdCastExprContext extends SimpleExprContext {
 		public SimpleExprContext simpleExpr() {
 			return getRuleContext(SimpleExprContext.class,0);
@@ -5528,6 +5647,7 @@ public class EsqlParser extends Parser {
 			if ( listener instanceof EsqlListener ) ((EsqlListener)listener).exitSimpleStdCastExpr(this);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class SimpleGroupingExprContext extends SimpleExprContext {
 		public SimpleExprContext simpleExpr() {
 			return getRuleContext(SimpleExprContext.class,0);
@@ -5542,6 +5662,7 @@ public class EsqlParser extends Parser {
 			if ( listener instanceof EsqlListener ) ((EsqlListener)listener).exitSimpleGroupingExpr(this);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class SimpleExponentiationExprContext extends SimpleExprContext {
 		public SimpleExprContext left;
 		public SimpleExprContext right;
@@ -5561,6 +5682,7 @@ public class EsqlParser extends Parser {
 			if ( listener instanceof EsqlListener ) ((EsqlListener)listener).exitSimpleExponentiationExpr(this);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class SimpleStdTryCastExprContext extends SimpleExprContext {
 		public SimpleExprContext simpleExpr() {
 			return getRuleContext(SimpleExprContext.class,0);
@@ -5578,6 +5700,7 @@ public class EsqlParser extends Parser {
 			if ( listener instanceof EsqlListener ) ((EsqlListener)listener).exitSimpleStdTryCastExpr(this);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class SimpleSelectExprContext extends SimpleExprContext {
 		public SelectExpressionContext selectExpression() {
 			return getRuleContext(SelectExpressionContext.class,0);
@@ -5592,6 +5715,7 @@ public class EsqlParser extends Parser {
 			if ( listener instanceof EsqlListener ) ((EsqlListener)listener).exitSimpleSelectExpr(this);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class SimpleAdditionExprContext extends SimpleExprContext {
 		public SimpleExprContext left;
 		public Token op;
@@ -5612,6 +5736,7 @@ public class EsqlParser extends Parser {
 			if ( listener instanceof EsqlListener ) ((EsqlListener)listener).exitSimpleAdditionExpr(this);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class SimpleNegationExprContext extends SimpleExprContext {
 		public SimpleExprContext simpleExpr() {
 			return getRuleContext(SimpleExprContext.class,0);
@@ -5626,6 +5751,7 @@ public class EsqlParser extends Parser {
 			if ( listener instanceof EsqlListener ) ((EsqlListener)listener).exitSimpleNegationExpr(this);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class SimpleMultiplicationExprContext extends SimpleExprContext {
 		public SimpleExprContext left;
 		public Token op;
@@ -5646,6 +5772,7 @@ public class EsqlParser extends Parser {
 			if ( listener instanceof EsqlListener ) ((EsqlListener)listener).exitSimpleMultiplicationExpr(this);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class SimpleCastExprContext extends SimpleExprContext {
 		public SimpleExprContext simpleExpr() {
 			return getRuleContext(SimpleExprContext.class,0);
@@ -5663,6 +5790,7 @@ public class EsqlParser extends Parser {
 			if ( listener instanceof EsqlListener ) ((EsqlListener)listener).exitSimpleCastExpr(this);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class SimpleCaseExprContext extends SimpleExprContext {
 		public List<SimpleExprContext> simpleExpr() {
 			return getRuleContexts(SimpleExprContext.class);
@@ -5680,6 +5808,7 @@ public class EsqlParser extends Parser {
 			if ( listener instanceof EsqlListener ) ((EsqlListener)listener).exitSimpleCaseExpr(this);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class SimpleCoalesceExprContext extends SimpleExprContext {
 		public List<SimpleExprContext> simpleExpr() {
 			return getRuleContexts(SimpleExprContext.class);
@@ -5697,6 +5826,7 @@ public class EsqlParser extends Parser {
 			if ( listener instanceof EsqlListener ) ((EsqlListener)listener).exitSimpleCoalesceExpr(this);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class SimpleColumnExprContext extends SimpleExprContext {
 		public ColumnReferenceContext columnReference() {
 			return getRuleContext(ColumnReferenceContext.class,0);
@@ -5976,7 +6106,7 @@ public class EsqlParser extends Parser {
 						setState(932);
 						((SimpleMultiplicationExprContext)_localctx).op = _input.LT(1);
 						_la = _input.LA(1);
-						if ( !((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << T__21) | (1L << T__23) | (1L << T__59))) != 0)) ) {
+						if ( !((((_la) & ~0x3f) == 0 && ((1L << _la) & 1152921504627818496L) != 0)) ) {
 							((SimpleMultiplicationExprContext)_localctx).op = (Token)_errHandler.recoverInline(this);
 						}
 						else {
@@ -6122,6 +6252,7 @@ public class EsqlParser extends Parser {
 		return _localctx;
 	}
 
+	@SuppressWarnings("CheckReturnValue")
 	public static class ParameterContext extends ParserRuleContext {
 		public IdentifierContext identifier() {
 			return getRuleContext(IdentifierContext.class,0);
@@ -6184,6 +6315,7 @@ public class EsqlParser extends Parser {
 		return _localctx;
 	}
 
+	@SuppressWarnings("CheckReturnValue")
 	public static class ParametersContext extends ParserRuleContext {
 		public List<ParameterContext> parameter() {
 			return getRuleContexts(ParameterContext.class);
@@ -6243,6 +6375,7 @@ public class EsqlParser extends Parser {
 		return _localctx;
 	}
 
+	@SuppressWarnings("CheckReturnValue")
 	public static class ColumnReferenceContext extends ParserRuleContext {
 		public AliasContext alias() {
 			return getRuleContext(AliasContext.class,0);
@@ -6295,6 +6428,7 @@ public class EsqlParser extends Parser {
 		return _localctx;
 	}
 
+	@SuppressWarnings("CheckReturnValue")
 	public static class SelectExpressionContext extends ParserRuleContext {
 		public ExprContext col;
 		public ExprContext where;
@@ -6432,6 +6566,7 @@ public class EsqlParser extends Parser {
 		return _localctx;
 	}
 
+	@SuppressWarnings("CheckReturnValue")
 	public static class WindowContext extends ParserRuleContext {
 		public PartitionContext partition() {
 			return getRuleContext(PartitionContext.class,0);
@@ -6516,6 +6651,7 @@ public class EsqlParser extends Parser {
 		return _localctx;
 	}
 
+	@SuppressWarnings("CheckReturnValue")
 	public static class PartitionContext extends ParserRuleContext {
 		public ExpressionListContext expressionList() {
 			return getRuleContext(ExpressionListContext.class,0);
@@ -6559,6 +6695,7 @@ public class EsqlParser extends Parser {
 		return _localctx;
 	}
 
+	@SuppressWarnings("CheckReturnValue")
 	public static class FrameContext extends ParserRuleContext {
 		public Token frameType;
 		public PrecedingContext preceding() {
@@ -6620,6 +6757,7 @@ public class EsqlParser extends Parser {
 		return _localctx;
 	}
 
+	@SuppressWarnings("CheckReturnValue")
 	public static class PrecedingContext extends ParserRuleContext {
 		public UnboundedContext unbounded() {
 			return getRuleContext(UnboundedContext.class,0);
@@ -6691,6 +6829,7 @@ public class EsqlParser extends Parser {
 		return _localctx;
 	}
 
+	@SuppressWarnings("CheckReturnValue")
 	public static class FollowingContext extends ParserRuleContext {
 		public UnboundedContext unbounded() {
 			return getRuleContext(UnboundedContext.class,0);
@@ -6762,6 +6901,7 @@ public class EsqlParser extends Parser {
 		return _localctx;
 	}
 
+	@SuppressWarnings("CheckReturnValue")
 	public static class UnboundedContext extends ParserRuleContext {
 		public UnboundedContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
@@ -6798,6 +6938,7 @@ public class EsqlParser extends Parser {
 		return _localctx;
 	}
 
+	@SuppressWarnings("CheckReturnValue")
 	public static class CurrentContext extends ParserRuleContext {
 		public CurrentContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
@@ -6834,6 +6975,7 @@ public class EsqlParser extends Parser {
 		return _localctx;
 	}
 
+	@SuppressWarnings("CheckReturnValue")
 	public static class CompareContext extends ParserRuleContext {
 		public CompareContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
@@ -6858,7 +7000,7 @@ public class EsqlParser extends Parser {
 			{
 			setState(1065);
 			_la = _input.LA(1);
-			if ( !(((((_la - 47)) & ~0x3f) == 0 && ((1L << (_la - 47)) & ((1L << (T__46 - 47)) | (1L << (T__94 - 47)) | (1L << (T__95 - 47)) | (1L << (T__96 - 47)) | (1L << (T__97 - 47)) | (1L << (T__98 - 47)))) != 0)) ) {
+			if ( !(((((_la - 47)) & ~0x3f) == 0 && ((1L << (_la - 47)) & 8725724278030337L) != 0)) ) {
 			_errHandler.recoverInline(this);
 			}
 			else {
@@ -6879,6 +7021,7 @@ public class EsqlParser extends Parser {
 		return _localctx;
 	}
 
+	@SuppressWarnings("CheckReturnValue")
 	public static class OrderingContext extends ParserRuleContext {
 		public OrderingContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
@@ -6903,7 +7046,7 @@ public class EsqlParser extends Parser {
 			{
 			setState(1067);
 			_la = _input.LA(1);
-			if ( !(((((_la - 96)) & ~0x3f) == 0 && ((1L << (_la - 96)) & ((1L << (T__95 - 96)) | (1L << (T__96 - 96)) | (1L << (T__97 - 96)) | (1L << (T__98 - 96)))) != 0)) ) {
+			if ( !(((((_la - 96)) & ~0x3f) == 0 && ((1L << (_la - 96)) & 15L) != 0)) ) {
 			_errHandler.recoverInline(this);
 			}
 			else {
@@ -6924,6 +7067,7 @@ public class EsqlParser extends Parser {
 		return _localctx;
 	}
 
+	@SuppressWarnings("CheckReturnValue")
 	public static class ExpressionListContext extends ParserRuleContext {
 		public List<ExprContext> expr() {
 			return getRuleContexts(ExprContext.class);
@@ -6985,6 +7129,7 @@ public class EsqlParser extends Parser {
 		return _localctx;
 	}
 
+	@SuppressWarnings("CheckReturnValue")
 	public static class ArgumentsContext extends ParserRuleContext {
 		public List<ArgumentContext> argument() {
 			return getRuleContexts(ArgumentContext.class);
@@ -7044,6 +7189,7 @@ public class EsqlParser extends Parser {
 		return _localctx;
 	}
 
+	@SuppressWarnings("CheckReturnValue")
 	public static class ArgumentContext extends ParserRuleContext {
 		public NamedArgumentContext namedArgument() {
 			return getRuleContext(NamedArgumentContext.class,0);
@@ -7099,6 +7245,7 @@ public class EsqlParser extends Parser {
 		return _localctx;
 	}
 
+	@SuppressWarnings("CheckReturnValue")
 	public static class NamedArgumentContext extends ParserRuleContext {
 		public IdentifierContext identifier() {
 			return getRuleContext(IdentifierContext.class,0);
@@ -7145,6 +7292,7 @@ public class EsqlParser extends Parser {
 		return _localctx;
 	}
 
+	@SuppressWarnings("CheckReturnValue")
 	public static class PositionalArgumentContext extends ParserRuleContext {
 		public ExprContext expr() {
 			return getRuleContext(ExprContext.class,0);
@@ -7184,6 +7332,7 @@ public class EsqlParser extends Parser {
 		return _localctx;
 	}
 
+	@SuppressWarnings("CheckReturnValue")
 	public static class LiteralContext extends ParserRuleContext {
 		public LiteralContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
@@ -7195,6 +7344,7 @@ public class EsqlParser extends Parser {
 			super.copyFrom(ctx);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class JsonArrayLiteralContext extends LiteralContext {
 		public LiteralListContext literalList() {
 			return getRuleContext(LiteralListContext.class,0);
@@ -7209,6 +7359,7 @@ public class EsqlParser extends Parser {
 			if ( listener instanceof EsqlListener ) ((EsqlListener)listener).exitJsonArrayLiteral(this);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class NullContext extends LiteralContext {
 		public TerminalNode NullLiteral() { return getToken(EsqlParser.NullLiteral, 0); }
 		public NullContext(LiteralContext ctx) { copyFrom(ctx); }
@@ -7221,6 +7372,7 @@ public class EsqlParser extends Parser {
 			if ( listener instanceof EsqlListener ) ((EsqlListener)listener).exitNull(this);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class BasicLiteralsContext extends LiteralContext {
 		public BaseLiteralContext baseLiteral() {
 			return getRuleContext(BaseLiteralContext.class,0);
@@ -7235,6 +7387,7 @@ public class EsqlParser extends Parser {
 			if ( listener instanceof EsqlListener ) ((EsqlListener)listener).exitBasicLiterals(this);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class BaseArrayLiteralContext extends LiteralContext {
 		public IdentifierContext identifier() {
 			return getRuleContext(IdentifierContext.class,0);
@@ -7252,6 +7405,7 @@ public class EsqlParser extends Parser {
 			if ( listener instanceof EsqlListener ) ((EsqlListener)listener).exitBaseArrayLiteral(this);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class JsonObjectLiteralContext extends LiteralContext {
 		public LiteralAttributeListContext literalAttributeList() {
 			return getRuleContext(LiteralAttributeListContext.class,0);
@@ -7300,7 +7454,7 @@ public class EsqlParser extends Parser {
 				setState(1099);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
-				if (((((_la - 100)) & ~0x3f) == 0 && ((1L << (_la - 100)) & ((1L << (T__99 - 100)) | (1L << (IntegerLiteral - 100)) | (1L << (FloatingPointLiteral - 100)) | (1L << (BooleanLiteral - 100)) | (1L << (StringLiteral - 100)) | (1L << (MultiLineStringLiteral - 100)) | (1L << (UuidLiteral - 100)) | (1L << (DateLiteral - 100)) | (1L << (IntervalLiteral - 100)))) != 0)) {
+				if (((((_la - 100)) & ~0x3f) == 0 && ((1L << (_la - 100)) & 17282948399105L) != 0)) {
 					{
 					setState(1098);
 					baseLiteralList();
@@ -7322,7 +7476,7 @@ public class EsqlParser extends Parser {
 				setState(1105);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
-				if (_la==T__11 || _la==T__53 || ((((_la - 100)) & ~0x3f) == 0 && ((1L << (_la - 100)) & ((1L << (T__99 - 100)) | (1L << (IntegerLiteral - 100)) | (1L << (FloatingPointLiteral - 100)) | (1L << (BooleanLiteral - 100)) | (1L << (NullLiteral - 100)) | (1L << (StringLiteral - 100)) | (1L << (MultiLineStringLiteral - 100)) | (1L << (UuidLiteral - 100)) | (1L << (DateLiteral - 100)) | (1L << (IntervalLiteral - 100)))) != 0)) {
+				if (_la==T__11 || _la==T__53 || ((((_la - 100)) & ~0x3f) == 0 && ((1L << (_la - 100)) & 17557826306049L) != 0)) {
 					{
 					setState(1104);
 					literalList();
@@ -7366,6 +7520,7 @@ public class EsqlParser extends Parser {
 		return _localctx;
 	}
 
+	@SuppressWarnings("CheckReturnValue")
 	public static class BaseLiteralContext extends ParserRuleContext {
 		public BaseLiteralContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
@@ -7377,6 +7532,7 @@ public class EsqlParser extends Parser {
 			super.copyFrom(ctx);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class IntegerContext extends BaseLiteralContext {
 		public TerminalNode IntegerLiteral() { return getToken(EsqlParser.IntegerLiteral, 0); }
 		public IntegerContext(BaseLiteralContext ctx) { copyFrom(ctx); }
@@ -7389,6 +7545,7 @@ public class EsqlParser extends Parser {
 			if ( listener instanceof EsqlListener ) ((EsqlListener)listener).exitInteger(this);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class UncomputedExprContext extends BaseLiteralContext {
 		public ExprContext expr() {
 			return getRuleContext(ExprContext.class,0);
@@ -7403,6 +7560,7 @@ public class EsqlParser extends Parser {
 			if ( listener instanceof EsqlListener ) ((EsqlListener)listener).exitUncomputedExpr(this);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class MultiLineStringContext extends BaseLiteralContext {
 		public TerminalNode MultiLineStringLiteral() { return getToken(EsqlParser.MultiLineStringLiteral, 0); }
 		public MultiLineStringContext(BaseLiteralContext ctx) { copyFrom(ctx); }
@@ -7415,6 +7573,7 @@ public class EsqlParser extends Parser {
 			if ( listener instanceof EsqlListener ) ((EsqlListener)listener).exitMultiLineString(this);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class UuidContext extends BaseLiteralContext {
 		public TerminalNode UuidLiteral() { return getToken(EsqlParser.UuidLiteral, 0); }
 		public UuidContext(BaseLiteralContext ctx) { copyFrom(ctx); }
@@ -7427,6 +7586,7 @@ public class EsqlParser extends Parser {
 			if ( listener instanceof EsqlListener ) ((EsqlListener)listener).exitUuid(this);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class FloatingPointContext extends BaseLiteralContext {
 		public TerminalNode FloatingPointLiteral() { return getToken(EsqlParser.FloatingPointLiteral, 0); }
 		public FloatingPointContext(BaseLiteralContext ctx) { copyFrom(ctx); }
@@ -7439,6 +7599,7 @@ public class EsqlParser extends Parser {
 			if ( listener instanceof EsqlListener ) ((EsqlListener)listener).exitFloatingPoint(this);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class StringContext extends BaseLiteralContext {
 		public TerminalNode StringLiteral() { return getToken(EsqlParser.StringLiteral, 0); }
 		public StringContext(BaseLiteralContext ctx) { copyFrom(ctx); }
@@ -7451,6 +7612,7 @@ public class EsqlParser extends Parser {
 			if ( listener instanceof EsqlListener ) ((EsqlListener)listener).exitString(this);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class BooleanContext extends BaseLiteralContext {
 		public TerminalNode BooleanLiteral() { return getToken(EsqlParser.BooleanLiteral, 0); }
 		public BooleanContext(BaseLiteralContext ctx) { copyFrom(ctx); }
@@ -7463,6 +7625,7 @@ public class EsqlParser extends Parser {
 			if ( listener instanceof EsqlListener ) ((EsqlListener)listener).exitBoolean(this);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class DateContext extends BaseLiteralContext {
 		public TerminalNode DateLiteral() { return getToken(EsqlParser.DateLiteral, 0); }
 		public DateContext(BaseLiteralContext ctx) { copyFrom(ctx); }
@@ -7475,6 +7638,7 @@ public class EsqlParser extends Parser {
 			if ( listener instanceof EsqlListener ) ((EsqlListener)listener).exitDate(this);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class IntervalContext extends BaseLiteralContext {
 		public TerminalNode IntervalLiteral() { return getToken(EsqlParser.IntervalLiteral, 0); }
 		public IntervalContext(BaseLiteralContext ctx) { copyFrom(ctx); }
@@ -7586,6 +7750,7 @@ public class EsqlParser extends Parser {
 		return _localctx;
 	}
 
+	@SuppressWarnings("CheckReturnValue")
 	public static class LiteralListContext extends ParserRuleContext {
 		public List<LiteralContext> literal() {
 			return getRuleContexts(LiteralContext.class);
@@ -7658,6 +7823,7 @@ public class EsqlParser extends Parser {
 		return _localctx;
 	}
 
+	@SuppressWarnings("CheckReturnValue")
 	public static class BaseLiteralListContext extends ParserRuleContext {
 		public List<BaseLiteralContext> baseLiteral() {
 			return getRuleContexts(BaseLiteralContext.class);
@@ -7730,6 +7896,7 @@ public class EsqlParser extends Parser {
 		return _localctx;
 	}
 
+	@SuppressWarnings("CheckReturnValue")
 	public static class IntegerConstantContext extends ParserRuleContext {
 		public TerminalNode IntegerLiteral() { return getToken(EsqlParser.IntegerLiteral, 0); }
 		public IntegerConstantContext(ParserRuleContext parent, int invokingState) {
@@ -7784,6 +7951,7 @@ public class EsqlParser extends Parser {
 		return _localctx;
 	}
 
+	@SuppressWarnings("CheckReturnValue")
 	public static class DefineContext extends ParserRuleContext {
 		public CreateTableContext createTable() {
 			return getRuleContext(CreateTableContext.class,0);
@@ -7929,6 +8097,7 @@ public class EsqlParser extends Parser {
 		return _localctx;
 	}
 
+	@SuppressWarnings("CheckReturnValue")
 	public static class CreateTableContext extends ParserRuleContext {
 		public QualifiedNameContext qualifiedName() {
 			return getRuleContext(QualifiedNameContext.class,0);
@@ -8009,7 +8178,7 @@ public class EsqlParser extends Parser {
 			setState(1187);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
-			if (_la==T__2 || ((((_la - 107)) & ~0x3f) == 0 && ((1L << (_la - 107)) & ((1L << (T__106 - 107)) | (1L << (T__107 - 107)) | (1L << (T__109 - 107)) | (1L << (T__110 - 107)) | (1L << (T__114 - 107)))) != 0)) {
+			if (_la==T__2 || ((((_la - 107)) & ~0x3f) == 0 && ((1L << (_la - 107)) & 283L) != 0)) {
 				{
 				setState(1184);
 				_errHandler.sync(this);
@@ -8041,6 +8210,7 @@ public class EsqlParser extends Parser {
 		return _localctx;
 	}
 
+	@SuppressWarnings("CheckReturnValue")
 	public static class CreateStructContext extends ParserRuleContext {
 		public QualifiedNameContext qualifiedName() {
 			return getRuleContext(QualifiedNameContext.class,0);
@@ -8107,6 +8277,7 @@ public class EsqlParser extends Parser {
 		return _localctx;
 	}
 
+	@SuppressWarnings("CheckReturnValue")
 	public static class DropUndefinedContext extends ParserRuleContext {
 		public DropUndefinedContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
@@ -8145,6 +8316,7 @@ public class EsqlParser extends Parser {
 		return _localctx;
 	}
 
+	@SuppressWarnings("CheckReturnValue")
 	public static class ColumnAndDerivedColumnDefinitionsContext extends ParserRuleContext {
 		public List<ColumnAndDerivedColumnDefinitionContext> columnAndDerivedColumnDefinition() {
 			return getRuleContexts(ColumnAndDerivedColumnDefinitionContext.class);
@@ -8206,6 +8378,7 @@ public class EsqlParser extends Parser {
 		return _localctx;
 	}
 
+	@SuppressWarnings("CheckReturnValue")
 	public static class ColumnAndDerivedColumnDefinitionContext extends ParserRuleContext {
 		public ColumnDefinitionContext columnDefinition() {
 			return getRuleContext(ColumnDefinitionContext.class,0);
@@ -8261,6 +8434,7 @@ public class EsqlParser extends Parser {
 		return _localctx;
 	}
 
+	@SuppressWarnings("CheckReturnValue")
 	public static class ConstraintDefinitionsContext extends ParserRuleContext {
 		public List<ConstraintDefinitionContext> constraintDefinition() {
 			return getRuleContexts(ConstraintDefinitionContext.class);
@@ -8320,6 +8494,7 @@ public class EsqlParser extends Parser {
 		return _localctx;
 	}
 
+	@SuppressWarnings("CheckReturnValue")
 	public static class TableDefinitionContext extends ParserRuleContext {
 		public ColumnDefinitionContext columnDefinition() {
 			return getRuleContext(ColumnDefinitionContext.class,0);
@@ -8399,6 +8574,7 @@ public class EsqlParser extends Parser {
 		return _localctx;
 	}
 
+	@SuppressWarnings("CheckReturnValue")
 	public static class ColumnDefinitionContext extends ParserRuleContext {
 		public IdentifierContext identifier() {
 			return getRuleContext(IdentifierContext.class,0);
@@ -8485,6 +8661,7 @@ public class EsqlParser extends Parser {
 		return _localctx;
 	}
 
+	@SuppressWarnings("CheckReturnValue")
 	public static class DerivedColumnDefinitionContext extends ParserRuleContext {
 		public IdentifierContext identifier() {
 			return getRuleContext(IdentifierContext.class,0);
@@ -8544,6 +8721,7 @@ public class EsqlParser extends Parser {
 		return _localctx;
 	}
 
+	@SuppressWarnings("CheckReturnValue")
 	public static class ConstraintDefinitionContext extends ParserRuleContext {
 		public ConstraintDefinitionContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
@@ -8555,6 +8733,7 @@ public class EsqlParser extends Parser {
 			super.copyFrom(ctx);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class ForeignKeyConstraintContext extends ConstraintDefinitionContext {
 		public NamesContext from;
 		public NamesContext to;
@@ -8601,6 +8780,7 @@ public class EsqlParser extends Parser {
 			if ( listener instanceof EsqlListener ) ((EsqlListener)listener).exitForeignKeyConstraint(this);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class UniqueConstraintContext extends ConstraintDefinitionContext {
 		public NamesContext names() {
 			return getRuleContext(NamesContext.class,0);
@@ -8618,6 +8798,7 @@ public class EsqlParser extends Parser {
 			if ( listener instanceof EsqlListener ) ((EsqlListener)listener).exitUniqueConstraint(this);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class PrimaryKeyConstraintContext extends ConstraintDefinitionContext {
 		public NamesContext names() {
 			return getRuleContext(NamesContext.class,0);
@@ -8635,6 +8816,7 @@ public class EsqlParser extends Parser {
 			if ( listener instanceof EsqlListener ) ((EsqlListener)listener).exitPrimaryKeyConstraint(this);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class CheckConstraintContext extends ConstraintDefinitionContext {
 		public ExprContext expr() {
 			return getRuleContext(ExprContext.class,0);
@@ -8834,6 +9016,7 @@ public class EsqlParser extends Parser {
 		return _localctx;
 	}
 
+	@SuppressWarnings("CheckReturnValue")
 	public static class ConstraintNameContext extends ParserRuleContext {
 		public IdentifierContext identifier() {
 			return getRuleContext(IdentifierContext.class,0);
@@ -8875,6 +9058,7 @@ public class EsqlParser extends Parser {
 		return _localctx;
 	}
 
+	@SuppressWarnings("CheckReturnValue")
 	public static class OnUpdateContext extends ParserRuleContext {
 		public ForeignKeyActionContext foreignKeyAction() {
 			return getRuleContext(ForeignKeyActionContext.class,0);
@@ -8918,6 +9102,7 @@ public class EsqlParser extends Parser {
 		return _localctx;
 	}
 
+	@SuppressWarnings("CheckReturnValue")
 	public static class OnDeleteContext extends ParserRuleContext {
 		public ForeignKeyActionContext foreignKeyAction() {
 			return getRuleContext(ForeignKeyActionContext.class,0);
@@ -8961,6 +9146,7 @@ public class EsqlParser extends Parser {
 		return _localctx;
 	}
 
+	@SuppressWarnings("CheckReturnValue")
 	public static class ForeignKeyActionContext extends ParserRuleContext {
 		public TerminalNode NullLiteral() { return getToken(EsqlParser.NullLiteral, 0); }
 		public ForeignKeyActionContext(ParserRuleContext parent, int invokingState) {
@@ -9029,6 +9215,7 @@ public class EsqlParser extends Parser {
 		return _localctx;
 	}
 
+	@SuppressWarnings("CheckReturnValue")
 	public static class AlterTableContext extends ParserRuleContext {
 		public QualifiedNameContext qualifiedName() {
 			return getRuleContext(QualifiedNameContext.class,0);
@@ -9077,6 +9264,7 @@ public class EsqlParser extends Parser {
 		return _localctx;
 	}
 
+	@SuppressWarnings("CheckReturnValue")
 	public static class AlterStructContext extends ParserRuleContext {
 		public QualifiedNameContext qualifiedName() {
 			return getRuleContext(QualifiedNameContext.class,0);
@@ -9125,6 +9313,7 @@ public class EsqlParser extends Parser {
 		return _localctx;
 	}
 
+	@SuppressWarnings("CheckReturnValue")
 	public static class AlterationsContext extends ParserRuleContext {
 		public List<AlterationContext> alteration() {
 			return getRuleContexts(AlterationContext.class);
@@ -9186,6 +9375,7 @@ public class EsqlParser extends Parser {
 		return _localctx;
 	}
 
+	@SuppressWarnings("CheckReturnValue")
 	public static class AlterationContext extends ParserRuleContext {
 		public AlterationContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
@@ -9197,6 +9387,7 @@ public class EsqlParser extends Parser {
 			super.copyFrom(ctx);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class RenameTableContext extends AlterationContext {
 		public IdentifierContext identifier() {
 			return getRuleContext(IdentifierContext.class,0);
@@ -9211,6 +9402,7 @@ public class EsqlParser extends Parser {
 			if ( listener instanceof EsqlListener ) ((EsqlListener)listener).exitRenameTable(this);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class DropTableMetadataContext extends AlterationContext {
 		public DropTableMetadataContext(AlterationContext ctx) { copyFrom(ctx); }
 		@Override
@@ -9222,6 +9414,7 @@ public class EsqlParser extends Parser {
 			if ( listener instanceof EsqlListener ) ((EsqlListener)listener).exitDropTableMetadata(this);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class AddTableDefinitionContext extends AlterationContext {
 		public TableDefinitionContext tableDefinition() {
 			return getRuleContext(TableDefinitionContext.class,0);
@@ -9236,6 +9429,7 @@ public class EsqlParser extends Parser {
 			if ( listener instanceof EsqlListener ) ((EsqlListener)listener).exitAddTableDefinition(this);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class AlterColumnContext extends AlterationContext {
 		public IdentifierContext identifier() {
 			return getRuleContext(IdentifierContext.class,0);
@@ -9253,6 +9447,7 @@ public class EsqlParser extends Parser {
 			if ( listener instanceof EsqlListener ) ((EsqlListener)listener).exitAlterColumn(this);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class DropConstraintContext extends AlterationContext {
 		public IdentifierContext identifier() {
 			return getRuleContext(IdentifierContext.class,0);
@@ -9267,6 +9462,7 @@ public class EsqlParser extends Parser {
 			if ( listener instanceof EsqlListener ) ((EsqlListener)listener).exitDropConstraint(this);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class DropColumnContext extends AlterationContext {
 		public IdentifierContext identifier() {
 			return getRuleContext(IdentifierContext.class,0);
@@ -9372,6 +9568,7 @@ public class EsqlParser extends Parser {
 		return _localctx;
 	}
 
+	@SuppressWarnings("CheckReturnValue")
 	public static class AlterColumnDefinitionContext extends ParserRuleContext {
 		public IdentifierContext identifier() {
 			return getRuleContext(IdentifierContext.class,0);
@@ -9477,6 +9674,7 @@ public class EsqlParser extends Parser {
 		return _localctx;
 	}
 
+	@SuppressWarnings("CheckReturnValue")
 	public static class AlterNullContext extends ParserRuleContext {
 		public TerminalNode Not() { return getToken(EsqlParser.Not, 0); }
 		public TerminalNode NullLiteral() { return getToken(EsqlParser.NullLiteral, 0); }
@@ -9532,6 +9730,7 @@ public class EsqlParser extends Parser {
 		return _localctx;
 	}
 
+	@SuppressWarnings("CheckReturnValue")
 	public static class AlterDefaultContext extends ParserRuleContext {
 		public ExprContext expr() {
 			return getRuleContext(ExprContext.class,0);
@@ -9590,6 +9789,7 @@ public class EsqlParser extends Parser {
 		return _localctx;
 	}
 
+	@SuppressWarnings("CheckReturnValue")
 	public static class DropTableContext extends ParserRuleContext {
 		public QualifiedNameContext qualifiedName() {
 			return getRuleContext(QualifiedNameContext.class,0);
@@ -9633,6 +9833,7 @@ public class EsqlParser extends Parser {
 		return _localctx;
 	}
 
+	@SuppressWarnings("CheckReturnValue")
 	public static class DropStructContext extends ParserRuleContext {
 		public QualifiedNameContext qualifiedName() {
 			return getRuleContext(QualifiedNameContext.class,0);
@@ -9676,6 +9877,7 @@ public class EsqlParser extends Parser {
 		return _localctx;
 	}
 
+	@SuppressWarnings("CheckReturnValue")
 	public static class CreateIndexContext extends ParserRuleContext {
 		public Token unique;
 		public IdentifierContext identifier() {
@@ -9747,6 +9949,7 @@ public class EsqlParser extends Parser {
 		return _localctx;
 	}
 
+	@SuppressWarnings("CheckReturnValue")
 	public static class DropIndexContext extends ParserRuleContext {
 		public IdentifierContext identifier() {
 			return getRuleContext(IdentifierContext.class,0);
@@ -9797,6 +10000,7 @@ public class EsqlParser extends Parser {
 		return _localctx;
 	}
 
+	@SuppressWarnings("CheckReturnValue")
 	public static class CreateSequenceContext extends ParserRuleContext {
 		public IntegerConstantContext start;
 		public IntegerConstantContext inc;
@@ -9923,6 +10127,7 @@ public class EsqlParser extends Parser {
 		return _localctx;
 	}
 
+	@SuppressWarnings("CheckReturnValue")
 	public static class DropSequenceContext extends ParserRuleContext {
 		public QualifiedNameContext qualifiedName() {
 			return getRuleContext(QualifiedNameContext.class,0);
@@ -9966,6 +10171,7 @@ public class EsqlParser extends Parser {
 		return _localctx;
 	}
 
+	@SuppressWarnings("CheckReturnValue")
 	public static class AlterSequenceContext extends ParserRuleContext {
 		public IntegerConstantContext restart;
 		public IntegerConstantContext inc;
@@ -10100,6 +10306,7 @@ public class EsqlParser extends Parser {
 		return _localctx;
 	}
 
+	@SuppressWarnings("CheckReturnValue")
 	public static class TypeContext extends ParserRuleContext {
 		public TypeContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
@@ -10111,6 +10318,7 @@ public class EsqlParser extends Parser {
 			super.copyFrom(ctx);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class ArrayContext extends TypeContext {
 		public TypeContext type() {
 			return getRuleContext(TypeContext.class,0);
@@ -10126,6 +10334,7 @@ public class EsqlParser extends Parser {
 			if ( listener instanceof EsqlListener ) ((EsqlListener)listener).exitArray(this);
 		}
 	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class BaseContext extends TypeContext {
 		public IdentifierContext identifier() {
 			return getRuleContext(IdentifierContext.class,0);
@@ -10538,9 +10747,9 @@ public class EsqlParser extends Parser {
 		"\u00e5\u0001\u0000\u0000\u0000\u00e6\u00e7\u0001\u0000\u0000\u0000\u00e7"+
 		"\u00e9\u0001\u0000\u0000\u0000\u00e8\u00e4\u0001\u0000\u0000\u0000\u00e8"+
 		"\u00e9\u0001\u0000\u0000\u0000\u00e9\u00eb\u0001\u0000\u0000\u0000\u00ea"+
-		"\u00ec\u0003\u001c\u000e\u0000\u00eb\u00ea\u0001\u0000\u0000\u0000\u00eb"+
-		"\u00ec\u0001\u0000\u0000\u0000\u00ec\u00ee\u0001\u0000\u0000\u0000\u00ed"+
-		"\u00ef\u0003\u001a\r\u0000\u00ee\u00ed\u0001\u0000\u0000\u0000\u00ee\u00ef"+
+		"\u00ec\u0003\u001a\r\u0000\u00eb\u00ea\u0001\u0000\u0000\u0000\u00eb\u00ec"+
+		"\u0001\u0000\u0000\u0000\u00ec\u00ee\u0001\u0000\u0000\u0000\u00ed\u00ef"+
+		"\u0003\u001c\u000e\u0000\u00ee\u00ed\u0001\u0000\u0000\u0000\u00ee\u00ef"+
 		"\u0001\u0000\u0000\u0000\u00ef\u00f1\u0001\u0000\u0000\u0000\u00f0\u00f2"+
 		"\u0003\u0018\f\u0000\u00f1\u00f0\u0001\u0000\u0000\u0000\u00f1\u00f2\u0001"+
 		"\u0000\u0000\u0000\u00f2\u00f3\u0001\u0000\u0000\u0000\u00f3\u00f6\u0003"+

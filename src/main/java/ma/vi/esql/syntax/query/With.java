@@ -6,6 +6,7 @@ package ma.vi.esql.syntax.query;
 
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.database.EsqlConnection;
+import ma.vi.esql.exec.composable.ComposableFilter;
 import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.semantic.type.Column;
 import ma.vi.esql.semantic.type.Selection;
@@ -85,7 +86,11 @@ public class With extends QueryUpdate {
   }
 
   @Override
-  public QueryTranslation trans(Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
+  public QueryTranslation trans(Target               target,
+                                EsqlConnection       esqlCon,
+                                EsqlPath             path,
+                                PMap<String, Object> parameters,
+                                Environment          env) {
     StringBuilder st = new StringBuilder("with ");
     if (recursive() && (target == POSTGRESQL || target == HSQLDB)) {
       st.append("recursive ");
@@ -106,6 +111,17 @@ public class With extends QueryUpdate {
                                 q.columns(),
                                 q.resultAttributes());
   }
+
+//  @Override
+//  public With filter(ComposableFilter filter,
+//                     boolean          firstFilter,
+//                     EsqlPath         path) {
+//    for (Cte cte: ctes()) {
+//      if (cte.query() instanceof Select select) {
+//        Select newSelect = select.filter(filter, firstFilter, path.add(select));
+//      }
+//    }
+//  }
 
   @Override
   public boolean modifying() {

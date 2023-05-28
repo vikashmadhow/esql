@@ -73,8 +73,8 @@ queryUpdate
  */
 select
     :  'select' (literalMetadata ','?)?
-                unfiltered?
                 explicit?
+                unfiltered?
                 distinct?
                 columns
       (  'from' tableExpr)?
