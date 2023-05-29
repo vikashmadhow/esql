@@ -363,7 +363,7 @@ public interface Database {
       try (ResultSet rs = con.createStatement()
                              .executeQuery("""
                                            select 1
-                                             from information_schema.schemata
+                                             from INFORMATION_SCHEMA.SCHEMATA
                                             where schema_name='""" + schema + "'")) {
         if (!rs.next()) {
           con.createStatement().executeUpdate("create schema \"" + schema + '"');
@@ -382,7 +382,7 @@ public interface Database {
     T2<String, String> name = Type.splitName(table);
     try(ResultSet rs = con.createStatement().executeQuery(
       "select table_name "
-        + "  from information_schema.tables"
+        + "  from INFORMATION_SCHEMA.TABLES"
         + " where table_schema='" + name.a + "'"
         + "   and table_name='" + name.b + "'")) {
       return rs.next();
@@ -399,7 +399,7 @@ public interface Database {
     T2<String, String> name = Type.splitName(table);
     try(ResultSet rs = con.createStatement().executeQuery(
       "select column_name "
-        + "  from information_schema.columns"
+        + "  from INFORMATION_SCHEMA.COLUMNS"
         + " where table_schema='" + name.a + "'"
         + "   and table_name='"   + name.b + "'"
         + "   and column_name='"  + column + "'")) {

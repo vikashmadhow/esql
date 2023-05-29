@@ -102,7 +102,7 @@ public class CreateSequence extends Define implements Create {
       String dbSchemaName = Type.dbSchemaName(schema, target);
       try (ResultSet rs = con.createStatement().executeQuery(
             "select 1"
-          + "  from information_schema.sequences"
+          + "  from INFORMATION_SCHEMA.SEQUENCES"
           + " where sequence_schema='" + dbSchemaName + "'"
           + "   and sequence_name='" + splitName.b + "'")) {
         if (!rs.next()) {

@@ -23,7 +23,7 @@ public class SequenceTest extends DataTest {
                    System.out.println(db.target());
                    try (EsqlConnection con = db.esql()) {
                      con.exec("create sequence a.x");
-                     ResultSet rs = con.connection().createStatement().executeQuery("select 1 from information_schema.sequences where sequence_schema='a' and sequence_name='x'");
+                     ResultSet rs = con.connection().createStatement().executeQuery("select 1 from INFORMATION_SCHEMA.SEQUENCES where sequence_schema='a' and sequence_name='x'");
                      assertTrue(rs.next());
                    }
                  }));
@@ -36,14 +36,14 @@ public class SequenceTest extends DataTest {
                    System.out.println(db.target());
                    try (EsqlConnection con = db.esql()) {
                      con.exec("create sequence a.x");
-                     ResultSet rs = con.connection().createStatement().executeQuery("select 1 from information_schema.sequences where sequence_schema='a' and sequence_name='x'");
+                     ResultSet rs = con.connection().createStatement().executeQuery("select 1 from INFORMATION_SCHEMA.SEQUENCES where sequence_schema='a' and sequence_name='x'");
                      assertTrue(rs.next());
 
                      con.exec("alter sequence a.x restart 250 increment 2 minimum 250 maximum 300 cycle");
                      rs = con.connection().createStatement()
                              .executeQuery("""
                                            select start_value, minimum_value, maximum_value, increment, cycle_option
-                                             from information_schema.sequences
+                                             from INFORMATION_SCHEMA.SEQUENCES
                                             where sequence_schema='a' and sequence_name='x'""");
                      assertTrue(rs.next());
                      assertEquals(250,   rs.getLong(1));
@@ -63,11 +63,11 @@ public class SequenceTest extends DataTest {
                    System.out.println(db.target());
                    try (EsqlConnection con = db.esql(db.pooledConnection())) {
                      con.exec("create sequence a.b.y");
-                     ResultSet rs = con.connection().createStatement().executeQuery("select 1 from information_schema.sequences where sequence_schema='a.b' and sequence_name='y'");
+                     ResultSet rs = con.connection().createStatement().executeQuery("select 1 from INFORMATION_SCHEMA.SEQUENCES where sequence_schema='a.b' and sequence_name='y'");
                      assertTrue(rs.next());
 
                      con.exec("drop sequence a.b.y");
-                     rs = con.connection().createStatement().executeQuery("select 1 from information_schema.sequences where sequence_schema='a.b' and sequence_name='y'");
+                     rs = con.connection().createStatement().executeQuery("select 1 from INFORMATION_SCHEMA.SEQUENCES where sequence_schema='a.b' and sequence_name='y'");
                      assertFalse(rs.next());
                    }
                  }));

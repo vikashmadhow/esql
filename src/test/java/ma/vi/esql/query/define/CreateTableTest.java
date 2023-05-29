@@ -300,7 +300,7 @@ public class CreateTableTest extends DataTest {
                               unique(b, c, d)
                             )""");
 
-                     con.exec("delete x from test.X");
+                     con.exec("delete X from test.X");
                      con.exec("""
                               insert into test.X(_id, a, b, c, d)
                               values (newid(), 1, 2, 3, 4),

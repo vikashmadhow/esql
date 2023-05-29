@@ -236,7 +236,7 @@ public abstract class AbstractDatabase implements Database {
        * Load table information from information schemas.
        */
       try (ResultSet rs = stmt.executeQuery("select table_schema, table_name "
-                                              + "  from information_schema.tables "
+                                              + "  from INFORMATION_SCHEMA.TABLES "
                                               + " where table_type='BASE TABLE'"
                                               + "   and upper(table_schema) not in ("
                                               + ignoredSchemas.stream()
@@ -259,7 +259,7 @@ public abstract class AbstractDatabase implements Database {
           try (ResultSet crs = con.createStatement().executeQuery(
             "select column_name, ordinal_position, data_type, " +
               "       column_default, is_nullable " +
-              "  from information_schema.columns " +
+              "  from INFORMATION_SCHEMA.COLUMNS " +
               " where table_schema='" + schema + "' " +
               "   and table_name='" + name + "'" +
               " order by ordinal_position")) {
@@ -318,7 +318,7 @@ public abstract class AbstractDatabase implements Database {
       try (ResultSet crs = con.createStatement().executeQuery(
         "select table_schema, table_name, constraint_schema, "
           + "       constraint_name, constraint_type "
-          + "  from information_schema.table_constraints"
+          + "  from INFORMATION_SCHEMA.TABLE_CONSTRAINTS"
           + " where upper(table_schema) not in "
           + "(" + ignoredSchemas.stream()
                                 .map(s -> "'" + s + "'")
@@ -344,7 +344,7 @@ public abstract class AbstractDatabase implements Database {
             case "CHECK":
               try (ResultSet r = con.createStatement().executeQuery(
                 "select check_clause " +
-                  "  from information_schema.check_constraints " +
+                  "  from INFORMATION_SCHEMA.CHECK_CONSTRAINTS " +
                   " where constraint_schema='" + constraintSchema + "' " +
                   "   and constraint_name='" + constraintName + "'")) {
                 r.next();
@@ -370,7 +370,7 @@ public abstract class AbstractDatabase implements Database {
                   "       unique_constraint_name," +
                   "       update_rule, " +
                   "       delete_rule " +
-                  "  from information_schema.referential_constraints " +
+                  "  from INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS " +
                   " where constraint_schema='" + constraintSchema + "' " +
                   "   and constraint_name='" + constraintName + "'")) {
                 r.next();
@@ -589,7 +589,7 @@ public abstract class AbstractDatabase implements Database {
                                               String constraintName) {
     try (ResultSet r = stmt.executeQuery(
         "select table_schema, table_name, column_name " +
-            "  from information_schema.key_column_usage " +
+            "  from INFORMATION_SCHEMA.KEY_COLUMN_USAGE " +
             " where constraint_schema='" + constraintSchema + "' " +
             "   and constraint_name='" + constraintName + "' " +
             " order by ordinal_position")) {
@@ -1319,7 +1319,7 @@ public abstract class AbstractDatabase implements Database {
       } else if (tableDescription != null) {
         con.exec(p.parse(
             "update rel "
-          + "  from reL:_core.relations "
+          + "  from rel:_core.relations "
           + "   set description='" + escapeSqlString(tableDescription) + "'"
           + " where _id='" + tableId + "'"));
       }

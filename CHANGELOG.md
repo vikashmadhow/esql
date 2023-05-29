@@ -88,6 +88,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.6.0] (Planned)
 ### Mirror tables
 
+## [1.5.23] - 2023-05-29
+### Added
+- Remove `COLLATE` from translation of equality to SQL Server as it breaks 'group 
+  by rollup'. SQL Server are now assumed to be in the correct collation which may
+  result in some unpredictable behaviour on that database (i.e. the behaviour now
+  depends on which collation is in use).
+
 ## [1.5.22] - 2023-05-25
 ### Added
 - Acquiring locks on `_core._temp_history` when reading and transferring coarse-
