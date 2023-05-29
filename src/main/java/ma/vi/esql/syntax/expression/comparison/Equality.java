@@ -64,10 +64,11 @@ public class Equality extends ComparisonOperator {
              + expr2().translate(target, null, path.add(expr2()), parameters, null);
 
       case SQLSERVER:
-        boolean string = expr1().type() == Types.StringType
-                      || expr1().type() == Types.TextType
-                      || expr2().type() == Types.StringType
-                      || expr2().type() == Types.TextType;
+//        boolean string = expr1().type() == Types.StringType
+//                      || expr1().type() == Types.TextType
+//                      || expr2().type() == Types.StringType
+//                      || expr2().type() == Types.TextType;
+        boolean string = false;
         boolean iif = requireIif(path, parameters);
         return (iif ? "iif(" : "")
              + String.valueOf(expr1().translate(target, esqlCon, path.add(expr1()), parameters, env))
