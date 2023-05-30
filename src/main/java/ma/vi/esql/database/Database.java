@@ -550,6 +550,8 @@ public interface Database {
                table_name string   not null,
                event      char     not null,
                at_time    datetime not null)""");
+
+      con.exec("create index _temp_history_trans_id on _core._temp_history(trans_id)");
     }
   }
 

@@ -124,9 +124,9 @@ public class EsqlConnectionImpl implements EsqlConnection {
           try (Connection con = database().pooledConnection()) {
             Statement st = con.createStatement();
             if (db.target() == SQLSERVER) {
-              st.executeUpdate("set lock_timeout 100");
+              st.executeUpdate("set lock_timeout 10");
             } else {
-              st.executeUpdate("set local lock_timeout='100ms'");
+              st.executeUpdate("set local lock_timeout='10ms'");
             }
             int tries = 0;
             boolean transRead = false;
@@ -148,7 +148,7 @@ public class EsqlConnectionImpl implements EsqlConnection {
                 log.log(WARNING, " >>> Could not obtain a lock on _core._temp_history "
                                + "table to read coarse transaction history. Tried "
                                + tries + " times");
-                try { Thread.sleep(100); } catch(InterruptedException ignored) {}
+                try { Thread.sleep(10); } catch(InterruptedException ignored) {}
               }
             }
           } catch (SQLException sqle) {
@@ -166,9 +166,9 @@ public class EsqlConnectionImpl implements EsqlConnection {
                   con = database().pooledConnection();
                   Statement st = con.createStatement();
                   if (db.target() == SQLSERVER) {
-                    st.executeUpdate("set lock_timeout 100");
+                    st.executeUpdate("set lock_timeout 10");
                   } else {
-                    st.executeUpdate("set local lock_timeout='100ms'");
+                    st.executeUpdate("set local lock_timeout='10ms'");
                   }
                   /*
                    * Move to transaction history and set user.
@@ -207,7 +207,7 @@ public class EsqlConnectionImpl implements EsqlConnection {
                     con.createStatement().executeUpdate("set local lock_timeout='0ms'");
                   }
 
-                  try { Thread.sleep(100); } catch(InterruptedException ignored) {}
+                  try { Thread.sleep(10); } catch(InterruptedException ignored) {}
                 } finally {
                   if (con != null) {
                     con.close();
