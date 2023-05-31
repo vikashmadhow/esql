@@ -88,6 +88,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.6.0] (Planned)
 ### Mirror tables
 
+## [1.5.24] - 2023-05-31
+### Added
+- `randstr` ESQL function to generate a random string of arbitrary size, implemented
+  in SQL Server as `_core.randstr`.
+
 ## [1.5.23] - 2023-05-29
 ### Added
 - Remove `COLLATE` from translation of equality to SQL Server as it breaks 'group 
