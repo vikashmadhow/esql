@@ -227,7 +227,7 @@ public class Structure extends AbstractScope implements Environment {
                                  HSQLDB,     "rand",
                                  SQLSERVER,  "rand")));
 
-    function(new Function("random", StringType,
+    function(new Function("randstr", StringType,
                           singletonList(new FunctionParam("length", IntType)),
                           false,
                           Map.of(POSTGRESQL, "_core.randomstr",
