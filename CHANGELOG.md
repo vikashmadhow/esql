@@ -88,10 +88,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.6.0] (Planned)
 ### Mirror tables
 
+## [1.5.25] - 2023-06-01
+### Added
+- `randstr` ESQL function to generate a random string of arbitrary size, implemented
+  in Postgresq as `_core.randomstr`.
+- `obfuscate` and `unobfuscate` ESQL function implemented in Postgresql.
+- `checkdigit` ESQL function takes a number and appends a check digit to it computed 
+  using the GTIN-13 method (https://www.gs1.org/services/how-calculate-check-digit-manually).
+
 ## [1.5.24] - 2023-05-31
 ### Added
 - `randstr` ESQL function to generate a random string of arbitrary size, implemented
-  in SQL Server as `_core.randstr`.
+  in SQL Server as `_core.randomstr`.
 
 ## [1.5.23] - 2023-05-29
 ### Added

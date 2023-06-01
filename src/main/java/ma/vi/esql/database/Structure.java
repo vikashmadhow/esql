@@ -303,6 +303,14 @@ public class Structure extends AbstractScope implements Environment {
     function(new Upper());
     function(new IndexOf());
 
+    // Check digit
+    /////////////////////////////////
+    function(new Function("checkdigit", LongType,
+                          singletonList(new FunctionParam("p", LongType)),
+                          false,
+                          Map.of(POSTGRESQL, "_core.checkdigit",
+                                 SQLSERVER,  "_core.checkdigit")));
+
     // Obfuscation
     /////////////////////////////////
     function(new Function("obfuscate", StringType,
