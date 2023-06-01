@@ -125,6 +125,118 @@ public class Postgresql extends AbstractDatabase {
               and val <  coalesce(ub,  2000000000)
          $$ language sql immutable strict;""");
 
+      c.createStatement().executeUpdate(
+          """
+          create or replace function _core.floormod(dividend int, divider int) returns int as $$
+            select ((dividend % divider) + divider) % divider;
+          $$ language sql immutable strict""");
+
+      c.createStatement().executeUpdate(
+          """
+          create or replace function _core.obfuscate_shift(i int) returns int as $$
+            select case when i % 2 = 0
+                        then i + 3
+                        else -(i + 3) end;
+          $$ language sql immutable strict""");
+
+      c.createStatement().executeUpdate(
+          """
+          create or replace function _core.unobfuscate(obfuscated text) returns text as $$
+          declare
+             unobfuscated   text := '';
+             i              int  := 2;
+             pos            int;
+             c              char;
+             password_chars text := 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+             chars_len      int  := length(password_chars);
+          begin
+            while i <= length(obfuscated) loop
+              c            := substr(obfuscated, i, 1);
+              pos          := strpos(password_chars, c) - _core.obfuscate_shift(cast((i - 1) / 2 as int)) - 1;
+              unobfuscated := unobfuscated || substr(password_chars, _core.floormod(pos, chars_len)::int + 1, 1);
+              i            := i + 2;
+            end loop;
+            return unobfuscated;
+          end;
+          $$ language plpgsql immutable strict""");
+
+      c.createStatement().executeUpdate(
+          """
+          create or replace function _core.randomstr(length int) returns text as $$
+          declare
+            str            text   := '';
+            i              int    := 1;
+            password_chars text   := 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+            chars_len      int    := length(password_chars);
+            random         bigint := date_part('milliseconds', now());
+            a              bigint := 1664525;
+            c              bigint := 1013904223;
+            m              bigint := power(cast(2 as bigint), 32);
+          begin
+            while i <= length loop
+              random := (a * random + c) % m;
+              str    := str + substr(password_chars, random % chars_len + 1, 1);
+              i      := i + 1;
+            end loop;
+            return str;
+          end;
+          $$ language plpgsql immutable strict""");
+
+      c.createStatement().executeUpdate(
+          """
+          create or replace function _core.obfuscate(unobfuscated text) returns text as $$
+          declare
+            obfuscated     text := '';
+            i              int  := 1;
+            pos            int;
+            ch             char;
+            password_chars text   := 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+            chars_len      int    := length(password_chars);
+            random         bigint := date_part('milliseconds', now());
+            a              bigint := 1664525;
+            c              bigint := 1013904223;
+            m              bigint := power(cast(2 as bigint), 32);
+          begin
+            while i <= length(unobfuscated) loop
+                ch         := substr(unobfuscated, i, 1);
+                pos        := strpos(password_chars, ch) + _core.obfuscate_shift(i - 1) - 1;
+                random     := (a * random + c) % m;
+                obfuscated := obfuscated || substr(password_chars, (random % chars_len + 1)::int, 1);
+                obfuscated := obfuscated || substr(password_chars, _core.floormod(pos, chars_len) + 1, 1);
+                i          := i + 1;
+            end loop;
+            return obfuscated;
+          end;
+          $$ language plpgsql immutable strict""");
+
+      c.createStatement().executeUpdate(
+          """
+          create or replace function _core.checkdigit(value bigint) returns bigint as $$
+          declare
+            mul    bigint := 3;
+            sum    bigint := 0;
+            val    bigint := value;
+            mod    bigint;
+            cdigit bigint;
+          begin
+            while val > 0 loop
+              mod := val % 10;
+              sum := sum + mod * mul;
+              if mul = 3 then
+                mul := 1;
+              else
+                mul := 3;
+              end if;
+              val := floor(val / 10);
+            end loop;
+            cdigit = 10 - (sum % 10);
+            if cdigit = 10 then
+              cdigit := 0;
+            end if;
+            return value * 10 + cdigit;
+          end;
+          $$ language plpgsql immutable strict""");
+
        /*
         * Coarse-grain event capture trigger functions
         */

@@ -352,6 +352,32 @@ public class SqlServer extends AbstractDatabase {
             end
             return @obfuscated;
           end;""");
+
+      c.createStatement().executeUpdate(
+        """
+        create or alter function _core.checkdigit(@value bigint) returns bigint as
+        begin
+          declare @mul    bigint = 3;
+          declare @sum    bigint = 0;
+          declare @val    bigint = @value;
+          declare @mod    bigint;
+          declare @cdigit bigint;
+          while @val > 0
+          begin
+            set @mod = @val % 10;
+            set @sum = @sum + @mod * @mul;
+            if @mul = 3
+              set @mul = 1;
+            else
+              set @mul = 3;
+            set @val = floor(@val / 10);
+          end;
+          set @cdigit = 10 - (@sum % 10);
+          if @cdigit = 10
+            set @cdigit = 0;
+          return @value * 10 + @cdigit;
+        end;""");
+
       c.commit();
     } catch (SQLException e) {
       throw unchecked(e);

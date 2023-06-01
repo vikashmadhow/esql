@@ -96,4 +96,25 @@ public class StringFunctionsTest extends DataTest {
                    }
                  }));
   }
+
+  @TestFactory
+  Stream<DynamicTest> obfuscate() {
+    return Stream.of(databases)
+                 .map(db -> dynamicTest(db.target().toString(), () -> {
+                   System.out.println(db.target());
+                   try (EsqlConnection con = db.esql(db.pooledConnection())) {
+                     String o = "abcdefg1234";
+                     Result rs = con.exec("select obfuscate('" + o + "')");
+                     rs.toNext();
+                     String v = rs.value(1);
+                     System.out.println(v);
+                     assertFalse(rs.toNext());
+                     rs = con.exec("select unobfuscate('" + v + "')");
+                     rs.toNext();
+                     v = rs.value(1);
+                     assertEquals(o, v);
+                     System.out.println(v);
+                   }
+                 }));
+  }
 }

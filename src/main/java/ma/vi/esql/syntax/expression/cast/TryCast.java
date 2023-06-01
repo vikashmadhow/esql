@@ -76,6 +76,18 @@ public class TryCast extends Expression<String, String> {
               + "     when left(trim(lower(try_cast(" + exprTrans + " as varchar(max)))), 1) in ('f', 'n', '0') then 0 "
               + "     else null "
               + "end" ;
+        } else if (toType() == Types.DateType) {
+          yield "coalesce(try_parse(" + exprTrans + " as date using 'en-GB'), "
+              + "         try_parse(" + exprTrans + " as date using 'en-US'), "
+              + "         try_parse(" + exprTrans + " as date using 'fr-FR'))";
+        } else if (toType() == Types.TimeType) {
+          yield "coalesce(try_parse(" + exprTrans + " as time using 'en-GB'), "
+              + "         try_parse(" + exprTrans + " as time using 'en-US'), "
+              + "         try_parse(" + exprTrans + " as time using 'fr-FR'))";
+        } else if (toType() == Types.DatetimeType) {
+          yield "coalesce(try_parse(" + exprTrans + " as datetime2 using 'en-GB'), "
+              + "         try_parse(" + exprTrans + " as datetime2 using 'en-US'), "
+              + "         try_parse(" + exprTrans + " as datetime2 using 'fr-FR'))";
         } else {
           yield "try_cast(" + exprTrans + " as " + typeTrans + ')';
         }
