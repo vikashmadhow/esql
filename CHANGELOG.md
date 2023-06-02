@@ -88,6 +88,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.6.0] (Planned)
 ### Mirror tables
 
+## [1.5.26] - 2023-06-02
+### Fixed
+- Single-quotes inside `StringLiteral`s are now escaped when translating to ESQL.
+
 ## [1.5.25] - 2023-06-01
 ### Added
 - `randstr` ESQL function to generate a random string of arbitrary size, implemented

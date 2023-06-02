@@ -80,7 +80,7 @@ public class StringLiteral extends BaseLiteral<String> {
         if (value.contains("\n")) {
           yield '`' + value.replaceAll("`", "\\`") + '`';
         } else {
-          yield "'" + value + "'";
+          yield "'" + value.replaceAll("'", "''") + "'";
         }
       }
     };
