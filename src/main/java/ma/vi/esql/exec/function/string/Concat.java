@@ -31,9 +31,9 @@ import static ma.vi.esql.translation.Translatable.Target.JAVASCRIPT;
  */
 public class Concat extends Function {
   public Concat() {
-    super("concat", StringType,
-          asList(new FunctionParam("a", StringType),
-                 new FunctionParam("b", StringType)));
+    super("concat", TextType,
+          asList(new FunctionParam("a", TextType),
+                 new FunctionParam("b", TextType)));
   }
 
   @Override

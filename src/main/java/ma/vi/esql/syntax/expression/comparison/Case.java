@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Vikash Madhow
+ * Copyright (c) 2020-2023 Vikash Madhow
  */
 
 package ma.vi.esql.syntax.expression.comparison;
@@ -8,6 +8,8 @@ import ma.vi.base.tuple.T2;
 import ma.vi.esql.database.EsqlConnection;
 import ma.vi.esql.exec.ExecutionException;
 import ma.vi.esql.exec.env.Environment;
+import ma.vi.esql.semantic.type.Type;
+import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
@@ -48,6 +50,25 @@ public class Case extends MultipleSubExpressions {
   @Override
   public Case copy() {
     return new Case(this);
+  }
+
+  @Override
+  public Type computeType(EsqlPath path) {
+    /*
+     * The type of the case expression is the type of the first non-null `then`
+     * value.
+     */
+    for (Iterator<Expression<?, ?>> i = expressions().iterator(); i.hasNext(); ) {
+      Expression<?, ?> e = i.next();
+      Type type = e.computeType(path.add(e));
+      if (!type.equals(Types.NullType)) {
+        return type;
+      }
+      if (i.hasNext()) {
+        i.next();  // ignore predicates (`when` clause) which are always of bool types.
+      }
+    }
+    return Types.Any;
   }
 
   /**

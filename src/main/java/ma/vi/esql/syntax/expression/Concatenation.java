@@ -57,6 +57,11 @@ public class Concatenation extends MultipleSubExpressions {
   }
 
   @Override
+  public Type computeType(EsqlPath path) {
+    return TextType;
+  }
+
+  @Override
   protected String trans(Target               target,
                          EsqlConnection       esqlCon,
                          EsqlPath             path,

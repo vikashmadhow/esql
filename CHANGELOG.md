@@ -88,6 +88,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.6.0] (Planned)
 ### Mirror tables
 
+## [1.5.28] - 2023-06-07
+### Added
+- The type of `case` expressions is now properly computed as the type of the first 
+  non-null `then` value. Previously the predicates (`when` clause) were included
+  in this type computation resulting in a wrong `bool` type for all case expressions.
+- Type of `concatenation` is now always `TextType` irrespective of its arguments.
+
 ## [1.5.27] - 2023-06-07
 ### Fixed
 - Support for ESQL expressions for boolean attributes in `CreateInitializer`.
