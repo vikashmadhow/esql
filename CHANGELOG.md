@@ -88,6 +88,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.6.0] (Planned)
 ### Mirror tables
 
+## [1.5.27] - 2023-06-07
+### Fixed
+- Support for ESQL expressions for boolean attributes in `CreateInitializer`.
+
 ## [1.5.26] - 2023-06-02
 ### Fixed
 - Single-quotes inside `StringLiteral`s are now escaped when translating to ESQL.

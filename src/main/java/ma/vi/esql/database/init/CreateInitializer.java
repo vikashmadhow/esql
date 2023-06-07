@@ -116,7 +116,7 @@ public abstract class CreateInitializer<O,
                    "_type"       -> type = (String)value;
               case "required"    -> {
                 if (requiredAsNull()
-                 || columnName.equals("_id")) notNull = (Boolean)def.getValue();
+                 || columnName.equals("_id")) notNull = def.getValue() instanceof Boolean b && b;
                 else                          attrs.add(new Attribute(context,
                                                                       def.getKey(),
                                                                       parse(parser, context, value)));
