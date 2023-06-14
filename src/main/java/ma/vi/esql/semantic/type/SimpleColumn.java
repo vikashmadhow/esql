@@ -3,6 +3,7 @@ package ma.vi.esql.semantic.type;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.define.Metadata;
 import ma.vi.esql.syntax.expression.literal.Literal;
+import ma.vi.esql.syntax.expression.literal.NullLiteral;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -35,14 +36,15 @@ public record SimpleColumn(Context  context,
          type,
          derived,
          notNull,
-          expression,
+         expression,
          metadata,
          metadata == null
        ? new LinkedHashMap<>()
        : metadata.attributes().entrySet().stream()
                  .collect(toMap(Map.Entry::getKey,
-                                e -> e.getValue().attributeValue() instanceof Literal<?>
-                                   ? e.getValue().evaluateAttribute()
+                                e -> e.getValue() == null || e.getValue().attributeValue() == null ? "$(null)"
+                                   : e.getValue().attributeValue() instanceof NullLiteral          ? "$(null)"
+                                   : e.getValue().attributeValue() instanceof Literal<?>           ? e.getValue().evaluateAttribute()
                                    : "$(" + e.getValue().attributeValue().translate(JAVASCRIPT) + ")",
                                 (e1, e2) -> e1,
                                 LinkedHashMap::new)));
