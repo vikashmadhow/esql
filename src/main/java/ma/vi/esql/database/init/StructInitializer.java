@@ -46,6 +46,11 @@ public class StructInitializer extends CreateInitializer<Struct,
   }
 
   @Override
+  protected boolean requiredAsNull() {
+    return false;
+  }
+
+  @Override
   public Struct get(Database db, String name) {
     return db.structure().structExists(name)
          ? db.structure().struct(name)

@@ -88,6 +88,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.6.0] (Planned)
 ### Mirror tables
 
+## [1.5.29] - 2023-06-18
+### Fixed
+- `required` expressions when creating `struct`s with `StructInitializer` are no
+  longer interpreted as `non-null` expressions as these are only valid for tables.
+  This fixes issues where required expressions were not being applied to custom 
+  structures, such as those defined for report parameters.
+
 ## [1.5.28] - 2023-06-07
 ### Added
 - The type of `case` expressions is now properly computed as the type of the first 

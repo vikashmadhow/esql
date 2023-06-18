@@ -40,11 +40,15 @@ public class SqlServerTranslator extends AbstractTranslator {
   }
 
   @Override
-  protected QueryTranslation translate(Select select, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
+  protected QueryTranslation translate(Select               select,
+                                       EsqlConnection       esqlCon,
+                                       EsqlPath             path,
+                                       PMap<String, Object> parameters,
+                                       Environment          env) {
     /*
-     * If group by expression list contains numbers, those refer to the column expressions
-     * in the expressions list. This is not supported in SQL server, so replace the
-     * column reference with the actual column expression.
+     * If group by expression list contains numbers, those refer to the column
+     * expressions in the expressions list. This is not supported in SQL server,
+     * so replace the column reference with the actual column expression.
      */
     boolean hasComplexGroups = false;
     GroupBy groupBy = select.groupBy();
@@ -186,7 +190,7 @@ public class SqlServerTranslator extends AbstractTranslator {
         /*
          * SQL Server does not support the use of sub-queries in group by expression.
          * For instance,
-         *      select (select x from B) b, sum(a = 'X' -> amount : prev_amount) s from A
+         *      select (select x from B) b, sum(a = 'X' -> amount | prev_amount) s from A
          *      group by (select x from B)
          *      having sum(a = 'Y' -> amount : prev_amount) > 100
          *
@@ -225,10 +229,12 @@ public class SqlServerTranslator extends AbstractTranslator {
           });
           if (aggregate.get()) {
             /*
-             * For an aggregate add columns that it refers to
-             * to the inner query.
+             * For an aggregate add columns that it refers to the inner query.
              */
-            Expression<?, String> remapped = select.remapExpression(colExpr, addedInnerCols, innerCols, innerSelectAlias);
+            Expression<?, String> remapped = select.remapExpression(colExpr,
+                                                                    addedInnerCols,
+                                                                    innerCols,
+                                                                    innerSelectAlias);
             outerCols.add(new Column(select.context,
                                      column.name(),
                                      remapped,
@@ -270,9 +276,9 @@ public class SqlServerTranslator extends AbstractTranslator {
            * Add the aggregate to the outer query.
            */
           outerHaving = select.remapExpression(having,
-                                        addedInnerCols,
-                                        innerCols,
-                                        innerSelectAlias);
+                                               addedInnerCols,
+                                               innerCols,
+                                               innerSelectAlias);
         }
 
         Select innerSelect = new Select(
@@ -307,8 +313,11 @@ public class SqlServerTranslator extends AbstractTranslator {
             null,
             null
         );
-        return outerSelect.translate(target(), esqlCon, path.add(outerSelect), parameters, env);
-
+        return outerSelect.translate(target(),
+                                     esqlCon,
+                                     path.add(outerSelect),
+                                     parameters,
+                                     env);
       } else {
         StringBuilder st = new StringBuilder("select ");
         if (select.distinct()) {
@@ -414,7 +423,11 @@ public class SqlServerTranslator extends AbstractTranslator {
   }
 
   @Override
-  protected QueryTranslation translate(Delete delete, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
+  protected QueryTranslation translate(Delete               delete,
+                                       EsqlConnection       esqlCon,
+                                       EsqlPath             path,
+                                       PMap<String, Object> parameters,
+                                       Environment          env) {
     StringBuilder st = new StringBuilder("delete ").append((delete.deleteTableAlias()));
     QueryTranslation q = null;
 
@@ -443,7 +456,11 @@ public class SqlServerTranslator extends AbstractTranslator {
   }
 
   @Override
-  protected QueryTranslation translate(Insert insert, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
+  protected QueryTranslation translate(Insert               insert,
+                                       EsqlConnection       esqlCon,
+                                       EsqlPath             path,
+                                       PMap<String, Object> parameters,
+                                       Environment          env) {
     StringBuilder st = new StringBuilder("insert into ");
     TableExpr table = insert.tables();
     if (!(table instanceof SingleTableExpr)) {
