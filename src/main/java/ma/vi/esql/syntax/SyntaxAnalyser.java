@@ -1494,8 +1494,8 @@ public class SyntaxAnalyser extends EsqlBaseListener {
     if (ctx.forwardcost != null) {
       forwardCost = Integer.parseInt(ctx.forwardcost.getText());
       reverseCost = ctx.reversecost != null
-                    ? Integer.parseInt(ctx.reversecost.getText())
-                    : forwardCost * 2;
+                  ? Integer.parseInt(ctx.reversecost.getText())
+                  : forwardCost * 2;
     }
 
     put(ctx, new ForeignKeyConstraint(

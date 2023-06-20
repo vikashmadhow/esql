@@ -88,6 +88,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.6.0] (Planned)
 ### Mirror tables
 
+## [1.5.30] - 2023-06-20
+### Added
+- Forward and reverse cost of foreign key constraints are added to the metadata
+  of base relations. These costs can then be used by clients to inform path search
+  between relations.
+
 ## [1.5.29] - 2023-06-18
 ### Fixed
 - `required` expressions when creating `struct`s with `StructInitializer` are no

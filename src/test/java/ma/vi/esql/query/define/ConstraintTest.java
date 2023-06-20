@@ -176,13 +176,17 @@ public class ConstraintTest extends DataTest {
                        List.of(
                          new JSONObject(Map.of(
                            "from_columns", new JSONArray(singletonList("s_id")),
-                           "to_table", "S",
-                           "to_columns", new JSONArray(singletonList("_id"))
+                           "to_table",     "S",
+                           "to_columns",   new JSONArray(singletonList("_id")),
+                           "forward_cost", 1L,
+                           "reverse_cost", 2L
                          )),
                          new JSONObject(Map.of(
                            "from_columns", new JSONArray(singletonList("t_id")),
-                           "to_table", "a.b.T",
-                           "to_columns", new JSONArray(singletonList("_id"))
+                           "to_table",     "a.b.T",
+                           "to_columns",   new JSONArray(singletonList("_id")),
+                           "forward_cost", 1L,
+                           "reverse_cost", 2L
                          ))
                        )
                      ).toList()),
@@ -192,9 +196,11 @@ public class ConstraintTest extends DataTest {
                      assertTrue(new JSONArray(
                        List.of(
                          new JSONObject(Map.of(
-                           "from_table", "b.Y",
+                           "from_table",   "b.Y",
                            "from_columns", new JSONArray(singletonList("x_id")),
-                           "to_columns", new JSONArray(singletonList("_id"))
+                           "to_columns",   new JSONArray(singletonList("_id")),
+                           "forward_cost", 1,
+                           "reverse_cost", 2
                          ))
                        )
                      ).similar(literalValue((Literal<?>)rs.resultAttributes().get(REFERRED_BY))));

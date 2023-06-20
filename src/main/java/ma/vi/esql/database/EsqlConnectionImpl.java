@@ -145,9 +145,9 @@ public class EsqlConnectionImpl implements EsqlConnection {
                 }
               } catch (SQLException sqle) {
                 tries++;
-                log.log(WARNING, " >>> Could not obtain a lock on _core._temp_history "
-                               + "table to read coarse transaction history. Tried "
-                               + tries + " times");
+//                log.log(WARNING, " >>> Could not obtain a lock on _core._temp_history "
+//                               + "table to read coarse transaction history. Tried "
+//                               + tries + " times");
                 try { Thread.sleep(10); } catch(InterruptedException ignored) {}
               }
             }
@@ -197,9 +197,9 @@ public class EsqlConnectionImpl implements EsqlConnection {
                   transferred = true;
                 } catch (SQLException sqle) {
                   tries++;
-                  log.log(WARNING, " >>> Could not obtain a lock on _core._temp_history "
-                    + "table to transfer coarse transaction history. Tried "
-                    + tries + " times");
+//                  log.log(WARNING, " >>> Could not obtain a lock on _core._temp_history "
+//                    + "table to transfer coarse transaction history. Tried "
+//                    + tries + " times");
 
                   if (db.target() == SQLSERVER) {
                     con.createStatement().executeUpdate("set lock_timeout -1");

@@ -662,8 +662,10 @@ public class BaseRelation extends Struct {
         array.addAll(json.items());
       }
       array.add(new JsonObjectLiteral(f.context,
-                                      Arrays.asList(Attribute.from(f.context, "to_table", f.targetTable()),
-                                                    Attribute.from(f.context, "to_columns", f.targetColumns().get(0)))));
+                                      Arrays.asList(Attribute.from(f.context, "to_table",     f.targetTable()),
+                                                    Attribute.from(f.context, "to_columns",   f.targetColumns().get(0)),
+                                                    Attribute.from(f.context, "forward_cost", f.forwardCost()),
+                                                    Attribute.from(f.context, "reverse_cost", f.reverseCost()))));
       Attribute attr = existingCol._attribute(REFERENCES, new JsonArrayLiteral(f.context, array));
       rel.addColumnsForAttribute(attr, colName);
     }
@@ -689,7 +691,9 @@ public class BaseRelation extends Struct {
                                                                 new JsonArrayLiteral(f.context,
                                                                                      f.targetColumns().stream()
                                                                                       .map(c -> new StringLiteral(f.context, c))
-                                                                                      .toList())))));
+                                                                                      .toList())),
+                                                  Attribute.from(f.context, "forward_cost", f.forwardCost()),
+                                                  Attribute.from(f.context, "reverse_cost", f.reverseCost()))));
     rel.attribute(REFERENCES, new JsonArrayLiteral(f.context, items));
 
     if (rel.context.structure.relationExists(f.targetTable())) {
@@ -712,8 +716,10 @@ public class BaseRelation extends Struct {
             array.addAll(json.items());
           }
           array.add(new JsonObjectLiteral(f.context,
-                                          Arrays.asList(Attribute.from(f.context, "from_table", f.table()),
-                                                        Attribute.from(f.context, "from_columns", f.columns().get(0)))));
+                                          Arrays.asList(Attribute.from(f.context, "from_table",   f.table()),
+                                                        Attribute.from(f.context, "from_columns", f.columns().get(0)),
+                                                        Attribute.from(f.context, "forward_cost", f.forwardCost()),
+                                                        Attribute.from(f.context, "reverse_cost", f.reverseCost()))));
           attr = existingCol._attribute(REFERRED_BY, new JsonArrayLiteral(f.context, array));
           br.addColumnsForAttribute(attr, colName);
         }
@@ -739,7 +745,9 @@ public class BaseRelation extends Struct {
                                                                     new JsonArrayLiteral(f.context,
                                                                                          f.targetColumns().stream()
                                                                                           .map(c -> new StringLiteral(f.context, c))
-                                                                                          .toList())))));
+                                                                                          .toList())),
+                                                      Attribute.from(f.context, "forward_cost", f.forwardCost()),
+                                                      Attribute.from(f.context, "reverse_cost", f.reverseCost()))));
         br.attribute(REFERRED_BY, new JsonArrayLiteral(f.context, items));
       }
     }

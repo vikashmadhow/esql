@@ -577,19 +577,25 @@ public class SelectTest extends DataTest {
                      assertEquals(new HashSet<>(new JSONArray(
                        Arrays.asList(
                          new JSONObject(Map.of(
-                           "from_table", "a.b.T",
+                           "from_table",   "a.b.T",
                            "from_columns", new JSONArray(singletonList("s_id")),
-                           "to_columns", new JSONArray(singletonList("_id"))
+                           "to_columns",   new JSONArray(singletonList("_id")),
+                           "forward_cost", 1L,
+                           "reverse_cost", 2L
                          )),
                          new JSONObject(Map.of(
                            "from_table", "a.b.X",
                            "from_columns", new JSONArray(singletonList("s_id")),
-                           "to_columns", new JSONArray(singletonList("_id"))
+                           "to_columns", new JSONArray(singletonList("_id")),
+                           "forward_cost", 1L,
+                           "reverse_cost", 2L
                          )),
                          new JSONObject(Map.of(
                            "from_table", "b.Y",
                            "from_columns", new JSONArray(singletonList("s_id")),
-                           "to_columns", new JSONArray(singletonList("_id"))
+                           "to_columns", new JSONArray(singletonList("_id")),
+                           "forward_cost", 1L,
+                           "reverse_cost", 2L
                          )
                        )
                      )).toList()),

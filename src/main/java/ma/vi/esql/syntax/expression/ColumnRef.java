@@ -207,7 +207,7 @@ public class ColumnRef extends    Expression<String, String>
 
   /**
    * Find the column referred to by this column reference. Since selects may be nested,
-   * this method will move outside of the current select to find surrounding ones if the
+   * this method will move outside the current select to find surrounding ones if the
    * column cannot be successfully matched in the current selection context.
    */
   public static Column column(QueryUpdate qu, ColumnRef ref, EsqlPath path) {
