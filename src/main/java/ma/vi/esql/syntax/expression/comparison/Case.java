@@ -129,19 +129,19 @@ public class Case extends MultipleSubExpressions {
       case SQLSERVER -> {
         List<Expression<?, ?>> exprs = expressions();
         if (expressions().size() == 3) {
-          return "iif(" + exprs.get(1).translate(target, null, path.add(exprs.get(1)), parameters.plusAll(DONT_ADD_IIF), null) + ", "
-                        + exprs.get(0).translate(target, null, path.add(exprs.get(0)), parameters.plusAll(ADD_IIF), null) + ", "
-                        + exprs.get(2).translate(target, null, path.add(exprs.get(2)), parameters.plusAll(ADD_IIF), null) + ')';
+          return "iif(" + exprs.get(1).translate(target, esqlCon, path.add(exprs.get(1)), parameters.plusAll(DONT_ADD_IIF), env) + ", "
+                        + exprs.get(0).translate(target, esqlCon, path.add(exprs.get(0)), parameters.plusAll(ADD_IIF), env) + ", "
+                        + exprs.get(2).translate(target, esqlCon, path.add(exprs.get(2)), parameters.plusAll(ADD_IIF), env) + ')';
         } else {
           StringBuilder st = new StringBuilder("case");
           for (Iterator<Expression<?, ?>> i = expressions().iterator(); i.hasNext(); ) {
             Expression<?, ?> e = i.next();
             if (i.hasNext()) {
               Expression<?, ?> expr = i.next();
-              st.append(" when ").append(expr.translate(target, null, path.add(expr), parameters.plusAll(DONT_ADD_IIF), null))
-                .append(" then ").append(e.translate(target, null, path.add(e), parameters.plusAll(ADD_IIF), null));
+              st.append(" when ").append(expr.translate(target, esqlCon, path.add(expr), parameters.plusAll(DONT_ADD_IIF), env))
+                .append(" then ").append(e.translate(target, esqlCon, path.add(e), parameters.plusAll(ADD_IIF), env));
             } else {
-              st.append(" else ").append(e.translate(target, null, path.add(e), parameters.plusAll(ADD_IIF), null));
+              st.append(" else ").append(e.translate(target, esqlCon, path.add(e), parameters.plusAll(ADD_IIF), env));
             }
           }
           st.append(" end");

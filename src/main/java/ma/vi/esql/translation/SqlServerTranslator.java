@@ -91,7 +91,7 @@ public class SqlServerTranslator extends AbstractTranslator {
 
       // add output clause
       StringBuilder columns = new StringBuilder();
-      QueryTranslation q = select.constructResult(columns, target(), path, null, parameters);
+      QueryTranslation q = select.constructResult(columns, target(), path, null, parameters, env);
 
       st.append(columns);
       st.append(", ").append("row_number() over (partition by ");
@@ -111,30 +111,30 @@ public class SqlServerTranslator extends AbstractTranslator {
 
       if (select.tables() != null) {
         st.append(" from ").append(select.tables().translate(target(),
-                                                             null, path.add(select.tables()),
-                                                             parameters.plusAll(DONT_ADD_IIF), null));
+                                                             esqlCon, path.add(select.tables()),
+                                                             parameters.plusAll(DONT_ADD_IIF), env));
       }
       if (select.where() != null) {
         st.append(" where ").append(select.where().translate(target(),
-                                                             null, path.add(select.where()),
-                                                             parameters.plusAll(DONT_ADD_IIF), null));
+                                                             esqlCon, path.add(select.where()),
+                                                             parameters.plusAll(DONT_ADD_IIF), env));
       }
       if (select.groupBy() != null) {
         st.append(select.groupBy().translate(target(),
-                                             null, path.add(select.groupBy()),
-                                             parameters.plusAll(ADD_IIF), null));
+                                             esqlCon, path.add(select.groupBy()),
+                                             parameters.plusAll(ADD_IIF), env));
       }
       if (select.having() != null) {
         st.append(" having ").append(select.having().translate(target(),
-                                                               null, path.add(select.having()),
-                                                               parameters.plusAll(DONT_ADD_IIF), null));
+                                                               esqlCon, path.add(select.having()),
+                                                               parameters.plusAll(DONT_ADD_IIF), env));
       }
       if (select.orderBy() != null && !select.orderBy().isEmpty()) {
         st.append(" order by ")
           .append(select.orderBy().stream()
                         .map(e -> e.translate(target(),
-                                              null, path.add(e),
-                                              parameters.plusAll(ADD_IIF), null))
+                                              esqlCon, path.add(e),
+                                              parameters.plusAll(ADD_IIF), env))
                         .collect(joining(", ")));
         if (select.offset() == null && select.limit() == null) {
           /*
@@ -146,8 +146,8 @@ public class SqlServerTranslator extends AbstractTranslator {
       if (select.offset() != null) {
         st.append(" offset ")
           .append(select.offset().translate(target(),
-                                            null, path.add(select.offset()),
-                                            parameters.plusAll(ADD_IIF), null))
+                                            esqlCon, path.add(select.offset()),
+                                            parameters.plusAll(ADD_IIF), env))
           .append(" rows");
       }
       if (select.limit() != null) {
@@ -168,8 +168,8 @@ public class SqlServerTranslator extends AbstractTranslator {
       if (select.offset() != null) {
         query += " offset "
               +  select.offset().translate(target(),
-                                            null, path.add(select.offset()),
-                                            parameters.plusAll(ADD_IIF), null)
+                                           esqlCon, path.add(select.offset()),
+                                           parameters.plusAll(ADD_IIF), env)
               + " rows";
       }
       if (select.limit() != null) {
@@ -324,33 +324,33 @@ public class SqlServerTranslator extends AbstractTranslator {
           st.append("distinct ");
         }
         // add output clause
-        QueryTranslation q = select.constructResult(st, target(), path, null, parameters);
+        QueryTranslation q = select.constructResult(st, target(), path, null, parameters, env);
         if (select.tables() != null) {
           st.append(" from ").append(select.tables().translate(target(),
-                                                               null, path.add(select.tables()),
-                                                               parameters.plusAll(DONT_ADD_IIF), null));
+                                                               esqlCon, path.add(select.tables()),
+                                                               parameters.plusAll(DONT_ADD_IIF), env));
         }
         if (select.where() != null) {
           st.append(" where ").append(select.where().translate(target(),
-                                                               null, path.add(select.where()),
-                                                               parameters.plusAll(DONT_ADD_IIF), null));
+                                                               esqlCon, path.add(select.where()),
+                                                               parameters.plusAll(DONT_ADD_IIF), env));
         }
         if (select.groupBy() != null) {
           st.append(select.groupBy().translate(target(),
-                                               null, path.add(select.groupBy()),
-                                               parameters.plusAll(ADD_IIF), null));
+                                               esqlCon, path.add(select.groupBy()),
+                                               parameters.plusAll(ADD_IIF), env));
         }
         if (select.having() != null) {
           st.append(" having ").append(select.having().translate(target(),
-                                                                 null, path.add(select.having()),
-                                                                 parameters.plusAll(DONT_ADD_IIF), null));
+                                                                 esqlCon, path.add(select.having()),
+                                                                 parameters.plusAll(DONT_ADD_IIF), env));
         }
         if (select.orderBy() != null && !select.orderBy().isEmpty()) {
           st.append(" order by ")
             .append(select.orderBy().stream()
                           .map(e -> e.translate(target(),
-                                                null, path.add(e),
-                                                parameters.plusAll(ADD_IIF), null))
+                                                esqlCon, path.add(e),
+                                                parameters.plusAll(ADD_IIF), env))
                           .collect(joining(", ")));
           if (subSelect && select.offset() == null && select.limit() == null) {
             /*
@@ -365,8 +365,8 @@ public class SqlServerTranslator extends AbstractTranslator {
         }
         if (select.offset() != null) {
           st.append(" offset ").append(select.offset().translate(target(),
-                                                                 null, path.add(select.offset()),
-                                                                 parameters, null)).append(" rows");
+                                                                 esqlCon, path.add(select.offset()),
+                                                                 parameters, env)).append(" rows");
         }
         if (select.limit() != null) {
           if (select.offset() == null) {
@@ -374,8 +374,8 @@ public class SqlServerTranslator extends AbstractTranslator {
             st.append(" offset 0 rows");
           }
           st.append(" fetch next ").append(select.limit().translate(target(),
-                                                                    null, path.add(select.limit()),
-                                                                    parameters, null)).append(" rows only");
+                                                                    esqlCon, path.add(select.limit()),
+                                                                    parameters, env)).append(" rows only");
         }
         return new QueryTranslation(select,
                                     st.toString(),
@@ -401,16 +401,16 @@ public class SqlServerTranslator extends AbstractTranslator {
     QueryTranslation q = null;
     if (update.columns() != null && !update.columns().isEmpty()) {
       st.append(" output ");
-      q = update.constructResult(st, target(), path, "inserted", parameters);
+      q = update.constructResult(st, target(), path, "inserted", parameters, env);
     }
     st.append(" from ").append(from.translate(target(),
-                                              null, path.add(from),
-                                              parameters.plusAll(DONT_ADD_IIF), null));
+                                              esqlCon, path.add(from),
+                                              parameters.plusAll(DONT_ADD_IIF), env));
 
     if (update.where() != null) {
       st.append(" where ").append(update.where().translate(target(),
-                                                           null, path.add(update.where()),
-                                                           parameters.plusAll(DONT_ADD_IIF), null));
+                                                           esqlCon, path.add(update.where()),
+                                                           parameters.plusAll(DONT_ADD_IIF), env));
     }
     if (q == null) {
       return new QueryTranslation(update, st.toString(), emptyList(), emptyMap());
@@ -434,16 +434,16 @@ public class SqlServerTranslator extends AbstractTranslator {
     TableExpr from = delete.tables();
     if (delete.columns() != null && !delete.columns().isEmpty()) {
       st.append(" output ");
-      q = delete.constructResult(st, target(), path, "deleted", parameters);
+      q = delete.constructResult(st, target(), path, "deleted", parameters, env);
     }
     st.append(" from ").append(from.translate(target(),
-                                              null, path.add(from),
-                                              parameters.plusAll(DONT_ADD_IIF), null));
+                                              esqlCon, path.add(from),
+                                              parameters.plusAll(DONT_ADD_IIF), env));
 
     if (delete.where() != null) {
       st.append(" where ").append(delete.where().translate(target(),
-                                                           null, path.add(delete.where()),
-                                                           parameters.plusAll(DONT_ADD_IIF), null));
+                                                           esqlCon, path.add(delete.where()),
+                                                           parameters.plusAll(DONT_ADD_IIF), env));
     }
     if (q == null) {
       return new QueryTranslation(delete, st.toString(), emptyList(), emptyMap());
@@ -480,15 +480,15 @@ public class SqlServerTranslator extends AbstractTranslator {
     QueryTranslation q = null;
     if (insert.columns() != null && !insert.columns().isEmpty()) {
       st.append(" output ");
-      q = insert.constructResult(st, target(), path, "inserted", parameters);
+      q = insert.constructResult(st, target(), path, "inserted", parameters, env);
     }
 
     List<InsertRow> rows = insert.rows();
     if (rows != null && !rows.isEmpty()) {
       st.append(rows.stream()
                     .map(row -> row.translate(target(),
-                                              null, path.add(row),
-                                              parameters.plusAll(DONT_ADD_IIF), null))
+                                              esqlCon, path.add(row),
+                                              parameters.plusAll(DONT_ADD_IIF), env))
                     .collect(joining(", ", " values", "")));
 
     } else if (insert.defaultValues()) {
@@ -496,8 +496,8 @@ public class SqlServerTranslator extends AbstractTranslator {
 
     } else {
       st.append(' ').append(insert.select().translate(target(),
-                                                      null, path.add(insert.select()),
-                                                      parameters.plus("addAttributes", false), null).translation());
+                                                      esqlCon, path.add(insert.select()),
+                                                      parameters.plus("addAttributes", false), env).translation());
     }
 
     if (q == null) {

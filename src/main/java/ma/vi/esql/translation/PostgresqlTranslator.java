@@ -50,7 +50,7 @@ public class PostgresqlTranslator extends AbstractTranslator {
     }
 
     // add output clause
-    QueryTranslation q = select.constructResult(st, target(), path, null, parameters);
+    QueryTranslation q = select.constructResult(st, target(), path, null, parameters, env);
     if (select.tables() != null) {
       st.append(" from ").append(select.tables().translate(target(), esqlCon, path.add(select.tables()), parameters, env));
     }
@@ -98,7 +98,7 @@ public class PostgresqlTranslator extends AbstractTranslator {
       QueryTranslation q = null;
       if (update.columns() != null && !update.columns().isEmpty()) {
         st.append(" returning ");
-        q = update.constructResult(st, target(), path, null, parameters);
+        q = update.constructResult(st, target(), path, null, parameters, env);
       }
       if (q == null) {
         return new QueryTranslation(update, st.toString(), emptyList(), emptyMap());
@@ -192,7 +192,7 @@ public class PostgresqlTranslator extends AbstractTranslator {
       QueryTranslation q = null;
       if (update.columns() != null && !update.columns().isEmpty()) {
         st.append(" returning ");
-        q = update.constructResult(st, target(), path, null, parameters);
+        q = update.constructResult(st, target(), path, null, parameters, env);
       }
       if (q == null) {
         return new QueryTranslation(update, st.toString(), emptyList(), emptyMap());
@@ -222,7 +222,7 @@ public class PostgresqlTranslator extends AbstractTranslator {
       QueryTranslation q = null;
       if (delete.columns() != null && !delete.columns().isEmpty()) {
         st.append(" returning ");
-        q = delete.constructResult(st, target(), path, null, parameters);
+        q = delete.constructResult(st, target(), path, null, parameters, env);
       }
       if (q == null) {
         return new QueryTranslation(delete, st.toString(), emptyList(), emptyMap());
@@ -291,7 +291,7 @@ public class PostgresqlTranslator extends AbstractTranslator {
       QueryTranslation q = null;
       if (delete.columns() != null && !delete.columns().isEmpty()) {
         st.append(" returning ");
-        q = delete.constructResult(st, target(), path, null, parameters);
+        q = delete.constructResult(st, target(), path, null, parameters, env);
       }
       if (q == null) {
         return new QueryTranslation(delete, st.toString(), emptyList(), emptyMap());
@@ -307,7 +307,11 @@ public class PostgresqlTranslator extends AbstractTranslator {
   }
 
   @Override
-  protected QueryTranslation translate(Insert insert, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
+  protected QueryTranslation translate(Insert               insert,
+                                       EsqlConnection       esqlCon,
+                                       EsqlPath             path,
+                                       PMap<String, Object> parameters,
+                                       Environment          env) {
     StringBuilder st = new StringBuilder("insert into ");
     TableExpr table = insert.tables();
     if (!(table instanceof SingleTableExpr)) {
@@ -334,14 +338,16 @@ public class PostgresqlTranslator extends AbstractTranslator {
 
     } else {
       st.append(' ').append(insert.select().translate(target(),
-                                                      null, path.add(insert.select()),
-                                                      parameters.plus("addAttributes", false), null).translation());
+                                                      esqlCon,
+                                                      path.add(insert.select()),
+                                                      parameters.plus("addAttributes", false),
+                                                      env).translation());
     }
 
     QueryTranslation q = null;
     if (insert.columns() != null && !insert.columns().isEmpty()) {
       st.append(" returning ");
-      q = insert.constructResult(st, target(), path, null, parameters);
+      q = insert.constructResult(st, target(), path, null, parameters, env);
     }
 
     if (q == null) {

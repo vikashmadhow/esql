@@ -99,7 +99,7 @@ public class EsqlTranslator extends AbstractTranslator {
     QueryTranslation q = null;
     if (update.columns() != null) {
       st.append(" returning ");
-      q = update.constructResult(st, target(), path, null, parameters);
+      q = update.constructResult(st, target(), path, null, parameters, env);
     }
     if (q == null) {
       return new QueryTranslation(update, st.toString(), emptyList(), emptyMap());
@@ -127,7 +127,7 @@ public class EsqlTranslator extends AbstractTranslator {
     }
     if (delete.columns() != null && !delete.columns().isEmpty()) {
       st.append(" returning ");
-      QueryTranslation q = delete.constructResult(st, target(), path,null, parameters);
+      QueryTranslation q = delete.constructResult(st, target(), path,null, parameters, env);
       return new QueryTranslation(delete,
                                   st.toString(),
                                   q.columns(),
@@ -170,7 +170,7 @@ public class EsqlTranslator extends AbstractTranslator {
     QueryTranslation q = null;
     if (insert.columns() != null && !insert.columns().isEmpty()) {
       st.append(" return ");
-      q = insert.constructResult(st, target(), path, null, parameters);
+      q = insert.constructResult(st, target(), path, null, parameters, env);
     }
 
     if (q == null) {

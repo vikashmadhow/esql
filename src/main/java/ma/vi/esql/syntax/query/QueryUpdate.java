@@ -156,7 +156,8 @@ public abstract class QueryUpdate extends MetadataContainer<QueryTranslation> {
                                           Target               target,
                                           EsqlPath             path,
                                           String               qualifier,
-                                          PMap<String, Object> parameters) {
+                                          PMap<String, Object> parameters,
+                                          Environment          env) {
 
     boolean addAttributes = (Boolean)parameters.getOrDefault("addAttributes", true);
     boolean optimiseAttributesLoading = (Boolean)parameters.getOrDefault("optimiseAttributesLoading", true);
@@ -193,7 +194,7 @@ public abstract class QueryUpdate extends MetadataContainer<QueryTranslation> {
           query.append(", ");
         }
         Column column = c.b;
-        query.append(column.translate(target, null, path.add(column), ADD_IIF, null));
+        query.append(column.translate(target, null, path.add(column), ADD_IIF, env));
         String colName = column.name();
         columnMappings.put(colName, new ColumnMapping(itemIndex,
                                                       column,
@@ -236,7 +237,7 @@ public abstract class QueryUpdate extends MetadataContainer<QueryTranslation> {
               QueryTranslation sub = selectTableMapping.computeIfAbsent(
                   sel.select(), s -> s.constructResult(new StringBuilder(),
                                                        target, path.add(s),
-                                                       q, parameters));
+                                                       q, parameters, env));
               resultAttributes.put(attrName, sub.resultAttributes().get(attrName));
 
             } else if (tables().aliased(q) instanceof DynamicTableExpr dyn) {
@@ -294,7 +295,7 @@ public abstract class QueryUpdate extends MetadataContainer<QueryTranslation> {
           } else if (addAttributes) {
             itemIndex += 1;
             query.append(", ");
-            appendExpression(query, attributeValue, target, path, alias);
+            appendExpression(query, attributeValue, target, path, alias, env);
             mapping.attributeIndices().add(new AttributeIndex(itemIndex, attrName, attributeValue.computeType(path.add(attributeValue))));
           }
         }
@@ -312,8 +313,9 @@ public abstract class QueryUpdate extends MetadataContainer<QueryTranslation> {
                                   Expression<?, ?> expression,
                                   Target           target,
                                   EsqlPath         path,
-                                  String           alias) {
-    query.append(expression.translate(target, null, path.add(expression), ADD_IIF, null));
+                                  String           alias,
+                                  Environment      env) {
+    query.append(expression.translate(target, null, path.add(expression), ADD_IIF, env));
     if (alias != null) {
       query.append(" \"").append(alias).append('"');
     }

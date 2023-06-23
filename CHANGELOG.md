@@ -88,6 +88,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.6.0] (Planned)
 ### Mirror tables
 
+## [1.5.31] - 2023-06-23
+### Fixed
+- The current environment was not being passed during the translation and  execution 
+  process leading to NPEs. This has been fixed.
+
 ## [1.5.30] - 2023-06-20
 ### Added
 - Forward and reverse cost of foreign key constraints are added to the metadata
