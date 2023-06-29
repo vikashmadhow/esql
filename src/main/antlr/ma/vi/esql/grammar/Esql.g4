@@ -218,7 +218,7 @@ unfiltered
  * select query.
  */
 columns
-    : column (',' column)*
+    : column (',' column)* ','?
     ;
 
 /**
@@ -507,7 +507,7 @@ cte
  * parentheses.
  */
 names
-    : '(' identifier (',' identifier)* ')'
+    : '(' identifier (',' identifier)* ','? ')'
     ;
 
 /**
@@ -535,7 +535,7 @@ insert
  * Rows to insert are a comma-separated list of row definitions.
  */
 rows
-    : row (',' row)*
+    : row (',' row)* ','?
     ;
 
 /**
@@ -614,7 +614,7 @@ update
  * to update the column to.
  */
 setList
-    : set (',' set)*
+    : set (',' set)* ','?
     ;
 
 /**
@@ -1052,7 +1052,7 @@ ordering
  * and window partition list.
  */
 expressionList
-    : expr (',' expr)*
+    : expr (',' expr)* ','?
     ;
 
 arguments

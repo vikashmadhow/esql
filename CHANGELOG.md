@@ -88,6 +88,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.6.0] (Planned)
 ### Mirror tables
 
+## [1.5.33] - 2023-06-29
+### Added
+- ESQL grammar now allows a spurious comma at the end of column list, row list
+  and expression list in select, update and insert. This change allows successful
+  parsing of queries that would fail before (or worse, parse incorrectly).
+
 ## [1.5.32] - 2023-06-29
 ### Added
 - Parsing of negative integers and floating points as literals, instead of negated
