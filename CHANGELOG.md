@@ -88,6 +88,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.6.0] (Planned)
 ### Mirror tables
 
+## [1.5.32] - 2023-06-29
+### Added
+- Parsing of negative integers and floating points as literals, instead of negated
+  positive integers or floating points. This is useful in contexts where literals
+  only are expected (e.g. JSON objects or arrays).
+
 ## [1.5.31] - 2023-06-23
 ### Fixed
 - The current environment was not being passed during the translation and  execution 

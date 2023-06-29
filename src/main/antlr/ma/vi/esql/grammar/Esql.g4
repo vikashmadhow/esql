@@ -1104,8 +1104,8 @@ literal
  * and multi-line strings, UUIDs, dates and times, and intervals.
  */
 baseLiteral
-    : IntegerLiteral            #Integer
-    | FloatingPointLiteral      #FloatingPoint
+    : integerConstant           #Integer
+    | floatingPointConstant     #FloatingPoint
     | BooleanLiteral            #Boolean
     | MultiLineStringLiteral    #MultiLineString
     | StringLiteral             #String
@@ -1168,6 +1168,11 @@ FloatingPointLiteral
     | '.' Digits ExponentPart?
     | Digits ExponentPart
     ;
+
+floatingPointConstant
+  : FloatingPointLiteral
+  | '-' FloatingPointLiteral
+  ;
 
 /**
  * Underscore ('_') can be used to separate digits in large numbers for readability.

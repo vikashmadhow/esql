@@ -610,6 +610,11 @@ public class SyntaxAnalyser extends EsqlBaseListener {
   }
 
   @Override
+  public void exitFloatingPointConstant(FloatingPointConstantContext ctx) {
+    put(ctx, new FloatingPointLiteral(context, ctx.getText()));
+  }
+
+  @Override
   public void exitBoolean(BooleanContext ctx) {
     put(ctx, new BooleanLiteral(context, parseBoolean(ctx.getText())));
   }

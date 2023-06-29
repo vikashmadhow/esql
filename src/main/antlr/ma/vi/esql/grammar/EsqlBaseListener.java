@@ -1915,6 +1915,18 @@ public class EsqlBaseListener implements EsqlListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterFloatingPointConstant(EsqlParser.FloatingPointConstantContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitFloatingPointConstant(EsqlParser.FloatingPointConstantContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterDefine(EsqlParser.DefineContext ctx) { }
 	/**
 	 * {@inheritDoc}

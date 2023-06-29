@@ -1782,6 +1782,16 @@ public interface EsqlListener extends ParseTreeListener {
 	 */
 	void exitIntegerConstant(EsqlParser.IntegerConstantContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link EsqlParser#floatingPointConstant}.
+	 * @param ctx the parse tree
+	 */
+	void enterFloatingPointConstant(EsqlParser.FloatingPointConstantContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link EsqlParser#floatingPointConstant}.
+	 * @param ctx the parse tree
+	 */
+	void exitFloatingPointConstant(EsqlParser.FloatingPointConstantContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link EsqlParser#define}.
 	 * @param ctx the parse tree
 	 */

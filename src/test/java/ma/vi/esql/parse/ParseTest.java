@@ -10,8 +10,13 @@ import ma.vi.esql.database.Structure;
 import ma.vi.esql.semantic.type.SimpleColumn;
 import ma.vi.esql.semantic.type.Struct;
 import ma.vi.esql.syntax.Esql;
+import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.Parser;
+import ma.vi.esql.syntax.expression.Expression;
+import ma.vi.esql.syntax.expression.literal.JsonArrayLiteral;
 import ma.vi.esql.syntax.query.Select;
+import ma.vi.esql.translation.Translatable;
+import org.json.JSONArray;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
 
@@ -33,6 +38,44 @@ public class ParseTest extends DataTest {
 
         Esql<?, ?> esql = parser.parse("select * from S");
         assertNotNull(esql);
+      }));
+  }
+
+  @TestFactory
+  Stream<DynamicTest> parseJsonArray() {
+    return Stream.of(databases)
+      .map(db -> dynamicTest(db.target().toString(), () -> {
+        Structure structure = db.structure();
+        Parser parser = new Parser(structure);
+        String source = """
+          [
+            {
+              "from_columns" : [
+                'entity_id'
+              ],
+              "to_table" : 'aletia.EmployeeCopy',
+              "to_columns" : [
+                '_id'
+              ],
+              "forward_cost" : 1,
+              "reverse_cost" : 2
+            },
+            {
+              "from_columns" : [
+                'pay_computation_id'
+              ],
+              "to_table" : 'aletia.PayComputation',
+              "to_columns" : [
+                '_id'
+              ],
+              "forward_cost" : 1,
+              "reverse_cost" : -1
+            }
+          ]""";
+        Expression<?, ?> expr = parser.parseExpression(source);
+        assertInstanceOf(JsonArrayLiteral.class, expr);
+        JSONArray array = (JSONArray)expr.exec(Translatable.Target.JAVASCRIPT, null, new EsqlPath(expr), null);
+        assertTrue(array.similar(new JSONArray(source)));
       }));
   }
 
