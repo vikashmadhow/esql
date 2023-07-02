@@ -16,6 +16,21 @@ public record ComposableColumn(String       table,
                                Metadata     metadata,
                                GroupBy.Type group,
                                Order        order) implements Composable {
+  public ComposableColumn(String table,
+                          String alias,
+                          String name,
+                          String expression,
+                          String group,
+                          String order) {
+    this(table,
+         alias,
+         name,
+         expression,
+         null,
+         GroupBy.Type.from(group),
+         Order.valueOf(order));
+  }
+
   public ComposableColumn(String   table,
                           String   name,
                           String   expression,

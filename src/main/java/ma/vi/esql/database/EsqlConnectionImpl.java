@@ -124,13 +124,13 @@ public class EsqlConnectionImpl implements EsqlConnection {
           try (Connection con = database().pooledConnection()) {
             Statement st = con.createStatement();
             if (db.target() == SQLSERVER) {
-              st.executeUpdate("set lock_timeout 10");
+              st.executeUpdate("set lock_timeout 20");
             } else {
-              st.executeUpdate("set local lock_timeout='10ms'");
+              st.executeUpdate("set local lock_timeout='20ms'");
             }
             int tries = 0;
             boolean transRead = false;
-            while (tries < 10 && !transRead) {
+            while (tries < 1 && !transRead) {
               try (ResultSet rs = st.executeQuery("""
                      select distinct table_name, event
                        from _core._temp_history
@@ -160,15 +160,15 @@ public class EsqlConnectionImpl implements EsqlConnection {
             try {
               int tries = 0;
               boolean transferred = false;
-              while (tries < 10 && !transferred) {
+              while (tries < 1 && !transferred) {
                 Connection con = null;
                 try {
                   con = database().pooledConnection();
                   Statement st = con.createStatement();
                   if (db.target() == SQLSERVER) {
-                    st.executeUpdate("set lock_timeout 10");
+                    st.executeUpdate("set lock_timeout 20");
                   } else {
-                    st.executeUpdate("set local lock_timeout='10ms'");
+                    st.executeUpdate("set local lock_timeout='20ms'");
                   }
                   /*
                    * Move to transaction history and set user.

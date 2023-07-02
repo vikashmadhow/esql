@@ -16,6 +16,20 @@ public record ComposableFilter(Op      op,
                                String  expression,
                                boolean exclude,
                                ComposableFilter... children) implements Composable {
+  public ComposableFilter(String  op,
+                          String  table,
+                          String  alias,
+                          String  expression,
+                          boolean exclude,
+                          ComposableFilter... children) {
+    this(Op.valueOf(op.trim().toUpperCase()),
+         table,
+         alias,
+         expression,
+         exclude,
+         children);
+  }
+
   /**
    * Returns a new ComposableFilter with its table replaced if it is contained
    * as a key in the replacements map. The replacement is performed recursively

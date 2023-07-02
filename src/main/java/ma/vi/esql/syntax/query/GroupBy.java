@@ -26,7 +26,15 @@ import static java.util.stream.Collectors.joining;
 public class GroupBy extends Esql<String, String> {
 
   public enum Type {
-    Simple, Rollup, Cube
+    Simple, Rollup, Cube;
+
+    public static Type from(String type) {
+      return switch (type.trim().toUpperCase()) {
+        case "ROLLUP" -> Rollup;
+        case "CUBE"   -> Cube;
+        default       -> Simple;
+      };
+    }
   }
 
   public GroupBy(Context context,

@@ -88,6 +88,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.6.0] (Planned)
 ### Mirror tables
 
+## [1.5.34] - 2023-07-02
+### Added
+- Lock timeout tuning: 
+  - lock timeout increased to 20ms from 10ms;
+  - lock is not retried after single failure as the performance penalty for retries
+    is quite high. This will be reviewed in the near future and a single retry may
+    be implemented.
+- Constructor with string only parameters added to `ComposableColumn` and 
+  `ComposableFilter` to simplify their creation from javascript code.
+
 ## [1.5.33] - 2023-06-29
 ### Added
 - ESQL grammar now allows a spurious comma at the end of column list, row list
