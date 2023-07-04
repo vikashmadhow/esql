@@ -130,7 +130,7 @@ public class EsqlConnectionImpl implements EsqlConnection {
             }
             int tries = 0;
             boolean transRead = false;
-            while (tries < 1 && !transRead) {
+            while (tries < MAX_RETRIES && !transRead) {
               try (ResultSet rs = st.executeQuery("""
                      select distinct table_name, event
                        from _core._temp_history
@@ -160,7 +160,7 @@ public class EsqlConnectionImpl implements EsqlConnection {
             try {
               int tries = 0;
               boolean transferred = false;
-              while (tries < 1 && !transferred) {
+              while (tries < MAX_RETRIES && !transferred) {
                 Connection con = null;
                 try {
                   con = database().pooledConnection();
@@ -358,6 +358,11 @@ public class EsqlConnectionImpl implements EsqlConnection {
    * Thread pool to execute history finalisation after commit.
    */
   private static final ExecutorService FinaliseThreadPool = Executors.newCachedThreadPool();
+
+  /**
+   * Number of retries to obtain lock on _core._temp_history.0
+   */
+  private static final int MAX_RETRIES = 3;
 
   private static final System.Logger log = System.getLogger(EsqlConnectionImpl.class.getName());
 }
