@@ -124,9 +124,9 @@ public class EsqlConnectionImpl implements EsqlConnection {
           try (Connection con = database().pooledConnection()) {
             Statement st = con.createStatement();
             if (db.target() == SQLSERVER) {
-              st.executeUpdate("set lock_timeout 40");
+              st.executeUpdate("set lock_timeout 100");
             } else {
-              st.executeUpdate("set local lock_timeout='40ms'");
+              st.executeUpdate("set local lock_timeout='100ms'");
             }
             int tries = 0;
             boolean transRead = false;
@@ -166,9 +166,9 @@ public class EsqlConnectionImpl implements EsqlConnection {
                   con = database().pooledConnection();
                   Statement st = con.createStatement();
                   if (db.target() == SQLSERVER) {
-                    st.executeUpdate("set lock_timeout 40");
+                    st.executeUpdate("set lock_timeout 100");
                   } else {
-                    st.executeUpdate("set local lock_timeout='40ms'");
+                    st.executeUpdate("set local lock_timeout='100ms'");
                   }
                   /*
                    * Move to transaction history and set user.
@@ -362,7 +362,7 @@ public class EsqlConnectionImpl implements EsqlConnection {
   /**
    * Number of retries to obtain lock on _core._temp_history.
    */
-  private static final int MAX_RETRIES = 2;
+  private static final int MAX_RETRIES = 1;
 
   private static final System.Logger log = System.getLogger(EsqlConnectionImpl.class.getName());
 }
