@@ -124,13 +124,13 @@ public class EsqlConnectionImpl implements EsqlConnection {
           try (Connection con = database().pooledConnection()) {
             Statement st = con.createStatement();
             if (db.target() == SQLSERVER) {
-              st.executeUpdate("set lock_timeout 20");
+              st.executeUpdate("set lock_timeout 40");
             } else {
-              st.executeUpdate("set local lock_timeout='20ms'");
+              st.executeUpdate("set local lock_timeout='40ms'");
             }
             int tries = 0;
             boolean transRead = false;
-            while (tries < 1 && !transRead) {
+            while (tries < MAX_RETRIES && !transRead) {
               try (ResultSet rs = st.executeQuery("""
                      select distinct table_name, event
                        from _core._temp_history
@@ -160,15 +160,15 @@ public class EsqlConnectionImpl implements EsqlConnection {
             try {
               int tries = 0;
               boolean transferred = false;
-              while (tries < 1 && !transferred) {
+              while (tries < MAX_RETRIES && !transferred) {
                 Connection con = null;
                 try {
                   con = database().pooledConnection();
                   Statement st = con.createStatement();
                   if (db.target() == SQLSERVER) {
-                    st.executeUpdate("set lock_timeout 20");
+                    st.executeUpdate("set lock_timeout 40");
                   } else {
-                    st.executeUpdate("set local lock_timeout='20ms'");
+                    st.executeUpdate("set local lock_timeout='40ms'");
                   }
                   /*
                    * Move to transaction history and set user.
@@ -358,6 +358,11 @@ public class EsqlConnectionImpl implements EsqlConnection {
    * Thread pool to execute history finalisation after commit.
    */
   private static final ExecutorService FinaliseThreadPool = Executors.newCachedThreadPool();
+
+  /**
+   * Number of retries to obtain lock on _core._temp_history.
+   */
+  private static final int MAX_RETRIES = 2;
 
   private static final System.Logger log = System.getLogger(EsqlConnectionImpl.class.getName());
 }
