@@ -56,7 +56,7 @@ java {
   withSourcesJar()
 }
 
-version = "1.5.34"
+version = "1.5.35"
 group = 'ma.vi'
 sourceCompatibility = JavaVersion.VERSION_17
 targetCompatibility = JavaVersion.VERSION_17
@@ -123,7 +123,7 @@ dependencies {
 
   api("org.pcollections:pcollections:3.1.4")
   api("ma.vi:base:latest.release")
-  api("org.json:json:latest.release")
+  api("org.json:json:20230618")
 
   api("org.postgresql:postgresql:42.6.0")
   api("com.microsoft.sqlserver:mssql-jdbc:12.2.0.jre11")
@@ -134,8 +134,8 @@ dependencies {
 
   implementation("com.zaxxer:HikariCP:5.0.1")
 
-  implementation("org.apache.commons:commons-lang3:latest.release")
-  implementation("org.yaml:snakeyaml:latest.release")
+  implementation("org.apache.commons:commons-lang3:3.12.0")
+  implementation("org.yaml:snakeyaml:2.0")
 
   // Use JUnit test framework
   testImplementation(platform("org.junit:junit-bom:5.9.2"))

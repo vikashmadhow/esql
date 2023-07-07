@@ -90,6 +90,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.5.34] - 2023-07-02
 ### Added
+- Static version of org.json and snakeyaml used (instead of `latest.version`) to
+  prevent conflicting API errors.
+
+## [1.5.34] - 2023-07-02
+### Added
 - Lock timeout tuning: 
   - lock timeout increased to 20ms from 10ms;
   - lock is not retried after single failure as the performance penalty for retries
