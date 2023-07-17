@@ -288,7 +288,7 @@ public class FunctionDefAndExecTest extends DataTest {
                                               print('j: ' + r['j']);
                                             end;
                                             """);
-                     TranslationException error = assertThrows(TranslationException.class,
+                     ExecutionException error = assertThrows(ExecutionException.class,
                                                                () -> con.exec(prog,
                                                                               new QueryParams()
                                                                                 .add("b1", 5)

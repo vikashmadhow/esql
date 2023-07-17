@@ -169,11 +169,12 @@ public class ColumnRef extends    Expression<String, String>
          * For definitions and uncomputed expressions, assume unknown when type
          * could not be computed.
          */
-        if (path.hasAncestor(Define.class, UncomputedExpression.class)) {
-          return UnknownType;
-        } else {
-          throw new TranslationException(this, "Could not determine the type of " + qualifiedName());
-        }
+//        if (path.hasAncestor(Define.class, UncomputedExpression.class)) {
+//          return UnknownType;
+//        } else {
+//          throw new TranslationException(this, "Could not determine the type of " + qualifiedName());
+//        }
+        return UnknownType;
       }
       if (path.hasAncestor(OngoingMacroExpansion.class)) {
         return computedType;

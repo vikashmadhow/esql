@@ -86,9 +86,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Database stored functions and triggers in ESQL
 
 ## [1.6.0] (Planned)
-### Mirror tables
+- Mirror tables: Tables that closely follow the structure of another table 
+  overriding certain parts, removing other parts and adding new parts.
+- Template structs: structs that are used to create tables; provides a common
+  inheritable structure to a set of related tables (e.g.).
 
-## [1.5.34] - 2023-07-02
+## [1.5.36] - 2023-07-17
+### Added
+- More lenient column type inference assigning `UnknownType` to any unknown column.
+  This would previously throw a `TranslationException` but type information is 
+  sometimes now available in valid contexts such as parsing an expression which
+  may be referring to an existing column in a table which is not known when parsing
+  the expression.
+
+## [1.5.35] - 2023-07-07
 ### Added
 - Static version of org.json and snakeyaml used (instead of `latest.version`) to
   prevent conflicting API errors.
