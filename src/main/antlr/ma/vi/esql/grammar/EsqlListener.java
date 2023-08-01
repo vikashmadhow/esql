@@ -96,6 +96,16 @@ public interface EsqlListener extends ParseTreeListener {
 	 */
 	void exitBaseSelection(EsqlParser.BaseSelectionContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link EsqlParser#modifier}.
+	 * @param ctx the parse tree
+	 */
+	void enterModifier(EsqlParser.ModifierContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link EsqlParser#modifier}.
+	 * @param ctx the parse tree
+	 */
+	void exitModifier(EsqlParser.ModifierContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link EsqlParser#metadata}.
 	 * @param ctx the parse tree
 	 */

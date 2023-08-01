@@ -91,6 +91,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Template structs: structs that are used to create tables; provides a common
   inheritable structure to a set of related tables (e.g.).
 
+## [1.5.37] - 2023-08-01
+### Added
+- `unfiltered`, `explicit` and `distinct` keywords can now be specified in any
+  order in a `select`. Previous versions required an artificial order which was
+  difficult to remember.
+
 ## [1.5.36] - 2023-07-17
 ### Added
 - More lenient column type inference assigning `UnknownType` to any unknown column.

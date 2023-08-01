@@ -113,8 +113,8 @@ public interface Initializer<T> {
                      Object   definition,
                      String   defaultName) {
     return definition instanceof String name ? get(db, name)
-         : definition instanceof Map  map  ? add(db, overwrite, defaultName, (Map<String, Object>)map)
-         : definition instanceof List list ? add(db, overwrite, defaultName, (List<Object>)list)
+         : definition instanceof Map    map  ? add(db, overwrite, defaultName, (Map<String, Object>)map)
+         : definition instanceof List   list ? add(db, overwrite, defaultName, (List<Object>)list)
          : null;
   }
 
@@ -130,12 +130,9 @@ public interface Initializer<T> {
                       boolean  overwrite,
                       Map<String, Object> definitions) {
     return definitions.entrySet().stream()
-                      .map(e -> {
-                        if (e.getValue() instanceof Map)
-                          return add(db, overwrite, e.getKey(), new LinkedHashMap<>((Map<String, Object>)e.getValue()));
-                        else
-                          return add(db, overwrite, e.getKey(), new ArrayList<>((List<Object>)e.getValue()));
-                      })
+                      .map(e -> e.getValue() instanceof Map m
+                              ? add(db, overwrite, e.getKey(), new LinkedHashMap<String, Object>(m))
+                              : add(db, overwrite, e.getKey(), new ArrayList<>((List<Object>)e.getValue())))
                       .toList();
   }
 

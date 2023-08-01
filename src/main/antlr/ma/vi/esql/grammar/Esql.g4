@@ -73,9 +73,7 @@ queryUpdate
  */
 select
     :  'select' (literalMetadata ','?)?
-                explicit?
-                unfiltered?
-                distinct?
+                modifier*
                 columns
       (  'from' tableExpr)?
       ( 'where' where=expr)?
@@ -88,6 +86,12 @@ select
     | select setop select                   #CompositeSelection
 
     | with                                  #WithSelection
+    ;
+
+modifier
+    : explicit
+    | unfiltered
+    | distinct
     ;
 
 /**

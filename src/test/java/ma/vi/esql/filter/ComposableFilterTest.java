@@ -299,8 +299,8 @@ public class ComposableFilterTest extends DataTest {
                      setupTables(con);
                      Esql<?, ?> filtered =
                        con.prepare("""
-                                   select unfiltered z.*,
-                                          (select unfiltered min(a) from test.pA)
+                                   select distinct explicit unfiltered z.*,
+                                          (select unfiltered explicit distinct min(a) from test.pA)
                                      from z:test.pZ
                                      times t1(a, b):((1, 2), (3,4), (4,5))
                                      join s1:(select unfiltered a from z1:test.pZ) on s1.a=z.a

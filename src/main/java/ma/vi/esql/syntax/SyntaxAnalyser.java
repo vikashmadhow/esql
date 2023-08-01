@@ -93,8 +93,8 @@ public class SyntaxAnalyser extends EsqlBaseListener {
   }
 
   public static void error(ParserRuleContext ctx, String message) throws SyntaxException {
-    int startLine = ctx.getStart().getLine();
-    int startPos = ctx.getStart().getCharPositionInLine();
+    int startLine  = ctx.getStart().getLine();
+    int startPos   = ctx.getStart().getCharPositionInLine();
     int startIndex = ctx.getStart().getStartIndex();
 
     Token stop = ctx.getStop();
@@ -103,9 +103,8 @@ public class SyntaxAnalyser extends EsqlBaseListener {
     int stopIndex = stop == null ? 0 : stop.getStartIndex();
 
     String text = ctx.start.getInputStream().toString();
-    log.log(ERROR, "ERROR " + message + " in '" + text + "' at [" + startLine + ":"
-                + startPos + "]");
-
+    log.log(ERROR, "ERROR " + message   + " in '" + text
+                 + "' at [" + startLine + ":"     + startPos + "]");
     throw new SyntaxException(message, null, text, startLine, startPos,
                               startIndex, stopLine, stopPos, stopIndex);
   }
@@ -278,10 +277,17 @@ public class SyntaxAnalyser extends EsqlBaseListener {
 
   @Override
   public void exitBaseSelection(BaseSelectionContext ctx) {
-    DistinctContext distinct = ctx.distinct();
-//    if (ctx.tableExpr() == null) {
-//      error(ctx,"Missing or wrong from clause in Select");
-//    }
+    List<ModifierContext> modifiers = ctx.modifier();
+    boolean explicit = false;
+    boolean unfiltered = false;
+    DistinctContext distinct = null;
+    for (ModifierContext mod: modifiers) {
+      explicit   |= mod.explicit() != null;
+      unfiltered |= mod.unfiltered() != null;
+      if (mod.distinct() != null) {
+        distinct = mod.distinct();
+      }
+    }
     if (ctx.columns() == null || value(ctx.columns()) == null) {
       error(ctx,"No columns specified in Select");
     } else {
@@ -289,18 +295,18 @@ public class SyntaxAnalyser extends EsqlBaseListener {
       ColumnList.disambiguateNames(value(ctx.columns()), namedColumns);
       put(ctx, new Select(context,
                           ctx.literalMetadata() == null ? null : get(ctx.literalMetadata()),
-                          ctx.unfiltered() != null,
-                          ctx.explicit() != null,
+                          unfiltered,
+                          explicit,
                           distinct != null && distinct.getText().startsWith("distinct"),
                           distinct != null && distinct.expressionList() != null ? value(distinct.expressionList()) : null,
                           namedColumns,
                           ctx.tableExpr() == null ? null : get(ctx.tableExpr()),
-                          ctx.where == null ? null : get(ctx.where),
+                          ctx.where       == null ? null : get(ctx.where),
                           get(ctx.groupByList()),
                           ctx.having == null ? null : get(ctx.having),
                           ctx.orderByList() == null ? null : value(ctx.orderByList()),
                           ctx.offset == null ? null : get(ctx.offset),
-                          ctx.limit == null ? null : get(ctx.limit)));
+                          ctx.limit  == null ? null : get(ctx.limit)));
     }
   }
 
@@ -1660,7 +1666,7 @@ public class SyntaxAnalyser extends EsqlBaseListener {
 
   /**
    * Returns the Esql object assigned previously to the context
-   * if any. Otherwise returns null.
+   * if any. Otherwise, returns null.
    */
   private <T extends Esql<?, ?>> T get(RuleContext ctx) {
     return ctx == null ? null : (T)nodes.get(ctx);
