@@ -91,6 +91,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Template structs: structs that are used to create tables; provides a common
   inheritable structure to a set of related tables (e.g.).
 
+## [1.5.38] - 2023-08-08
+### Added
+- `trycast` and `cast` of an empty string to `bool` type now produces null instead 
+  of false as this is closer to user expectation.
+
 ## [1.5.37] - 2023-08-01
 ### Added
 - `unfiltered`, `explicit` and `distinct` keywords can now be specified in any
@@ -134,8 +139,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.5.31] - 2023-06-23
 ### Fixed
-- The current environment was not being passed during the translation and  execution 
-  process leading to NPEs. This has been fixed.
+- The current environment was not being provided during the translation and 
+  execution process leading to NPEs. This has been fixed.
 
 ## [1.5.30] - 2023-06-20
 ### Added
@@ -171,7 +176,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   in PostgreSql as `_core.randomstr`.
 - `obfuscate` and `unobfuscate` ESQL function implemented in Postgresql.
 - `checkdigit` ESQL function takes a number and appends a check digit to it computed 
-  using the GTIN-13 method (https://www.gs1.org/services/how-calculate-check-digit-manually).
+  using the GTIN-13 metho d (https://www.gs1.org/services/how-calculate-check-digit-manually).
 - `cast` and `trycast` on dates on SQL Server uses `try_parse` to attempt parsing
   the date through different cultures until one is found or the cast fails (with
   an exception in case of `cast` and `null` in case of `trycast`).

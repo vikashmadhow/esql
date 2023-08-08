@@ -78,7 +78,8 @@ public class Cast extends Expression<String, String> {
       }
       case SQLSERVER  -> {
         if (toType() == Types.BoolType) {
-          yield "case when try_cast(" + exprTrans + " as int) != 0 then 1 "
+          yield "case when trim(try_cast(" + exprTrans + " as varchar(max))) = '' then null "
+              + "     when try_cast(" + exprTrans + " as int) != 0 then 1 "
               + "     when try_cast(" + exprTrans + " as int)  = 0 then 0 "
               + "     when left(trim(lower(try_cast(" + exprTrans + " as varchar(max)))), 1) in ('t', 'y', '1') then 1 "
               + "     when left(trim(lower(try_cast(" + exprTrans + " as varchar(max)))), 1) in ('f', 'n', '0') then 0 "

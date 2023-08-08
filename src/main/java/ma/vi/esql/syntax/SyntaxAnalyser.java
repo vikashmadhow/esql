@@ -664,7 +664,7 @@ public class SyntaxAnalyser extends EsqlBaseListener {
     boolean first = true;
     String[] lines = text.substring(1, text.length() - 1).split("\n");
     if (lines.length > 0) {
-      if (lines[0].trim().length() == 0) {
+      if (lines[0].trim().isEmpty()) {
         margin -= 1;
       } else {
         stripped.append(lines[0].replace("\\`", "`"));
@@ -675,7 +675,7 @@ public class SyntaxAnalyser extends EsqlBaseListener {
         for (; j < Math.min(margin, lines[i].length())
             && Character.isSpaceChar(lines[i].charAt(j)); j++);
         if (i < lines.length - 1
-         || lines[i].trim().length() > 0) {
+         || !lines[i].trim().isEmpty()) {
           stripped.append(first ? "" : "\n")
                   .append(lines[i].substring(j).replace("\\`", "`"));
           first = false;
@@ -1674,7 +1674,7 @@ public class SyntaxAnalyser extends EsqlBaseListener {
 
   /**
    * Returns the object inside the Esql object assigned previously
-   * to the context if any. Otherwise returns null.
+   * to the context if any. Otherwise, returns null.
    */
   private <T> T value(RuleContext ctx) {
     Esql<T, ?> esql = get(ctx);
