@@ -94,8 +94,8 @@ public abstract class TableExpr extends Esql<String, String> {
 
   /**
    * Return the list of columns for this table expression. This method is called
-   * before type inference and thus should not depend on any type information for
-   * its function.
+   * before type inference and thus should not depend on any type information to
+   * function.
    */
   public abstract List<Column> columnList(EsqlPath path);
 
