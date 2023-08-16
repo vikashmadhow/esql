@@ -584,25 +584,24 @@ update
     ;
 
 /**
-  merge z:Z from x:(select ... ...) join y:Y
-           where z.a = ...
-          update set a=x.a, b=y.b
-           insert set ... different
-
-  merge test.X x
-  using (select * from A) as a
-     on a.a=x.a and a.b=x.b
-   when matched then update set c=a.e, d=a.a + a.b
-   when not matched then insert(_id, a, b, c, d)
-                         values(newid(), a.a, a.b, a.e, a.a + a.e);
-
-
-  merge test.X x
-  using A as a
-     on a.a=x.a and a.b=x.b
-   when matched then update set c=a.e, d=a.a + a.b
-   when not matched then insert(_id, a, b, c, d)
-                        values(newid(), a.a, a.b, a.e, a.a + a.e);
+ *  merge z:Z from x:(select ... ...) join y:Y
+ *           where z.a = ...
+ *          update set a=x.a, b=y.b
+ *          insert set ... different
+ *
+ *  merge test.X x
+ *  using (select * from A) as a
+ *     on a.a=x.a and a.b=x.b
+ *   when matched then update set c=a.e, d=a.a + a.b
+ *   when not matched then insert(_id, a, b, c, d)
+ *                         values(newid(), a.a, a.b, a.e, a.a + a.e);
+ *
+ *  merge test.X x
+ *  using A as a
+ *     on a.a=x.a and a.b=x.b
+ *   when matched then update set c=a.e, d=a.a + a.b
+ *   when not matched then insert(_id, a, b, c, d)
+ *                        values(newid(), a.a, a.b, a.e, a.a + a.e);
  */
 
 //merge
@@ -1367,18 +1366,65 @@ define
  * keywords are specified in the command.
  */
 createTable
-    : 'create' 'table' qualifiedName dropUndefined? '('
+    : 'create' 'table' qualifiedName mirror? dropUndefined? '('
         (literalMetadata ','?)?
         columnAndDerivedColumnDefinitions
         (','? constraintDefinitions)?
       ')'
     ;
 
+/**
+ * A struct is an unmaterialised table, i.e., a table for which only the structure
+ * is saved in the database (in the _core.* tables) but without a corresponding
+ * table created in the database. A struct can be though of as a class while a
+ * table would be an instance of that class. Struct are useful to work with the
+ * structure of table as a type to restrict or communicate on the type of values
+ * accepted by functions, etc.
+ */
 createStruct
     : 'create' 'struct' qualifiedName '('
         literalMetadata?
         columnAndDerivedColumnDefinitions
       ')'
+    ;
+
+/**
+ * A reflection is a table whose structure is based on the structure of an
+ * existing table or struct. It is created with the statement `create table A
+ * like B ()`, where B is the reflected table or struct and A is the reflection.
+ * A, in this example, will have the exact same structure as B. Reflections can
+ * also modify and extend the structure of the reflected table by defining new
+ * table objects (columns or constraints) or redefining existing table objects.
+ *
+ * For example:
+ *    create table A (
+ *      id uuid,
+ *      name string,
+ *      phone int not null
+ *    )
+ *
+ *    create table B like A (
+ *      phone string,
+ *      address string
+ *    )
+ *
+ * will result in table B having columns `id` and `name` exactly as defined in
+ * table A, column `phone` as defined in table B (a redefinition) and column
+ * address as defined in table B (a new definition).
+ *
+ * Changes made to the reflected table subsequently are propgated to its reflections
+ * respecting any previous definitions and redefinitions, as follows:
+ *   1. if the definition of a column is changed in the reflected table, the change
+ *      is made to all reflections except where that column was previously redefined;
+ *   2. if a new column is defined in the reflected table, the new column is added
+ *      to all reflections except where a column with the same name is already
+ *      defined in the reflection; in those cases, the definition in the reflection
+ *      is considered a redefinition and takes precedence.
+ *   3. if an existing column is removed from the reflected table, it is removed
+ *      from all reflections created with the `drop undefined` modifier.
+ */
+mirror
+    : 'like' qualifiedName
     ;
 
 /**
@@ -1403,10 +1449,10 @@ columnAndDerivedColumnDefinition
     | derivedColumnDefinition
     ;
 
-
 constraintDefinitions
     : constraintDefinition (',' constraintDefinition)*
     ;
+
 /**
  * A table definition in a `create table` statement can be one of these:
  * definition of a column, a derived column, a constraint or metadata.
@@ -1457,9 +1503,9 @@ derivedColumnDefinition
  * table where the foreign key is defined to the table being referred (the forward
  * path) or in the reverse direction (the reverse path).
  *
- * To allow for the search of lowest-cost path between tables, cost values
- * can be associated foreign keys in ESQL using the `cost` keyword in the foreign
- * key definition, followed by cost of traversing the link in the forward
+ * To allow for the search of lowest-cost path between tables, cost values can be
+ * associated to foreign keys in ESQL using the `cost` keyword in the foreign
+ * key definition, followed by the cost of traversing the link in the forward
  * direction (forward cost) and, optionally, by the cost of traversing the link
  * in the reverse direction (reverse cost). If only the forward path cost is
  * specified, twice its value is assigned to the reverse path cost; this is so
@@ -1472,7 +1518,7 @@ derivedColumnDefinition
  *
  * A zero or positive value is the cost for following the link and a uniform
  * cost search (such as Djikstra shortest path algorithm) can be used to find
- * shortest path by cost between tables.
+ * the shortest path by cost between tables.
  *
  * A forward cost of 1 and a reverse cost of 2 is assumed when not specified,
  * making forward paths preferable to reverse ones, as the default behaviour.

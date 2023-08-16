@@ -585,8 +585,8 @@ public class BaseRelation extends Struct {
   }
 
   private static void addAttributesForConstraints(BaseRelation rel, ConstraintDefinition constraint) {
-    if      (constraint instanceof UniqueConstraint u) addUniqueConstraint(rel, u);
-    else if (constraint instanceof CheckConstraint c) addCheckConstraint(rel, c);
+    if      (constraint instanceof UniqueConstraint     u) addUniqueConstraint (rel, u);
+    else if (constraint instanceof CheckConstraint      c) addCheckConstraint  (rel, c);
     else if (constraint instanceof PrimaryKeyConstraint p) addPrimaryConstraint(rel, p);
     else if (constraint instanceof ForeignKeyConstraint f) addForeignConstraint(rel, f);
   }

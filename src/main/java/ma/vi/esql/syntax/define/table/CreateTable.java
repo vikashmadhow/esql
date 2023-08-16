@@ -446,7 +446,9 @@ public class CreateTable extends Define implements Create {
             if (constraint instanceof ForeignKeyConstraint fk) {
               ForeignKeyConstraint existing = (ForeignKeyConstraint)tableConstraint;
               if (!Objects.equals(fk.onDelete(), existing.onDelete())
-                  || !Objects.equals(fk.onUpdate(), existing.onUpdate())) {
+               || !Objects.equals(fk.onUpdate(), existing.onUpdate())
+               ||  fk.forwardCost() != existing.forwardCost()
+               ||  fk.reverseCost() != existing.reverseCost()) {
 
                 alter = new AlterTable(context, tableName, singletonList(new DropConstraint(context, tableConstraint.name())));
                 alter.exec(target, esqlCon, path.add(alter), parameters, env);

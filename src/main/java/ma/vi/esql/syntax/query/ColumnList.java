@@ -4,6 +4,7 @@
 
 package ma.vi.esql.syntax.query;
 
+import ma.vi.base.lang.NotFoundException;
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.database.EsqlConnection;
 import ma.vi.esql.exec.env.Environment;
@@ -18,6 +19,9 @@ import ma.vi.esql.syntax.define.Define;
 import ma.vi.esql.syntax.expression.ColumnRef;
 import ma.vi.esql.syntax.expression.SelectExpression;
 import ma.vi.esql.syntax.macro.UntypedMacro;
+import ma.vi.esql.syntax.modify.Delete;
+import ma.vi.esql.syntax.modify.Insert;
+import ma.vi.esql.syntax.modify.Update;
 import ma.vi.esql.syntax.modify.UpdateSet;
 import org.pcollections.PMap;
 
@@ -114,6 +118,15 @@ public class ColumnList extends Esql<String, String> implements UntypedMacro {
           expandColumns = false;
         }
       }
+      if (expandColumns) {
+        /*
+         * Do not expand columns in the return list of an update, delete or
+         * insert query.
+         */
+        if (path.hasAncestor(Update.class, Delete.class, Insert.class)) {
+          expandColumns = false;
+        }
+      }
 
       String fromAlias = null;
       if (from instanceof AbstractAliasTableExpr aliased) {
@@ -169,7 +182,10 @@ public class ColumnList extends Esql<String, String> implements UntypedMacro {
                                                .filter(c -> c.name().equals(ref.columnName())
                                                          || c.name().startsWith(ref.columnName() + '/'))
                                                .toList();
-          if (columnList.stream().filter(c -> c.name().equals(ref.columnName())).count() > 1) {
+          if (columnList.isEmpty() && !column.name().equals("___")) {
+            throw new NotFoundException("Column " + column + " does not exist");
+
+          } else if (columnList.stream().filter(c -> c.name().equals(ref.columnName())).count() > 1) {
             throw new AmbiguousColumnException("Ambiguous column " + ref + " exists in "
                                              + "multiple relations in " + from);
           }

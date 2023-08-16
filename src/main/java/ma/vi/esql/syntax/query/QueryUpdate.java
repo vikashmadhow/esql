@@ -18,7 +18,10 @@ import ma.vi.esql.syntax.expression.*;
 import ma.vi.esql.syntax.expression.literal.Literal;
 import ma.vi.esql.syntax.expression.logical.And;
 import ma.vi.esql.syntax.macro.Macro;
+import ma.vi.esql.syntax.modify.Delete;
+import ma.vi.esql.syntax.modify.Insert;
 import ma.vi.esql.syntax.modify.InsertRow;
+import ma.vi.esql.syntax.modify.Update;
 import ma.vi.esql.translation.TranslationException;
 import org.pcollections.PMap;
 
@@ -149,7 +152,10 @@ public abstract class QueryUpdate extends MetadataContainer<QueryTranslation> {
    * @param query                     The generated query result is added to this string builder.
    * @param target                    The target database being translated to, such as Postgresql and Sql server.
    * @param qualifier                 The qualifier to apply to the column references in the columns expressions
-   *                                  of the result.
+   *                                  of the result. This is used, e.g., to qualify columns in the output list of
+   *                                  SQL Server update queries (columns must be qualified with inserted or deleted
+   *                                  in those cases)
+   *
    * @return The query translation along with supporting information for its execution.
    */
   public QueryTranslation constructResult(StringBuilder        query,
@@ -194,7 +200,20 @@ public abstract class QueryUpdate extends MetadataContainer<QueryTranslation> {
           query.append(", ");
         }
         Column column = c.b;
-        query.append(column.translate(target, null, path.add(column), ADD_IIF, env));
+        if (qualifier == null) {
+          query.append(column.translate(target,
+                                        null,
+                                        path.add(column),
+                                        ADD_IIF,
+                                        env));
+        } else {
+          Expression<?, ?> expr = ColumnRef.qualify(column.expression(), qualifier, true);
+          query.append(expr.translate(target,
+                                      null,
+                                      path.add(expr),
+                                      ADD_IIF,
+                                      env));
+        }
         String colName = column.name();
         columnMappings.put(colName, new ColumnMapping(itemIndex,
                                                       column,
@@ -205,15 +224,18 @@ public abstract class QueryUpdate extends MetadataContainer<QueryTranslation> {
 
       /*
        * Do not expand column list of selects inside expressions as the whole
-       * expression is a single-value and expanding the column list will break the
-       * query or not be of any use. The same applies to when select is used as an
-       * insert value, or part of a column list.
+       * expression is a single-value and expanding the column list will break
+       * the query or not be of any use. The same applies to when select is used
+       * as an insert value, or part of a column list.
        */
       if (!path.hasAncestor(SelectExpression.class,
                             InsertRow       .class,
                             Column          .class,
                             FunctionCall    .class,
-                            BinaryOperator  .class)) {
+                            BinaryOperator  .class,
+                            Insert          .class,
+                            Update          .class,
+                            Delete          .class)) {
         /*
          * Output result metadata
          */

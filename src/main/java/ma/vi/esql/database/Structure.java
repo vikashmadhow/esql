@@ -10,6 +10,7 @@ import ma.vi.esql.exec.function.Function;
 import ma.vi.esql.exec.function.FunctionCall;
 import ma.vi.esql.exec.function.FunctionParam;
 import ma.vi.esql.exec.function.array.InArray;
+import ma.vi.esql.exec.function.array.IntersectArray;
 import ma.vi.esql.exec.function.date.*;
 import ma.vi.esql.exec.function.debug.Print;
 import ma.vi.esql.exec.function.number.Round;
@@ -135,7 +136,8 @@ public class Structure extends AbstractScope implements Environment {
 
     // Array operations
     //////////////////////////////////
-    functions.put("inarray", new InArray());
+    functions.put("inarray",   new InArray());
+    functions.put("intersect", new IntersectArray());
 
     // mathematical
     //////////////////////

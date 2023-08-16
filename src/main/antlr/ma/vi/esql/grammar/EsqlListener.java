@@ -1832,6 +1832,16 @@ public interface EsqlListener extends ParseTreeListener {
 	 */
 	void exitCreateStruct(EsqlParser.CreateStructContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link EsqlParser#mirror}.
+	 * @param ctx the parse tree
+	 */
+	void enterMirror(EsqlParser.MirrorContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link EsqlParser#mirror}.
+	 * @param ctx the parse tree
+	 */
+	void exitMirror(EsqlParser.MirrorContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link EsqlParser#dropUndefined}.
 	 * @param ctx the parse tree
 	 */
