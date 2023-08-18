@@ -43,6 +43,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   correspond to multiple tables. Queries and updates to virtual tables are rewritten
   as other queries/updates or whole programs.
 
+- `Truncate table` statement.
+
 - 'Change notification' and subscription.
 - Table time-travel.
 - Snapshots.
@@ -81,27 +83,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Modify queries return values don't seem to be supported correctly for SQL 
   Server.
 
-## [1.8.0] (Planned)
+## [1.7.0] (Planned)
 ### Database stored functions and triggers in ESQL
 
-## [1.7.0] (Planned)
+## [1.6.0] (Planned)
 - Mirror tables: Tables that closely follow the structure of another table 
   overriding certain parts, removing other parts and adding new parts.
 - Template structs: structs that are used to create tables; provides a common
   inheritable structure to a set of related tables (e.g.).
-
-## [1.6.0] (Planned)
-- Views.
-- Materialised views.
-- `Truncate table` statement.
-
-## [1.5.39] - 2023-08-16
-### Added
-- `intersect` array function returns true if two arrays have one or more common
-  elements.
-- Exception thrown if a non-existing column is used in the column list of a query.
-- Cost information of foreign keys are now correctly updated when changed in a 
-  `create table` definition.
 
 ## [1.5.38] - 2023-08-08
 ### Added
