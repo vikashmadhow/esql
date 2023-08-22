@@ -36,13 +36,14 @@ public class StartOfMonth extends Function {
     List<Expression<?, ?>> args = call.arguments();
     String arg = args.get(0).translate(target, esqlCon, path.add(args.get(0)), env).toString();
     if (target == POSTGRESQL) {
-      return "(date_trunc('MONTH', " + arg + ") + INTERVAL '-1 MONTH + 1 day')::DATE";
+      return "date_trunc('month', " + arg + ")";
 
     } else if (target == SQLSERVER) {
-      return "datefromparts(year(" + arg + "), month(" + arg + "), 1)";
+      return "datetrunc(month, " + arg + ")";
 
     } else if (target == JAVASCRIPT) {
-      return "(" + arg + ").startOf('month')";
+      return "new Date(" + arg + ".getFullYear(), " + arg + ".getMonth(), 1)";
+
     } else {
       return name + '(' + arg + ')';
     }

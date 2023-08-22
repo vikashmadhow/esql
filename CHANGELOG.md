@@ -92,6 +92,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Template structs: structs that are used to create tables; provides a common
   inheritable structure to a set of related tables (e.g.).
 
+## [1.5.40] - 2023-08-22
+### Added
+- `startofweek`, `endofweek`, `startofday`, `endofday`, `startofhour` and 
+  `endofhour` functions to get the start and end of the respective date periods.
+
+## [1.5.39] - 2023-08-16
+### Added
+- `intersect` array function returns true if two arrays have one or more common
+  elements.
+- Exception thrown if a non-existing column is used in the column list of a query.
+- Cost information of foreign keys are now correctly updated when changed in a
+  `create table` definition.
+
 ## [1.5.38] - 2023-08-08
 ### Added
 - `trycast` and `cast` of an empty string to `bool` type now produces null instead 

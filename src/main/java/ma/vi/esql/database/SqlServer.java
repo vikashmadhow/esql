@@ -103,7 +103,7 @@ public class SqlServer extends AbstractDatabase {
                       set @IncDate = dateadd(second, cast(left(@IntervalPart, len(@IntervalPart) - 1) as int), @IncDate)
                   end;
                   fetch next from @IntervalParts into @IntervalPart;
-                end;\s
+                end;
                 close @intervalparts;
                 deallocate @intervalparts;
                 return @incdate;

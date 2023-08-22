@@ -20,15 +20,15 @@ import static java.util.Collections.singletonList;
 import static ma.vi.esql.translation.Translatable.Target.*;
 
 /**
- * Function to get the end of the month of a date.
+ * Function returning the end of the day of the supplied date.
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public class EndOfMonth extends Function {
-  public EndOfMonth() {
-    super("endofmonth",
+public class EndOfDay extends Function {
+  public EndOfDay() {
+    super("endofday",
           Types.DateType,
-          singletonList(new FunctionParam("s", Types.DateType)));
+        singletonList(new FunctionParam("s", Types.DateType)));
   }
 
   @Override
@@ -36,13 +36,13 @@ public class EndOfMonth extends Function {
     List<Expression<?, ?>> args = call.arguments();
     String arg = args.get(0).translate(target, esqlCon, path.add(args.get(0)), env).toString();
     if (target == POSTGRESQL) {
-      return "(date_trunc('month', " + arg + ") + interval '1 month - 1 day')::date";
+      return "(date_trunc('day', " + arg + ") + interval '1 day - 1 second')::date";
 
     } else if (target == SQLSERVER) {
-      return "eomonth(" + arg + ")";
+      return "dateadd(second, -1, dateadd(day, 1, datetrunc(day, " + arg + ")))";
 
     } else if (target == JAVASCRIPT) {
-      return "new Date(" + arg + ".getFullYear(), " + arg + ".getMonth() + 1, 0)";
+      return "new Date(" + arg + ".setHours(23, 59, 59))";
 
     } else {
       return name + '(' + arg + ')';

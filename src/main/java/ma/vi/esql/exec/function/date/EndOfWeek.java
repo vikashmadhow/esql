@@ -20,15 +20,15 @@ import static java.util.Collections.singletonList;
 import static ma.vi.esql.translation.Translatable.Target.*;
 
 /**
- * Function to get the end of the month of a date.
+ * Function returning the end of the week of the supplied date.
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public class EndOfMonth extends Function {
-  public EndOfMonth() {
-    super("endofmonth",
+public class EndOfWeek extends Function {
+  public EndOfWeek() {
+    super("endofweek",
           Types.DateType,
-          singletonList(new FunctionParam("s", Types.DateType)));
+        singletonList(new FunctionParam("s", Types.DateType)));
   }
 
   @Override
@@ -36,13 +36,13 @@ public class EndOfMonth extends Function {
     List<Expression<?, ?>> args = call.arguments();
     String arg = args.get(0).translate(target, esqlCon, path.add(args.get(0)), env).toString();
     if (target == POSTGRESQL) {
-      return "(date_trunc('month', " + arg + ") + interval '1 month - 1 day')::date";
+      return "(date_trunc('week', " + arg + ") + interval '1 week - 1 day')::date";
 
     } else if (target == SQLSERVER) {
-      return "eomonth(" + arg + ")";
+      return "dateadd(day, 6, datetrunc(iso_week, " + arg + "))";
 
     } else if (target == JAVASCRIPT) {
-      return "new Date(" + arg + ".getFullYear(), " + arg + ".getMonth() + 1, 0)";
+      return "new Date(" + arg + ".setDate(" + arg + ".getDate() + 7 - " + arg + ".getDay()))";
 
     } else {
       return name + '(' + arg + ')';
