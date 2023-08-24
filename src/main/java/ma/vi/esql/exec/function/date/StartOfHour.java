@@ -26,7 +26,7 @@ import static ma.vi.esql.translation.Translatable.Target.*;
  */
 public class StartOfHour extends Function {
   public StartOfHour() {
-    super("startofweek",
+    super("startofhour",
           Types.DateType,
         singletonList(new FunctionParam("s", Types.DateType)));
   }

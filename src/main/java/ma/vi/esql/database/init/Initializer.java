@@ -7,6 +7,7 @@ import ma.vi.esql.exec.QueryParams;
 import ma.vi.esql.exec.Result;
 import org.yaml.snakeyaml.Yaml;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -47,43 +48,6 @@ public interface Initializer<T> {
         T        existing,
         Map<String, Object> definition);
 
-  default T add(Database     db,
-                boolean      overwrite,
-                String       name,
-                List<Object> definition) {
-    return add(db, overwrite, name, null, definition);
-  }
-
-  default T add(Database     db,
-                boolean      overwrite,
-                String       name,
-                UUID         resourceId,
-                List<Object> definition) {
-//    T existing = get(db, name);
-//    if (overwrite || existing == null) {
-//      return add(db, overwrite, name, existing, definition);
-      Map<String, Object> def = range(0, definition.size())
-                                  .boxed()
-                                  .collect(toMap(String::valueOf,
-                                                 definition::get,
-                                                 (d1, d2) -> d1,
-                                                 LinkedHashMap::new));
-      return add(db, overwrite, name, resourceId, def);
-//    }
-//    return existing;
-  }
-
-//  default T add(Database     db,
-//                boolean      overwrite,
-//                String       name,
-//                List<Object> definition) {
-//    T existing = get(db, name);
-//    if (overwrite || existing == null) {
-//      return add(db, overwrite, name, existing, definition);
-//    }
-//    return existing;
-//  }
-
   /**
    * Create or update the structure with the specified name and contents in the
    * database. If overwrite is true the structure is updated if already exists.
@@ -98,15 +62,6 @@ public interface Initializer<T> {
                 boolean  overwrite,
                 String   name,
                 Map<String, Object> definition) {
-//    T existing = get(db, name);
-//    if (overwrite || existing == null) {
-//      if (definition.containsKey(NAME)) {
-//        name = (String)definition.get(NAME);
-//        definition.remove(NAME);
-//      }
-//      return add(db, overwrite, name, existing, definition);
-//    }
-//    return existing;
     return add(db, overwrite, name, (UUID)null, definition);
   }
 
@@ -115,6 +70,60 @@ public interface Initializer<T> {
                 String   name,
                 UUID     resourceId,
                 Map<String, Object> definition) {
+    if (changed(db, name, resourceId, definition)) {
+      T existing = get(db, name);
+      if (overwrite || existing == null) {
+        if (definition.containsKey(NAME)) {
+          name = (String)definition.get(NAME);
+          definition.remove(NAME);
+        }
+        return add(db, overwrite, name, existing, definition);
+      }
+      return existing;
+    }
+    return null;
+  }
+
+  default T add(Database     db,
+                boolean      overwrite,
+                String       name,
+                T            existing,
+                List<Object> definition) {
+    Map<String, Object> def = range(0, definition.size())
+                                .boxed()
+                                .collect(toMap(String::valueOf,
+                                               definition::get,
+                                               (d1, d2) -> d1,
+                                               LinkedHashMap::new));
+    return add(db, overwrite, name, existing, def);
+  }
+
+  default T add(Database     db,
+                boolean      overwrite,
+                String       name,
+                List<Object> definition) {
+    return add(db, overwrite, name, (UUID)null, definition);
+  }
+
+  default T add(Database     db,
+                boolean      overwrite,
+                String       name,
+                UUID         resourceId,
+                List<Object> definition) {
+    if (changed(db, name, resourceId, definition)) {
+      T existing = get(db, name);
+      if (overwrite || existing == null) {
+        return add(db, overwrite, name, existing, definition);
+      }
+      return existing;
+    }
+    return null;
+  }
+
+  private boolean changed(Database db,
+                          String   name,
+                          UUID     resourceId,
+                          Object   definition) {
     boolean changed = true;
     if (resourceId != null) {
       String fingerprint = String.valueOf(definition.hashCode());
@@ -164,19 +173,7 @@ public interface Initializer<T> {
         }
       }
     }
-
-    if (changed) {
-      T existing = get(db, name);
-      if (overwrite || existing == null) {
-        if (definition.containsKey(NAME)) {
-          name = (String)definition.get(NAME);
-          definition.remove(NAME);
-        }
-        return add(db, overwrite, name, existing, definition);
-      }
-      return existing;
-    }
-    return null;
+    return changed;
   }
 
   /**
@@ -373,8 +370,12 @@ public interface Initializer<T> {
        * detect changes.
        */
       location = location.substring(0, pos);
-      try (JarFile jar = new JarFile(location)) {
-        JarEntry entry = jar.getJarEntry(resource);
+      pos = location.indexOf("file:/");
+      if (pos != -1) {
+        location = location.substring(pos + 6);
+      }
+      try (JarFile jar = new JarFile(new File(location).getAbsolutePath())) {
+        JarEntry entry = jar.getJarEntry(resource.startsWith("/") ? resource.substring(1) : resource);
         fingerprint = String.valueOf(entry.getCrc());
       } catch (IOException ioe) {
         throw new RuntimeException(ioe);

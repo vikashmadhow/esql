@@ -94,6 +94,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Template structs: structs that are used to create tables; provides a common
     inheritable structure to a set of related tables (e.g.).
 
+## [1.5.42] - 2023-08-23
+### Added
+- Incremental initialisation for objects defined as list (in addition to those
+  defined as maps).
+
+### Fixed
+- Name of `startofday` and `startofhour` functions corrected.
+
 ## [1.5.41] - 2023-08-22
 ### Added
 - Incremental initialisation which tracks changes in definitions and compare with
