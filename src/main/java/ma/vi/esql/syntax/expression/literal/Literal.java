@@ -119,6 +119,9 @@ public abstract class Literal<V> extends Expression<V, String> {
     if (value == null) {
       return new NullLiteral(context);
 
+    } else if (value instanceof Literal<?> l) {
+      return l;
+
     } else if (value == JSONObject.NULL) {
       return new NullLiteral(context);
 
@@ -178,7 +181,7 @@ public abstract class Literal<V> extends Expression<V, String> {
       }
       return new JsonArrayLiteral(context, array);
 
-    } else if (value instanceof List a) {
+    } else if (value instanceof List<?> a) {
       List<Literal<?>> array = new ArrayList<>();
       for (Object item : a) array.add(makeLiteral(context, item));
       return new JsonArrayLiteral(context, array);

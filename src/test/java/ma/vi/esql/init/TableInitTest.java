@@ -25,7 +25,7 @@ public class TableInitTest extends DataTest {
                      c.exec("drop table a.b.TestImportTable2");
 
                      TableInitializer init = new TableInitializer();
-                     init.add(db, TableInitTest.class.getResourceAsStream("/init/test_tables.yml"));
+                     init.add(db, null, getClass().getResourceAsStream("/init/test_tables.yml"));
 
                      BaseRelation s1 = db.structure().relation("TestImportTable");
                      System.out.println(s1);

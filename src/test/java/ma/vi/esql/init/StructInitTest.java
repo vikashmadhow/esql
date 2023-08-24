@@ -19,7 +19,7 @@ public class StructInitTest extends DataTest {
     return Stream.of(databases)
                  .map(db -> dynamicTest(db.target().toString(), () -> {
                    StructInitializer init = new StructInitializer();
-                   init.add(db, StructInitTest.class.getResourceAsStream("/init/test_structs.yml"));
+                   init.add(db, "/init/test_structs.yml");
 
                    Struct s1 = db.structure().struct("TestImport");
                    System.out.println(s1);

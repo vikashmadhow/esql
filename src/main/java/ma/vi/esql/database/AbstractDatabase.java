@@ -85,6 +85,7 @@ public abstract class AbstractDatabase implements Database {
       createCoreColumnAttributes(con);
       createCoreConstraints(con);
       createCoreHistory(con);
+      createCoreResource(con);
     }
 
     /*
@@ -93,7 +94,7 @@ public abstract class AbstractDatabase implements Database {
      * core tables, which will include information not present in the information
      * schemas, such as relation and column attributes.
      */
-    loadInformationSchemas();
+    // loadInformationSchemas();
     updateCoreTables();
     loadCoreTables();
   }
@@ -225,7 +226,8 @@ public abstract class AbstractDatabase implements Database {
     structureSubscriptions.remove(subscription);
   }
 
-  private void loadInformationSchemas() {
+  @Override
+  public void loadInformationSchemas() {
     try (Connection con = pooledConnection();
          Statement stmt = con.createStatement()) {
 

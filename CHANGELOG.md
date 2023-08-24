@@ -80,17 +80,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Apply result and column metadata overloading in column list expansion 
   (currently, the overridden metadata are not being considered). (create tests 
   for metadata overriding)
-- Modify queries return values don't seem to be supported correctly for SQL 
-  Server.
 
-## [1.7.0] (Planned)
+## [1.8.0] (Planned)
 ### Database stored functions and triggers in ESQL
 
+## [1.7.0] (Planned)
+### Support for views and materialised views
+### Support for merge query
+
 ## [1.6.0] (Planned)
-- Mirror tables: Tables that closely follow the structure of another table 
-  overriding certain parts, removing other parts and adding new parts.
-- Template structs: structs that are used to create tables; provides a common
-  inheritable structure to a set of related tables (e.g.).
+### Mirror tables: Tables that closely follow the structure of another table 
+    overriding certain parts, removing other parts and adding new parts.
+### Template structs: structs that are used to create tables; provides a common
+    inheritable structure to a set of related tables (e.g.).
+
+## [1.5.41] - 2023-08-22
+### Added
+- Incremental initialisation which tracks changes in definitions and compare with
+  previous known values (stored in _core.resource and _core.resource_entry) and
+  only write definitions when a change is detected.
+
+### Fixed
+- `makeLiteral` return value if it is already a Literal instead of erroneously 
+  trying to convert to a literal.
 
 ## [1.5.40] - 2023-08-22
 ### Added

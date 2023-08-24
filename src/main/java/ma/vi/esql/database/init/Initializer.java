@@ -1,11 +1,23 @@
 package ma.vi.esql.database.init;
 
+import ma.vi.base.lang.NotFoundException;
 import ma.vi.esql.database.Database;
+import ma.vi.esql.database.EsqlConnection;
+import ma.vi.esql.exec.QueryParams;
+import ma.vi.esql.exec.Result;
 import org.yaml.snakeyaml.Yaml;
 
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 import java.util.*;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
+import java.util.zip.CRC32C;
 
+import static java.lang.System.Logger.Level.INFO;
+import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.IntStream.range;
 
@@ -38,16 +50,39 @@ public interface Initializer<T> {
   default T add(Database     db,
                 boolean      overwrite,
                 String       name,
-                T            existing,
                 List<Object> definition) {
-    Map<String, Object> def = range(0, definition.size())
-                                .boxed()
-                                .collect(toMap(String::valueOf,
-                                               definition::get,
-                                               (d1, d2) -> d1,
-                                               LinkedHashMap::new));
-    return add(db, overwrite, name, existing, def);
+    return add(db, overwrite, name, null, definition);
   }
+
+  default T add(Database     db,
+                boolean      overwrite,
+                String       name,
+                UUID         resourceId,
+                List<Object> definition) {
+//    T existing = get(db, name);
+//    if (overwrite || existing == null) {
+//      return add(db, overwrite, name, existing, definition);
+      Map<String, Object> def = range(0, definition.size())
+                                  .boxed()
+                                  .collect(toMap(String::valueOf,
+                                                 definition::get,
+                                                 (d1, d2) -> d1,
+                                                 LinkedHashMap::new));
+      return add(db, overwrite, name, resourceId, def);
+//    }
+//    return existing;
+  }
+
+//  default T add(Database     db,
+//                boolean      overwrite,
+//                String       name,
+//                List<Object> definition) {
+//    T existing = get(db, name);
+//    if (overwrite || existing == null) {
+//      return add(db, overwrite, name, existing, definition);
+//    }
+//    return existing;
+//  }
 
   /**
    * Create or update the structure with the specified name and contents in the
@@ -63,26 +98,85 @@ public interface Initializer<T> {
                 boolean  overwrite,
                 String   name,
                 Map<String, Object> definition) {
-    T existing = get(db, name);
-    if (overwrite || existing == null) {
-      if (definition.containsKey(NAME)) {
-        name = (String)definition.get(NAME);
-        definition.remove(NAME);
-      }
-      return add(db, overwrite, name, existing, definition);
-    }
-    return existing;
+//    T existing = get(db, name);
+//    if (overwrite || existing == null) {
+//      if (definition.containsKey(NAME)) {
+//        name = (String)definition.get(NAME);
+//        definition.remove(NAME);
+//      }
+//      return add(db, overwrite, name, existing, definition);
+//    }
+//    return existing;
+    return add(db, overwrite, name, (UUID)null, definition);
   }
 
-  default T add(Database     db,
-                boolean      overwrite,
-                String       name,
-                List<Object> definition) {
-    T existing = get(db, name);
-    if (overwrite || existing == null) {
-      return add(db, overwrite, name, existing, definition);
+  default T add(Database db,
+                boolean  overwrite,
+                String   name,
+                UUID     resourceId,
+                Map<String, Object> definition) {
+    boolean changed = true;
+    if (resourceId != null) {
+      String fingerprint = String.valueOf(definition.hashCode());
+      try (EsqlConnection con = db.esql();
+           Result rs = con.exec("""
+                                select _id, fingerprint
+                                  from _core.resource_entry
+                                 where resource_id = @resourceId
+                                   and name        = @name""",
+                                new QueryParams().add("resourceId", resourceId)
+                                                 .add("name",       name))) {
+        if (rs.toNext()) {
+          /*
+           * Existing entry: check fingerprint
+           */
+          String previousFingerprint = rs.value("fingerprint");
+          if (!fingerprint.equals(previousFingerprint)) {
+            /*
+             * Change
+             */
+            log.log(INFO, "Change detected in " + name);
+            con.exec("""
+                     update e
+                       from e:_core.resource_entry
+                        set fingerprint = @fingerprint
+                      where _id = @entryId""",
+                     new QueryParams().add("entryId",     rs.value("_id"))
+                                      .add("fingerprint", fingerprint));
+          } else {
+            /*
+             * No change: skip.
+             */
+            changed = false;
+            log.log(INFO, "Skipping " + name + ": no change");
+          }
+        } else {
+          /*
+           * New entry
+           */
+          log.log(INFO, "New entry " + name);
+          con.exec("""
+                   insert into _core.resource_entry(_id,     resource_id, name,  fingerprint)
+                                             values(newid(), @resourceId, @name, @fingerprint)""",
+                   new QueryParams().add("resourceId",  resourceId)
+                                    .add("name",        name)
+                                    .add("fingerprint", fingerprint));
+        }
+      }
     }
-    return existing;
+
+    if (changed) {
+      T existing = get(db, name);
+      if (overwrite || existing == null) {
+        if (definition.containsKey(NAME)) {
+          name = (String)definition.get(NAME);
+          definition.remove(NAME);
+        }
+        return add(db, overwrite, name, existing, definition);
+      }
+      return existing;
+    }
+    return null;
   }
 
   /**
@@ -128,46 +222,181 @@ public interface Initializer<T> {
    */
   default List<T> add(Database db,
                       boolean  overwrite,
+                      UUID     resourceId,
                       Map<String, Object> definitions) {
     return definitions.entrySet().stream()
                       .map(e -> e.getValue() instanceof Map m
-                              ? add(db, overwrite, e.getKey(), new LinkedHashMap<String, Object>(m))
-                              : add(db, overwrite, e.getKey(), new ArrayList<>((List<Object>)e.getValue())))
+                              ? add(db, overwrite, e.getKey(), resourceId, new LinkedHashMap<String, Object>(m))
+                              : add(db, overwrite, e.getKey(), resourceId, new ArrayList<>((List<Object>)e.getValue())))
                       .toList();
   }
 
   /**
-   * Interprets the data from the input stream as YAML and creates the
-   * structures that it defines in the database.
+   * Initialise using data in the YAML resource file and creates the  structures
+   * that it defines in the database.
+   *
+   * @param db The database to create the structures in.
+   * @param resource YAML resource file defining the structures to create.
+   * @return The list of structures created.
+   */
+  default List<T> add(Database db, String resource) {
+    URL url = getClass().getResource(resource);
+    if (url == null) {
+      throw new NotFoundException("Could not open " + resource + " from " + getClass());
+    }
+    try (InputStream in = url.openStream()) {
+      return add(db, resource, in);
+    } catch (IOException ioe) {
+      throw new RuntimeException(ioe);
+    }
+  }
+
+  /**
+   * Interprets the data from the input stream as YAML and creates the structures
+   * that it defines in the database.
    *
    * @param db The database to create the structures in.
    * @param in Input stream of the YAML data defining the structures to create.
    * @return The list of structures created.
    */
-  default List<T> add(Database db, InputStream in) {
+  default List<T> add(Database    db,
+                      String      resource,
+                      InputStream in) {
     if (in == null) {
       /*
        * No input initialization: all initialization input is already contained
        * in the method. E.g., creation of base tables.
        */
       init(db);
-      return Collections.emptyList();
-    } else {
+      return emptyList();
+
+    } else if (resource == null) {
       /*
-       * Initialize database from YAML input.
+       * Initialize database from YAML input stream.
        */
       Yaml yaml = new Yaml();
       Iterable<Object> contents = yaml.loadAll(in);
       List<T> created = new ArrayList<>();
-      for (Object content : contents) {
+      for (Object content: contents) {
         Map<String, Object> entries = new LinkedHashMap<>((Map<String, Object>)content);
         boolean overwrite = entries.containsKey(OVERWRITE)
                          && (Boolean)entries.get(OVERWRITE);
         entries.remove(OVERWRITE);
-        created.addAll(add(db, overwrite, entries));
+        created.addAll(add(db, overwrite, (UUID)null, entries));
       }
       return created;
+
+    } else {
+      /*
+       * Both a resource name and input stream was provided: compare with previous
+       * changes and initialise incrementally.
+       */
+      try (EsqlConnection con = db.esql();
+           Result rs = con.exec("""
+                                select _id, fingerprint
+                                  from _core.resource
+                                 where name = @name""",
+                                new QueryParams().add("name", resource))) {
+        UUID resourceId;
+        String fingerprint;
+        boolean changed = false;
+        URL url = getClass().getResource(resource);
+        if (rs.toNext()) {
+          /*
+           * Resource was seen before, check fingerprint.
+           */
+          resourceId = rs.value("_id");
+          fingerprint = getFingerprint(resource, url);
+
+          if (!fingerprint.equals(rs.value("fingerprint"))) {
+            /*
+             * Resource has changed, update fingerprint.
+             */
+            log.log(INFO, "Change detected in " + resource);
+            changed = true;
+            con.exec("""
+                     update r
+                       from r:_core.resource
+                        set fingerprint = @fingerprint
+                      where _id = @id""",
+                        new QueryParams().add("id",          resourceId)
+                                         .add("fingerprint", fingerprint));
+          }
+        } else {
+          /*
+           * First time seeing resource.
+           */
+          changed = true;
+          resourceId = UUID.randomUUID();
+          fingerprint = getFingerprint(resource, url);
+          con.exec("""
+                     insert into _core.resource(_id, name,  fingerprint)
+                                         values(@id, @name, @fingerprint)""",
+                   new QueryParams().add("id",          resourceId)
+                                    .add("name",        resource)
+                                    .add("fingerprint", fingerprint));
+        }
+        if (changed) {
+          /*
+           * Initialize database from YAML input stream.
+           */
+          Yaml yaml = new Yaml();
+          Iterable<Object> contents = yaml.loadAll(in);
+          List<T> created = new ArrayList<>();
+          for (Object content: contents) {
+            Map<String, Object> entries = new LinkedHashMap<>((Map<String, Object>)content);
+            boolean overwrite = entries.containsKey(OVERWRITE)
+                             && (Boolean)entries.get(OVERWRITE);
+            entries.remove(OVERWRITE);
+            created.addAll(add(db, overwrite, resourceId, entries));
+          }
+          return created;
+
+        } else {
+          log.log(INFO, "No change detected in " + resource);
+          return emptyList();
+        }
+      }
     }
+  }
+
+  private String getFingerprint(String resource, URL url) {
+    if (url == null) {
+      throw new NotFoundException("Could not open " + resource + " from " + getClass());
+    }
+    String location = url.getFile();
+    String fingerprint;
+    int pos = location.indexOf('!');
+    if (pos != -1) {
+      /*
+       * The resource is part of a jar file. Use jar entries information to
+       * detect changes.
+       */
+      location = location.substring(0, pos);
+      try (JarFile jar = new JarFile(location)) {
+        JarEntry entry = jar.getJarEntry(resource);
+        fingerprint = String.valueOf(entry.getCrc());
+      } catch (IOException ioe) {
+        throw new RuntimeException(ioe);
+      }
+    } else {
+      /*
+       * The resource is part of a jar file. Use jar entries information to
+       * detect changes.
+       */
+      try (FileInputStream urlIn = new FileInputStream(location)) {
+        CRC32C crc = new CRC32C();
+        byte[] data = new byte[16384];
+        int read;
+        while ((read = urlIn.read(data)) != -1) {
+          crc.update(data, 0, read);
+        }
+        fingerprint = String.valueOf(crc.getValue());
+      } catch(IOException ioe) {
+        throw new RuntimeException(ioe);
+      }
+    }
+    return fingerprint;
   }
 
   /**
@@ -240,4 +469,6 @@ public interface Initializer<T> {
    * for the current object being created or updated.
    */
   String METADATA = "$metadata";
+
+  System.Logger log = System.getLogger(Initializer.class.getName());
 }

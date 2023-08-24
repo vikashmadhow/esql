@@ -374,8 +374,16 @@ public interface Database {
     }
   }
 
+  void loadInformationSchemas();
+
   default boolean tableExists(EsqlConnection con, String table) {
-    return tableExists(con.connection(), table);
+    // return structure().relationExists(table);
+        // tableExists(con.connection(), table);
+    if (!structure().relationExists(table)
+     && tableExists(con.connection(), table)) {
+      loadInformationSchemas();
+    }
+    return structure().relationExists(table);
   }
 
   default boolean tableExists(Connection con, String table) {
@@ -555,6 +563,36 @@ public interface Database {
     }
   }
 
+  default void createCoreResource(EsqlConnection con) {
+    if (!tableExists(con, "_core.resource")) {
+      /*
+       * Resource are files containing hierarchical definitions of objects to
+       * save in the database.
+       */
+      con.exec("""
+               create table _core.resource drop undefined(
+               _id         uuid   not null default newid(),
+               name        string not null,
+               fingerprint string not null,
+               
+               primary key(_id),
+               unique     (name))""");
+      /*
+       * Entries in resource files.
+       */
+      con.exec("""
+               create table _core.resource_entry drop undefined(
+               _id         uuid   not null default newid(),
+               resource_id uuid   not null,
+               name        string not null,
+               fingerprint string not null,
+               
+               primary key(_id),
+               unique     (resource_id, name),
+               foreign key(resource_id) references _core.resource(_id) on delete cascade on update cascade)""");
+    }
+  }
+
   // Update database information
   ///////////////////////////////////////////////////
 
@@ -607,6 +645,9 @@ public interface Database {
   Database NULL_DB = new Database() {
     @Override
     public void init(Configuration config) {}
+
+    @Override
+    public void loadInformationSchemas() {}
 
     @Override
     public Configuration config() {

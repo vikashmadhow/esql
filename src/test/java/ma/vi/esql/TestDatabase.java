@@ -43,6 +43,9 @@ public class TestDatabase implements Database {
     init(null);
   }
 
+  @Override
+  public void loadInformationSchemas() {}
+
   @Override public void init(Configuration config) {
     /*
      * Register translators.

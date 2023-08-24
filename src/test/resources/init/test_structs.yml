@@ -1,9 +1,10 @@
 $overwrite: true
 
+
 TestImport:
   $metadata:
     name: "'Test import'"
-    description: "'This is a test import'"
+    description: "'This is A test import'"
   id:
     type: int
     required: true
@@ -45,10 +46,10 @@ a.b.TestImport2:
   a:
     type: int
     expression: 1
-    m1: 2 * id
+    m1: 2 + id
   b:
     expression: a * 3
-    m1: 3 * id
+    m1: 3 + id
   phone:
     type: string
   address:
