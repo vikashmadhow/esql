@@ -372,8 +372,16 @@ public class Structure extends AbstractScope implements Environment {
 
     function(new AgeInYears());
 
+    function(new StartOfHour());
+    function(new StartOfDay());
+    function(new StartOfWeek());
     function(new StartOfMonth());
+
+    function(new EndOfHour());
+    function(new EndOfDay());
+    function(new EndOfWeek());
     function(new EndOfMonth());
+
     function(new InMonth());
 
     function(new AddYears());
