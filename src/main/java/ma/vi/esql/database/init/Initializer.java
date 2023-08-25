@@ -223,8 +223,8 @@ public interface Initializer<T> {
                       Map<String, Object> definitions) {
     return definitions.entrySet().stream()
                       .map(e -> e.getValue() instanceof Map m
-                              ? add(db, overwrite, e.getKey(), resourceId, new LinkedHashMap<String, Object>(m))
-                              : add(db, overwrite, e.getKey(), resourceId, new ArrayList<>((List<Object>)e.getValue())))
+                              ? add(db, overwrite, String.valueOf(e.getKey()), resourceId, new LinkedHashMap<String, Object>(m))
+                              : add(db, overwrite, String.valueOf(e.getKey()), resourceId, new ArrayList<>((List<Object>)e.getValue())))
                       .toList();
   }
 
