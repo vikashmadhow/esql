@@ -26,9 +26,8 @@ import static ma.vi.esql.translation.Translatable.Target.*;
  */
 public class EndOfDay extends Function {
   public EndOfDay() {
-    super("endofday",
-          Types.DateType,
-        singletonList(new FunctionParam("s", Types.DateType)));
+    super("endofday", Types.DateType,
+          singletonList(new FunctionParam("s", Types.DateType)));
   }
 
   @Override
@@ -39,7 +38,11 @@ public class EndOfDay extends Function {
       return "(date_trunc('day', " + arg + ") + interval '1 day - 1 second')::date";
 
     } else if (target == SQLSERVER) {
-      return "dateadd(second, -1, dateadd(day, 1, datetrunc(day, " + arg + ")))";
+//      return "dateadd(second, -1, dateadd(day, 1, datetrunc(day, " + arg + ")))";
+      return "datetime2fromparts(year("  + arg + "), "
+                              + "month(" + arg + "), "
+                              + "day("   + arg + "), "
+                              + "23, 59, 59, 0, 0)";
 
     } else if (target == JAVASCRIPT) {
       return "new Date(" + arg + ".setHours(23, 59, 59))";

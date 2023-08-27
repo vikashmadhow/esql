@@ -83,13 +83,19 @@ public class DatePart extends Function {
         // SQL Server does not include seconds in milliseconds: include it as it is
         // more sensible and similar to postgresql
         return "datepart(" + Second.mssqlName + ", " + arg + ") * 1000 + "
-             + "datepart(" + part.mssqlName + ", " + arg + ')';
+             + "datepart(" + part.mssqlName   + ", " + arg + ')';
 
       } else if (part == Microsecond) {
         // SQL Server does not include seconds in microseconds: include it as
         // it is more sensible and similar to postgresql
         return "datepart(" + Second.mssqlName + ", " + arg + ") * 1000000 + "
-             + "datepart(" + part.mssqlName + ", " + arg + ')';
+             + "datepart(" + part.mssqlName   + ", " + arg + ')';
+
+      } else if (part == DayOfWeek) {
+        // Day of week is 1 for Sunday; normalise to Monday being the first day
+        // of the week to be consistent with translation to other databases.
+        return "iif(datepart(weekday, " + arg + ") = 1, 7, "
+                 + "datepart(weekday, " + arg + ") - 1)";
 
       } else {
         return "datepart(" + part.mssqlName + ", " + arg + ')';
@@ -97,18 +103,18 @@ public class DatePart extends Function {
     } else if (target == JAVASCRIPT) {
       return switch (part) {
         case Year         -> "("  + arg + ").getFullYear()";
-        case Quarter      -> "("  + arg + ").quarter()";
-        case Semester     -> "((" + arg + ").quarter()==1 || (" + arg + ").quarter()==2 ? 1 : 2)";
+        case Quarter      -> "(Math.floor(" + arg + ".getMonth() / 3) + 1)";
+        case Semester     -> "(Math.floor(" + arg + ".getMonth() / 6) + 1)";
         case Month        -> "((" + arg + ").getMonth() + 1)";
         case Week         -> "("  + arg + ").week()";
-        case DayOfWeek    -> "((" + arg + ").dayOfWeek() + 1)";
+        case DayOfWeek    -> "("  + arg + ").getDay()";
         case DayOfYear    -> "("  + arg + ").dayOfYear()";
-        case Day          -> "("  + arg + ").date()";
-        case Hour         -> "("  + arg + ").hour()";
-        case Minute       -> "("  + arg + ").minute()";
-        case Second       -> "("  + arg + ").second()";
-        case Millisecond  -> "("  + arg + ").millisecond()";
-        case Microsecond  -> "((" + arg + ").millisecond() * 1000)";
+        case Day          -> "("  + arg + ").getDate()";
+        case Hour         -> "("  + arg + ").getHours()";
+        case Minute       -> "("  + arg + ").getMinutes()";
+        case Second       -> "("  + arg + ").getSeconds()";
+        case Millisecond  -> "("  + arg + ").getMilliseconds()";
+        case Microsecond  -> "((" + arg + ").getMilliseconds() * 1000)";
       };
     } else {
       return name + '(' + arg + ')';

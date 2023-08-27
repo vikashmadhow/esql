@@ -26,9 +26,8 @@ import static ma.vi.esql.translation.Translatable.Target.*;
  */
 public class StartOfWeek extends Function {
   public StartOfWeek() {
-    super("startofweek",
-          Types.DateType,
-        singletonList(new FunctionParam("s", Types.DateType)));
+    super("startofweek", Types.DateType,
+          singletonList(new FunctionParam("s", Types.DateType)));
   }
 
   @Override
@@ -39,8 +38,9 @@ public class StartOfWeek extends Function {
       return "date_trunc('week', " + arg + ")";
 
     } else if (target == SQLSERVER) {
-      return "datetrunc(iso_week, " + arg + ")";
-      // return "dateadd(day, 2 - datepart(weekday, " + arg + "), " + arg + ")";
+      // return "datetrunc(iso_week, " + arg + ")";
+      return "dateadd(day, iif(datepart(weekday, " + arg + ") = 1, -6, "
+                            + "2 - datepart(weekday, " + arg + ")), " + arg + ")";
 
     } else if (target == JAVASCRIPT) {
       return "new Date(" + arg + ".setDate(" + arg + ".getDate() - " + arg + ".getDay() + 1))";

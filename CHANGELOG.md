@@ -94,6 +94,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Template structs: structs that are used to create tables; provides a common
     inheritable structure to a set of related tables (e.g.).
 
+## [1.5.43] - 2023-08-23
+### Added
+- `datetrunc` is no longer used for the SQL Server transaction of start and end
+  of different date periods as this function is only available on SQL Server 2022;
+  various combinations of other functions available on previous versions of SQL
+  server are used to obtain the same result.
+- `dayofweek` function has been normalised to behave in the same way on both
+  PostgreSQL and SQL Server. Day of week is 1 for Sunday on SQL Server; this has
+  been normalised to Monday.
+- Support for vaious date parts on Javascript using native JS dates (instead of
+  assuming the presence of `moment.js`). 
+
 ## [1.5.42] - 2023-08-23
 ### Added
 - Incremental initialisation for objects defined as list (in addition to those

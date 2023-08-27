@@ -26,9 +26,8 @@ import static ma.vi.esql.translation.Translatable.Target.*;
  */
 public class StartOfMonth extends Function {
   public StartOfMonth() {
-    super("startofmonth",
-          Types.DateType,
-        singletonList(new FunctionParam("s", Types.DateType)));
+    super("startofmonth", Types.DateType,
+          singletonList(new FunctionParam("s", Types.DateType)));
   }
 
   @Override
@@ -39,7 +38,8 @@ public class StartOfMonth extends Function {
       return "date_trunc('month', " + arg + ")";
 
     } else if (target == SQLSERVER) {
-      return "datetrunc(month, " + arg + ")";
+//      return "datetrunc(month, " + arg + ")";
+      return "datefromparts(year(" + arg + "), month(" + arg + "), 1)";
 
     } else if (target == JAVASCRIPT) {
       return "new Date(" + arg + ".getFullYear(), " + arg + ".getMonth(), 1)";

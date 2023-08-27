@@ -26,9 +26,8 @@ import static ma.vi.esql.translation.Translatable.Target.*;
  */
 public class StartOfDay extends Function {
   public StartOfDay() {
-    super("startofday",
-          Types.DateType,
-        singletonList(new FunctionParam("s", Types.DateType)));
+    super("startofday", Types.DateType,
+          singletonList(new FunctionParam("s", Types.DateType)));
   }
 
   @Override
@@ -39,7 +38,11 @@ public class StartOfDay extends Function {
       return "date_trunc('day', " + arg + ")";
 
     } else if (target == SQLSERVER) {
-      return "datetrunc(day, " + arg + ")";
+      // return "datetrunc(day, " + arg + ")";
+      return "datetime2fromparts(year("  + arg + "), "
+                              + "month(" + arg + "), "
+                              + "day("   + arg + "), "
+                              + "0, 0, 0, 0, 0)";
 
     } else if (target == JAVASCRIPT) {
       return "new Date(" + arg + ".setHours(0, 0, 0, 0))";

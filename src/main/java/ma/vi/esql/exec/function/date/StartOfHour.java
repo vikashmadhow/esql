@@ -26,9 +26,8 @@ import static ma.vi.esql.translation.Translatable.Target.*;
  */
 public class StartOfHour extends Function {
   public StartOfHour() {
-    super("startofhour",
-          Types.DateType,
-        singletonList(new FunctionParam("s", Types.DateType)));
+    super("startofhour", Types.DateType,
+          singletonList(new FunctionParam("s", Types.DateType)));
   }
 
   @Override
@@ -39,7 +38,12 @@ public class StartOfHour extends Function {
       return "date_trunc('hour', " + arg + ")";
 
     } else if (target == SQLSERVER) {
-      return "datetrunc(hour, " + arg + ")";
+      // return "datetrunc(hour, " + arg + ")";
+      return "datetime2fromparts(year("  + arg + "), "
+           + "month(" + arg + "), "
+           + "day("   + arg + "), "
+           + "datepart(hour, "  + arg + "), "
+           + "0, 0, 0, 0)";
 
     } else if (target == JAVASCRIPT) {
       return "new Date(" + arg + ".setHours(" + arg + ".getHours(), 0, 0, 0))";
