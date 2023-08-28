@@ -17,8 +17,7 @@ import org.pcollections.PMap;
 import java.util.Arrays;
 import java.util.List;
 
-import static ma.vi.esql.translation.Translatable.Target.POSTGRESQL;
-import static ma.vi.esql.translation.Translatable.Target.SQLSERVER;
+import static ma.vi.esql.translation.Translatable.Target.*;
 
 /**
  * Add days to date.
@@ -35,15 +34,21 @@ public class AddDays extends Function {
   @Override
   public String translate(FunctionCall call, Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
     List<Expression<?, ?>> args = call.arguments();
+    String arg1 = args.get(0).translate(target, esqlCon, path.add(args.get(0)), env).toString();
+    String arg2 = args.get(1).translate(target, esqlCon, path.add(args.get(1)), env).toString();
     if (target == POSTGRESQL) {
-      return args.get(0).translate(target)
-           + "concat(" + args.get(1).translate(target) + ", ' day')::interval";
+      return arg1 + "concat(" + arg2 + ", ' day')::interval";
+
     } else if (target == SQLSERVER) {
-      return "dateadd(day, "
-           + args.get(1).translate(target) + ", "
-           + args.get(0).translate(target) + ')';
+      return "dateadd(day, " + arg2 + ", " + arg1 + ')';
+
+    } else if (target == JAVASCRIPT) {
+      return "new Date(" + arg1 + ".getFullYear(), "
+                         + arg1 + ".getMonth(), "
+                         + arg1 + ".getDate() + " + arg2 + ")";
+
     } else {
-      return name + '(' + args.get(0).translate(target) + ')';
+      return name + '(' + arg1 + ", " + arg2 + ')';
     }
   }
 }

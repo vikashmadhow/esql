@@ -17,8 +17,7 @@ import org.pcollections.PMap;
 import java.util.Arrays;
 import java.util.List;
 
-import static ma.vi.esql.translation.Translatable.Target.POSTGRESQL;
-import static ma.vi.esql.translation.Translatable.Target.SQLSERVER;
+import static ma.vi.esql.translation.Translatable.Target.*;
 
 /**
  * Function to create a new datetime value from individual components.
@@ -28,12 +27,12 @@ import static ma.vi.esql.translation.Translatable.Target.SQLSERVER;
 public class NewDateTime extends Function {
   public NewDateTime() {
     super("newdatetime", Types.DatetimeType,
-        Arrays.asList(new FunctionParam("y", Types.IntType),
-            new FunctionParam("m", Types.IntType),
-            new FunctionParam("d", Types.IntType),
-            new FunctionParam("h", Types.IntType),
-            new FunctionParam("mi", Types.IntType),
-            new FunctionParam("s", Types.FloatType)));
+         Arrays.asList(new FunctionParam("y", Types.IntType),
+                       new FunctionParam("m", Types.IntType),
+                       new FunctionParam("d", Types.IntType),
+                       new FunctionParam("h", Types.IntType),
+                       new FunctionParam("mi", Types.IntType),
+                       new FunctionParam("s", Types.FloatType)));
   }
 
   @Override
@@ -75,6 +74,15 @@ public class NewDateTime extends Function {
           + seconds + ", "
           + fractional + ", "
           + precision + ')';
+
+    } else if (target == JAVASCRIPT) {
+      return "new Date("
+          + args.get(0).translate(target, esqlCon, path.add(args.get(0)), env) + ", "
+          + args.get(1).translate(target, esqlCon, path.add(args.get(1)), env) + " - 1, "
+          + args.get(2).translate(target, esqlCon, path.add(args.get(2)), env) + ", "
+          + args.get(3).translate(target, esqlCon, path.add(args.get(3)), env) + ", "
+          + args.get(4).translate(target, esqlCon, path.add(args.get(4)), env) + ", "
+          + args.get(5).translate(target, esqlCon, path.add(args.get(5)), env) + ')';
 
     } else {
       return name + '('

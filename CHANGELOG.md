@@ -94,6 +94,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Template structs: structs that are used to create tables; provides a common
     inheritable structure to a set of related tables (e.g.).
 
+## [1.5.44] - 2023-08-23
+### Added
+- Javascript translation of `adddays`, `newdate`, `newdatetime` and `now` functions.
+
 ## [1.5.43] - 2023-08-23
 ### Added
 - `datetrunc` is no longer used for the SQL Server transaction of start and end

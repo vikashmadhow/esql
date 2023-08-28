@@ -333,27 +333,13 @@ public class Structure extends AbstractScope implements Environment {
 
     // date and time
     /////////////////////////////////
-    function(new Function("now", StringType, emptyList(),
-                          false,
-                          Map.of(POSTGRESQL, "now",
-                                 SQLSERVER,  "getdate",
-                                 JAVASCRIPT, "_moment")));
+    function(new Now());
 
     function(new AddIntervalToDate());
-
     function(new AddIntervals());
 
-    function(new Function("newdate", DateType,
-                          asList(new FunctionParam("y", IntType),
-                                 new FunctionParam("m", IntType),
-                                 new FunctionParam("d", IntType)),
-                          false,
-                          Map.of(POSTGRESQL, "make_date",
-                                 SQLSERVER,  "datefromparts",
-                                 JAVASCRIPT, "_moment")));
-
+    function(new NewDate());
     function(new NewDateTime());
-
     function(new NewTime());
 
     function(new DatePart("year",      Year));

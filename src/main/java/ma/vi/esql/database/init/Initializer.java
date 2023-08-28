@@ -267,92 +267,81 @@ public interface Initializer<T> {
       init(db);
       return emptyList();
 
-    } else if (resource == null) {
-      /*
-       * Initialize database from YAML input stream.
-       */
-      Yaml yaml = new Yaml();
-      Iterable<Object> contents = yaml.loadAll(in);
-      List<T> created = new ArrayList<>();
-      for (Object content: contents) {
-        Map<String, Object> entries = new LinkedHashMap<>((Map<String, Object>)content);
-        boolean overwrite = entries.containsKey(OVERWRITE)
-                         && (Boolean)entries.get(OVERWRITE);
-        entries.remove(OVERWRITE);
-        created.addAll(add(db, overwrite, (UUID)null, entries));
-      }
-      return created;
-
     } else {
-      /*
-       * Both a resource name and input stream was provided: compare with previous
-       * changes and initialise incrementally.
-       */
-      try (EsqlConnection con = db.esql();
-           Result rs = con.exec("""
+      UUID resourceId = null;
+      boolean changed = false;
+      if (resource == null) {
+        changed = true;
+
+      } else {
+        /*
+         * Both a resource name and input stream was provided: compare with previous
+         * changes and initialise incrementally.
+         */
+        try (EsqlConnection con = db.esql();
+             Result rs = con.exec("""
                                 select _id, fingerprint
                                   from _core.resource
                                  where name = @name""",
-                                new QueryParams().add("name", resource))) {
-        UUID resourceId;
-        String fingerprint;
-        boolean changed = false;
-        URL url = getClass().getResource(resource);
-        if (rs.toNext()) {
-          /*
-           * Resource was seen before, check fingerprint.
-           */
-          resourceId = rs.value("_id");
-          fingerprint = getFingerprint(resource, url);
-
-          if (!fingerprint.equals(rs.value("fingerprint"))) {
+                                  new QueryParams().add("name", resource))) {
+          String fingerprint;
+          URL url = getClass().getResource(resource);
+          if (rs.toNext()) {
             /*
-             * Resource has changed, update fingerprint.
+             * Resource was seen before, check fingerprint.
              */
-            log.log(INFO, "Change detected in " + resource);
-            changed = true;
-            con.exec("""
+            resourceId = rs.value("_id");
+            fingerprint = getFingerprint(resource, url);
+
+            if (!fingerprint.equals(rs.value("fingerprint"))) {
+              /*
+               * Resource has changed, update fingerprint.
+               */
+              log.log(INFO, "Change detected in " + resource);
+              changed = true;
+              con.exec("""
                      update r
                        from r:_core.resource
                         set fingerprint = @fingerprint
                       where _id = @id""",
-                        new QueryParams().add("id",          resourceId)
-                                         .add("fingerprint", fingerprint));
-          }
-        } else {
-          /*
-           * First time seeing resource.
-           */
-          changed = true;
-          resourceId = UUID.randomUUID();
-          fingerprint = getFingerprint(resource, url);
-          con.exec("""
+                       new QueryParams().add("id",          resourceId)
+                                        .add("fingerprint", fingerprint));
+            }
+          } else {
+            /*
+             * First time seeing resource.
+             */
+            changed = true;
+            resourceId = UUID.randomUUID();
+            fingerprint = getFingerprint(resource, url);
+            con.exec("""
                      insert into _core.resource(_id, name,  fingerprint)
                                          values(@id, @name, @fingerprint)""",
-                   new QueryParams().add("id",          resourceId)
-                                    .add("name",        resource)
-                                    .add("fingerprint", fingerprint));
-        }
-        if (changed) {
-          /*
-           * Initialize database from YAML input stream.
-           */
-          Yaml yaml = new Yaml();
-          Iterable<Object> contents = yaml.loadAll(in);
-          List<T> created = new ArrayList<>();
-          for (Object content: contents) {
-            Map<String, Object> entries = new LinkedHashMap<>((Map<String, Object>)content);
-            boolean overwrite = entries.containsKey(OVERWRITE)
-                             && (Boolean)entries.get(OVERWRITE);
-            entries.remove(OVERWRITE);
-            created.addAll(add(db, overwrite, resourceId, entries));
+                     new QueryParams().add("id",          resourceId)
+                                      .add("name",        resource)
+                                      .add("fingerprint", fingerprint));
           }
-          return created;
-
-        } else {
-          log.log(INFO, "No change detected in " + resource);
-          return emptyList();
         }
+      }
+      if (changed) {
+        /*
+         * Initialize database from YAML input stream.
+         */
+        Yaml yaml = new Yaml();
+        Iterable<Object> contents = yaml.loadAll(in);
+        List<T> created = new ArrayList<>();
+        for (Object content: contents) {
+          Map<String, Object> entries = new LinkedHashMap<>((Map<String, Object>)content);
+          boolean overwrite = entries.containsKey(OVERWRITE)
+            && (Boolean)entries.get(OVERWRITE);
+          entries.remove(OVERWRITE);
+          created.addAll(add(db, overwrite, resourceId, entries));
+        }
+        return created;
+
+      } else {
+        log.log(INFO, "No change detected in " + resource);
+        return emptyList();
       }
     }
   }
