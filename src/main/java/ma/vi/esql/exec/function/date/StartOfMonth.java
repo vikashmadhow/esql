@@ -31,7 +31,12 @@ public class StartOfMonth extends Function {
   }
 
   @Override
-  public String translate(FunctionCall call, Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
+  public String translate(FunctionCall         call,
+                          Target               target,
+                          EsqlConnection       esqlCon,
+                          EsqlPath             path,
+                          PMap<String, Object> parameters,
+                          Environment          env) {
     List<Expression<?, ?>> args = call.arguments();
     String arg = args.get(0).translate(target, esqlCon, path.add(args.get(0)), env).toString();
     if (target == POSTGRESQL) {

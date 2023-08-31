@@ -20,13 +20,13 @@ import static java.util.Collections.singletonList;
 import static ma.vi.esql.translation.Translatable.Target.*;
 
 /**
- * Function returning the start of the hour of the supplied date.
+ * Function returning the start of the year of the supplied date.
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public class StartOfHour extends Function {
-  public StartOfHour() {
-    super("startofhour", Types.DateType,
+public class StartOfYear extends Function {
+  public StartOfYear() {
+    super("startofmonth", Types.DateType,
           singletonList(new FunctionParam("s", Types.DateType)));
   }
 
@@ -40,18 +40,14 @@ public class StartOfHour extends Function {
     List<Expression<?, ?>> args = call.arguments();
     String arg = args.get(0).translate(target, esqlCon, path.add(args.get(0)), env).toString();
     if (target == POSTGRESQL) {
-      return "date_trunc('hour', " + arg + ")";
+      return "date_trunc('year', " + arg + ")";
 
     } else if (target == SQLSERVER) {
-      // return "datetrunc(hour, " + arg + ")";
-      return "datetime2fromparts(year("  + arg + "), "
-                              + "month(" + arg + "), "
-                              + "day("   + arg + "), "
-                              + "datepart(hour, "  + arg + "), "
-                              + "0, 0, 0, 0)";
+//      return "datetrunc(month, " + arg + ")";
+      return "datefromparts(year(" + arg + "), 1, 1)";
 
     } else if (target == JAVASCRIPT) {
-      return "new Date(" + arg + ".setHours(" + arg + ".getHours(), 0, 0, 0))";
+      return "new Date(" + arg + ".getFullYear(), 0, 1)";
 
     } else {
       return name + '(' + arg + ')';

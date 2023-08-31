@@ -267,7 +267,6 @@ public class Structure extends AbstractScope implements Environment {
                           Map.of(POSTGRESQL, "chr",
                                  SQLSERVER,  "char")));
 
-
     // Print function for debugging purposes mainly
     function(new Print());
 
@@ -335,13 +334,16 @@ public class Structure extends AbstractScope implements Environment {
     /////////////////////////////////
     function(new Now());
 
+    // Adding intervals
     function(new AddIntervalToDate());
     function(new AddIntervals());
 
+    // create new date/time from individual components
     function(new NewDate());
     function(new NewDateTime());
     function(new NewTime());
 
+    // Functions to get part of a date
     function(new DatePart("year",      Year));
     function(new DatePart("quarter",   Quarter));
     function(new DatePart("semester",  Semester));
@@ -356,20 +358,34 @@ public class Structure extends AbstractScope implements Environment {
     function(new DatePart("milli",     Millisecond));
     function(new DatePart("micro",     Microsecond));
 
+    // Functions to set part of date to a value
+    function(new SetYear());
+    function(new SetMonth());
+    function(new SetDayOfMonth());
+    function(new SetDayOfWeek());
+    function(new SetHour());
+    function(new SetMinute());
+    function(new SetSecond());
+
     function(new AgeInYears());
 
+    // Function to get start of the period from a date
     function(new StartOfHour());
     function(new StartOfDay());
     function(new StartOfWeek());
     function(new StartOfMonth());
+    function(new StartOfYear());
 
+    // Function to get end of the period from a date
     function(new EndOfHour());
     function(new EndOfDay());
     function(new EndOfWeek());
     function(new EndOfMonth());
+    function(new EndOfYear());
 
     function(new InMonth());
 
+    // Add parts to a date
     function(new AddYears());
     function(new AddMonths());
     function(new AddWeeks());

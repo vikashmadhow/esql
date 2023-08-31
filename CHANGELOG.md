@@ -94,7 +94,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Template structs: structs that are used to create tables; provides a common
     inheritable structure to a set of related tables (e.g.).
 
-## [1.5.44] - 2023-08-23
+## [1.5.45] - 2023-08-30
+### Added
+- New date functions to set the value of a specific part of a date including the
+  year, month, day of month, day of week, hour, minute and second.
+- Fix `dayofweek` javascript translation to return 1-7 as required instead of 0-6.
+
+## [1.5.44] - 2023-08-28
 ### Added
 - Javascript translation of `adddays`, `newdate`, `newdatetime` and `now` functions.
 
