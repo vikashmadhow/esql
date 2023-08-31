@@ -59,7 +59,7 @@ public class SetSecond extends Function {
                               + "datepart(minute, "       + arg1 + "), "
                               +                             arg2 +  ", "
                               + "datepart(millisecond, "  + arg1 + "), "
-                              + "datepart(microsecond, "  + arg1 + "))";
+                              + "3)";
 
     } else if (target == JAVASCRIPT) {
       return "new Date(" + arg1 + ".setHours(" + arg1 + ".getHours(), "

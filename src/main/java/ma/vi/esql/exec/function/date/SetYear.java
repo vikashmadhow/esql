@@ -59,7 +59,7 @@ public class SetYear extends Function {
                               + "datepart(minute, "       + arg1 + "), "
                               + "datepart(second, "       + arg1 + "), "
                               + "datepart(millisecond, "  + arg1 + "), "
-                              + "datepart(microsecond, "  + arg1 + "))";
+                              + "3)";
 
     } else if (target == JAVASCRIPT) {
       return "new Date(" + arg1 + ".setFullYear(" + arg2 + "))";
