@@ -94,7 +94,7 @@ public abstract class AbstractDatabase implements Database {
      * core tables, which will include information not present in the information
      * schemas, such as relation and column attributes.
      */
-    // loadInformationSchemas();
+    loadInformationSchemas();
     updateCoreTables();
     loadCoreTables();
   }

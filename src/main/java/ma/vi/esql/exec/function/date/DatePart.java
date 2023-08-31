@@ -107,7 +107,7 @@ public class DatePart extends Function {
         case Semester     -> "(Math.floor(" + arg + ".getMonth() / 6) + 1)";
         case Month        -> "((" + arg + ").getMonth() + 1)";
         case Week         -> "("  + arg + ").week()";
-        case DayOfWeek    -> "("  + arg + ").getDay()";
+        case DayOfWeek    -> "(("  + arg + ").getDay() || 7)";
         case DayOfYear    -> "("  + arg + ").dayOfYear()";
         case Day          -> "("  + arg + ").getDate()";
         case Hour         -> "("  + arg + ").getHours()";
