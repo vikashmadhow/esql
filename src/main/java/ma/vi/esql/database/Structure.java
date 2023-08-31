@@ -370,18 +370,20 @@ public class Structure extends AbstractScope implements Environment {
     function(new AgeInYears());
 
     // Function to get start of the period from a date
-    function(new StartOfHour());
-    function(new StartOfDay());
-    function(new StartOfWeek());
-    function(new StartOfMonth());
     function(new StartOfYear());
+    function(new StartOfMonth());
+    function(new StartOfWeek());
+    function(new StartOfDay());
+    function(new StartOfHour());
+    function(new StartOfMinute());
 
     // Function to get end of the period from a date
-    function(new EndOfHour());
-    function(new EndOfDay());
-    function(new EndOfWeek());
-    function(new EndOfMonth());
     function(new EndOfYear());
+    function(new EndOfMonth());
+    function(new EndOfWeek());
+    function(new EndOfDay());
+    function(new EndOfHour());
+    function(new EndOfMinute());
 
     function(new InMonth());
 

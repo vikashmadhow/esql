@@ -26,7 +26,7 @@ import static ma.vi.esql.translation.Translatable.Target.*;
  */
 public class StartOfYear extends Function {
   public StartOfYear() {
-    super("startofmonth", Types.DateType,
+    super("startofyear", Types.DateType,
           singletonList(new FunctionParam("s", Types.DateType)));
   }
 
