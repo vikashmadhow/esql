@@ -26,7 +26,7 @@ import static ma.vi.esql.translation.Translatable.Target.*;
  */
 public class SetSecond extends Function {
   public SetSecond() {
-    super("sethour", Types.DateType,
+    super("setsecond", Types.DateType,
           Arrays.asList(new FunctionParam("d", Types.DateType),
                         new FunctionParam("h", Types.IntType)));
   }
