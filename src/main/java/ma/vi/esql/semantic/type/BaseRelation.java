@@ -797,13 +797,6 @@ public class BaseRelation extends Struct {
     }
   }
 
-//  public void dependency(Relation dependency) {
-//    if (dependencies == null) {
-//      dependencies = new HashSet<>();
-//    }
-//    dependencies.add(dependency);
-//  }
-
   private static final class Node implements Comparable<Node> {
     private Node(Node                 previous,
                  ForeignKeyConstraint constraint,
@@ -879,16 +872,17 @@ public class BaseRelation extends Struct {
     PriorityQueue<Node> toExplore = new PriorityQueue<>();
     Map<Node, Integer> toBeExplored = new HashMap<>();
     for (ConstraintDefinition c: constraints) {
-      if (c instanceof ForeignKeyConstraint fk) {
-        if (fk.forwardCost() >= 0) {
-          Node node = new Node(null, fk, false);
-          toExplore.add(node);
-          toBeExplored.put(node, node.cost);
-        }
+      if ( c instanceof ForeignKeyConstraint fk
+       && !fk.targetTable().startsWith("_")
+       &&  fk.forwardCost() >= 0) {
+        Node node = new Node(null, fk, false);
+        toExplore.add(node);
+        toBeExplored.put(node, node.cost);
       }
     }
     for (ForeignKeyConstraint c: dependentConstraints) {
-      if (c.reverseCost() >= 0) {
+      if (!c.table().startsWith("_")
+        && c.reverseCost() >= 0) {
         Node node = new Node(null, c, true);
         toExplore.add(node);
         toBeExplored.put(node, node.cost);
@@ -926,27 +920,28 @@ public class BaseRelation extends Struct {
         BaseRelation rel = node.reverse ? context.structure.relation(node.constraint.table())
                                         : context.structure.relation(node.constraint.targetTable());
         for (ConstraintDefinition c: rel.constraints) {
-          if (c instanceof ForeignKeyConstraint fk) {
-            if (fk.forwardCost() >= 0) {
-              Node targetNode = new Node(node, fk, false);
-              if (!explored.contains(targetNode)
-               && !toBeExplored.containsKey(targetNode)) {
-                toExplore.add(targetNode);
-                toBeExplored.put(targetNode, targetNode.cost);
+          if ( c instanceof ForeignKeyConstraint fk
+           && !fk.targetTable().startsWith("_")
+           && fk.forwardCost() >= 0) {
+            Node targetNode = new Node(node, fk, false);
+            if (!explored.contains(targetNode)
+             && !toBeExplored.containsKey(targetNode)) {
+              toExplore.add(targetNode);
+              toBeExplored.put(targetNode, targetNode.cost);
 
-              } else if (toBeExplored.containsKey(targetNode)
-                      && toBeExplored.get(targetNode) > targetNode.cost) {
-                toExplore.remove(targetNode);
-                toExplore.add(targetNode);
-                toBeExplored.remove(targetNode);
-                toBeExplored.put(targetNode, targetNode.cost);
-              }
+            } else if (toBeExplored.containsKey(targetNode)
+                    && toBeExplored.get(targetNode) > targetNode.cost) {
+              toExplore.remove(targetNode);
+              toExplore.add(targetNode);
+              toBeExplored.remove(targetNode);
+              toBeExplored.put(targetNode, targetNode.cost);
             }
           }
         }
 
         for (ForeignKeyConstraint c: rel.dependentConstraints) {
-          if (c.reverseCost() >= 0) {
+          if (!c.table().startsWith("_")
+            && c.reverseCost() >= 0) {
             Node sourceNode = new Node(node, c, true);
             if (!explored.contains(sourceNode)
              && !toBeExplored.containsKey(sourceNode)) {
@@ -966,115 +961,6 @@ public class BaseRelation extends Struct {
     }
     return null;
   }
-
-//  /**
-//   * Returns the list of foreign-key constraints connecting this relation to the
-//   * target, if such a path exists.
-//   */
-//  public List<Link> path(Relation target, boolean ignoreHiddenFields) {
-//    Set<Node> explored = new HashSet<>();
-//    PriorityQueue<Node> toExplore = new PriorityQueue<>();
-//    Map<Node, Integer> toBeExplored = new HashMap<>();
-//    for (ConstraintDefinition c: constraints) {
-//      if (c instanceof ForeignKeyConstraint fk) {
-//        if (fk.forwardCost() >= 0
-//         && (!ignoreHiddenFields
-//          || (fk.sourceColumns().stream().noneMatch(f -> !f.equals("_id") && f.charAt(0) == '_')
-//           && fk.targetColumns().stream().noneMatch(f -> !f.equals("_id") && f.charAt(0) == '_')))) {
-//          Node node = new Node(null, fk, false);
-//          toExplore.add(node);
-//          toBeExplored.put(node, node.cost);
-//        }
-//      }
-//    }
-//    for (ForeignKeyConstraint c: dependentConstraints) {
-//      if (c.reverseCost() >= 0
-//       && (!ignoreHiddenFields
-//        || (c.sourceColumns().stream().noneMatch(f -> !f.equals("_id") && f.charAt(0) == '_')
-//         && c.targetColumns().stream().noneMatch(f -> !f.equals("_id") && f.charAt(0) == '_')))) {
-//        Node node = new Node(null, c, true);
-//        toExplore.add(node);
-//        toBeExplored.put(node, node.cost);
-//      }
-//    }
-//    while (!toExplore.isEmpty()) {
-//      Node node = toExplore.remove();
-//      toBeExplored.remove(node);
-//      explored.add(node);
-//
-//      if ((!node.reverse && node.constraint.targetTable().equals(target.name()))
-//       || ( node.reverse && node.constraint.table().equals(target.name()))) {
-//        /*
-//         * Reached target table (goal)
-//         */
-//        List<Link> path = new ArrayList<>();
-//        while (node != null) {
-//          path.add(new Link(node.constraint, node.reverse));
-//          node = node.previous;
-//        }
-//        Collections.reverse(path);
-//        return path;
-//
-//      } else {
-//        /*
-//         * Expansion as per uniform cost search (from 'AI: a modern approach'):
-//         *      for each action in problem.ACTIONS(node.STATE) do
-//         *          child <- CHILD-NODE(problem, node, action)
-//         *          if child.STATE is not in explored or frontier then
-//         *              frontier <- INSERT(child, frontier)
-//         *          else if child.STATE is in frontier with higher PATH-COST then
-//         *              replace that frontier node with child
-//         */
-//        BaseRelation rel = node.reverse ? context.structure.relation(node.constraint.table())
-//                                        : context.structure.relation(node.constraint.targetTable());
-//        for (ConstraintDefinition c: rel.constraints) {
-//          if (c instanceof ForeignKeyConstraint fk) {
-//            if (fk.forwardCost() >= 0
-//            && (!ignoreHiddenFields
-//            || (fk.sourceColumns().stream().noneMatch(f -> !f.equals("_id") && f.charAt(0) == '_')
-//            &&  fk.targetColumns().stream().noneMatch(f -> !f.equals("_id") && f.charAt(0) == '_')))) {
-//
-//              Node targetNode = new Node(node, fk, false);
-//              if (!explored.contains(targetNode)
-//               && !toBeExplored.containsKey(targetNode)) {
-//                toExplore.add(targetNode);
-//                toBeExplored.put(targetNode, targetNode.cost);
-//
-//              } else if (toBeExplored.containsKey(targetNode)
-//                      && toBeExplored.get(targetNode) > targetNode.cost) {
-//                toExplore.remove(targetNode);
-//                toExplore.add(targetNode);
-//                toBeExplored.remove(targetNode);
-//                toBeExplored.put(targetNode, targetNode.cost);
-//              }
-//            }
-//          }
-//        }
-//
-//        for (ForeignKeyConstraint c: rel.dependentConstraints) {
-//          if (c.reverseCost() >= 0
-//          && (!ignoreHiddenFields
-//          || (c.sourceColumns().stream().noneMatch(f -> !f.equals("_id") && f.charAt(0) == '_')
-//          &&  c.targetColumns().stream().noneMatch(f -> !f.equals("_id") && f.charAt(0) == '_')))) {
-//            Node sourceNode = new Node(node, c, true);
-//            if (!explored.contains(sourceNode)
-//             && !toBeExplored.containsKey(sourceNode)) {
-//              toExplore.add(sourceNode);
-//              toBeExplored.put(sourceNode, sourceNode.cost);
-//
-//            } else if (toBeExplored.containsKey(sourceNode)
-//                    && toBeExplored.get(sourceNode) > sourceNode.cost) {
-//              toExplore.remove(sourceNode);
-//              toExplore.add(sourceNode);
-//              toBeExplored.remove(sourceNode);
-//              toBeExplored.put(sourceNode, sourceNode.cost);
-//            }
-//          }
-//        }
-//      }
-//    }
-//    return emptyList();
-//  }
 
   public UUID id() {
     return id;

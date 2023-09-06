@@ -94,6 +94,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Template structs: structs that are used to create tables; provides a common
     inheritable structure to a set of related tables (e.g.).
 
+## [1.5.46] - 2023-09-06
+### Added
+- Paths between relations found by `path` method in `BaseRelation` now exclude
+  tables whose names start with '_' as those are usually meant to be hidden system
+  tables which should participate in filtering and row security.
+
 ## [1.5.45] - 2023-08-30
 ### Added
 - New date functions to set the value of a specific part of a date including the
