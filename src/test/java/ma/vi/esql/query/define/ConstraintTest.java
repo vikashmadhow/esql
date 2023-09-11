@@ -23,7 +23,6 @@ import java.util.stream.Stream;
 
 import static java.util.Collections.singletonList;
 import static ma.vi.esql.builder.Attributes.*;
-import static ma.vi.esql.translation.Translatable.Target.ESQL;
 import static ma.vi.esql.translation.Translatable.Target.JAVASCRIPT;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.DynamicTest.dynamicTest;

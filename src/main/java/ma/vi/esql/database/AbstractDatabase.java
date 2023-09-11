@@ -341,64 +341,58 @@ public abstract class AbstractDatabase implements Database {
           List<String> sourceColumns = keyColumns(con.createStatement(), constraintSchema, constraintName).b;
           List<String> targetColumns;
           BaseRelation targetRelation = null;
-          ConstraintDefinition c = null;
-          switch (constraintType) {
-            case "CHECK":
+          ConstraintDefinition c = switch (constraintType) {
+            case "CHECK" -> {
               try (ResultSet r = con.createStatement().executeQuery(
-                "select check_clause " +
-                  "  from INFORMATION_SCHEMA.CHECK_CONSTRAINTS " +
-                  " where constraint_schema='" + constraintSchema + "' " +
-                  "   and constraint_name='" + constraintName + "'")) {
-                r.next();
-                c = new CheckConstraint(
-                  context,
-                  constraintName,
-                  tableName,
-                  dbExpressionToEsql(r.getString("check_clause"), parser));
+                     "select check_clause " +
+                     "  from INFORMATION_SCHEMA.CHECK_CONSTRAINTS " +
+                     " where constraint_schema='" + constraintSchema + "' " +
+                     "   and constraint_name='" + constraintName + "'")) {
+                  r.next();
+                  yield new CheckConstraint(
+                          context,
+                          constraintName,
+                          tableName,
+                          dbExpressionToEsql(r.getString("check_clause"), parser));
               }
-              break;
+            }
+            case "UNIQUE"      -> new UniqueConstraint(context, constraintName, tableName, sourceColumns);
+            case "PRIMARY KEY" -> new PrimaryKeyConstraint(context, constraintName, tableName, sourceColumns);
+            case "FOREIGN KEY" -> {
+                try (ResultSet r = con.createStatement().executeQuery(
+                       "select unique_constraint_schema," +
+                       "       unique_constraint_name," +
+                       "       update_rule, " +
+                       "       delete_rule " +
+                       "  from INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS " +
+                       " where constraint_schema='" + constraintSchema + "' " +
+                       "   and constraint_name='" + constraintName + "'")) {
+                  r.next();
+                  String uniqueConstraintSchema = r.getString("unique_constraint_schema");
+                  String uniqueConstraintName = r.getString("unique_constraint_name");
+                  String updateRule = r.getString("update_rule");
+                  String deleteRule = r.getString("delete_rule");
 
-            case "UNIQUE":
-              c = new UniqueConstraint(context, constraintName, tableName, sourceColumns);
-              break;
+                  T2<String, List<String>> target = keyColumns(con.createStatement(),
+                                                               uniqueConstraintSchema,
+                                                               uniqueConstraintName);
+                  targetRelation = structure.relation(target.a);
+                  targetColumns = target.b;
 
-            case "PRIMARY KEY":
-              c = new PrimaryKeyConstraint(context, constraintName, tableName, sourceColumns);
-              break;
-
-            case "FOREIGN KEY":
-              try (ResultSet r = con.createStatement().executeQuery(
-                "select unique_constraint_schema," +
-                  "       unique_constraint_name," +
-                  "       update_rule, " +
-                  "       delete_rule " +
-                  "  from INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS " +
-                  " where constraint_schema='" + constraintSchema + "' " +
-                  "   and constraint_name='" + constraintName + "'")) {
-                r.next();
-                String uniqueConstraintSchema = r.getString("unique_constraint_schema");
-                String uniqueConstraintName = r.getString("unique_constraint_name");
-                String updateRule = r.getString("update_rule");
-                String deleteRule = r.getString("delete_rule");
-
-                T2<String, List<String>> target = keyColumns(con.createStatement(),
-                                                             uniqueConstraintSchema,
-                                                             uniqueConstraintName);
-                targetRelation = structure.relation(target.a);
-                targetColumns = target.b;
-
-                c = new ForeignKeyConstraint(context,
-                                             constraintName,
-                                             tableName,
-                                             sourceColumns,
-                                             target.a,
-                                             targetColumns,
-                                             0, 0,
-                                             fromInformationSchema(updateRule),
-                                             fromInformationSchema(deleteRule),
-                                             false);
-              }
-          }
+                  yield new ForeignKeyConstraint(context,
+                          constraintName,
+                          tableName,
+                          sourceColumns,
+                          target.a,
+                          targetColumns,
+                          0, 0,
+                          fromInformationSchema(updateRule),
+                          fromInformationSchema(deleteRule),
+                          false);
+                }
+            }
+            default -> throw new IllegalStateException("Unknown constraint type: " + constraintType);
+          };
           relation.constraint(c);
 
           /*
@@ -420,7 +414,6 @@ public abstract class AbstractDatabase implements Database {
    * that no longer exist in the information schema.
    */
   private void updateCoreTables() {
-    Parser p = new Parser(structure);
     try (EsqlConnection econ = esql()) {
       List<BaseRelation> updatedTables = new ArrayList<>();
       for (BaseRelation rel : structure.relations().values()) {
@@ -432,49 +425,69 @@ public abstract class AbstractDatabase implements Database {
           if (tableId == null) {
             addTable(econ, rel);
           } else {
-            econ.exec(p.parse(
-              "update r "
-            + "  from r:_core.relations "
+            econ.exec(
+              "update r"
+            + "  from r:_core.relations"
             + "   set display_name=" + (rel.displayName == null ? "'" + rel.name() + "'" : "'" + escapeSqlString(rel.displayName) + "'") + ", "
-            + "       description=" + (rel.description == null ? "null" : "'" + escapeSqlString(rel.description) + "'")
-            + " where _id='" + tableId + "'"));
+            + "       description="  + (rel.description == null ? "null"                 : "'" + escapeSqlString(rel.description) + "'")
+            + " where _id='" + tableId + "'");
 
             /*
              * Delete non-derived columns which are not in information schema anymore.
              */
             if (rel.columns().isEmpty()) {
-              econ.exec(p.parse("delete c"
-                              + "  from c:_core.columns "
-                              + " where relation_id='" + tableId + "'"
-                              + "   and coalesce(derived_column, false)=false"));
+              econ.exec("delete c"
+                      + "  from c:_core.columns"
+                      + " where relation_id='" + tableId + "'"
+                      + "   and coalesce(derived_column, false)=false");
             } else {
-              econ.exec(p.parse("delete c "
-                              + "  from c:_core.columns "
-                              + " where relation_id='" + tableId + "'"
-                              + "   and coalesce(derived_column, false)=false "
-                              + "   and name not in ("
-                              + rel.columns().stream()
-                                   .map(c -> "'" + c.b.name() + "'")
-                                   .collect(joining(","))
-                              + ")"));
+              econ.exec("delete c"
+                      + "  from c:_core.columns"
+                      + " where relation_id='" + tableId + "'"
+                      + "   and coalesce(derived_column, false)=false"
+                      + "   and name not in ("  + rel.columns().stream()
+                                                     .map    (c -> "'" + c.b.name() + "'")
+                                                     .collect(joining(", ")) + ")");
+
+              for (T2<Relation, Column> col: rel.columns()) {
+                try (Result rs = econ.exec("select c._id"
+                                         + "  from c:_core.columns"
+                                         + " where c.relation_id='" + tableId + "'"
+                                         + "   and c.name='" + col.b.name() + "'")) {
+                  if (!rs.toNext()) {
+                    addColumn(econ, tableId, col.b, -1);
+                  }
+                }
+              }
             }
 
             /*
              * Delete constraints which are not in information schema anymore.
              */
             if (rel.constraints().isEmpty()) {
-              econ.exec(p.parse("delete c"
-                              + "  from c:_core.constraints "
-                              + " where relation_id='" + tableId + "'"));
+              econ.exec("delete c"
+                      + "  from c:_core.constraints"
+                      + " where relation_id='" + tableId + "'");
             } else {
-              econ.exec(p.parse("delete c"
-                              + "  from c:_core.constraints "
-                              + " where relation_id='" + tableId + "'"
-                              + "   and name not in ("
-                              + rel.constraints().stream()
-                                   .map(c -> "'" + c.name() + "'")
-                                   .collect(joining(","))
-                              + ")"));
+              econ.exec("delete c"
+                      + "  from c:_core.constraints"
+                      + " where relation_id='" + tableId + "'"
+                      + "   and name not in ("
+                      + rel.constraints().stream()
+                           .map(c -> "'" + c.name() + "'")
+                           .collect(joining(","))
+                      + ")");
+
+              for (ConstraintDefinition cons: rel.constraints()) {
+                try (Result rs = econ.exec("select c._id"
+                                         + "  from c:_core.constraints"
+                                         + " where c.relation_id='" + tableId + "'"
+                                         + "   and c.name='" + cons.name() + "'")) {
+                  if (!rs.toNext()) {
+                    addConstraint(econ, tableId, cons);
+                  }
+                }
+              }
             }
             if (!tableId.equals(rel.id())) {
               updatedTables.add(rel.id(tableId));
@@ -744,6 +757,7 @@ public abstract class AbstractDatabase implements Database {
                                  Parser    parser,
                                  Result    rs) {
     String name = rs.value("name");
+    // String relation = rs.value("rel_name");
     BaseRelation relation = structure.relation((UUID)rs.value("relation_id"));
     ConstraintDefinition.Type type = fromMarker(((String)rs.value("type")).charAt(0));
 
@@ -816,28 +830,26 @@ public abstract class AbstractDatabase implements Database {
   @Override
   public void addTable(EsqlConnection con, Struct table) {
     createCoreRelations(con);
-    Parser p = new Parser(structure());
-    try (Result rs = con.exec(p.parse("select _id"
-                                    + "  from _core.relations"
-                                    + " where name='" + table.name() + "'"))) {
+    try (Result rs = con.exec("select _id"
+                            + "  from _core.relations"
+                            + " where name='" + table.name() + "'")) {
       if (!rs.toNext()) {
         /*
          * Add table, its columns and constraints
          */
-        con.exec(p.parse(
+        con.exec(
             "insert into _core.relations(_id, name, display_name, description, \"type\") values("
           + "u'" + table.id() + "', "
           + "'" + table.name() + "', "
           + (table.displayName == null ? "'" + table.name() + "'" : "'" + escapeSqlString(table.displayName) + "'") + ", "
           + (table.description == null ? "null" : "'" + escapeSqlString(table.description) + "'") + ", "
-          + "'" + (table instanceof BaseRelation ? TABLE.marker : STRUCT.marker) + "')"));
+          + "'" + (table instanceof BaseRelation ? TABLE.marker : STRUCT.marker) + "')");
 
         if (table.attributes() != null) {
           createCoreRelationAttributes(con);
-          Insert insertRelAttr = p.parse(INSERT_TABLE_ATTRIBUTE, "insert");
           for (Map.Entry<String, Attribute> a: table.attributes().entrySet()) {
-            con.exec(insertRelAttr,
-                      new QueryParams()
+            con.exec(INSERT_TABLE_ATTRIBUTE,
+                     new QueryParams()
                         .add("tableId", table.id())
                         .add("name", a.getKey())
                         .add("value", a.getValue().attributeValue().translate(ESQL)));
@@ -849,10 +861,8 @@ public abstract class AbstractDatabase implements Database {
          */
         createCoreColumns(con);
         createCoreColumnAttributes(con);
-        Insert insertCol = p.parse(INSERT_COLUMN, "insert");
-        Insert insertColAttr = p.parse(INSERT_COLUMN_ATTRIBUTE, "insert");
         for (T2<Relation, Column> column: table.columns()) {
-          addColumn(con, table.id(), column.b, insertCol, insertColAttr, -1);
+          addColumn(con, table.id(), column.b, -1);
         }
 
         if (table instanceof BaseRelation br) {
@@ -860,9 +870,8 @@ public abstract class AbstractDatabase implements Database {
            * Add constraints.
            */
           createCoreConstraints(con);
-          Insert insertConstraint = p.parse(INSERT_CONSTRAINT, "insert");
           for (ConstraintDefinition c: br.constraints()) {
-            addConstraint(con, table.id(), c, insertConstraint);
+            addConstraint(con, table.id(), c);
           }
         }
       }
@@ -875,20 +884,19 @@ public abstract class AbstractDatabase implements Database {
    */
   @Override
   public BaseRelation updateTable(EsqlConnection con, BaseRelation table) {
-    Parser p = new Parser(structure());
-    try (Result rs = con.exec(p.parse("select _id from _core.relations where name='" + table.name() + "'"))) {
+    try (Result rs = con.exec("select _id from _core.relations where name='" + table.name() + "'")) {
       if (rs.toNext()) {
         /*
          * Update table, its columns and constraints
          */
         UUID tableId = rs.value(1);
-        con.exec(p.parse(
+        con.exec(
             "update r"
           + "  from r:_core.relations "
           + "   set display_name=" + (table.displayName == null ? "'" + table.name() + "'" : "'" + escapeSqlString(table.displayName) + "'") + ", "
           + "       description=" +(table.description == null ? "null" : "'" + escapeSqlString(table.description) + "'") + ", "
           + "       \"type\"='" + TABLE.marker + "' "
-          + " where _id='" + tableId + "'"));
+          + " where _id='" + tableId + "'");
 
         clearTableMetadata(con, tableId);
         if (table.attributes() != null) {
@@ -898,20 +906,17 @@ public abstract class AbstractDatabase implements Database {
         /*
          * Clear and re-add columns
          */
-        con.exec(p.parse("delete c from c:_core.columns where relation_id='" + tableId + "'"));
-        Insert insertCol = p.parse(INSERT_COLUMN, "insert");
-        Insert insertColAttr = p.parse(INSERT_COLUMN_ATTRIBUTE, "insert");
+        con.exec("delete c from c:_core.columns where relation_id='" + tableId + "'");
         for (T2<Relation, Column> column: table.columns()) {
-          addColumn(con, tableId, column.b, insertCol, insertColAttr, -1);
+          addColumn(con, tableId, column.b, -1);
         }
 
         /*
          * Clear and re-add constraints
          */
-        con.exec(p.parse("delete c from c:_core.constraints where relation_id='" + tableId + "'"));
-        Insert insertConstraint = p.parse(INSERT_CONSTRAINT, "insert");
+        con.exec("delete c from c:_core.constraints where relation_id='" + tableId + "'");
         for (ConstraintDefinition c: table.constraints()) {
-          addConstraint(con, tableId, c, insertConstraint);
+          addConstraint(con, tableId, c);
         }
 
         return tableId.equals(table.id()) ? table : table.id(tableId);
@@ -940,17 +945,12 @@ public abstract class AbstractDatabase implements Database {
   @Override
   public void column(EsqlConnection con, UUID tableId, Column column, int seq) {
     createCoreColumns(con);
-    Parser p = new Parser(structure());
-    Insert insertCol = p.parse(INSERT_COLUMN, "insert");
-    Insert insertColAttr = p.parse(INSERT_COLUMN_ATTRIBUTE, "insert");
-    addColumn(con, tableId, column, insertCol, insertColAttr, seq);
+    addColumn(con, tableId, column, seq);
   }
 
   private void addColumn(EsqlConnection econ,
                          UUID           tableId,
                          Column         column,
-                         Insert         insertCol,
-                         Insert         insertColAttr,
                          int            seq) {
     String columnName = column.name();
     if (columnName.indexOf('/') == -1) {
@@ -958,7 +958,7 @@ public abstract class AbstractDatabase implements Database {
        * Check if the CAN_DELETE attribute is set on this field and save its
        * value, which controls whether this field can later be dropped.
        */
-      Boolean noDelete = column.metadata() == null
+      Boolean noDelete = column.metadata() != null
                        ? false
                        : column.metadata().evaluateAttribute(NO_DELETE,
                                                              econ,
@@ -982,7 +982,7 @@ public abstract class AbstractDatabase implements Database {
                             new Metadata(column.context, new ArrayList<>(attributes.values())));
       }
       if (seq == -1) {
-        econ.exec(insertCol,
+        econ.exec(INSERT_COLUMN,
                   new QueryParams()
                     .add("id",            columnId)
                     .add("noDelete",      noDelete)
@@ -1185,17 +1185,14 @@ public abstract class AbstractDatabase implements Database {
                          UUID tableId,
                          ConstraintDefinition constraint) {
     createCoreConstraints(con);
-    Parser p = new Parser(structure());
-    Insert insertConstraint = p.parse(INSERT_CONSTRAINT, "insert");
-    addConstraint(con, tableId, constraint, insertConstraint);
+    addConstraint(con, tableId, constraint);
   }
 
   private void addConstraint(EsqlConnection econ,
                              UUID tableId,
-                             ConstraintDefinition constraint,
-                             Insert insertConstraint) {
+                             ConstraintDefinition constraint) {
     if (constraint instanceof UniqueConstraint unique) {
-      econ.exec(insertConstraint,
+      econ.exec(INSERT_CONSTRAINT,
                 new QueryParams()
                   .add("name",           constraint.name())
                   .add("relation",       tableId)
@@ -1210,7 +1207,7 @@ public abstract class AbstractDatabase implements Database {
                   .add("onDelete",       null));
 
     } else if (constraint instanceof PrimaryKeyConstraint primary) {
-      econ.exec(insertConstraint,
+      econ.exec(INSERT_CONSTRAINT,
                 new QueryParams()
                   .add("name",            constraint.name())
                   .add("relation",        tableId)
@@ -1227,7 +1224,7 @@ public abstract class AbstractDatabase implements Database {
     } else if (constraint instanceof ForeignKeyConstraint foreign) {
       Structure s = constraint.context.structure;
       BaseRelation target = s.relation(foreign.targetTable());
-      econ.exec(insertConstraint,
+      econ.exec(INSERT_CONSTRAINT,
                 new QueryParams()
                   .add("name",            constraint.name())
                   .add("relation",        tableId)
@@ -1243,7 +1240,7 @@ public abstract class AbstractDatabase implements Database {
 
     } else if (constraint instanceof CheckConstraint check) {
       String checkExpression = check.expr().translate(ESQL);
-      econ.exec(insertConstraint,
+      econ.exec(INSERT_CONSTRAINT,
                 new QueryParams()
                   .add("name",            constraint.name())
                   .add("relation",        tableId)

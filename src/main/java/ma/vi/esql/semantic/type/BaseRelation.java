@@ -340,6 +340,7 @@ public class BaseRelation extends Struct {
     Context context = !attributes .isEmpty() ? attributes .get(0).context
                     : !columns    .isEmpty() ? columns    .get(0).context
                     : !constraints.isEmpty() ? constraints.get(0).context
+//                    :  new Context(null);
                     :  null;
     if (context == null) {
       throw new NotFoundException("Could not get a valid context");
@@ -355,7 +356,7 @@ public class BaseRelation extends Struct {
      */
     List<UniqueConstraint> uniqueCons = constraints.stream()
                                                    .filter(c -> c instanceof UniqueConstraint)
-                                                   .map(c -> (UniqueConstraint)c)
+                                                   .map   (c -> (UniqueConstraint)c)
                                                    .toList();
     List<List<String>> multiUnique = new ArrayList<>();
     for (UniqueConstraint cons: uniqueCons) {

@@ -81,7 +81,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (currently, the overridden metadata are not being considered). (create tests 
   for metadata overriding)
 
-## [1.8.0] (Planned)
+## [2.0.0] (Planned)
 ### Database stored functions and triggers in ESQL
 
 ## [1.7.0] (Planned)
@@ -93,6 +93,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     overriding certain parts, removing other parts and adding new parts.
 ### Template structs: structs that are used to create tables; provides a common
     inheritable structure to a set of related tables (e.g.).
+
+## [1.5.47] - 2023-09-11
+### Added
+- Add missing columns and constraints in `_core.columns` and `_core.constraints`
+  from information in `information_schemas`. This allows a degree of self-repair
+  when the _core tables are misaligned with the actual objects in the database.
+
+### Fixed
+- Correct transformation of empty `JSONArrayLiteral` when `items()` of `JSONArray` 
+  returns null.
 
 ## [1.5.46] - 2023-09-06
 ### Added
