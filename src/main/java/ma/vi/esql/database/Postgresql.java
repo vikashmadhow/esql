@@ -143,18 +143,32 @@ public class Postgresql extends AbstractDatabase {
           """
           create or replace function _core.unobfuscate(obfuscated text) returns text as $$
           declare
-             unobfuscated   text := '';
-             i              int  := 2;
-             pos            int;
-             c              char;
-             password_chars text := 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-             chars_len      int  := length(password_chars);
+             unobfuscated    text := '';
+             i               int  := 2;
+             pos             int;
+             ch              char;
+             password_chars  text := 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+             password_chars2 text := '~`!@#$%^&*()_-=+[]{}|?<>.,:;\\/';
+             chars_len       int  := length(password_chars);
+             chars2_len      int  := length(password_chars2);
           begin
             while i <= length(obfuscated) loop
-              c            := substr(obfuscated, i, 1);
-              pos          := strpos(password_chars, c) - _core.obfuscate_shift(cast((i - 1) / 2 as int)) - 1;
-              unobfuscated := unobfuscated || substr(password_chars, _core.floormod(pos, chars_len)::int + 1, 1);
-              i            := i + 2;
+              ch  := substr(obfuscated, i, 1);
+              pos := strpos(password_chars, ch);
+              if pos > 0 then
+                pos := pos - _core.obfuscate_shift(cast((i - 1) / 2 as int)) - 1;
+                unobfuscated := unobfuscated || substr(password_chars, _core.floormod(pos, chars_len)::int + 1, 1);
+              else
+                pos := strpos(password_chars2, ch);
+                if pos > 0 then
+                  pos := strpos(password_chars2, ch) - _core.obfuscate_shift(cast((i - 1) / 2 as int)) - 1;
+                  unobfuscated := unobfuscated || substr(password_chars2, _core.floormod(pos, chars2_len)::int + 1, 1);
+                else
+                  unobfuscated := unobfuscated || ch;
+                end if;
+              end if;
+              
+              i := i + 2;
             end loop;
             return unobfuscated;
           end;
@@ -186,24 +200,40 @@ public class Postgresql extends AbstractDatabase {
           """
           create or replace function _core.obfuscate(unobfuscated text) returns text as $$
           declare
-            obfuscated     text := '';
-            i              int  := 1;
-            pos            int;
-            ch             char;
-            password_chars text   := 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-            chars_len      int    := length(password_chars);
-            random         bigint := date_part('milliseconds', now());
-            a              bigint := 1664525;
-            c              bigint := 1013904223;
-            m              bigint := power(cast(2 as bigint), 32);
+            obfuscated      text := '';
+            i               int  := 1;
+            pos             int;
+            ch              char;
+            password_chars  text   := 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+            password_chars2 text   := '~`!@#$%^&*()_-=+[]{}|?<>.,:;\\/';
+            chars_len       int    := length(password_chars);
+            chars2_len      int    := length(password_chars2);
+            random          bigint := date_part('milliseconds', now());
+            a               bigint := 1664525;
+            c               bigint := 1013904223;
+            m               bigint := power(cast(2 as bigint), 32);
           begin
             while i <= length(unobfuscated) loop
-                ch         := substr(unobfuscated, i, 1);
-                pos        := strpos(password_chars, ch) + _core.obfuscate_shift(i - 1) - 1;
+              ch  := substr(unobfuscated, i, 1);
+              pos := strpos(password_chars, ch);
+              if pos > 0 then
+                pos        := pos + _core.obfuscate_shift(i - 1) - 1;
                 random     := (a * random + c) % m;
                 obfuscated := obfuscated || substr(password_chars, (random % chars_len + 1)::int, 1);
                 obfuscated := obfuscated || substr(password_chars, _core.floormod(pos, chars_len) + 1, 1);
-                i          := i + 1;
+              else
+                pos := strpos(password_chars2, ch);
+                if pos > 0 then
+                  pos        := pos + _core.obfuscate_shift(i - 1) - 1;
+                  random     := (a * random + c) % m;
+                  obfuscated := obfuscated || substr(password_chars,  (random % chars_len + 1)::int, 1);
+                  obfuscated := obfuscated || substr(password_chars2, _core.floormod(pos, chars2_len) + 1, 1);
+                else
+                  obfuscated := obfuscated || ch;
+                end if;
+              end if;
+
+              i := i + 1;
             end loop;
             return obfuscated;
           end;

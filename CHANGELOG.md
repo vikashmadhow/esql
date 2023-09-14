@@ -94,6 +94,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Template structs: structs that are used to create tables; provides a common
     inheritable structure to a set of related tables (e.g.).
 
+## [1.5.48] - 2023-09-14
+### Added
+- `obfuscate` and `unobfuscate` functions now support an extended set of characters
+  in a (mostly) backwards compatible manner.
+
 ## [1.5.47] - 2023-09-11
 ### Added
 - Add missing columns and constraints in `_core.columns` and `_core.constraints`

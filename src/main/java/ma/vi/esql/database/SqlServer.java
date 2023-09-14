@@ -287,18 +287,36 @@ public class SqlServer extends AbstractDatabase {
           """
           create or alter function _core.unobfuscate(@obfuscated nvarchar(1000)) returns nvarchar(1000) as
           begin
-            declare @unobfuscated   nvarchar(1000) = '';
-            declare @i              Int = 2;
-            declare @pos            Int;
-            declare @c              Char;
-            declare @password_chars nvarchar(100) = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-            declare @chars_len      Int = len(@password_chars);
+            declare @unobfuscated    nvarchar(1000) = '';
+            declare @i               Int = 2;
+            declare @pos             Int;
+            declare @c               Char;
+            declare @password_chars  nvarchar(100) = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+            declare @password_chars2 nvarchar(100) = '~`!@#$%^&*()_-=+[]{}|?<>.,:;\\/';
+            declare @chars_len       Int = len(@password_chars);
+            declare @chars2_len      Int = len(@password_chars2);
 
             while @i <= len(@obfuscated)
             begin
                 set @c = substring(@obfuscated, @i, 1);
-                set @pos = charindex(@c, @password_chars collate Latin1_General_CS_AS) - _core.obfuscate_shift(cast((@i - 1) / 2 as Int)) - 1;
-                set @unobfuscated = @unobfuscated + substring(@password_chars, _core.floormod(@pos, @chars_len) + 1, 1);
+                set @pos = charindex(@c, @password_chars collate Latin1_General_CS_AS);
+                
+                if @pos > 0
+                begin
+                  set @pos = @pos - _core.obfuscate_shift(cast((@i - 1) / 2 as Int)) - 1;
+                  set @unobfuscated = @unobfuscated + substring(@password_chars, _core.floormod(@pos, @chars_len) + 1, 1);
+                end;
+                else
+                begin
+                  set @pos = charindex(@c, @password_chars2 collate Latin1_General_CS_AS);
+                  if @pos > 0
+                  begin
+                    set @pos = @pos - _core.obfuscate_shift(cast((@i - 1) / 2 as Int)) - 1;
+                    set @unobfuscated = @unobfuscated + substring(@password_chars2, _core.floormod(@pos, @chars2_len) + 1, 1);
+                  end;
+                  else
+                    set @unobfuscated = @unobfuscated + @c;
+                end;
                 set @i = @i + 2;
             end
             return @unobfuscated;
@@ -330,25 +348,45 @@ public class SqlServer extends AbstractDatabase {
           """
           create or alter function _core.obfuscate(@unobfuscated nvarchar(1000)) returns nvarchar(1000) as
           begin
-            declare @obfuscated     nvarchar(1000) = '';
-            declare @i              Int = 1;
-            declare @pos            Int;
+            declare @obfuscated      nvarchar(1000) = '';
+            declare @i               Int = 1;
+            declare @pos             Int;
             declare @ch              Char;
-            declare @password_chars nvarchar(100) = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-            declare @chars_len      Int = len(@password_chars);
-            declare @random         BigInt = datepart(millisecond, getutcdate());
-            declare @a              BigInt = 1664525;
-            declare @c              BigInt = 1013904223;
-            declare @m              BigInt = power(cast(2 as bigint), 32);
+            declare @password_chars  nvarchar(100) = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+            declare @password_chars2 nvarchar(100) = '~`!@#$%^&*()_-=+[]{}|?<>.,:;\\/';
+            declare @chars_len       Int = len(@password_chars);
+            declare @chars2_len      Int = len(@password_chars2);
+            declare @random          BigInt = datepart(millisecond, getutcdate());
+            declare @a               BigInt = 1664525;
+            declare @c               BigInt = 1013904223;
+            declare @m               BigInt = power(cast(2 as bigint), 32);
 
             while @i <= len(@unobfuscated)
             begin
-                set @ch = substring(@unobfuscated, @i, 1);
-                set @pos = charindex(@ch, @password_chars collate Latin1_General_CS_AS) + _core.obfuscate_shift(@i - 1) - 1;
+              set @ch = substring(@unobfuscated, @i, 1);
+              set @pos = charindex(@ch, @password_chars collate Latin1_General_CS_AS);
+              if @pos > 0
+              begin
+                set @pos = @pos + _core.obfuscate_shift(@i - 1) - 1;
                 set @random = (@a * @random + @c) % @m;
                 set @obfuscated = @obfuscated + substring(@password_chars, @random % @chars_len + 1, 1);
                 set @obfuscated = @obfuscated + substring(@password_chars, _core.floormod(@pos, @chars_len) + 1, 1);
-                set @i = @i + 1;
+              end;
+              else
+              begin
+                set @pos = charindex(@ch, @password_chars2 collate Latin1_General_CS_AS);
+                if @pos > 0
+                begin
+                  set @pos = @pos + _core.obfuscate_shift(@i - 1) - 1;
+                  set @random = (@a * @random + @c) % @m;
+                  set @obfuscated = @obfuscated + substring(@password_chars, @random % @chars_len + 1, 1);
+                  set @obfuscated = @obfuscated + substring(@password_chars2, _core.floormod(@pos, @chars2_len) + 1, 1);
+                end;
+                else
+                  set @obfuscated = @obfuscated + @ch;
+              end;
+              
+              set @i = @i + 1;
             end
             return @obfuscated;
           end;""");

@@ -103,7 +103,7 @@ public class StringFunctionsTest extends DataTest {
                  .map(db -> dynamicTest(db.target().toString(), () -> {
                    System.out.println(db.target());
                    try (EsqlConnection con = db.esql(db.pooledConnection())) {
-                     String o = "abcdefg1234";
+                     String o = "abcdefg1234@!$%12";
                      Result rs = con.exec("select obfuscate('" + o + "')");
                      rs.toNext();
                      String v = rs.value(1);
