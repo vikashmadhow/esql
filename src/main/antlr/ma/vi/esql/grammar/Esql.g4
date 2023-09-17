@@ -368,11 +368,11 @@ setName
  * composition.
  */
 tableExpr
-    : (alias ':')? qualifiedName                              #SingleTableExpr
-    | alias ':'    qualifiedName '(' distinct? arguments? ')' #FunctionTableExpr
-    | alias ':' '(' select ')'                                #SelectTableExpr
-    | alias  dynamicColumns ':' '(' rows ')'                  #DynamicTableExpr
-    | left=tableExpr 'times' right=tableExpr                  #CrossProductTableExpr
+    : (alias ':')? qualifiedName               #SingleTableExpr
+    | alias ':'    functionCall                #FunctionTableExpr
+    | alias ':' '(' select ')'                 #SelectTableExpr
+    | alias  dynamicColumns ':' '(' rows ')'   #DynamicTableExpr
+    | left=tableExpr 'times' right=tableExpr   #CrossProductTableExpr
 
       /**
        * 4 join types are available in ESQL: `left`, `right` and `full` joins are
@@ -719,9 +719,7 @@ expr
        * the argument list may contain a `distinct` definition which is
        * applicable to certain aggregate functions (such as `count`).
        */
-    | qualifiedName
-      '(' distinct? (arguments | star='*')? ')'
-      window?                                                   #FunctionInvocation
+    | functionCall                                              #FunctionInvocation
 
     | on=expr '[' expressionList ']'                            #Selector
 
@@ -937,11 +935,15 @@ simpleExpr
     | left=simpleExpr op=('*' | '/' | '%') right=simpleExpr             #SimpleMultiplicationExpr
     | left=simpleExpr op=('+' | '-') right=simpleExpr                   #SimpleAdditionExpr
     | selectExpression                                                  #SimpleSelectExpr
-    | qualifiedName '(' distinct? (arguments | star='*')? ')' window?   #SimpleFunctionInvocation
+    | functionCall                                                      #SimpleFunctionInvocation
     | columnReference                                                   #SimpleColumnExpr
     | <assoc=right> simpleExpr ('if' simpleExpr 'else' simpleExpr)+     #SimpleCaseExpr
     | <assoc=right> simpleExpr ('->' simpleExpr ':' simpleExpr)+        #CompatibleSimpleCaseExpr
     ;
+
+functionCall
+  : qualifiedName '(' distinct? (arguments | star='*')? ')' window?
+  ;
 
 /**
  * A function parameter is a name followed by colon (:) and its type, with an

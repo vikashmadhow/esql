@@ -1,255 +1,511 @@
-select "x"."_id"              "_id",
-       "x"."a"                "a",
-       "x"."b"                "b",
-       "x"."c"                "c",
-       "x"."d"                "d",
-       "x"."e"                "e",
-       "x"."f"                "f",
-       "x"."g"                "g",
-       "x"."h"                "h",
-       "x"."i"                "i",
-       "x"."j"                "j",
-       "x"."k"                "k",
-       "x"."l"                "l",
-       "x"."/name"            "/name",
-       "x"."/description"     "/description",
-       "x"."/tm1"             "/tm1",
-       "x"."/tm1/e"           "/tm1/e",
-       "x"."/tm2"             "/tm2",
-       "x"."/tm2/e"           "/tm2/e",
-       "x"."/validate_unique" "/validate_unique",
-       "x"."/dependents"      "/dependents",
-       "x"."_id/type"         "_id/type",
-       "x"."_id/required"     "_id/required",
-       "x"."a/m1"             "a/m1",
-       "x"."a/m1/e"           "a/m1/e",
-       "x"."a/type"           "a/type",
-       "x"."a/m2"             "a/m2",
-       "x"."a/m3"             "a/m3",
-       "x"."a/m3/e"           "a/m3/e",
-       "x"."b/m1"             "b/m1",
-       "x"."b/m1/e"           "b/m1/e",
-       "x"."b/type"           "b/type",
-       "x"."c/e"              "c/e",
-       "x"."c/m1"             "c/m1",
-       "x"."c/m1/e"           "c/m1/e",
-       "x"."c/type"           "c/type",
-       "x"."c/m2"             "c/m2",
-       "x"."c/m2/e"           "c/m2/e",
-       "x"."c/derived"        "c/derived",
-       "x"."c/m3"             "c/m3",
-       "x"."c/m3/e"           "c/m3/e",
-       "x"."d/e"              "d/e",
-       "x"."d/m1"             "d/m1",
-       "x"."d/type"           "d/type",
-       "x"."d/derived"        "d/derived",
-       "x"."e/m1"             "e/m1",
-       "x"."e/m1/e"           "e/m1/e",
-       "x"."e/type"           "e/type",
-       "x"."f/e"              "f/e",
-       "x"."f/m1"             "f/m1",
-       "x"."f/m1/e"           "f/m1/e",
-       "x"."f/derived"        "f/derived",
-       "x"."g/e"              "g/e",
-       "x"."g/m1"             "g/m1",
-       "x"."g/m1/e"           "g/m1/e",
-       "x"."g/derived"        "g/derived",
-       "x"."h/m1"             "h/m1",
-       "x"."h/type"           "h/type",
-       "x"."i/type"           "i/type",
-       "x"."i/expression"     "i/expression",
-       "x"."j/type"           "j/type",
-       "x"."k/type"           "k/type",
-       "x"."l/type"           "l/type"
-from (select "S"."_id"                                                                                     "_id",
-             "S"."a"                                                                                       "a",
-             "S"."b"                                                                                       "b",
-             "S"."a" + "S"."b"                                                                             "c",
-             "S"."b" + ("S"."a" + "S"."b")                                                                 "d",
-             "S"."e"                                                                                       "e",
-             (select max("a") "col" from "public"."S" "S")                                                 "f",
-             (select distinct "c" "col" from "public"."S" "S" where (("S"."b" + ("S"."a" + "S"."b")) > 5)) "g",
-             "S"."h"                                                                                       "h",
-             "S"."i"                                                                                       "i",
-             "S"."j"                                                                                       "j",
-             "S"."k"                                                                                       "k",
-             "S"."l"                                                                                       "l",
-             'S'                                                                                           "/name",
-             'S test table'                                                                                "/description",
-             (select max("S"."b") "col" from "public"."S" "S")                                             "/tm1",
-             '(from S:S select col:max(S.b))'                                                              "/tm1/e",
-             ("S"."a" > "S"."b")                                                                           "/tm2",
-             '(S.a > S.b)'                                                                                 "/tm2/e",
-             '[array[''a'',''b'',''e'']::text[]]'                                                          "/validate_unique",
-             '{links: {type: ''a.b.T'',_referred_by: ''s_id'',label: ''S Links''}}'                         "/dependents",
-             'uuid'                                                                                        "_id/type",
-             true                                                                                          "_id/required",
-             ("S"."b" > 5)                                                                                 "a/m1",
-             '(S.b > 5)'                                                                                   "a/m1/e",
-             'int'                                                                                         "a/type",
-             10                                                                                            "a/m2",
-             ("S"."a" != 0)                                                                                "a/m3",
-             '(S.a != 0)'                                                                                  "a/m3/e",
-             ("S"."b" < 0)                                                                                 "b/m1",
-             '(S.b < 0)'                                                                                   "b/m1/e",
-             'int'                                                                                         "b/type",
-             'S.a + S.b'                                                                                   "c/e",
-             ("S"."a" > 5)                                                                                 "c/m1",
-             '(S.a > 5)'                                                                                   "c/m1/e",
-             'int'                                                                                         "c/type",
-             "S"."a" + "S"."b"                                                                             "c/m2",
-             'S.a + S.b'                                                                                   "c/m2/e",
-             true                                                                                          "c/derived",
-             ("S"."b" > 5)                                                                                 "c/m3",
-             '(S.b > 5)'                                                                                   "c/m3/e",
-             'S.b + (S.a + S.b)'                                                                           "d/e",
-             10                                                                                            "d/m1",
-             'int'                                                                                         "d/type",
-             true                                                                                          "d/derived",
-             ("S"."a" + "S"."b")                                                                           "e/m1",
-             '(S.a + S.b)'                                                                                 "e/m1/e",
-             'bool'                                                                                        "e/type",
-             '(from S:S select col:max(S.a))'                                                              "f/e",
-             (select min("S"."a") "col" from "public"."S" "S")                                             "f/m1",
-             '(from S:S select col:min(S.a))'                                                              "f/m1/e",
-             true                                                                                          "f/derived",
-             '(from S:S select distinct col:(S.a + S.b) where ((S.b + (S.a + S.b)) > 5))'                  "g/e",
-             (select min("T"."a") "col" from "a.b"."T" "T")                                                "g/m1",
-             '(from T:a.b.T select col:min(T.a))'                                                          "g/m1/e",
-             true                                                                                          "g/derived",
-             5                                                                                             "h/m1",
-             '[]text'                                                                                      "h/type",
-             'string'                                                                                      "i/type",
-             'Aie'                                                                                         "i/expression",
-             '[]int'                                                                                       "j/type",
-             'interval'                                                                                    "k/type",
-             'int'                                                                                         "l/type"
-      from "public"."S" "S") "x"
-where ("x"."a" >= 3)
-order by "x"."a";
-
-
-
-select "S"."_id"                                           "_id",
-       "S"."a"                                             "a",
-       "S"."b"                                             "b",
-       "S"."a" + "S"."b"                                   "c",
-       "S"."b" + ("S"."a" + "S"."b")                       "d",
-       "S"."e"                                             "e",
-       ((select max("S"."a") "col" from "public"."S" "S")) "f",
-       ((select distinct ("S"."a" + "S"."b") "col"
-         from "public"."S" "S"
-         where ((("S"."b" + ("S"."a" + "S"."b")) > 5))))   "g",
-       "S"."h"                                             "h",
-       "S"."i"                                             "i",
-       "S"."j"                                             "j",
-       "S"."k"                                             "k",
-       "S"."l"                                             "l",
-       (select max("S"."b") "col" from "public"."S" "S")   "/tm1",
-       ("S"."a" > "S"."b")                                 "/tm2",
-       ("S"."b" > 5)                                       "a/m1",
-       ("S"."a" != 0)                                      "a/m3",
-       ("S"."b" < 0)                                       "b/m1",
-       ("S"."a" > 5)                                       "c/m1",
-       "S"."a" + "S"."b"                                   "c/m2",
-       ("S"."b" > 5)                                       "c/m3",
-       ("S"."a" + "S"."b")                                 "e/m1",
-       (select min("S"."a") "col" from "public"."S" "S")   "f/m1",
-       (select min("T"."a") "col" from "a.b"."T" "T")      "g/m1"
-from "public"."S" "S";
-
-
-
-select "z"."_id"           "_id",
-       "z"."a"             "a",
-       "z"."y_id"          "y_id",
-       (select distinct min("pA"."a") "column1"
-        from "test"."pA" "pA"
-               join "test"."pY" "pY" on "pA"."_id" = "pY"."a_id"
-               join "test"."pB" "pB" on "pY"."b_id" = "pB"."_id"
-               join "test"."pX" "x" on "pB"."x_id" = "x"."_id"
-        where "x"."a" = 3) "column1"
-from "test"."pZ" "z"
-       cross join (values (1, 2), (3, 4), (4, 5)) as "t1"("a", "b")
-       join (select "z1"."a" "a", 'int' "a/type"
-             from "test"."pZ" "z1"
-                    join "test"."pY" "pY" on "z1"."y_id" = "pY"."_id"
-                    join "test"."pB" "pB" on "pY"."b_id" = "pB"."_id"
-                    join "test"."pX" "x" on "pB"."x_id" = "x"."_id"
-             where "x"."a" = 3) "s1" on "s1"."a" = "z"."a"
-       join "test"."pY" "y" on "z"."y_id" = "y"."_id"
-       full join "test"."pC" "c" on "z"."a" = "c"."a"
-       join "test"."pX" "x" on "c"."x_id" = "x"."_id"
-where "z"."a" < 2
-  and exists(select "pC"."_id" "_id", 'uuid' "_id/type", true "_id/required", true "_id/_primary_key"
-             from "test"."pC" "pC"
-                    join "test"."pX" "x" on "pC"."x_id" = "x"."_id"
-                    join "test"."pY" "pY" on "pC"."a" = "pY"."a"
-             where "x"."a" = 3)
-  and "x"."a" = 3
-
-
-
-with "!!"(id, v1, v2) as (select "z".ctid, "c"."a", "y"."_id"
-                          from "test"."pZ" "z"
-                                 join "test"."pY" "y" on "z"."y_id" = "y"."_id"
-                                 join "test"."pC" "c" on "z"."a" = "c"."a"
-                                 join "test"."pX" "x" on "c"."x_id" = "x"."_id"
-                          where "z"."a" < 2
-                            and "x"."a" = 3)
-update "test"."pZ" "z"
-set a="!!".v1,
-    _id="!!".v2
-from "!!"
-where "z".ctid = "!!".id
-
-with "!!"(id, v1, v2) as (select "z".ctid, "c"."a", "y"."_id"
-                          from "test"."pZ" "z"
-                                 join "test"."pY" "y" on "z"."y_id" = "y"."_id"
-                                 join "test"."pB" "pB" on "y"."b_id" = "pB"."_id"
-                                 join "test"."pX" "x" on "pB"."x_id" = "x"."_id"
-                                 left join "test"."pC" "c" on "z"."a" = "c"."a"
-                          where "z"."a" < 2
-                            and "x"."a" = 3)
-update "test"."pZ" "z"
-set a="!!".v1,
-    _id="!!".v2
-from "!!"
-where "z".ctid = "!!".id;
-
-
-
-delete
-  from "test"."pZ" "z"
- using "test"."pY" "y",
-       "test"."pC" "c",
-       "test"."pX" "x"
- where ("z"."a" < 2 and "x"."a" = 3)
-   and ("z"."y_id" = "y"."_id")
-   and "z"."a" = "c"."a"
-   and "c"."x_id" = "x"."_id";
-
-
-with "!!"(id) as (select "z".ctid
-                  from "test"."pZ" "z"
-                         join "test"."pY" "y" on "z"."y_id" = "y"."_id"
-                         join "test"."pC" "c" on "z"."a" = "c"."a"
-                         join "test"."pX" "x" on "c"."x_id" = "x"."_id"
-                  where "z"."a" < 2
-                    and "x"."a" = 3)
-delete
-from "test"."pZ" "z" using "!!"
-where "z".ctid = "!!".id;
-
-
-with "!!"(id) as (select "z".ctid
-                  from "test"."pZ" "z"
-                         join "test"."pY" "y" on "z"."y_id" = "y"."_id"
-                         join "test"."pB" "pB" on "y"."b_id" = "pB"."_id"
-                         join "test"."pX" "x" on "pB"."x_id" = "x"."_id"
-                         left join "test"."pC" "c" on "z"."a" = "c"."a"
-                  where "z"."a" < 2
-                    and "x"."a" = 3)
-delete
-from "test"."pZ" "z" using "!!"
-where "z".ctid = "!!".id;
+select "his"."change_at"  "change_at",
+       "his"."change"     "change",
+       "his"."change_by"  "change_by",
+       "his"."_id"        "_id",
+       "his"."identifier" "identifier",
+       "his"."column"     "column",
+       "his"."from_value" "from_value",
+       "his"."to_value"   "to_value"
+from (select "cf"."history_change_time"  "change_at",
+             "cf"."history_change_event" "change",
+             "cf"."history_change_user"  "change_by",
+             "cf"."_id"                  "_id",
+             "cf"."_id"                  "identifier",
+             '000. A'                    "column",
+             null                        "from_value",
+             "cf"."a"                    "to_value"
+      from "public"."S$history" "cf"
+      where ('2023-01-01' <= "cf"."history_change_time" and "cf"."history_change_time" <= '2030-01-01')
+        and "cf"."history_change_event" = 'I'
+        and "cf"."a" is not null
+      union all
+      select "cf"."history_change_time"  "change_at",
+             "cf"."history_change_event" "change",
+             "cf"."history_change_user"  "change_by",
+             "cf"."_id"                  "_id",
+             "cf"."_id"                  "identifier",
+             '000. A'                    "column",
+             "cf"."a"                    "from_value",
+             null                        "to_value"
+      from "public"."S$history" "cf"
+      where ('2023-01-01' <= "cf"."history_change_time" and "cf"."history_change_time" <= '2030-01-01')
+        and "cf"."history_change_event" = 'D'
+        and "cf"."a" is not null
+      union all
+      select "cf"."history_change_time"  "change_at",
+             "cf"."history_change_event" "change",
+             "cf"."history_change_user"  "change_by",
+             "cf"."_id"                  "_id",
+             "cf"."_id"                  "identifier",
+             '000. A'                    "column",
+             "cf"."a"                    "from_value",
+             "ct"."a"                    "to_value"
+      from "public"."S$history" "cf"
+             join "public"."S$history" "ct"
+                  on "cf"."_id" = "ct"."_id" and "cf"."history_change_trans_id" = "ct"."history_change_trans_id"
+      where ('2023-01-01' <= "cf"."history_change_time" and "cf"."history_change_time" <= '2030-01-01')
+        and "cf"."history_change_event" = 'F'
+        and "ct"."history_change_event" = 'T'
+        and "cf"."a" != "ct"."a"
+      union all
+      select "cf"."history_change_time"  "change_at",
+             "cf"."history_change_event" "change",
+             "cf"."history_change_user"  "change_by",
+             "cf"."_id"                  "_id",
+             "cf"."_id"                  "identifier",
+             '001. B'                    "column",
+             null                        "from_value",
+             "cf"."b"                    "to_value"
+      from "public"."S$history" "cf"
+      where ('2023-01-01' <= "cf"."history_change_time" and "cf"."history_change_time" <= '2030-01-01')
+        and "cf"."history_change_event" = 'I'
+        and "cf"."b" is not null
+      union all
+      select "cf"."history_change_time"  "change_at",
+             "cf"."history_change_event" "change",
+             "cf"."history_change_user"  "change_by",
+             "cf"."_id"                  "_id",
+             "cf"."_id"                  "identifier",
+             '001. B'                    "column",
+             "cf"."b"                    "from_value",
+             null                        "to_value"
+      from "public"."S$history" "cf"
+      where ('2023-01-01' <= "cf"."history_change_time" and "cf"."history_change_time" <= '2030-01-01')
+        and "cf"."history_change_event" = 'D'
+        and "cf"."b" is not null
+      union all
+      select "cf"."history_change_time"  "change_at",
+             "cf"."history_change_event" "change",
+             "cf"."history_change_user"  "change_by",
+             "cf"."_id"                  "_id",
+             "cf"."_id"                  "identifier",
+             '001. B'                    "column",
+             "cf"."b"                    "from_value",
+             "ct"."b"                    "to_value"
+      from "public"."S$history" "cf"
+             join "public"."S$history" "ct"
+                  on "cf"."_id" = "ct"."_id" and "cf"."history_change_trans_id" = "ct"."history_change_trans_id"
+      where ('2023-01-01' <= "cf"."history_change_time" and "cf"."history_change_time" <= '2030-01-01')
+        and "cf"."history_change_event" = 'F'
+        and "ct"."history_change_event" = 'T'
+        and "cf"."b" != "ct"."b"
+      union all
+      select "cf"."history_change_time"  "change_at",
+             "cf"."history_change_event" "change",
+             "cf"."history_change_user"  "change_by",
+             "cf"."_id"                  "_id",
+             "cf"."_id"                  "identifier",
+             '002. E'                    "column",
+             null                        "from_value",
+             "cf"."e"                    "to_value"
+      from "public"."S$history" "cf"
+      where ('2023-01-01' <= "cf"."history_change_time" and "cf"."history_change_time" <= '2030-01-01')
+        and "cf"."history_change_event" = 'I'
+        and "cf"."e" is not null
+      union all
+      select "cf"."history_change_time"  "change_at",
+             "cf"."history_change_event" "change",
+             "cf"."history_change_user"  "change_by",
+             "cf"."_id"                  "_id",
+             "cf"."_id"                  "identifier",
+             '002. E'                    "column",
+             "cf"."e"                    "from_value",
+             null                        "to_value"
+      from "public"."S$history" "cf"
+      where ('2023-01-01' <= "cf"."history_change_time" and "cf"."history_change_time" <= '2030-01-01')
+        and "cf"."history_change_event" = 'D'
+        and "cf"."e" is not null
+      union all
+      select "cf"."history_change_time"  "change_at",
+             "cf"."history_change_event" "change",
+             "cf"."history_change_user"  "change_by",
+             "cf"."_id"                  "_id",
+             "cf"."_id"                  "identifier",
+             '002. E'                    "column",
+             "cf"."e"                    "from_value",
+             "ct"."e"                    "to_value"
+      from "public"."S$history" "cf"
+             join "public"."S$history" "ct"
+                  on "cf"."_id" = "ct"."_id" and "cf"."history_change_trans_id" = "ct"."history_change_trans_id"
+      where ('2023-01-01' <= "cf"."history_change_time" and "cf"."history_change_time" <= '2030-01-01')
+        and "cf"."history_change_event" = 'F'
+        and "ct"."history_change_event" = 'T'
+        and "cf"."e" != "ct"."e"
+      union all
+      select "cf"."history_change_time"  "change_at",
+             "cf"."history_change_event" "change",
+             "cf"."history_change_user"  "change_by",
+             "cf"."_id"                  "_id",
+             "cf"."_id"                  "identifier",
+             '003. H'                    "column",
+             null                        "from_value",
+             "cf"."h"                    "to_value"
+      from "public"."S$history" "cf"
+      where ('2023-01-01' <= "cf"."history_change_time" and "cf"."history_change_time" <= '2030-01-01')
+        and "cf"."history_change_event" = 'I'
+        and "cf"."h" is not null
+      union all
+      select "cf"."history_change_time"  "change_at",
+             "cf"."history_change_event" "change",
+             "cf"."history_change_user"  "change_by",
+             "cf"."_id"                  "_id",
+             "cf"."_id"                  "identifier",
+             '003. H'                    "column",
+             "cf"."h"                    "from_value",
+             null                        "to_value"
+      from "public"."S$history" "cf"
+      where ('2023-01-01' <= "cf"."history_change_time" and "cf"."history_change_time" <= '2030-01-01')
+        and "cf"."history_change_event" = 'D'
+        and "cf"."h" is not null
+      union all
+      select "cf"."history_change_time"  "change_at",
+             "cf"."history_change_event" "change",
+             "cf"."history_change_user"  "change_by",
+             "cf"."_id"                  "_id",
+             "cf"."_id"                  "identifier",
+             '003. H'                    "column",
+             "cf"."h"                    "from_value",
+             "ct"."h"                    "to_value"
+      from "public"."S$history" "cf"
+             join "public"."S$history" "ct"
+                  on "cf"."_id" = "ct"."_id" and "cf"."history_change_trans_id" = "ct"."history_change_trans_id"
+      where ('2023-01-01' <= "cf"."history_change_time" and "cf"."history_change_time" <= '2030-01-01')
+        and "cf"."history_change_event" = 'F'
+        and "ct"."history_change_event" = 'T'
+        and "cf"."h" != "ct"."h"
+      union all
+      select "cf"."history_change_time"  "change_at",
+             "cf"."history_change_event" "change",
+             "cf"."history_change_user"  "change_by",
+             "cf"."_id"                  "_id",
+             "cf"."_id"                  "identifier",
+             '004. I'                    "column",
+             null                        "from_value",
+             "cf"."i"                    "to_value"
+      from "public"."S$history" "cf"
+      where ('2023-01-01' <= "cf"."history_change_time" and "cf"."history_change_time" <= '2030-01-01')
+        and "cf"."history_change_event" = 'I'
+        and "cf"."i" is not null
+      union all
+      select "cf"."history_change_time"  "change_at",
+             "cf"."history_change_event" "change",
+             "cf"."history_change_user"  "change_by",
+             "cf"."_id"                  "_id",
+             "cf"."_id"                  "identifier",
+             '004. I'                    "column",
+             "cf"."i"                    "from_value",
+             null                        "to_value"
+      from "public"."S$history" "cf"
+      where ('2023-01-01' <= "cf"."history_change_time" and "cf"."history_change_time" <= '2030-01-01')
+        and "cf"."history_change_event" = 'D'
+        and "cf"."i" is not null
+      union all
+      select "cf"."history_change_time"  "change_at",
+             "cf"."history_change_event" "change",
+             "cf"."history_change_user"  "change_by",
+             "cf"."_id"                  "_id",
+             "cf"."_id"                  "identifier",
+             '004. I'                    "column",
+             "cf"."i"                    "from_value",
+             "ct"."i"                    "to_value"
+      from "public"."S$history" "cf"
+             join "public"."S$history" "ct"
+                  on "cf"."_id" = "ct"."_id" and "cf"."history_change_trans_id" = "ct"."history_change_trans_id"
+      where ('2023-01-01' <= "cf"."history_change_time" and "cf"."history_change_time" <= '2030-01-01')
+        and "cf"."history_change_event" = 'F'
+        and "ct"."history_change_event" = 'T'
+        and "cf"."i" != "ct"."i"
+      union all
+      select "cf"."history_change_time"  "change_at",
+             "cf"."history_change_event" "change",
+             "cf"."history_change_user"  "change_by",
+             "cf"."_id"                  "_id",
+             "cf"."_id"                  "identifier",
+             '005. J'                    "column",
+             null                        "from_value",
+             "cf"."j"                    "to_value"
+      from "public"."S$history" "cf"
+      where ('2023-01-01' <= "cf"."history_change_time" and "cf"."history_change_time" <= '2030-01-01')
+        and "cf"."history_change_event" = 'I'
+        and "cf"."j" is not null
+      union all
+      select "cf"."history_change_time"  "change_at",
+             "cf"."history_change_event" "change",
+             "cf"."history_change_user"  "change_by",
+             "cf"."_id"                  "_id",
+             "cf"."_id"                  "identifier",
+             '005. J'                    "column",
+             "cf"."j"                    "from_value",
+             null                        "to_value"
+      from "public"."S$history" "cf"
+      where ('2023-01-01' <= "cf"."history_change_time" and "cf"."history_change_time" <= '2030-01-01')
+        and "cf"."history_change_event" = 'D'
+        and "cf"."j" is not null
+      union all
+      select "cf"."history_change_time"  "change_at",
+             "cf"."history_change_event" "change",
+             "cf"."history_change_user"  "change_by",
+             "cf"."_id"                  "_id",
+             "cf"."_id"                  "identifier",
+             '005. J'                    "column",
+             "cf"."j"                    "from_value",
+             "ct"."j"                    "to_value"
+      from "public"."S$history" "cf"
+             join "public"."S$history" "ct"
+                  on "cf"."_id" = "ct"."_id" and "cf"."history_change_trans_id" = "ct"."history_change_trans_id"
+      where ('2023-01-01' <= "cf"."history_change_time" and "cf"."history_change_time" <= '2030-01-01')
+        and "cf"."history_change_event" = 'F'
+        and "ct"."history_change_event" = 'T'
+        and "cf"."j" != "ct"."j"
+      union all
+      select "cf"."history_change_time"  "change_at",
+             "cf"."history_change_event" "change",
+             "cf"."history_change_user"  "change_by",
+             "cf"."_id"                  "_id",
+             "cf"."_id"                  "identifier",
+             '006. K'                    "column",
+             null                        "from_value",
+             "cf"."k"                    "to_value"
+      from "public"."S$history" "cf"
+      where ('2023-01-01' <= "cf"."history_change_time" and "cf"."history_change_time" <= '2030-01-01')
+        and "cf"."history_change_event" = 'I'
+        and "cf"."k" is not null
+      union all
+      select "cf"."history_change_time"  "change_at",
+             "cf"."history_change_event" "change",
+             "cf"."history_change_user"  "change_by",
+             "cf"."_id"                  "_id",
+             "cf"."_id"                  "identifier",
+             '006. K'                    "column",
+             "cf"."k"                    "from_value",
+             null                        "to_value"
+      from "public"."S$history" "cf"
+      where ('2023-01-01' <= "cf"."history_change_time" and "cf"."history_change_time" <= '2030-01-01')
+        and "cf"."history_change_event" = 'D'
+        and "cf"."k" is not null
+      union all
+      select "cf"."history_change_time"  "change_at",
+             "cf"."history_change_event" "change",
+             "cf"."history_change_user"  "change_by",
+             "cf"."_id"                  "_id",
+             "cf"."_id"                  "identifier",
+             '006. K'                    "column",
+             "cf"."k"                    "from_value",
+             "ct"."k"                    "to_value"
+      from "public"."S$history" "cf"
+             join "public"."S$history" "ct"
+                  on "cf"."_id" = "ct"."_id" and "cf"."history_change_trans_id" = "ct"."history_change_trans_id"
+      where ('2023-01-01' <= "cf"."history_change_time" and "cf"."history_change_time" <= '2030-01-01')
+        and "cf"."history_change_event" = 'F'
+        and "ct"."history_change_event" = 'T'
+        and "cf"."k" != "ct"."k"
+      union all
+      select "cf"."history_change_time"  "change_at",
+             "cf"."history_change_event" "change",
+             "cf"."history_change_user"  "change_by",
+             "cf"."_id"                  "_id",
+             "cf"."_id"                  "identifier",
+             '007. L'                    "column",
+             null                        "from_value",
+             "cf"."l"                    "to_value"
+      from "public"."S$history" "cf"
+      where ('2023-01-01' <= "cf"."history_change_time" and "cf"."history_change_time" <= '2030-01-01')
+        and "cf"."history_change_event" = 'I'
+        and "cf"."l" is not null
+      union all
+      select "cf"."history_change_time"  "change_at",
+             "cf"."history_change_event" "change",
+             "cf"."history_change_user"  "change_by",
+             "cf"."_id"                  "_id",
+             "cf"."_id"                  "identifier",
+             '007. L'                    "column",
+             "cf"."l"                    "from_value",
+             null                        "to_value"
+      from "public"."S$history" "cf"
+      where ('2023-01-01' <= "cf"."history_change_time" and "cf"."history_change_time" <= '2030-01-01')
+        and "cf"."history_change_event" = 'D'
+        and "cf"."l" is not null
+      union all
+      select "cf"."history_change_time"  "change_at",
+             "cf"."history_change_event" "change",
+             "cf"."history_change_user"  "change_by",
+             "cf"."_id"                  "_id",
+             "cf"."_id"                  "identifier",
+             '007. L'                    "column",
+             "cf"."l"                    "from_value",
+             "ct"."l"                    "to_value"
+      from "public"."S$history" "cf"
+             join "public"."S$history" "ct"
+                  on "cf"."_id" = "ct"."_id" and "cf"."history_change_trans_id" = "ct"."history_change_trans_id"
+      where ('2023-01-01' <= "cf"."history_change_time" and "cf"."history_change_time" <= '2030-01-01')
+        and "cf"."history_change_event" = 'F'
+        and "ct"."history_change_event" = 'T'
+        and "cf"."l" != "ct"."l"
+      union all
+      select "cf"."history_change_time"  "change_at",
+             "cf"."history_change_event" "change",
+             "cf"."history_change_user"  "change_by",
+             "cf"."_id"                  "_id",
+             "cf"."_id"                  "identifier",
+             '008. M'                    "column",
+             null                        "from_value",
+             "cf"."m"                    "to_value"
+      from "public"."S$history" "cf"
+      where ('2023-01-01' <= "cf"."history_change_time" and "cf"."history_change_time" <= '2030-01-01')
+        and "cf"."history_change_event" = 'I'
+        and "cf"."m" is not null
+      union all
+      select "cf"."history_change_time"  "change_at",
+             "cf"."history_change_event" "change",
+             "cf"."history_change_user"  "change_by",
+             "cf"."_id"                  "_id",
+             "cf"."_id"                  "identifier",
+             '008. M'                    "column",
+             "cf"."m"                    "from_value",
+             null                        "to_value"
+      from "public"."S$history" "cf"
+      where ('2023-01-01' <= "cf"."history_change_time" and "cf"."history_change_time" <= '2030-01-01')
+        and "cf"."history_change_event" = 'D'
+        and "cf"."m" is not null
+      union all
+      select "cf"."history_change_time"  "change_at",
+             "cf"."history_change_event" "change",
+             "cf"."history_change_user"  "change_by",
+             "cf"."_id"                  "_id",
+             "cf"."_id"                  "identifier",
+             '008. M'                    "column",
+             "cf"."m"                    "from_value",
+             "ct"."m"                    "to_value"
+      from "public"."S$history" "cf"
+             join "public"."S$history" "ct"
+                  on "cf"."_id" = "ct"."_id" and "cf"."history_change_trans_id" = "ct"."history_change_trans_id"
+      where ('2023-01-01' <= "cf"."history_change_time" and "cf"."history_change_time" <= '2030-01-01')
+        and "cf"."history_change_event" = 'F'
+        and "ct"."history_change_event" = 'T'
+        and "cf"."m" != "ct"."m"
+      union all
+      select "cf"."history_change_time"  "change_at",
+             "cf"."history_change_event" "change",
+             "cf"."history_change_user"  "change_by",
+             "cf"."_id"                  "_id",
+             "cf"."_id"                  "identifier",
+             '009. N'                    "column",
+             null                        "from_value",
+             "cf"."n"                    "to_value"
+      from "public"."S$history" "cf"
+      where ('2023-01-01' <= "cf"."history_change_time" and "cf"."history_change_time" <= '2030-01-01')
+        and "cf"."history_change_event" = 'I'
+        and "cf"."n" is not null
+      union all
+      select "cf"."history_change_time"  "change_at",
+             "cf"."history_change_event" "change",
+             "cf"."history_change_user"  "change_by",
+             "cf"."_id"                  "_id",
+             "cf"."_id"                  "identifier",
+             '009. N'                    "column",
+             "cf"."n"                    "from_value",
+             null                        "to_value"
+      from "public"."S$history" "cf"
+      where ('2023-01-01' <= "cf"."history_change_time" and "cf"."history_change_time" <= '2030-01-01')
+        and "cf"."history_change_event" = 'D'
+        and "cf"."n" is not null
+      union all
+      select "cf"."history_change_time"  "change_at",
+             "cf"."history_change_event" "change",
+             "cf"."history_change_user"  "change_by",
+             "cf"."_id"                  "_id",
+             "cf"."_id"                  "identifier",
+             '009. N'                    "column",
+             "cf"."n"                    "from_value",
+             "ct"."n"                    "to_value"
+      from "public"."S$history" "cf"
+             join "public"."S$history" "ct"
+                  on "cf"."_id" = "ct"."_id" and "cf"."history_change_trans_id" = "ct"."history_change_trans_id"
+      where ('2023-01-01' <= "cf"."history_change_time" and "cf"."history_change_time" <= '2030-01-01')
+        and "cf"."history_change_event" = 'F'
+        and "ct"."history_change_event" = 'T'
+        and "cf"."n" != "ct"."n"
+      union all
+      select "cf"."history_change_time"  "change_at",
+             "cf"."history_change_event" "change",
+             "cf"."history_change_user"  "change_by",
+             "cf"."_id"                  "_id",
+             "cf"."_id"                  "identifier",
+             '010. O'                    "column",
+             null                        "from_value",
+             "cf"."o"                    "to_value"
+      from "public"."S$history" "cf"
+      where ('2023-01-01' <= "cf"."history_change_time" and "cf"."history_change_time" <= '2030-01-01')
+        and "cf"."history_change_event" = 'I'
+        and "cf"."o" is not null
+      union all
+      select "cf"."history_change_time"  "change_at",
+             "cf"."history_change_event" "change",
+             "cf"."history_change_user"  "change_by",
+             "cf"."_id"                  "_id",
+             "cf"."_id"                  "identifier",
+             '010. O'                    "column",
+             "cf"."o"                    "from_value",
+             null                        "to_value"
+      from "public"."S$history" "cf"
+      where ('2023-01-01' <= "cf"."history_change_time" and "cf"."history_change_time" <= '2030-01-01')
+        and "cf"."history_change_event" = 'D'
+        and "cf"."o" is not null
+      union all
+      select "cf"."history_change_time"  "change_at",
+             "cf"."history_change_event" "change",
+             "cf"."history_change_user"  "change_by",
+             "cf"."_id"                  "_id",
+             "cf"."_id"                  "identifier",
+             '010. O'                    "column",
+             "cf"."o"                    "from_value",
+             "ct"."o"                    "to_value"
+      from "public"."S$history" "cf"
+             join "public"."S$history" "ct"
+                  on "cf"."_id" = "ct"."_id" and "cf"."history_change_trans_id" = "ct"."history_change_trans_id"
+      where ('2023-01-01' <= "cf"."history_change_time" and "cf"."history_change_time" <= '2030-01-01')
+        and "cf"."history_change_event" = 'F'
+        and "ct"."history_change_event" = 'T'
+        and "cf"."o" != "ct"."o"
+      union all
+      select "cf"."history_change_time"  "change_at",
+             "cf"."history_change_event" "change",
+             "cf"."history_change_user"  "change_by",
+             "cf"."_id"                  "_id",
+             "cf"."_id"                  "identifier",
+             '011. P'                    "column",
+             null                        "from_value",
+             "cf"."p"                    "to_value"
+      from "public"."S$history" "cf"
+      where ('2023-01-01' <= "cf"."history_change_time" and "cf"."history_change_time" <= '2030-01-01')
+        and "cf"."history_change_event" = 'I'
+        and "cf"."p" is not null
+      union all
+      select "cf"."history_change_time"  "change_at",
+             "cf"."history_change_event" "change",
+             "cf"."history_change_user"  "change_by",
+             "cf"."_id"                  "_id",
+             "cf"."_id"                  "identifier",
+             '011. P'                    "column",
+             "cf"."p"                    "from_value",
+             null                        "to_value"
+      from "public"."S$history" "cf"
+      where ('2023-01-01' <= "cf"."history_change_time" and "cf"."history_change_time" <= '2030-01-01')
+        and "cf"."history_change_event" = 'D'
+        and "cf"."p" is not null
+      union all
+      select "cf"."history_change_time"  "change_at",
+             "cf"."history_change_event" "change",
+             "cf"."history_change_user"  "change_by",
+             "cf"."_id"                  "_id",
+             "cf"."_id"                  "identifier",
+             '011. P'                    "column",
+             "cf"."p"                    "from_value",
+             "ct"."p"                    "to_value"
+      from "public"."S$history" "cf"
+             join "public"."S$history" "ct"
+                  on "cf"."_id" = "ct"."_id" and "cf"."history_change_trans_id" = "ct"."history_change_trans_id"
+      where ('2023-01-01' <= "cf"."history_change_time" and "cf"."history_change_time" <= '2030-01-01')
+        and "cf"."history_change_event" = 'F'
+        and "ct"."history_change_event" = 'T'
+        and "cf"."p" != "ct"."p") "his"

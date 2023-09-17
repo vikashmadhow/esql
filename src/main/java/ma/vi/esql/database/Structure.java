@@ -13,6 +13,7 @@ import ma.vi.esql.exec.function.array.InArray;
 import ma.vi.esql.exec.function.array.IntersectArray;
 import ma.vi.esql.exec.function.date.*;
 import ma.vi.esql.exec.function.debug.Print;
+import ma.vi.esql.exec.function.history.History;
 import ma.vi.esql.exec.function.number.Round;
 import ma.vi.esql.exec.function.sequence.NextValue;
 import ma.vi.esql.exec.function.stat.Bin;
@@ -328,7 +329,7 @@ public class Structure extends AbstractScope implements Environment {
 
     // conversion and formatting
     /////////////////////////////////
-    function(new FormatDate());
+    function(new Format());
 
     // date and time
     /////////////////////////////////
@@ -429,6 +430,10 @@ public class Structure extends AbstractScope implements Environment {
     ///////////////////////////////////
     function(new BinFunction());
     function(new Bin());
+
+    // Table history
+    ///////////////////////////////////
+    function(new History());
   }
 
   @Override

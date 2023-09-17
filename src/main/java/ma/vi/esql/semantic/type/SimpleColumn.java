@@ -9,7 +9,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import static java.util.stream.Collectors.toMap;
-import static ma.vi.esql.translation.Translatable.Target.JAVASCRIPT;
+import static ma.vi.esql.translation.Translatable.Target;
 
 /**
  * {@link Column} restructured to a Java record for simpler access.
@@ -17,6 +17,7 @@ import static ma.vi.esql.translation.Translatable.Target.JAVASCRIPT;
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 public record SimpleColumn(Context  context,
+                           Target   target,
                            String   name,
                            String   type,
                            boolean  derived,
@@ -25,6 +26,7 @@ public record SimpleColumn(Context  context,
                            Metadata metadata,
                            Map<String, Object> attributes) {
   public SimpleColumn(Context  context,
+                      Target   target,
                       String   name,
                       String   type,
                       boolean  derived,
@@ -32,6 +34,7 @@ public record SimpleColumn(Context  context,
                       Object   expression,
                       Metadata metadata) {
     this(context,
+         target,
          name,
          type,
          derived,
@@ -45,7 +48,7 @@ public record SimpleColumn(Context  context,
                                 e -> e.getValue() == null || e.getValue().attributeValue() == null ? "$(null)"
                                    : e.getValue().attributeValue() instanceof NullLiteral          ? "$(null)"
                                    : e.getValue().attributeValue() instanceof Literal<?>           ? e.getValue().evaluateAttribute()
-                                   : "$(" + e.getValue().attributeValue().translate(JAVASCRIPT) + ")",
+                                   : "$(" + e.getValue().attributeValue().translate(target) + ")",
                                 (e1, e2) -> e1,
                                 LinkedHashMap::new)));
   }

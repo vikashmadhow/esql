@@ -15,7 +15,7 @@ import ma.vi.esql.syntax.expression.literal.Literal;
 import org.pcollections.PMap;
 
 /**
- * Evaluates and expression in the form of `@(expression`)` and insert the result
+ * Evaluates an expression in the form of `@(expression`)` and insert the result
  * in the enclosing ESQL.
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)

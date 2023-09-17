@@ -73,8 +73,8 @@ public class FineHistoryTest extends DataTest {
                      String transId = con.transactionId();
                      LocalDateTime now = LocalDateTime.now();
                      con.exec("insert into S(_id, a, b, e, h, j) values "
-                                  + "(newid(), 1, 2, true, ['Four', 'Quatre']text, [1, 2, 3]int),"
-                                  + "(newid(), 6, 7, false, ['Nine', 'Neuf', 'X']text, [5, 6, 7, 8]int)");
+                            + "(newid(), 1, 2, true, ['Four', 'Quatre']text, [1, 2, 3]int),"
+                            + "(newid(), 6, 7, false, ['Nine', 'Neuf', 'X']text, [5, 6, 7, 8]int)");
 
                      con.exec("update S from S set a=a*2");
 
@@ -127,6 +127,29 @@ public class FineHistoryTest extends DataTest {
                      assertEquals(7,  (Integer)rs.value(4));
 
                      assertFalse(rs.toNext());
+                   }
+                 }));
+  }
+
+  @TestFactory
+  Stream<DynamicTest> selectFromHistory() {
+    return Stream.of(databases)
+                 .map(db -> dynamicTest(db.target().toString(), () -> {
+                   System.out.println(db.target());
+                   try (EsqlConnection con = db.esql(db.pooledConnection())) {
+                     con.exec("delete t from t:a.b.T");
+                     con.exec("delete s from s:S");
+                     con.exec("delete s from s:S$history");
+                   }
+                   try (EsqlConnection con = db.esql(db.pooledConnection())) {
+                     con.exec("insert into S(_id, a, b, e, h, j) values "
+                            + "(newid(), 1, 2, true, ['Four', 'Quatre']text, [1, 2, 3]int),"
+                            + "(newid(), 6, 7, false, ['Nine', 'Neuf', 'X']text, [5, 6, 7, 8]int)");
+
+                     con.exec("update S from S set a=a*2");
+
+                     Result rs = con.exec("select * from his:history('S', '2023-01-01', '2030-01-01')");
+                     printResult(rs, 20);
                    }
                  }));
   }

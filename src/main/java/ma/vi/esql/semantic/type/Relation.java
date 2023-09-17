@@ -18,6 +18,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static ma.vi.esql.database.Database.NULL_DB;
+import static ma.vi.esql.translation.Translatable.Target.ESQL;
 import static ma.vi.esql.translation.Translatable.Target.JAVASCRIPT;
 
 /**
@@ -96,23 +97,27 @@ public abstract class Relation extends AbstractType implements Symbol {
 
   /**
    * Utility function returning the list of columns in this relation as a list
-   * of {@link SimpleColumn}s which are easier to access to work with.
+   * of {@link SimpleColumn}s which are easier to access and work with.
    *
    * @return List of columns as {@link SimpleColumn}s.
    */
   public List<SimpleColumn> cols() {
+    return cols(JAVASCRIPT);
+  }
+
+  public List<SimpleColumn> cols(Target target) {
     return columnMap().values().stream()
                       .map(c -> new SimpleColumn(c.context,
+                                                 target,
                                                  c.name(),
                                                  c.type().name(),
                                                  c.derived(),
                                                  c.notNull(),
-                                                 c.expression() instanceof Literal<?>
-                                                   ? c.expression().exec(JAVASCRIPT, null,
-                                                                         new EsqlPath(c.expression()),
-                                                                         HashPMap.empty(IntTreePMap.empty()),
-                                                                         NULL_DB.structure())
-                                                   : "$(" + c.expression().translate(JAVASCRIPT) + ")",
+                                                 c.expression() instanceof Literal<?> ? c.expression().exec(target, null,
+                                                                                                            new EsqlPath(c.expression()),
+                                                                                                            HashPMap.empty(IntTreePMap.empty()),
+                                                                                                            NULL_DB.structure())
+                                               : "$(" + c.expression().translate(target) + ")",
                                                  c.metadata()))
                       .toList();
   }

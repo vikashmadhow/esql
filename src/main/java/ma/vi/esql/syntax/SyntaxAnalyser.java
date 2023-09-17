@@ -374,16 +374,17 @@ public class SyntaxAnalyser extends EsqlBaseListener {
 
   @Override
   public void exitFunctionTableExpr(FunctionTableExprContext ctx) {
-    String name = value(ctx.qualifiedName());
-    if (name == null || !name.equals("string_split")) {
-      throw new TranslationException("Only string_split is currently supported "
-                                   + "as a table-returning function in ESQL");
+    FunctionCallContext callCtx = ctx.functionCall();
+    String name = value(callCtx.qualifiedName());
+    if (name.equals("string_split")) {
+      put(ctx, new StringSplitTableExpr(context,
+                                        value(ctx.alias()),
+                                        callCtx.distinct() != null && callCtx.distinct().getText().startsWith("distinct"),
+                                        callCtx.distinct() != null && callCtx.distinct().expressionList() != null ? value(callCtx.distinct().expressionList()) : null,
+                                        value(callCtx.arguments())));
+    } else {
+      put(ctx, new FunctionTableExpr(context, value(ctx.alias()), get(callCtx)));
     }
-    put(ctx, new StringSplitTableExpr(context,
-                                      value(ctx.alias()),
-                                      ctx.distinct() != null && ctx.distinct().getText().startsWith("distinct"),
-                                      ctx.distinct() != null && ctx.distinct().expressionList() != null ? value(ctx.distinct().expressionList()) : null,
-                                      value(ctx.arguments())));
   }
 
   @Override
@@ -964,34 +965,26 @@ public class SyntaxAnalyser extends EsqlBaseListener {
 
   @Override
   public void exitFunctionInvocation(FunctionInvocationContext ctx) {
-    createFunctionInvocation(ctx, ctx.distinct(), ctx.window(),
-                             ctx.qualifiedName(), ctx.arguments(),
-                             ctx.star);
+    put(ctx, get(ctx.functionCall()));
   }
 
   @Override
   public void exitSimpleFunctionInvocation(SimpleFunctionInvocationContext ctx) {
-    createFunctionInvocation(ctx, ctx.distinct(), ctx.window(),
-                             ctx.qualifiedName(), ctx.arguments(),
-                             ctx.star);
+    put(ctx, get(ctx.functionCall()));
   }
-
-  public void createFunctionInvocation(ParserRuleContext ctx,
-                                       DistinctContext distinct,
-                                       WindowContext window,
-                                       ParserRuleContext qualifiedName,
-                                       ParserRuleContext arguments,
-                                       Token star) {
+  
+  @Override 
+  public void exitFunctionCall(FunctionCallContext ctx) {
     put(ctx, new FunctionCall(context,
-                              value(qualifiedName),
-                              distinct != null && distinct.getText().startsWith("distinct"),
-                              distinct != null && distinct.expressionList() != null ? value(distinct.expressionList()) : null,
-                              value(arguments),
-                              star != null,
-                              window != null,
-                              window != null ? value(window.partition() != null ? window.partition().expressionList() : null) : null,
-                              window != null ? value(window.orderByList()) : null,
-                              frame(window)));
+                              value(ctx.qualifiedName()),
+                              ctx.distinct() != null && ctx.distinct().getText().startsWith("distinct"),
+                              ctx.distinct() != null && ctx.distinct().expressionList() != null ? value(ctx.distinct().expressionList()) : null,
+                              value(ctx.arguments()),
+                              ctx.star != null,
+                              ctx.window() != null,
+                              ctx.window() != null ? value(ctx.window().partition() != null ? ctx.window().partition().expressionList() : null) : null,
+                              ctx.window() != null ? value(ctx.window().orderByList()) : null,
+                              frame(ctx.window())));
   }
 
   private WindowFrame frame(WindowContext window) {

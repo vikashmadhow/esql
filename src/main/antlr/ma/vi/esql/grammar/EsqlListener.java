@@ -1414,6 +1414,16 @@ public interface EsqlListener extends ParseTreeListener {
 	 */
 	void exitSimpleColumnExpr(EsqlParser.SimpleColumnExprContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link EsqlParser#functionCall}.
+	 * @param ctx the parse tree
+	 */
+	void enterFunctionCall(EsqlParser.FunctionCallContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link EsqlParser#functionCall}.
+	 * @param ctx the parse tree
+	 */
+	void exitFunctionCall(EsqlParser.FunctionCallContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link EsqlParser#parameter}.
 	 * @param ctx the parse tree
 	 */

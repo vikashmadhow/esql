@@ -57,6 +57,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the containing table.
 - Every expression should return a `Result` to normalise the execution of any 
   ESQL expression (need to find way that this does not affect performance unduly).
+
+- Utility method in `Function` to load values of positional, named and variadic 
+  parameters.
  
 ### To optimise
 - When filtering a `With`, do not apply filter on a CTE if that CTE inner joins 
@@ -76,23 +79,77 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Test window functions.
 - Test performance.
 
-### To fix
-- Apply result and column metadata overloading in column list expansion 
-  (currently, the overridden metadata are not being considered). (create tests 
-  for metadata overriding)
+### TO FIX
+- Very long startup time likely from having to load (and potentially recreate)
+  all _core tables from information schemas.
 
 ## [2.0.0] (Planned)
 ### Database stored functions and triggers in ESQL
 
-## [1.7.0] (Planned)
+## [1.8.0] (Planned)
 ### Support for views and materialised views
 ### Support for merge query
 
-## [1.6.0] (Planned)
+## [1.7.0] (Planned)
 ### Mirror tables: Tables that closely follow the structure of another table 
     overriding certain parts, removing other parts and adding new parts.
 ### Template structs: structs that are used to create tables; provides a common
     inheritable structure to a set of related tables (e.g.).
+
+## [1.6.0]
+### Added
+- Macro functions can now be used as valid table expressions in addition to
+  `string_split` only previously. The macro will need to expand to a valid 
+  non-function table expression for the translation to SQL to work.
+- `history` table macro function returns a list of history events on a table with 
+  each row showing a change to one column. For example, `history('test.Table', from_date, to_date)`
+  could return:
+  
+  | at | action | by | id | column | from | to |
+  |----|--------|----|----|--------|------|----|
+  | t1 | I      | u1 | e1 | name   |      | a  |
+  | t2 | D      | u1 | e1 | id     | i    |    |
+  | t2 | F      | u2 | e2 | name   | x    | y  |
+
+  This function is a macro that expands to something similar to:
+
+      select change_at, 'I', change_by, _id, identifier, '001. x', null, x
+        from test.Table$history
+       where from <= change_at <= to
+         and action = 'I'
+         and x is not null
+      
+      union all
+      
+      select change_at, 'I', change_by, _id, identifier, '002. y', null, y
+        from test.Table$history
+       where from <= change_at <= to
+         and action = 'I'
+         and y is not null
+      
+      union all
+      
+      select change_at, 'D', change_by, _id, identifier, '001. x', x, null
+        from test.Table$history
+       where from <= change_at <= to
+         and action = 'D'
+         and x is not null
+      
+      union all
+      
+      select change_at, 'U', change_by, _id, identifier, '001. x', cf.x, ct.x
+        from cf:test.Table$history
+        join ct:test.Table$history on cf.trans_id = ct.trans_id 
+       where from <= cf.change_at <= to
+         and cf.action = 'F'
+         and ct.action = 'T'
+         and cf.x != ct.x
+
+      union all ...
+- `format` function can now format all other types (not just dates).
+- A target can now be specified in `cols` method in `Relation` to produce a
+  list of `SimpleColumn`s where the expressions have been translated to the
+  specified target (previously expressions were translated to JAVASCRIPT only).
 
 ## [1.5.48] - 2023-09-14
 ### Added
