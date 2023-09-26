@@ -262,6 +262,13 @@ public class Structure extends AbstractScope implements Environment {
                           Map.of(POSTGRESQL, "concat_ws",
                                  SQLSERVER,  "concat_ws")));
 
+    function(new Function("isnumeric", StringType,
+                          singletonList(new FunctionParam("p", StringType)),
+                          false,
+                          Map.of(POSTGRESQL, "isnumeric",
+                                  SQLSERVER,  "isnumeric")));
+
+
     function(new Function("chr", IntType,
                           singletonList(new FunctionParam("p", StringType)),
                           false,
