@@ -96,6 +96,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Template structs: structs that are used to create tables; provides a common
     inheritable structure to a set of related tables (e.g.).
 
+## [1.6.1]
+### Added
+- `$category` key added to `Initializer`. The value of this key can be used to
+  set a specific category on the object being initialized.
+
 ## [1.6.0]
 ### Added
 - Macro functions can now be used as valid table expressions in addition to
@@ -146,7 +151,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
          and cf.x != ct.x
 
       union all ...
-- `format` function can now format all other types (not just dates).
+- `format` function can now format all data types (not just dates).
 - A target can now be specified in `cols` method in `Relation` to produce a
   list of `SimpleColumn`s where the expressions have been translated to the
   specified target (previously expressions were translated to JAVASCRIPT only).

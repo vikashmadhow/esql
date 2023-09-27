@@ -460,5 +460,11 @@ public interface Initializer<T> {
    */
   String METADATA = "$metadata";
 
+  /**
+   * A special configuration key specifying a category for the object being
+   * initialized.
+   */
+  String CATEGORY = "$category";
+
   System.Logger log = System.getLogger(Initializer.class.getName());
 }
