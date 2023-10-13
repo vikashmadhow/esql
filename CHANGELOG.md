@@ -96,7 +96,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Template structs: structs that are used to create tables; provides a common
     inheritable structure to a set of related tables (e.g.).
 
-## [1.6.2]
+## [1.6.3] - 2023-12-13
+### Fixed
+- NPE in `JsonArrayLiteral` corrected when `items()` returns null.
+
+## [1.6.2] - 2023-12-10
 ### Added
 - `set` method in `Esql` return `this` if the set does not change anything in the
   ESQL object (instead of returning a redundant copy).
@@ -104,12 +108,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Various methods added to `Select` to create a modified copy.
 - Composition of filters include search of table mirrors set in the table metadata.
 
-## [1.6.1]
+## [1.6.1] - 2023-09-27
 ### Added
 - `$category` key added to `Initializer`. The value of this key can be used to
   set a specific category on the object being initialized.
 
-## [1.6.0]
+## [1.6.0] - 2023-09-17
 ### Added
 - Macro functions can now be used as valid table expressions in addition to
   `string_split` only previously. The macro will need to expand to a valid 

@@ -87,11 +87,13 @@ public class JsonArrayLiteral extends Literal<List<? extends Literal<?>>> {
   @Override
   public void _toString(StringBuilder st, int level, int indent) {
     st.append('[');
-    boolean first = true;
-    for (Literal<?> e: items()) {
-      if (first) { first = false; }
-      else       { st.append(", "); }
-      e._toString(st, level, indent);
+    if (items() != null) {
+      boolean first = true;
+      for (Literal<?> e: items()) {
+        if (first) { first = false; }
+        else       { st.append(", "); }
+        e._toString(st, level, indent);
+      }
     }
     st.append(']');
   }
