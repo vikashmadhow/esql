@@ -72,22 +72,26 @@ public class SelectBuilder implements Builder<Select> {
     return this;
   }
 
-  public SelectBuilder column(String expression, String alias, Attr... metadata) {
-    return column(expression == null ? new NullLiteral(context)
-                                     : parser.parseExpression(expression),
-                  alias, metadata);
+  public SelectBuilder column(String expression, Attr... metadata) {
+    return column(expression, null, metadata);
   }
 
-  public SelectBuilder column(Expression<?, String> expression, String alias, Attr... metadata) {
+  public SelectBuilder column(String expression, String name, Attr... metadata) {
+    return column(expression == null ? new NullLiteral(context)
+                                     : parser.parseExpression(expression),
+                  name, metadata);
+  }
+
+  public SelectBuilder column(Expression<?, String> expression, String name, Attr... metadata) {
     ColumnRef ref = expression.find(ColumnRef.class);
-    if (alias == null) {
-      alias = ColumnList.makeUnique("column",
-                                    this.columns.stream().map(Column::name).collect(toSet()),
-                                    1, true).a;
+    if (name == null) {
+      name = ColumnList.makeUnique("column",
+                                   this.columns.stream().map(Column::name).collect(toSet()),
+                                   1, true).a;
     }
     this.columns.add(
       new Column(context,
-                 alias,
+                 name,
                  expression,
                  ref == null ? expression.computeType(new EsqlPath(expression)) : UnknownType,
                  metadata.length == 0

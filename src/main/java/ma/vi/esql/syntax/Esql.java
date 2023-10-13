@@ -308,7 +308,7 @@ public class Esql<V, T>
   }
 
   public <X extends Esql<V, T>> X set(String childName, Esql<?, ?> child) {
-    if(has(childName)) {
+    if (has(childName)) {
       return set(indexOf(childName), child);
     } else {
       childrenNames.put(childName, children().size());
@@ -317,12 +317,17 @@ public class Esql<V, T>
   }
 
   public <X extends Esql<V, T>> X set(int index, Esql<?, ?> child) {
-    Esql<V, T> copy = copy();
-    while (copy.children.size() <= index) {
-      copy.children.add(null);
+    if (index >= children.size()
+     || children.get(index) != child) {
+      Esql<V, T> copy = copy();
+      while (copy.children.size() <= index) {
+        copy.children.add(null);
+      }
+      copy.children.set(index, child);
+      return (X)copy;
+    } else {
+      return (X)this;
     }
-    copy.children.set(index, child);
-    return (X)copy;
   }
 
   protected void _set(String childName, Esql<?, ?> child) {

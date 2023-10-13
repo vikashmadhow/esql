@@ -3,19 +3,19 @@ package ma.vi.esql.exec;
 import ma.vi.base.lang.NotFoundException;
 import ma.vi.base.reflect.Dissector;
 import ma.vi.base.reflect.Property;
-import ma.vi.esql.database.Database;
-import ma.vi.esql.database.EsqlConnection;
 import ma.vi.esql.exec.composable.Composable;
 import ma.vi.esql.exec.composable.ComposableColumn;
 import ma.vi.esql.exec.composable.ComposableFilter;
+import ma.vi.esql.exec.env.FunctionEnvironment;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
-import ma.vi.esql.syntax.Parser;
 import ma.vi.esql.syntax.define.Metadata;
 import ma.vi.esql.syntax.query.GroupBy;
-import ma.vi.esql.translation.Translatable;
 
 import java.util.*;
+
+import static ma.vi.esql.database.EsqlConnection.NULL_CONNECTION;
+import static ma.vi.esql.translation.Translatable.Target.ESQL;
 
 /**
  * @author Vikash Madhow (vikash.madhow@gmail.com)
@@ -74,10 +74,11 @@ public class QueryParams {
       Object p = e.getValue().b();
       map.put(e.getKey(),
               p instanceof Esql<?, ?> expr
-              ? expr.exec(Translatable.Target.ESQL,
-                          EsqlConnection.NULL_CONNECTION,
+              ? expr.exec(ESQL,
+                          NULL_CONNECTION,
                           path.add(expr),
-                          null, null)
+                          null,
+                          new FunctionEnvironment())
               : p);
     }
     return map;
@@ -173,6 +174,45 @@ public class QueryParams {
       i++;
     }
     return params;
+  }
+
+  public QueryParams params(Collection<Param> params) {
+    for (Param p: params) add(p);
+    return this;
+  }
+
+  public QueryParams clear() {
+    params.clear();
+    filters.clear();
+    columns.clear();
+    return this;
+  }
+
+  public QueryParams clearParams() {
+    params.clear();
+    return this;
+  }
+
+  public QueryParams clearFilters() {
+    filters.clear();
+    return this;
+  }
+
+  public QueryParams clearColumns() {
+    columns.clear();
+    return this;
+  }
+
+  public Map<String, Param> params() {
+    return Collections.unmodifiableMap(params);
+  }
+
+  public List<ComposableFilter> filters() {
+    return Collections.unmodifiableList(filters);
+  }
+
+  public List<ComposableColumn> columns() {
+    return Collections.unmodifiableList(columns);
   }
 
   protected final Map<String, Param> params = new LinkedHashMap<>();

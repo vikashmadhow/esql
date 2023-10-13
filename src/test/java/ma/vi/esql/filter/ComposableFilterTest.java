@@ -626,7 +626,16 @@ public class ComposableFilterTest extends DataTest {
     con.exec("drop table test.pZ");
 
     con.exec("""
-          create table test.pX drop undefined(
+          create table test.pX drop undefined({
+              mirrors: ['test.pXCopy']
+            }
+            _id uuid not null,
+            a   int,
+            primary key(_id)
+          )""");
+
+    con.exec("""
+          create table test.pXCopy drop undefined(
             _id uuid not null,
             a   int,
             primary key(_id)

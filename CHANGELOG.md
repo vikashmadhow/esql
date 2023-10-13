@@ -96,6 +96,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Template structs: structs that are used to create tables; provides a common
     inheritable structure to a set of related tables (e.g.).
 
+## [1.6.2]
+### Added
+- `set` method in `Esql` return `this` if the set does not change anything in the
+  ESQL object (instead of returning a redundant copy).
+- Method to access and clear various parts of `QueryParams`.
+- Various methods added to `Select` to create a modified copy.
+- Composition of filters include search of table mirrors set in the table metadata.
+
 ## [1.6.1]
 ### Added
 - `$category` key added to `Initializer`. The value of this key can be used to

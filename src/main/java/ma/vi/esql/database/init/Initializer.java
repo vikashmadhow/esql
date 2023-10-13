@@ -370,10 +370,6 @@ public interface Initializer<T> {
         throw new RuntimeException(ioe);
       }
     } else {
-      /*
-       * The resource is part of a jar file. Use jar entries information to
-       * detect changes.
-       */
       try (FileInputStream urlIn = new FileInputStream(location)) {
         CRC32C crc = new CRC32C();
         byte[] data = new byte[16384];

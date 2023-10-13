@@ -20,12 +20,10 @@ import ma.vi.esql.syntax.expression.comparison.Equality;
 import ma.vi.esql.syntax.expression.logical.And;
 import ma.vi.esql.syntax.macro.Macro;
 import ma.vi.esql.translation.TranslationException;
+import org.json.JSONArray;
 import org.pcollections.PMap;
 
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static ma.vi.base.string.Strings.makeUniqueSeq;
 import static ma.vi.esql.semantic.type.Type.unqualifiedName;
@@ -62,7 +60,7 @@ public class SingleTableExpr extends AbstractAliasTableExpr {
   }
 
   /**
-   * Returns a shallow copy of this object replacing the value in the copy with
+   * Returns a shallow copy of  this object replacing the value in the copy with
    * the provided value and replacing the specified children in the children list
    * of the copy.
    */
@@ -76,11 +74,30 @@ public class SingleTableExpr extends AbstractAliasTableExpr {
     if (composable.table() != null
      && context.structure.relationExists(tableName())) {
       BaseRelation rel = context.structure.relation(tableName());
-      BaseRelation.Path path = rel.path(composable.table());
-      return path == null ? null
-                          : new ShortestPath(this, path, composable);
+      Set<String> mirrorTables = new LinkedHashSet<>();
+      mirrors(context.structure, composable.table(), mirrorTables);
+      for (String table: mirrorTables) {
+        BaseRelation.Path path = rel.path(table);
+        return path == null ? null : new ShortestPath(this, path, composable);
+      }
     }
     return null;
+  }
+
+  private static void mirrors(Structure   structure,
+                              String      table,
+                              Set<String> mirrors) {
+    if (!mirrors.contains(table)
+     &&  structure.relationExists(table)) {
+      mirrors.add(table);
+      BaseRelation rel = structure.relation(table);
+      if (rel.attribute("mirrors") != null) {
+        JSONArray m = rel.evaluateAttribute("mirrors");
+        for (int i = 0; i < m.length(); i++) {
+          mirrors(structure, m.getString(i), mirrors);
+        }
+      }
+    }
   }
 
   @Override

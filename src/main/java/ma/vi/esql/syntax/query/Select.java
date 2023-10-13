@@ -623,8 +623,16 @@ public class Select extends QueryUpdate {
     }
   }
 
+  public Select removeColumns() {
+    return set("columns", new ColumnList(context, new ArrayList<>()));
+  }
+
   public Boolean distinct() {
     return childValue("distinct");
+  }
+
+  public Select distinct(boolean distinct) {
+    return set("distinct", new Esql<>(context, distinct));
   }
 
   public List<Expression<?, ?>> distinctOn() {
@@ -651,15 +659,31 @@ public class Select extends QueryUpdate {
     return child("having");
   }
 
+  public Select having(Expression<?, String> having) {
+    return set("having", having);
+  }
+
   public List<Order> orderBy() {
     return child("orderBy") == null ? null : child("orderBy").children();
+  }
+
+  public Select orderBy(List<Order> orderBy) {
+    return set("orderBy", orderBy == null ? null : new Esql<>(context, "orderBy", orderBy));
   }
 
   public Expression<?, String> offset() {
     return child("offset");
   }
+  
+  public Select offset(Expression<?, String> offset) {
+    return set("offset", offset);
+  }
 
   public Expression<?, String> limit() {
     return child("limit");
+  }
+
+  public Select limit(Expression<?, String> limit) {
+    return set("limit", limit);
   }
 }

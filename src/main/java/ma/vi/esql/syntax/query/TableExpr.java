@@ -51,7 +51,7 @@ public abstract class TableExpr extends Esql<String, String> {
   public abstract TableExpr copy(String value, T2<String, ? extends Esql<?, ?>>... children);
 
   /**
-   * Find the shortest path between the tables in this table expressions and the
+   * Find the shortest path between the tables in this table expression and the
    * filtered table, if any. Null if no path exists.
    * @param composable Filter whose table is the target of the shortest path.
    * @return A shortest path, if found, or null.
