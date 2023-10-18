@@ -851,8 +851,8 @@ public abstract class AbstractDatabase implements Database {
             con.exec(INSERT_TABLE_ATTRIBUTE,
                      new QueryParams()
                         .add("tableId", table.id())
-                        .add("name", a.getKey())
-                        .add("value", a.getValue().attributeValue().translate(ESQL)));
+                        .add("name",    a.getKey())
+                        .add("value",   a.getValue().attributeValue().translate(ESQL)));
           }
         }
 
