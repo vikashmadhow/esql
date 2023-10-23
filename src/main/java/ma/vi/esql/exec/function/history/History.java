@@ -11,12 +11,14 @@ import ma.vi.esql.exec.function.FunctionParam;
 import ma.vi.esql.exec.function.NamedArgument;
 import ma.vi.esql.semantic.type.BaseRelation;
 import ma.vi.esql.semantic.type.SimpleColumn;
+import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.Parser;
 import ma.vi.esql.syntax.expression.ColumnRef;
 import ma.vi.esql.syntax.expression.Expression;
+import ma.vi.esql.syntax.expression.cast.Cast;
 import ma.vi.esql.syntax.expression.comparison.Equality;
 import ma.vi.esql.syntax.expression.comparison.Inequality;
 import ma.vi.esql.syntax.expression.comparison.IsNull;
@@ -36,6 +38,7 @@ import static ma.vi.base.string.Strings.capFirst;
 import static ma.vi.base.string.Strings.expandByCase;
 import static ma.vi.esql.semantic.type.Types.*;
 import static ma.vi.esql.translation.Translatable.Target.ESQL;
+import static ma.vi.esql.translation.Translatable.Target.POSTGRESQL;
 import static org.apache.commons.lang3.StringUtils.leftPad;
 
 /**
@@ -189,10 +192,18 @@ public class History extends Function implements UntypedMacro {
     }
     idColumn = "cf." + idColumn;
 
+    Target target = ctx.structure.database.target();
     List<Select> selects = new ArrayList<>();
-    Range range = new Range(ctx, from, "<=",
+    Range range = new Range(ctx,
+                            new FunctionCall(ctx,
+                                             "startofday",
+                                             List.of(target == POSTGRESQL ? new Cast(ctx, from, DatetimeType) : from)),
+                            "<=",
                             new ColumnRef(ctx, "cf", "history_change_time"),
-                            "<=", to);
+                            "<=",
+                            new FunctionCall(ctx,
+                                             "endofday",
+                                             List.of(target == POSTGRESQL ? new Cast(ctx, to, DatetimeType) : to)));
     for (int i = 0; i < columns.size(); i++) {
       SimpleColumn col = columns.get(i);
       String label = col.has("label")       ? col.get("label")
