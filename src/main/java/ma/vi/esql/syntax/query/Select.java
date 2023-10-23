@@ -182,7 +182,8 @@ public class Select extends QueryUpdate {
      * query or not be of any use. The same applies to when select is used as an
      * insert value, or part of a column list.
      */
-    if (path.hasAncestor(SelectExpression.class,
+    if (path.hasAncestor(SelectTableExpr .class,
+                         SelectExpression.class,
                          InsertRow       .class,
                          Column          .class,
                          FunctionCall    .class,

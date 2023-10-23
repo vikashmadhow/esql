@@ -377,7 +377,7 @@ public class ComposableColumnTest extends DataTest {
                                           (select min(a) from test.pA)
                                      from z:test.pZ
                                      times t1(a, b):((1, 2), (3,4), (4,5))
-                                     join s1:(select ___ from z1:test.pZ) on s1.a=z.a
+                                     join s1:(select z1.a from z1:test.pZ) on s1.a=z.a
                                      join y:test.pY on z.y_id=y._id
                                      full join c:test.pC on z.a=c.a
                                     where z.a < 2

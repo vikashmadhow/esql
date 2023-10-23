@@ -96,11 +96,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Template structs: structs that are used to create tables; provides a common
     inheritable structure to a set of related tables (e.g.).
 
-## [1.6.3] - 2023-12-13
+## [1.6.4] - 2023-10-22
+### Fixed
+- Columns are no longer composed into selects used as table expressions as these
+  may corrupt the intent of the original query.
+
+## [1.6.3] - 2023-10-13
 ### Fixed
 - NPE in `JsonArrayLiteral` corrected when `items()` returns null.
 
-## [1.6.2] - 2023-12-10
+## [1.6.2] - 2023-10-12
 ### Added
 - `set` method in `Esql` return `this` if the set does not change anything in the
   ESQL object (instead of returning a redundant copy).
