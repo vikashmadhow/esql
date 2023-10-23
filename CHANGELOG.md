@@ -96,6 +96,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Template structs: structs that are used to create tables; provides a common
     inheritable structure to a set of related tables (e.g.).
 
+## [1.6.5] - 2023-10-23
+### Added
+- `history` function extends the range of time for returning history to the start
+  of day of the starting date and the end of day of the ending date.
+
 ## [1.6.4] - 2023-10-22
 ### Fixed
 - Columns are no longer composed into selects used as table expressions as these

@@ -26,7 +26,7 @@ import static ma.vi.esql.translation.Translatable.Target.*;
  */
 public class EndOfDay extends Function {
   public EndOfDay() {
-    super("endofday", Types.DateType,
+    super("endofday", Types.DatetimeType,
           singletonList(new FunctionParam("s", Types.DateType)));
   }
 

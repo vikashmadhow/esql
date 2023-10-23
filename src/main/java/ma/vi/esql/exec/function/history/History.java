@@ -11,12 +11,14 @@ import ma.vi.esql.exec.function.FunctionParam;
 import ma.vi.esql.exec.function.NamedArgument;
 import ma.vi.esql.semantic.type.BaseRelation;
 import ma.vi.esql.semantic.type.SimpleColumn;
+import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.Parser;
 import ma.vi.esql.syntax.expression.ColumnRef;
 import ma.vi.esql.syntax.expression.Expression;
+import ma.vi.esql.syntax.expression.cast.Cast;
 import ma.vi.esql.syntax.expression.comparison.Equality;
 import ma.vi.esql.syntax.expression.comparison.Inequality;
 import ma.vi.esql.syntax.expression.comparison.IsNull;
@@ -190,9 +192,12 @@ public class History extends Function implements UntypedMacro {
     idColumn = "cf." + idColumn;
 
     List<Select> selects = new ArrayList<>();
-    Range range = new Range(ctx, from, "<=",
+    Range range = new Range(ctx,
+                            new FunctionCall(ctx, "startofday", List.of(new Cast(ctx, from, DatetimeType))),
+                            "<=",
                             new ColumnRef(ctx, "cf", "history_change_time"),
-                            "<=", to);
+                            "<=",
+                            new FunctionCall(ctx, "endofday", List.of(new Cast(ctx, to, DatetimeType))));
     for (int i = 0; i < columns.size(); i++) {
       SimpleColumn col = columns.get(i);
       String label = col.has("label")       ? col.get("label")
