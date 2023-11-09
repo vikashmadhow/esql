@@ -6,6 +6,7 @@ package ma.vi.esql.syntax.query;
 
 import ma.vi.base.string.Strings;
 import ma.vi.base.tuple.T2;
+import ma.vi.esql.exec.composable.CombinedComposableFilter;
 import ma.vi.esql.exec.composable.Composable;
 import ma.vi.esql.exec.composable.ComposableColumn;
 import ma.vi.esql.exec.composable.ComposableFilter;
@@ -29,8 +30,8 @@ import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toCollection;
 import static ma.vi.base.tuple.T2.of;
-import static ma.vi.esql.exec.composable.Composable.Op.AND;
-import static ma.vi.esql.exec.composable.Composable.Op.OR;
+import static ma.vi.esql.exec.composable.ComposableFilter.Op.AND;
+import static ma.vi.esql.exec.composable.ComposableFilter.Op.OR;
 import static ma.vi.esql.translation.Translatable.Target.SQLSERVER;
 
 /**
@@ -355,12 +356,12 @@ public class Select extends QueryUpdate {
      */
     List<Order> orderBy = orderBy();
     if (column.order() != null
-     && column.order() != Composable.Order.NONE) {
+     && column.order() != ComposableColumn.Order.NONE) {
       if (orderBy == null) orderBy = new ArrayList<>();
       else                 orderBy = new ArrayList<>(orderBy);
       orderBy.add(new Order(context,
                             resultExpr,
-                            column.order() == Composable.Order.DESC ? "desc" : null));
+                            column.order() == ComposableColumn.Order.DESC ? "desc" : null));
     }
 
     boolean doNotPutDistinct = doNotPutDistinct(context.structure.database.target(), path);
@@ -449,21 +450,26 @@ public class Select extends QueryUpdate {
                                     ComposableFilter      filter,
                                     boolean               firstFilter,
                                     Expression<?, String> where) {
-    while (filter.children().length == 1) {
-      filter = filter.children()[0];
-    }
-    FilterResult result = filter.children().length == 0
-                        ? singleFilter(tables, filter)
-                        : multipleFilters(tables, filter.op(), filter.exclude(), filter.children());
+//    while (filter.children().length == 1) {
+//      filter = filter.children()[0];
+//    }
+//    FilterResult result = filter.children().length == 0
+//                        ? singleFilter(tables, filter)
+//                        : multipleFilters(tables, filter.op(), filter.exclude(), filter.children());
+
+    FilterResult result = filter instanceof CombinedComposableFilter c
+                        ? multipleFilters(tables, c)
+                        : singleFilter(tables, filter);
     if (result != null
      && result.expression() != null
      && where != null) {
       where = combine(firstFilter ? new GroupedExpression(where.context, where)
                                   : where,
                       result.expression(),
-                      firstFilter && filter.table() == null ? AND : filter.op()); // combine the 1st filter when it has children
-                                                                                  // with the 'AND' connective as the filter.op
-                                                                                  // is for connective to use for the children.
+                      firstFilter && filter.table() == null        ? AND
+                    : filter instanceof CombinedComposableFilter c ? c.op() : AND); // combine the 1st filter when it has children
+                                                                                    // with the 'AND' connective as the filter.op
+                                                                                    // is for connective to use for the children.
       result = new FilterResult(result.tables(), where, result.hasReverseLinks());
     }
     return result;
@@ -507,18 +513,20 @@ public class Select extends QueryUpdate {
     return result;
   }
 
-  private static FilterResult multipleFilters(TableExpr     tables,
-                                              Composable.Op filterOp,
-                                              boolean       exclude,
-                                              ComposableFilter...  filters) {
+  private static FilterResult multipleFilters(TableExpr                tables,
+                                              CombinedComposableFilter filter) {
     FilterResult result = null;
-    for (ComposableFilter filter: filters) {
-      while (filter.children().length == 1) {
-        filter = filter.children()[0];
-      }
-      FilterResult subResult = filter.children().length == 0
-                             ? singleFilter(tables, filter)
-                             : multipleFilters(tables, filter.op(), filter.exclude(), filter.children());
+    for (ComposableFilter f: filter.filters()) {
+//      while (filter.children().length == 1) {
+//        filter = filter.children()[0];
+//      }
+//      FilterResult subResult = filter.children().length == 0
+//                             ? singleFilter(tables, filter)
+//                             : multipleFilters(tables, filter.op(), filter.exclude(), filter.children());
+//
+      FilterResult subResult = f instanceof CombinedComposableFilter c
+                             ? multipleFilters(tables, c)
+                             : singleFilter(tables, f);
 
       if (subResult != null) {
         Expression<?, String> subCondition = subResult.expression();
@@ -534,7 +542,7 @@ public class Select extends QueryUpdate {
           result = new FilterResult(subResult.tables(),
                                     condition    == null ? subCondition
                                   : subCondition == null ? null
-                                  : filterOp     == AND  ? new And(condition.context, condition, subCondition)
+                                  : filter.op()  == AND  ? new And(condition.context, condition, subCondition)
                                                          : new Or (condition.context, condition, subCondition),
                                     result.hasReverseLinks() || subResult.hasReverseLinks());
         }
@@ -544,7 +552,7 @@ public class Select extends QueryUpdate {
     if (result != null && result.expression() != null) {
       Expression<?, String> condition = result.expression();
       condition = new GroupedExpression(condition.context, condition);
-      if (exclude) {
+      if (filter.exclude()) {
         condition = new Not(condition.context, condition);
       }
       result = new FilterResult(result.tables, condition, result.hasReverseLinks);
@@ -607,7 +615,7 @@ public class Select extends QueryUpdate {
    */
   public static Expression<?, String> combine(Expression<?, String> condition,
                                               Expression<?, String> expression,
-                                              Composable.Op op) {
+                                              ComposableFilter.Op op) {
     if (condition instanceof And and) {
       return op == AND
            ? new And(and.context, and, expression)

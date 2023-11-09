@@ -11,7 +11,6 @@ import ma.vi.esql.exec.function.FunctionParam;
 import ma.vi.esql.exec.function.NamedArgument;
 import ma.vi.esql.semantic.type.BaseRelation;
 import ma.vi.esql.semantic.type.SimpleColumn;
-import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;

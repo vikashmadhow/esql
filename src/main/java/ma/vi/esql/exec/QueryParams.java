@@ -3,7 +3,7 @@ package ma.vi.esql.exec;
 import ma.vi.base.lang.NotFoundException;
 import ma.vi.base.reflect.Dissector;
 import ma.vi.base.reflect.Property;
-import ma.vi.esql.exec.composable.Composable;
+import ma.vi.esql.exec.composable.CombinedComposableFilter;
 import ma.vi.esql.exec.composable.ComposableColumn;
 import ma.vi.esql.exec.composable.ComposableFilter;
 import ma.vi.esql.exec.env.FunctionEnvironment;
@@ -15,6 +15,8 @@ import ma.vi.esql.syntax.query.GroupBy;
 import java.util.*;
 
 import static ma.vi.esql.database.EsqlConnection.NULL_CONNECTION;
+import static ma.vi.esql.exec.composable.ComposableFilter.Op.AND;
+import static ma.vi.esql.exec.composable.ComposableFilter.Op.OR;
 import static ma.vi.esql.translation.Translatable.Target.ESQL;
 
 /**
@@ -85,17 +87,55 @@ public class QueryParams {
   }
 
   public QueryParams filter(ComposableFilter filter) {
-    if (filter != null) filters.add(filter);
+//    if (filter != null) filters.add(filter);
+    if (filter != null) {
+      if (filters == null) {
+        filters = filter;
+      } else if (filters instanceof CombinedComposableFilter c) {
+        filters = c.add(filter);
+      } else {
+        filters = new CombinedComposableFilter(AND, filters, filter);
+      }
+    }
+    return this;
+  }
+
+  public QueryParams and(ComposableFilter filter) {
+//    if (filter != null) filters.add(filter);
+    if (filter != null) {
+      if (filters == null) {
+        filters = filter;
+      } else if (filters instanceof CombinedComposableFilter c && c.op() == AND) {
+        filters = c.add(filter);
+      } else {
+        filters = new CombinedComposableFilter(AND, filters, filter);
+      }
+    }
+    return this;
+  }
+
+  public QueryParams or(ComposableFilter filter) {
+//    if (filter != null) filters.add(filter);
+    if (filter != null) {
+      if (filters == null) {
+        filters = filter;
+      } else if (filters instanceof CombinedComposableFilter c && c.op() == OR) {
+        filters = c.add(filter);
+      } else {
+        filters = new CombinedComposableFilter(OR, filters, filter);
+      }
+    }
     return this;
   }
 
   public QueryParams filters(Collection<ComposableFilter> filters) {
-    if (filters != null) this.filters.addAll(filters);
+    filters.forEach(this::filter);
     return this;
   }
 
   public QueryParams and(String table, String alias, String condition, boolean exclude) {
-    return filter(new ComposableFilter(Composable.Op.AND, table, alias, condition, exclude));
+    return and(new ComposableFilter(table, alias, condition, exclude));
+//    return filter(new ComposableFilter(ComposableFilter.Op.AND, table, alias, condition, exclude));
   }
 
   public QueryParams and(String table, String alias, String condition) {
@@ -103,7 +143,8 @@ public class QueryParams {
   }
 
   public QueryParams or(String table, String alias, String condition, boolean exclude) {
-    return filter(new ComposableFilter(Composable.Op.OR, table, alias, condition, exclude));
+    return or(new ComposableFilter(table, alias, condition, exclude));
+//    return filter(new ComposableFilter(ComposableFilter.Op.OR, table, alias, condition, exclude));
   }
 
   public QueryParams or(String table, String alias, String condition) {
@@ -131,31 +172,31 @@ public class QueryParams {
   }
 
   public QueryParams column(String table, String alias, String name, String expression, GroupBy.Type group) {
-    columns.add(new ComposableColumn(table, alias, name, expression, null, group, Composable.Order.NONE));
+    columns.add(new ComposableColumn(table, alias, name, expression, null, group, ComposableColumn.Order.NONE));
     return this;
   }
 
   public QueryParams column(String table, String alias, String name, String expression, Metadata metadata) {
-    columns.add(new ComposableColumn(table, alias, name, expression, metadata, null, Composable.Order.NONE));
+    columns.add(new ComposableColumn(table, alias, name, expression, metadata, null, ComposableColumn.Order.NONE));
     return this;
   }
 
   public QueryParams column(String table, String alias, String name, String expression, Metadata metadata, GroupBy.Type group) {
-    columns.add(new ComposableColumn(table, alias, name, expression, metadata, group, Composable.Order.NONE));
+    columns.add(new ComposableColumn(table, alias, name, expression, metadata, group, ComposableColumn.Order.NONE));
     return this;
   }
 
-  public QueryParams column(String table, String alias, String name, String expression, Composable.Order order) {
+  public QueryParams column(String table, String alias, String name, String expression, ComposableColumn.Order order) {
     columns.add(new ComposableColumn(table, alias, name, expression, null, null, order));
     return this;
   }
 
-  public QueryParams column(String table, String alias, String name, String expression, Metadata metadata, Composable.Order order) {
+  public QueryParams column(String table, String alias, String name, String expression, Metadata metadata, ComposableColumn.Order order) {
     columns.add(new ComposableColumn(table, alias, name, expression, metadata, null, order));
     return this;
   }
 
-  public QueryParams column(String table, String alias, String name, String expression, Metadata metadata, GroupBy.Type group, Composable.Order order) {
+  public QueryParams column(String table, String alias, String name, String expression, Metadata metadata, GroupBy.Type group, ComposableColumn.Order order) {
     columns.add(new ComposableColumn(table, alias, name, expression, metadata, group, order));
     return this;
   }
@@ -183,7 +224,7 @@ public class QueryParams {
 
   public QueryParams clear() {
     params.clear();
-    filters.clear();
+    filters = null;
     columns.clear();
     return this;
   }
@@ -194,7 +235,8 @@ public class QueryParams {
   }
 
   public QueryParams clearFilters() {
-    filters.clear();
+//    filters.clear();
+    filters = null;
     return this;
   }
 
@@ -207,8 +249,8 @@ public class QueryParams {
     return Collections.unmodifiableMap(params);
   }
 
-  public List<ComposableFilter> filters() {
-    return Collections.unmodifiableList(filters);
+  public ComposableFilter filters() {
+    return filters;
   }
 
   public List<ComposableColumn> columns() {
@@ -217,7 +259,8 @@ public class QueryParams {
 
   protected final Map<String, Param> params = new LinkedHashMap<>();
 
-  protected final List<ComposableFilter> filters = new ArrayList<>();
+//  protected final List<ComposableFilter> filters = new ArrayList<>();
+  protected ComposableFilter filters = null;
 
   protected final List<ComposableColumn> columns = new ArrayList<>();
 }

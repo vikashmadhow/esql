@@ -7,7 +7,7 @@ package ma.vi.esql.filter;
 import ma.vi.esql.DataTest;
 import ma.vi.esql.database.EsqlConnection;
 import ma.vi.esql.exec.QueryParams;
-import ma.vi.esql.exec.composable.Composable;
+import ma.vi.esql.exec.composable.CombinedComposableFilter;
 import ma.vi.esql.exec.composable.ComposableFilter;
 import ma.vi.esql.semantic.type.BaseRelation;
 import ma.vi.esql.syntax.Esql;
@@ -23,6 +23,8 @@ import org.junit.jupiter.api.TestFactory;
 
 import java.util.stream.Stream;
 
+import static ma.vi.esql.exec.composable.ComposableFilter.Op.AND;
+import static ma.vi.esql.exec.composable.ComposableFilter.Op.OR;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.DynamicTest.dynamicTest;
 
@@ -76,7 +78,7 @@ public class ComposableFilterTest extends DataTest {
                                 new Join("test.pB", "pB", null, p.parseExpression("pY.b_id=pB._id")),
                                 new Join("test.pX", "x",  null, p.parseExpression("pB.x_id=x._id")));
 
-                     assertEquals(p.parseExpression("(((pZ.a < 2 or pZ.a > 5) and x.a = 3) or x.a = 4) and pB.a = 5"), select.where());
+                     assertEquals(p.parseExpression("(pZ.a < 2 or pZ.a > 5) and ((x.a = 3 or x.a = 4) and pB.a = 5)"), select.where());
                      con.execPrepared(filtered);
                    }
                  }));
@@ -91,12 +93,12 @@ public class ComposableFilterTest extends DataTest {
                      Esql<?, ?> filtered =
                        con.prepare("select a from test.pZ where a < 2 or a > 5",
                                    new QueryParams()
-                                     .filter(new ComposableFilter(Composable.Op.OR,
-                                                                  new ComposableFilter("test.pX", "x", "x.a=3"),
-                                                                  new ComposableFilter(Composable.Op.AND,
+                                     .filter(new CombinedComposableFilter(OR,
+                                                                          new ComposableFilter("test.pX", "x", "x.a=3"),
+                                                                          new CombinedComposableFilter(AND,
                                                                                        new ComposableFilter("test.pX", "x", "x.a=4"),
                                                                                        new ComposableFilter("test.pY", "y", "y.a=7")),
-                                                                  new ComposableFilter("test.pB", "b", "b.a=5"))));
+                                                                          new ComposableFilter("test.pB", "b", "b.a=5"))));
                      System.out.println(filtered);
 
                      Select select = (Select)((Program)filtered).expressions().get(0);
@@ -134,7 +136,7 @@ public class ComposableFilterTest extends DataTest {
                                 new Join("test.pY", "pY", null, p.parseExpression("a._id=pY.a_id")),
                                 new Join("test.pZ", "z",  null, p.parseExpression("pY._id=z.y_id")));
 
-                     assertEquals(p.parseExpression("(pX.a < 2) and a.a=3 and z.a<4"), select.where());
+                     assertEquals(p.parseExpression("(pX.a < 2) and (a.a=3 and z.a<4)"), select.where());
                      con.execPrepared(filtered);
                    }
                  }));

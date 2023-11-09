@@ -96,6 +96,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Template structs: structs that are used to create tables; provides a common
     inheritable structure to a set of related tables (e.g.).
 
+## [1.6.6]
+### Added
+- `ComposableFilter` redesigned to be an extensible class (from a record) that is
+  extended by `CombinedComposableFilter`; these two classes now form a pair of
+  component-container classes that can be used to create hierarchical composable
+  filters with different operators.
+
 ## [1.6.5] - 2023-10-23
 ### Added
 - `history` function extends the range of time for returning history to the start

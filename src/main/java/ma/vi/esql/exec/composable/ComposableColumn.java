@@ -16,6 +16,8 @@ public record ComposableColumn(String       table,
                                Metadata     metadata,
                                GroupBy.Type group,
                                Order        order) implements Composable {
+  public enum Order { NONE, ASC, DESC }
+
   public ComposableColumn(String table,
                           String alias,
                           String name,
@@ -41,7 +43,7 @@ public record ComposableColumn(String       table,
          expression,
          metadata,
          null,
-         Composable.Order.NONE);
+         Order.NONE);
   }
 
   public ComposableColumn(String   table,
@@ -55,6 +57,6 @@ public record ComposableColumn(String       table,
          expression,
          metadata,
          null,
-         Composable.Order.NONE);
+         Order.NONE);
   }
 }
