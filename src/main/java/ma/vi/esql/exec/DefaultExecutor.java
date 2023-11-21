@@ -49,7 +49,7 @@ public class DefaultExecutor implements Executor {
       /*
        * Substitute parameters into statement.
        */
-      if (qp !=null && !qp.params.isEmpty()) {
+      if (qp != null && !qp.params.isEmpty()) {
         st = esql.map((e, p) -> {
           if (e instanceof NamedParameter) {
             String paramName = ((NamedParameter)e).name();
@@ -74,15 +74,16 @@ public class DefaultExecutor implements Executor {
       st = expand(st, UntypedMacro.class);
 
       /*
+       * Expand typed macros in statement (macros requiring type information to be
+       * present when expanding).
+       */
+      st = expand(st, TypedMacro.class);
+
+      /*
        * Apply composable filters, if any.
        */
       if (qp != null && qp.filters() != null) {
         st = st.map((e, p) -> e.filter(qp.filters(), true, p));
-//        AtomicBoolean first = new AtomicBoolean(true);
-//        for (ComposableFilter filter: qp.filters) {
-//          st = st.map((e, p) -> e.filter(filter, first.get(), p));
-//          first.set(false);
-//        }
       }
 
       /*
@@ -97,8 +98,8 @@ public class DefaultExecutor implements Executor {
       }
 
       /*
-       * Expand typed macros in statement (macros requiring type information to be
-       * present when expanding).
+       * Expand typed macros which might have been added by composing filters
+       * and columns.
        */
       st = expand(st, TypedMacro.class);
 

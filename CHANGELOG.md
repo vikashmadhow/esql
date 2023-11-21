@@ -96,7 +96,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Template structs: structs that are used to create tables; provides a common
     inheritable structure to a set of related tables (e.g.).
 
-## [1.6.6]
+## [1.6.7] - 2023-11-20
+### Added
+- Expand typed macros before composing filters and columns as the latter would 
+  only be added to a query and not a macro. Typed macros are expanded again after
+  composition in case new macros were added.
+
+## [1.6.6] - 2023-11-08
 ### Added
 - `ComposableFilter` redesigned to be an extensible class (from a record) that is
   extended by `CombinedComposableFilter`; these two classes now form a pair of
