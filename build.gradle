@@ -34,9 +34,12 @@ repositories {
   mavenCentral()
 }
 
-generateGrammarSource {
-  outputDirectory = file("src/main/antlr")
-  arguments += ["-long-messages"]
+version = "1.6.8"
+group = 'ma.vi'
+
+project.ext {
+  moduleName = project.group + '.' + project.name
+  isReleaseVersion = !version.endsWith("SNAPSHOT")
 }
 
 sourceSets {
@@ -51,31 +54,26 @@ sourceSets {
 }
 
 java {
+  sourceCompatibility = JavaVersion.VERSION_17
+  targetCompatibility = JavaVersion.VERSION_17
+
   modularity.inferModulePath = true
   withJavadocJar()
   withSourcesJar()
 }
 
-version = "1.6.7"
-group = 'ma.vi'
-sourceCompatibility = JavaVersion.VERSION_17
-targetCompatibility = JavaVersion.VERSION_17
-
-project.ext {
-  moduleName = project.group + '.' + project.name
-  isReleaseVersion = !version.endsWith("SNAPSHOT")
+generateGrammarSource {
+  outputDirectory = file("src/main/antlr")
+  arguments += ["-long-messages"]
 }
+
+sourcesJar.dependsOn(generateGrammarSource)
 
 jar {
   inputs.property("moduleName", project.moduleName)
   manifest {
     attributes('Automatic-Module-Name': project.moduleName)
   }
-}
-
-java {
-  withJavadocJar()
-  withSourcesJar()
 }
 
 projectFilestatistics {
@@ -138,8 +136,8 @@ dependencies {
   implementation("org.yaml:snakeyaml:2.0")
 
   // Use JUnit test framework
-  testImplementation(platform("org.junit:junit-bom:5.9.2"))
   testImplementation("org.junit.jupiter:junit-jupiter:5.9.2")
+  testRuntimeOnly("org.junit.platform:junit-platform-launcher")
   testImplementation("org.hamcrest:hamcrest:2.2")
 }
 
@@ -151,7 +149,7 @@ test {
   jvmArgs("--enable-preview")
 }
 
-tasks.withType(Jar) {
+tasks.withType(Jar).configureEach {
   duplicatesStrategy = DuplicatesStrategy.INCLUDE
 }
 

@@ -96,6 +96,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Template structs: structs that are used to create tables; provides a common
     inheritable structure to a set of related tables (e.g.).
 
+## [1.6.8] - 2023-11-23
+### Added
+- `build.grade` updated to be compatible with Gradle version 8.
+
 ## [1.6.7] - 2023-11-20
 ### Added
 - Expand typed macros before composing filters and columns as the latter would 
