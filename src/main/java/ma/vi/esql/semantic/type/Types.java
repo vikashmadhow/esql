@@ -591,6 +591,7 @@ public class Types {
     postgresqlTypeMapping.put("double",           "double");
     postgresqlTypeMapping.put("double precision", "double");
     postgresqlTypeMapping.put("decimal",          "double");
+    postgresqlTypeMapping.put("numeric",          "double");
     postgresqlTypeMapping.put("money",            "money");
     postgresqlTypeMapping.put("bool",             "bool");
     postgresqlTypeMapping.put("boolean",          "bool");
@@ -625,6 +626,7 @@ public class Types {
     sqlServerTypeMapping.put("float",            "double");
     sqlServerTypeMapping.put("decimal",          "double");
     sqlServerTypeMapping.put("double",           "double");
+    sqlServerTypeMapping.put("numeric",          "double");
     sqlServerTypeMapping.put("money",            "money");
     sqlServerTypeMapping.put("bit",              "bool");
     sqlServerTypeMapping.put("char",             "string");
@@ -647,6 +649,7 @@ public class Types {
     hsqldbTypeMapping.put("real",          "float");
     hsqldbTypeMapping.put("float",         "double");
     hsqldbTypeMapping.put("decimal",       "double");
+    hsqldbTypeMapping.put("numeric",       "double");
     hsqldbTypeMapping.put("double",        "double");
     hsqldbTypeMapping.put("bool",          "bool");
     hsqldbTypeMapping.put("boolean",       "bool");
@@ -670,6 +673,7 @@ public class Types {
     mariadbTypeMapping.put("real",          "float");
     mariadbTypeMapping.put("float",         "double");
     mariadbTypeMapping.put("decimal",       "double");
+    mariadbTypeMapping.put("numeric",       "double");
     mariadbTypeMapping.put("double",        "double");
     mariadbTypeMapping.put("bool",          "bool");
     mariadbTypeMapping.put("boolean",       "bool");

@@ -34,7 +34,7 @@ repositories {
   mavenCentral()
 }
 
-version = "1.6.8"
+version = "1.6.9"
 group = 'ma.vi'
 
 project.ext {
@@ -52,6 +52,11 @@ sourceSets {
     resources { srcDirs = ['src/test/resources'] }
   }
 }
+
+//tasks.register('printTest') {
+//  println(sourceSets.main.name)
+//  println(sourceSets.main.java.files)
+//}
 
 java {
   sourceCompatibility = JavaVersion.VERSION_17
@@ -76,52 +81,12 @@ jar {
   }
 }
 
-projectFilestatistics {
-  // the files to include in the generation of the statistics
-  includes = [
-    "src/**/*.*",
-  ]
-
-  // the files to exclude from the generation
-  excludes = [
-    "**/node_modules/*",
-    "**/*.woff*",
-    "**/*.babelrc",
-    "**/*.editorconfig",
-    "**/*.eot",
-    "**/*.eslintignore",
-    "**/*.gif",
-    "**/*.ico",
-    "**/*.interp",
-    "**/*.jpg",
-    "**/*.json",
-    "**/*.keep",
-    "**/*.map",
-    "**/*.orig",
-    "**/*.otf",
-    "**/*.png",
-    "**/*.svg",
-    "**/*.tokens",
-    "**/*.ttf",
-    "**/*.xls*",
-    "**/*.pfx",
-    "**/dist/*"
-  ]
-
-  // the output directory for the generated statistics
-  outputDirectory = "$rootProject.buildDir/docs"
-
-  // if you require to over-ride how single and multi-line comments work, or
-  // need to add in some extensions which aren't built in...
-  // propertyFile = 'over-ride.properties'
-}
-
 dependencies {
   antlr("org.antlr:antlr4:4.13.0")
 
   api("org.pcollections:pcollections:3.1.4")
   api("ma.vi:base:latest.release")
-  api("org.json:json:20230618")
+  api("org.json:json:20231013")
 
   api("org.postgresql:postgresql:42.6.0")
   api("com.microsoft.sqlserver:mssql-jdbc:12.2.0.jre11")
@@ -230,3 +195,43 @@ publishing {
 //  username = project.getProperty('ossrhUsername')
 //  password = project.getProperty('ossrhPassword')
 //}
+
+projectFilestatistics {
+  // the files to include in the generation of the statistics
+  includes = [
+    "src/**/*.*",
+  ]
+
+  // the files to exclude from the generation
+  excludes = [
+    "**/node_modules/*",
+    "**/*.woff*",
+    "**/*.babelrc",
+    "**/*.editorconfig",
+    "**/*.eot",
+    "**/*.eslintignore",
+    "**/*.gif",
+    "**/*.ico",
+    "**/*.interp",
+    "**/*.jpg",
+    "**/*.json",
+    "**/*.keep",
+    "**/*.map",
+    "**/*.orig",
+    "**/*.otf",
+    "**/*.png",
+    "**/*.svg",
+    "**/*.tokens",
+    "**/*.ttf",
+    "**/*.xls*",
+    "**/*.pfx",
+    "**/dist/*"
+  ]
+
+  // the output directory for the generated statistics
+  outputDirectory = "$rootProject.buildDir/docs"
+
+  // if you require to over-ride how single and multi-line comments work, or
+  // need to add in some extensions which aren't built in...
+  // propertyFile = 'over-ride.properties'
+}
