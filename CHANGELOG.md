@@ -96,6 +96,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Template structs: structs that are used to create tables; provides a common
     inheritable structure to a set of related tables (e.g.).
 
+## [1.6.10] - 2024-04-25
+### Added
+- Partial support for circular dependencies in extensions. Extension are now 
+  put in the `extensions` set before they are initialised so that they are 
+  available when requested from other extensions. This allows for some measure
+  of circular dependency between extensions but might fail if initialisation of
+  the extension is required prior to its use. In most cases, the existence of
+  the extension is all that is required during initialisation.
+
 ## [1.6.9] - 2024-04-23
 ### Added
 - Support for `numeric` type.
