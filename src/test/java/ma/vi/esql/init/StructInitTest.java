@@ -1,7 +1,7 @@
 package ma.vi.esql.init;
 
 import ma.vi.esql.DataTest;
-import ma.vi.esql.database.init.StructInitializer;
+import ma.vi.esql.database.init.table.StructInitializer;
 import ma.vi.esql.semantic.type.Struct;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;

@@ -1,8 +1,9 @@
-package ma.vi.esql.database.init;
+package ma.vi.esql.database.init.table;
 
 import ma.vi.esql.builder.CreateBuilder;
 import ma.vi.esql.database.Database;
 import ma.vi.esql.database.EsqlConnection;
+import ma.vi.esql.database.init.Initializer;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.Parser;

@@ -1,6 +1,7 @@
-package ma.vi.esql.database;
+package ma.vi.esql.extension;
 
 import ma.vi.base.config.Configuration;
+import ma.vi.esql.database.Database;
 
 import java.util.Collections;
 import java.util.Map;

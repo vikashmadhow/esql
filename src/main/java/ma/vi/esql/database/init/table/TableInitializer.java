@@ -1,4 +1,4 @@
-package ma.vi.esql.database.init;
+package ma.vi.esql.database.init.table;
 
 import ma.vi.esql.builder.CreateTableBuilder;
 import ma.vi.esql.database.Database;

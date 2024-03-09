@@ -266,7 +266,7 @@ public class SelectTest extends DataTest {
                      con.exec("delete t from t:a.b.T");
                      con.exec("delete s from s:S");
                      con.exec("insert into S(_id, a, b, e, i, n, h, j) values "
-                                  + "(newid(), '1'::int, '2'::int, 'true'::bool, 5::string, '23-03-2023'?:date, ['Four', 'Quatre']text, [1, 2, 3]int),"
+                                  + "(newid(), '1'::int, '2'::int, 'true'::bool, 5::string, '2023-03-23'?:date, ['Four', 'Quatre']text, [1, 2, 3]int),"
                                   + "(newid(), '2'?:int, 'x'?:int, 'p'?:bool,    d'2001-02-01'::string, '2001-p231'?:date,  ['Four', 'Quatre']text, [1, 2, 3]int),"
                                   + "(newid(), trycast('3' as int), trycast('x' as int), trycast('p' as bool), trycast(d'2001-02-01' as string), trycast('2001-p231' as date), ['Four', 'Quatre']text, [1, 2, 3]int)");
 

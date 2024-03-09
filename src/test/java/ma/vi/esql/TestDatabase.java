@@ -8,7 +8,7 @@ import ma.vi.base.config.Configuration;
 import ma.vi.base.lang.NotFoundException;
 import ma.vi.esql.database.Database;
 import ma.vi.esql.database.EsqlConnection;
-import ma.vi.esql.database.Extension;
+import ma.vi.esql.extension.Extension;
 import ma.vi.esql.database.Structure;
 import ma.vi.esql.exec.Executor;
 import ma.vi.esql.semantic.type.BaseRelation;

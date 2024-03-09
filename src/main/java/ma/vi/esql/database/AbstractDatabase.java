@@ -11,6 +11,7 @@ import ma.vi.esql.exec.DefaultExecutor;
 import ma.vi.esql.exec.Executor;
 import ma.vi.esql.exec.QueryParams;
 import ma.vi.esql.exec.Result;
+import ma.vi.esql.extension.Extension;
 import ma.vi.esql.semantic.type.Struct;
 import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.semantic.type.*;

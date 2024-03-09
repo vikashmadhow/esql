@@ -8,6 +8,7 @@ import ma.vi.base.config.Configuration;
 import ma.vi.base.lang.NotFoundException;
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.exec.Executor;
+import ma.vi.esql.extension.Extension;
 import ma.vi.esql.semantic.type.BaseRelation;
 import ma.vi.esql.semantic.type.Column;
 import ma.vi.esql.semantic.type.Struct;

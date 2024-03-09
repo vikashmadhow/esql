@@ -34,7 +34,7 @@ repositories {
   mavenCentral()
 }
 
-version = "1.6.10"
+version = "1.7.0"
 group = 'ma.vi'
 
 project.ext {
@@ -59,8 +59,8 @@ sourceSets {
 //}
 
 java {
-  sourceCompatibility = JavaVersion.VERSION_17
-  targetCompatibility = JavaVersion.VERSION_17
+//  sourceCompatibility = JavaVersion.VERSION_17
+//  targetCompatibility = JavaVersion.VERSION_17
 
   modularity.inferModulePath = true
   withJavadocJar()
