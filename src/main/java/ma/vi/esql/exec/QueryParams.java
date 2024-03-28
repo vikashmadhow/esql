@@ -94,11 +94,22 @@ public class QueryParams {
       } else if (filters instanceof CombinedComposableFilter c) {
         filters = c.add(filter);
       } else {
-        filters = new CombinedComposableFilter(AND, filters, filter);
+        filters = new CombinedComposableFilter(AND, filter, filters);
       }
     }
     return this;
   }
+
+//  public QueryParams restrict(ComposableFilter filter) {
+//    if (filter != null) {
+//      if (filters == null) {
+//        filters = filter;
+//      } else {
+//        filters = new CombinedComposableFilter(AND, filter, filters);
+//      }
+//    }
+//    return this;
+//  }
 
   public QueryParams and(ComposableFilter filter) {
 //    if (filter != null) filters.add(filter);
@@ -108,7 +119,7 @@ public class QueryParams {
       } else if (filters instanceof CombinedComposableFilter c && c.op() == AND) {
         filters = c.add(filter);
       } else {
-        filters = new CombinedComposableFilter(AND, filters, filter);
+        filters = new CombinedComposableFilter(AND, filter, filters);
       }
     }
     return this;

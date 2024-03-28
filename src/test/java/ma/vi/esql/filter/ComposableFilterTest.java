@@ -75,10 +75,10 @@ public class ComposableFilterTest extends DataTest {
                      Parser p = new Parser(db.structure());
                      fromEquals(from, "test.pZ", "pZ",
                                 new Join("test.pY", "pY", null, p.parseExpression("pZ.y_id=pY._id")),
-                                new Join("test.pB", "pB", null, p.parseExpression("pY.b_id=pB._id")),
-                                new Join("test.pX", "x",  null, p.parseExpression("pB.x_id=x._id")));
+                                new Join("test.pB", "b",  null, p.parseExpression("pY.b_id=b._id")),
+                                new Join("test.pX", "x",  null, p.parseExpression("b.x_id=x._id")));
 
-                     assertEquals(p.parseExpression("(pZ.a < 2 or pZ.a > 5) and ((x.a = 3 or x.a = 4) and pB.a = 5)"), select.where());
+                     assertEquals(p.parseExpression("(pZ.a < 2 or pZ.a > 5) and (b.a = 5 and (x.a = 3 or x.a = 4))"), select.where());
                      con.execPrepared(filtered);
                    }
                  }));
@@ -132,11 +132,17 @@ public class ComposableFilterTest extends DataTest {
                      TableExpr from = select.from();
                      Parser p = new Parser(db.structure());
                      fromEquals(from, "test.pX", "pX",
-                                new Join("test.pA", "a",  null, p.parseExpression("pX._id=a.x_id")),
-                                new Join("test.pY", "pY", null, p.parseExpression("a._id=pY.a_id")),
+                                new Join("test.pB", "pB", null, p.parseExpression("pX._id=pB.x_id")),
+                                new Join("test.pY", "pY", null, p.parseExpression("pB._id=pY.b_id")),
+                                new Join("test.pA", "a",  null, p.parseExpression("pY.a_id=a._id")),
                                 new Join("test.pZ", "z",  null, p.parseExpression("pY._id=z.y_id")));
+//pX:test.pX
+// join pB:test.pB on pX._id (uuid) = pB.x_id (uuid)
+// join pY:test.pY on pB._id (uuid) = pY.b_id (uuid)
+// join a:test.pA on pY.a_id (uuid) = a._id (uuid)
+// join z:test.pZ on pY._id (uuid) = z.y_id (uuid)
 
-                     assertEquals(p.parseExpression("(pX.a < 2) and (a.a=3 and z.a<4)"), select.where());
+                     assertEquals(p.parseExpression("(pX.a < 2) and (z.a<4 and a.a=3)"), select.where());
                      con.execPrepared(filtered);
                    }
                  }));

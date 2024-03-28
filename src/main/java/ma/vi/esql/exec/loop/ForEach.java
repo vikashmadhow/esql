@@ -99,10 +99,11 @@ public class ForEach extends Expression<String, ForEach> {
   }
 
   @Override
-  public Object exec(Target target,
-                     EsqlConnection esqlCon,
-                     EsqlPath path,
-                     PMap<String, Object> parameters, Environment env) {
+  public Object exec(Target               target,
+                     EsqlConnection       esqlCon,
+                     EsqlPath             path,
+                     PMap<String, Object> parameters,
+                     Environment          env) {
     Environment forEnv = new BlockEnvironment("For Each Loop Environment", env);
     String keyVar = keyVar();
     if (keyVar != null) {

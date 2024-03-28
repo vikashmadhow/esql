@@ -96,6 +96,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Template structs: structs that are used to create tables; provides a common
     inheritable structure to a set of related tables (e.g.).
 
+## [1.7.1] - 2024-03-27
+### Added
+- New `and` filters are added before existing filters in `QueryParams` so that 
+  they are applied in a restrictive manner when combined with an existing `or`
+  filter. This ensures that queries do not 'escape' data restrictions.
+
 ## [1.7.0] - 2024-03-09
 ### Lookups
 #### ESQL lookup functionality as an extension
@@ -145,7 +151,6 @@ The following schema shows the tables and their relationships:
        ^                            |
        +----------------------------+
            target
-
 ```
 
 The following shows how some example lookups above are stored in this lookup
