@@ -363,6 +363,9 @@ setName
  * 5. A join (inner, left, right, full) of any two table expressions:
  *          `select x.a, x.b, y.c, z.d from x:X join y:Y on x.a=y.b left join z:Z on y.c=z.c`
  *
+ * 6. A function call returning a set of rows or a macro function expanding to
+ *    to a sub-select.
+ *
  * Cartesian products and joins can combine any table expression types
  * (including themselves) to form more complex table expressions through
  * composition.

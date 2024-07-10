@@ -96,6 +96,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Template structs: structs that are used to create tables; provides a common
     inheritable structure to a set of related tables (e.g.).
 
+## [1.7.2] - 2024-07-09
+### Added
+- Simple `lateral` joins now translates to `cross apply` in SQL Server instead of 
+  `outer apply` as it is faster and closer to expected behaviour. `left join lateral`,
+  `right join lateral` and `full join lateral` now translates to `outer lateral`.
+
 ## [1.7.1] - 2024-03-27
 ### Added
 - New `and` filters are added before existing filters in `QueryParams` so that 

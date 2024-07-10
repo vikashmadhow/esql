@@ -113,7 +113,9 @@ public class JoinTableExpr extends AbstractJoinTableExpr {
     String rightTrans = right().translate(target, esqlCon, path.add(right()), parameters, env);
     if (lateral()) {
       if (target == Target.SQLSERVER) {
-        return leftTrans + " outer apply " + rightTrans;
+        return joinType() == null
+             ? leftTrans + " cross apply " + rightTrans
+             : leftTrans + " outer apply " + rightTrans;
 
       } else {
         return leftTrans
