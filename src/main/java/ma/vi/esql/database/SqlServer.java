@@ -40,7 +40,16 @@ public class SqlServer extends AbstractDatabase {
     props.setProperty("dataSource.sendStringParametersAsUnicode", "true");
     props.setProperty("dataSource.encrypt", "false");
     props.setProperty("dataSource.trustServerCertificate", "true");
-    dataSource = new HikariDataSource(new HikariConfig(props));
+
+    HikariConfig hikariConfig = new HikariConfig(props);
+
+    // Set the desired properties for the Hikari connection pool
+    hikariConfig.setMaximumPoolSize(20); // Maximum number of connections in the pool
+    hikariConfig.setConnectionTimeout(300000); // Connection timeout in milliseconds (5 minutes)
+    hikariConfig.setIdleTimeout(120000); // Idle timeout in milliseconds (2 minutes)
+    hikariConfig.setLeakDetectionThreshold(300000); // Leak detection threshold in milliseconds (5 minutes)
+
+    dataSource = new HikariDataSource(hikariConfig);
 
     init(config);
 
