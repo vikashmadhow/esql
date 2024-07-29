@@ -44,10 +44,13 @@ public class SqlServer extends AbstractDatabase {
     HikariConfig hikariConfig = new HikariConfig(props);
 
     // Set the desired properties for the Hikari connection pool
-    hikariConfig.setMaximumPoolSize(20); // Maximum number of connections in the pool
+    hikariConfig.setMaximumPoolSize(25); // Maximum number of connections in the pool
     hikariConfig.setConnectionTimeout(900000); // Connection timeout in milliseconds (15 minutes)
-    hikariConfig.setIdleTimeout(120000); // Idle timeout in milliseconds (2 minutes)
+    hikariConfig.setIdleTimeout(900000); // Idle timeout in milliseconds (15 minutes)
     hikariConfig.setLeakDetectionThreshold(900000); // Leak detection threshold in milliseconds (15 minutes)
+    hikariConfig.setMaxLifetime(1800000); // Shorten maxLifetime: Reduce the maxLifetime configuration to ensure connections are refreshed more frequently.
+    hikariConfig.setConnectionTestQuery("SELECT 1");
+    hikariConfig.setMinimumIdle(5);
 
     dataSource = new HikariDataSource(hikariConfig);
 
