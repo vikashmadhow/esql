@@ -40,7 +40,19 @@ public class SqlServer extends AbstractDatabase {
     props.setProperty("dataSource.sendStringParametersAsUnicode", "true");
     props.setProperty("dataSource.encrypt", "false");
     props.setProperty("dataSource.trustServerCertificate", "true");
-    dataSource = new HikariDataSource(new HikariConfig(props));
+
+    HikariConfig hikariConfig = new HikariConfig(props);
+
+    // Set the desired properties for the Hikari connection pool
+    hikariConfig.setMaximumPoolSize(25); // Maximum number of connections in the pool
+    hikariConfig.setConnectionTimeout(900000); // Connection timeout in milliseconds (15 minutes)
+    hikariConfig.setIdleTimeout(900000); // Idle timeout in milliseconds (15 minutes)
+    hikariConfig.setLeakDetectionThreshold(900000); // Leak detection threshold in milliseconds (15 minutes)
+    hikariConfig.setMaxLifetime(1800000); // Shorten maxLifetime: Reduce the maxLifetime configuration to ensure connections are refreshed more frequently.
+    hikariConfig.setConnectionTestQuery("SELECT 1");
+    hikariConfig.setMinimumIdle(5);
+
+    dataSource = new HikariDataSource(hikariConfig);
 
     init(config);
 
@@ -322,6 +334,12 @@ public class SqlServer extends AbstractDatabase {
             return @unobfuscated;
           end;""");
 
+      //
+      // USE [aletia2]
+      // GO
+      // CREATE VIEW [_core].[RandomSeedView] AS
+      // SELECT ABS(CHECKSUM(NEWID())) AS Seed
+      // GO
       c.createStatement().executeUpdate(
           """
           create or alter function _core.randomstr(@length Int) returns nvarchar(1000) as
@@ -330,7 +348,7 @@ public class SqlServer extends AbstractDatabase {
             declare @i              Int = 1;
             declare @password_chars nvarchar(100) = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
             declare @chars_len      Int = len(@password_chars);
-            declare @random         BigInt = datepart(millisecond, getutcdate());
+            declare @random         BigInt = (select Seed from _core.RandomSeedView);
             declare @a              BigInt = 1664525;
             declare @c              BigInt = 1013904223;
             declare @m              BigInt = power(cast(2 as bigint), 32);
