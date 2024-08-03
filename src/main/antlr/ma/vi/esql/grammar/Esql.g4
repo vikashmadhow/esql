@@ -327,9 +327,8 @@ EscapedIdentifier
 
 /**
  * Qualified identifiers are one or more identifiers (an identifier is a name
- * starting with [$_a-zA-Z] and optionally followed by zero or more
- * [$_a-zA-Z0-9]) joined together with periods. For instance, these are valid
- * qualified identifiers:
+ * starting with [$_a-zA-Z] and optionally followed by zero or more [$_a-zA-Z0-9])
+ * joined together with periods. For instance, these are valid qualified identifiers:
  *
  *    a
  *    b.x
@@ -371,11 +370,11 @@ setName
  * composition.
  */
 tableExpr
-    : (alias ':')? qualifiedName               #SingleTableExpr
-    | alias ':'    functionCall                #FunctionTableExpr
-    | alias ':' '(' select ')'                 #SelectTableExpr
-    | alias  dynamicColumns ':' '(' rows ')'   #DynamicTableExpr
-    | left=tableExpr 'times' right=tableExpr   #CrossProductTableExpr
+    : (alias ':')? qualifiedName                #SingleTableExpr
+    |  alias ':'   functionCall                 #FunctionTableExpr
+    |  alias ':' '(' select ')'                 #SelectTableExpr
+    |  alias  dynamicColumns ':' '(' rows ')'   #DynamicTableExpr
+    |  left=tableExpr 'times' right=tableExpr   #CrossProductTableExpr
 
       /**
        * 4 join types are available in ESQL: `left`, `right` and `full` joins are
@@ -1073,12 +1072,11 @@ argument
   ;
 
 /*
- * A named argument to a function. The name is dropped when this is
- * translated to SQL as most databases do not support named arguments yet.
- * This is however useful as macro parameters to control the macro
- * expansion. Since macros are expanded before translation of the ESQL
- * statement to SQL, the named parameters can be interpreted by the macro
- * and dropped from the expansion.
+ * A named argument to a function. The name is dropped when this is translated
+ * to SQL as most databases do not support named arguments yet. This is however
+ * useful as macro parameters to control the macro expansion. Since macros are
+ * expanded before translation of the ESQL statement to SQL, the named parameters
+ * can be interpreted by the macro and dropped from the expansion.
  */
 namedArgument
   : identifier '=' positionalArgument

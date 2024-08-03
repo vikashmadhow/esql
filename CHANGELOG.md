@@ -96,6 +96,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Template structs: structs that are used to create tables; provides a common
     inheritable structure to a set of related tables (e.g.).
 
+## [1.7.3] - 2024-08-03
+### Added
+- Composing tables in `filter` in `SingleTableExpr` changed to:
+  - Prefer path from the current table to the target composed table, when the
+    current table has mirrors.
+  - Return the least cost path instead of the result of the first attempt to find
+    a path (which may sometimes result in a null path when considering mirror
+    tables).
+
 ## [1.7.2] - 2024-07-09
 ### Added
 - Simple `lateral` joins now translates to `cross apply` in SQL Server instead of 

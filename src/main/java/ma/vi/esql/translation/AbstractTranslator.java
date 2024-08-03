@@ -26,20 +26,20 @@ public abstract class AbstractTranslator implements Translator {
                          EsqlPath             path,
                          PMap<String, Object> parameters,
                          Environment          env) {
-//    T trans = switch(esql) {
-//      case Select s -> (T)translate(s, esqlCon, path, parameters, env);
-//      case Update s -> (T)translate(s, esqlCon, path, parameters, env);
-//      case Delete s -> (T)translate(s, esqlCon, path, parameters, env);
-//      case Insert s -> (T)translate(s, esqlCon, path, parameters, env);
-//      default       -> throw new TranslationException(esql, "Translation of " + esql + " to " + target() + " is not supported");
-//    };
-    T trans = esql instanceof Select s ? (T)translate(s, esqlCon, path, parameters, env)
-            : esql instanceof Update u ? (T)translate(u, esqlCon, path, parameters, env)
-            : esql instanceof Delete d ? (T)translate(d, esqlCon, path, parameters, env)
-            : esql instanceof Insert i ? (T)translate(i, esqlCon, path, parameters, env)
-            : null;
-    if (trans == null)
-      throw new TranslationException(esql, "Translation of " + esql + " to " + target() + " is not supported");
+    T trans = switch(esql) {
+      case Select s -> (T)translate(s, esqlCon, path, parameters, env);
+      case Update s -> (T)translate(s, esqlCon, path, parameters, env);
+      case Delete s -> (T)translate(s, esqlCon, path, parameters, env);
+      case Insert s -> (T)translate(s, esqlCon, path, parameters, env);
+      default       -> throw new TranslationException(esql, "Translation of " + esql + " to " + target() + " is not supported");
+    };
+//    T trans = esql instanceof Select s ? (T)translate(s, esqlCon, path, parameters, env)
+//            : esql instanceof Update u ? (T)translate(u, esqlCon, path, parameters, env)
+//            : esql instanceof Delete d ? (T)translate(d, esqlCon, path, parameters, env)
+//            : esql instanceof Insert i ? (T)translate(i, esqlCon, path, parameters, env)
+//            : null;
+//    if (trans == null)
+//      throw new TranslationException(esql, "Translation of " + esql + " to " + target() + " is not supported");
 
     if (target() == Translatable.Target.JAVASCRIPT) {
       String jsTrans = "(await $exec.select(`" + String.valueOf(trans) + "`))";

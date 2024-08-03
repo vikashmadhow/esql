@@ -36,7 +36,7 @@ import static ma.vi.esql.syntax.expression.ColumnRef.qualify;
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public class SingleTableExpr extends AbstractAliasTableExpr {
+public class  SingleTableExpr extends AbstractAliasTableExpr {
   public SingleTableExpr(Context context,
                          String tableName,
                          String alias) {
@@ -76,10 +76,29 @@ public class SingleTableExpr extends AbstractAliasTableExpr {
       BaseRelation rel = context.structure.relation(tableName());
       Set<String> mirrorTables = new LinkedHashSet<>();
       mirrors(context.structure, composable.table(), mirrorTables);
-      for (String table: mirrorTables) {
-        BaseRelation.Path path = rel.path(table);
-        return path == null ? null : new ShortestPath(this, path, composable);
+
+      /*
+       * Put the current table at the top of the list of mirror tables if it is
+       * contained in the list of mirrors. This gives preference to the current
+       * table when finding a path to the composable table.
+       */
+      List<String> tables = new ArrayList<>();
+      if (mirrorTables.contains(tableName())) {
+        tables.add(tableName());
+        mirrorTables.remove(tableName());
       }
+      tables.addAll(mirrorTables);
+
+      int pathCost = Integer.MAX_VALUE;
+      ShortestPath lowestCostPath = null;
+      for (String table: tables) {
+        BaseRelation.Path path = rel.path(table);
+        if (path != null && path.cost() < pathCost) {
+          pathCost = path.cost();
+          lowestCostPath = new ShortestPath(this, path, composable);
+        }
+      }
+      return lowestCostPath;
     }
     return null;
   }
