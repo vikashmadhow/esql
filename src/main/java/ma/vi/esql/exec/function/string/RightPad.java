@@ -34,7 +34,12 @@ public class RightPad extends Function {
   }
 
   @Override
-  public String translate(FunctionCall call, Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
+  public String translate(FunctionCall         call,
+                          Target               target,
+                          EsqlConnection       esqlCon,
+                          EsqlPath             path,
+                          PMap<String, Object> parameters,
+                          Environment          env) {
     List<Expression<?, ?>> args = call.arguments();
     String str = args.get(0).translate(target, esqlCon, path.add(args.get(0)), env).toString();
     String length = args.get(1).translate(target, esqlCon, path.add(args.get(1)), env).toString();
@@ -56,9 +61,11 @@ public class RightPad extends Function {
   }
 
   @Override
-  public Object exec(Target target, EsqlConnection esqlCon,
-                     EsqlPath path,
-                     PMap<String, Object> parameters, Environment env) {
+  public Object exec(Target               target,
+                     EsqlConnection       esqlCon,
+                     EsqlPath             path,
+                     PMap<String, Object> parameters,
+                     Environment          env) {
     String  text   = env.get("text");
     Long    length = env.get("length");
     String  pad    = env.get("pad");

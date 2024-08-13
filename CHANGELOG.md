@@ -96,6 +96,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Template structs: structs that are used to create tables; provides a common
     inheritable structure to a set of related tables (e.g.).
 
+## [1.7.4] - 2024-08-13
+### Added
+- Trim additional hidden space characters in SQL Server.
+
 ## [1.7.3] - 2024-08-03
 ### Added
 - Composing tables in `filter` in `SingleTableExpr` changed to:

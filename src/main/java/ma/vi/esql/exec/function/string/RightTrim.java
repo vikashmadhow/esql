@@ -31,7 +31,12 @@ public class RightTrim extends Function {
   }
 
   @Override
-  public String translate(FunctionCall call, Target target, EsqlConnection esqlCon, EsqlPath path, PMap<String, Object> parameters, Environment env) {
+  public String translate(FunctionCall         call,
+                          Target               target,
+                          EsqlConnection       esqlCon,
+                          EsqlPath             path,
+                          PMap<String, Object> parameters,
+                          Environment          env) {
     List<Expression<?, ?>> args = call.arguments();
     if (target == JAVASCRIPT) {
       return "(" + args.get(0).translate(target, esqlCon, path.add(args.get(0)), env) + ").trimRight()";
@@ -43,9 +48,11 @@ public class RightTrim extends Function {
   }
 
   @Override
-  public Object exec(Target target, EsqlConnection esqlCon,
-                     EsqlPath path,
-                     PMap<String, Object> parameters, Environment env) {
+  public Object exec(Target               target,
+                     EsqlConnection       esqlCon,
+                     EsqlPath             path,
+                     PMap<String, Object> parameters,
+                     Environment          env) {
     String text = env.get("text");
     return text == null ? null : text.stripTrailing();
   }
