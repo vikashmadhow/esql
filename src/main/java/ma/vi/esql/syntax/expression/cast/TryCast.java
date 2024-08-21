@@ -69,14 +69,24 @@ public class TryCast extends Expression<String, String> {
       case POSTGRESQL -> "_core._try_cast(" + exprTrans + "::text, null::" + typeTrans + ')';
       case JAVASCRIPT -> exprTrans;                                 // ignore cast for Javascript
       case SQLSERVER  -> {
-        if (toType() == Types.BoolType) {
+        if (toType() == Types.FloatType
+         || toType() == Types.DoubleType
+         || toType() == Types.MoneyType
+         || toType() == Types.IntType
+         || toType() == Types.LongType
+         || toType() == Types.ShortType
+         || toType() == Types.ByteType) {
+          yield "case when trim(try_cast(" + exprTrans + " as varchar(max))) = '' then null "
+              + "     else try_cast(" + exprTrans + " as " + typeTrans + ')'
+              + "end";
+        } else if (toType() == Types.BoolType) {
           yield "case when trim(try_cast(" + exprTrans + " as varchar(max))) = '' then null "
               + "     when try_cast(" + exprTrans + " as int) != 0 then 1 "
               + "     when try_cast(" + exprTrans + " as int)  = 0 then 0 "
               + "     when left(trim(lower(try_cast(" + exprTrans + " as varchar(max)))), 1) in ('t', 'y', 'o', '1') then 1 "
               + "     when left(trim(lower(try_cast(" + exprTrans + " as varchar(max)))), 1) in ('f', 'n', '0')      then 0 "
               + "     else null "
-              + "end" ;
+              + "end";
         } else if (toType() == Types.DateType) {
           yield "coalesce(try_parse(" + exprTrans + " as date using 'en-GB'), "
               + "         try_parse(" + exprTrans + " as date using 'en-US'), "
