@@ -296,7 +296,8 @@ public class LookupLabel extends Function implements TypedMacro {
                     .column (new ColumnRef(ctx, firstFromValueAlias, "alt_code2"), "alt_code2")
                     .column (value, "label")
                     .from   (from)
-                    .orderBy(firstFromValueAlias + '.' + matchBy)
+//                    .orderBy(firstFromValueAlias + '.' + matchBy)
+                    .orderBy("4")
                     .build  ();
 
     } else if (codeIsArray) {
@@ -343,4 +344,6 @@ public class LookupLabel extends Function implements TypedMacro {
         ? expr
         : new Concatenation(ctx, asList(label, codeSeparator, expr));
   }
+
+  
 }

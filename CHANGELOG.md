@@ -96,6 +96,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Template structs: structs that are used to create tables; provides a common
     inheritable structure to a set of related tables (e.g.).
 
+## [1.7.6] - 2024-10-10
+### Added
+- `LookupLabel` returns codes and labels sorted by the labels instead of the 
+  codes as the labels are usually only displayed in dropdowns. 
+
 ## [1.7.5] - 2024-08-21
 ### Added
 - `TryCast` will now convert empty string to `null` instead of 0 for numbers on
