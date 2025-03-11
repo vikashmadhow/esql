@@ -96,6 +96,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Template structs: structs that are used to create tables; provides a common
     inheritable structure to a set of related tables (e.g.).
 
+## [1.7.7] - 2025-03-11
+### Fixed
+- Add query to both sides of a full join; this was not being done as the `compose`
+  method was looking for the `outer` instead of `full`.
+
 ## [1.7.6] - 2024-10-10
 ### Added
 - `LookupLabel` returns codes and labels sorted by the labels instead of the 

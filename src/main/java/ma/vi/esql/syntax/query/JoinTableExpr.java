@@ -71,8 +71,8 @@ public class JoinTableExpr extends AbstractJoinTableExpr {
   public ShortestPath findShortestPath(Composable composable) {
     String joinType = joinType();
     return joinType == null
-        || joinType.equals("outer") ? super.findShortestPath(composable)
-         : joinType.equals("left")  ? left().findShortestPath(composable)
+        || joinType.equals("full") ? super.findShortestPath(composable)
+         : joinType.equals("left") ? left().findShortestPath(composable)
          : right().findShortestPath(composable);
   }
 
