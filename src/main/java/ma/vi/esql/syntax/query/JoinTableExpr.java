@@ -80,7 +80,7 @@ public class JoinTableExpr extends AbstractJoinTableExpr {
   public AppliedShortestPath applyShortestPath(ShortestPath shortest, TableExpr root) {
     String joinType = joinType();
     if (joinType == null
-     || joinType.equals("outer")) {
+     || joinType.equals("full")) {
       return super.applyShortestPath(shortest, root);
 
     } else if (joinType.equals("left")) {
