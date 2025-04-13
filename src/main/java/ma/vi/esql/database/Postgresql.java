@@ -267,6 +267,14 @@ public class Postgresql extends AbstractDatabase {
           end;
           $$ language plpgsql immutable strict""");
 
+      c.createStatement().executeUpdate(
+        """
+        create or replace function _core.hash256(@value nvarchar(1000)) returns nvarchar(1000) as
+        begin
+          return value;
+        end;
+        $$ language plpgsql immutable strict""");
+
        /*
         * Coarse-grain event capture trigger functions
         */

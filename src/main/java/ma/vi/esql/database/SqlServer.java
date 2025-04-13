@@ -434,6 +434,13 @@ public class SqlServer extends AbstractDatabase {
           return @value * 10 + @cdigit;
         end;""");
 
+      c.createStatement().executeUpdate(
+        """
+        create or alter function _core.hash256(@value nvarchar(1000)) returns nvarchar(1000) as
+        begin
+          return convert(varchar(max), HASHBYTES('SHA2_256', @value), 2);
+        end;""");
+
       c.commit();
     } catch (SQLException e) {
       throw unchecked(e);
